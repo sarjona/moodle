@@ -103,10 +103,20 @@ echo $OUTPUT->heading(get_string('enrolmentoptions','enrol'));
 $courserenderer = $PAGE->get_renderer('core', 'course');
 echo $courserenderer->course_info_box($course);
 
-//TODO: find if future enrolments present and display some info
-
-foreach ($forms as $form) {
-    echo $form;
+$hasprereqstocomplete = false;
+foreach($forms as $instanceid => $form) {
+    if ($to_complete = enrol_get_prerequisites_to_complete($course->id, $instance->id)) {
+        $a = get_string('cannotenrolprerequisites', 'enrol_paypal');
+        $a .= "<ul>";
+        foreach ($to_complete as $c) {
+           $a .= '<li>'.format_string($c->fullname, true).'</li>';
+        }
+        $a .= "</ul>";
+        $hasprereqstocomplete = true;
+    } else {
+        //TODO: find if future enrolments present and display some info
+        echo $form;
+    }
 }
 
 if (!$forms) {

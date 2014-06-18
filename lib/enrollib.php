@@ -1358,6 +1358,50 @@ function enrol_accessing_via_instance(stdClass $instance) {
 }
 
 /**
+ * Get which courses are marked as pre-requisites for the given course 
+ * and enrol instance
+ *
+ * @param int $courseid The course id
+ * @param int $enrolinstanceid The enrol  instance id
+ * @return array The pre-requisite courses
+ */
+function enrol_get_prerequisites($courseid, $enrolinstanceid) {
+    global $DB;
+    $sql = "SELECT c.id, c.fullname, ca.courseid,ca.sourcecourseid
+              FROM {course_prereqs} cp
+              JOIN {course} c
+                ON (c.id = cp.courseid)
+             WHERE courseid = :courseid
+               AND ca.enrolinstanceid = :enrolinstanceid";
+    return $DB->get_records_sql($sql, array('courseid' => $courseid, 'enrolinstanceid' => $enrolinstanceid));
+}
+
+/**
+ * Get which courses are marked as pre-requisites
+ * and user has not yet completed
+ * for the given course and enrol instance
+ *
+ * @param int $courseid The course id
+ * @param int $enrolinstanceid The enrol  instance id
+ * @return array The pre-requisite courses
+ */
+function enrol_get_prerequisites_to_complete() {
+    global $USER;
+    $sql = "SELECT c.id, c.fullname
+              FROM {course_availability} ca
+         LEFT JOIN {course_completions} cc
+                ON (cc.course = ca.sourcecourseid AND
+                    cc.userid = {$USER->id})
+              JOIN {course} c
+                ON (c.id = ca.sourcecourseid)
+             WHERE cc.id IS NULL
+               AND ca.courseid = {$instance->courseid}
+               AND ca.enrolinstanceid = {$instance->id}";
+
+    return $DB->get_records_sql($sql, array('userid' = $USER->id, 'courseid' => $courseid, $instance->id));
+}
+
+/**
  * Returns true if user is enrolled (is participating) in course
  * this is intended for students and teachers.
  *

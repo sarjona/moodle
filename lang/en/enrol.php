@@ -171,6 +171,8 @@ $string['privacy:metadata:user_enrolments:timemodified'] = 'The time when the us
 $string['privacy:metadata:user_enrolments:userid'] = 'The ID of the user';
 $string['youenrolledincourse'] = 'You are enrolled in the course.';
 $string['youunenrolledfromcourse'] = 'You are unenrolled from the course "{$a}".';
+$string['cannotenrolprerequisites'] = 'Before enrol in this course you must complete the courses listed below.';
+$string['courseavailabilityconditions'] = 'Course pre-requisites';
 
 // Deprecated since Moodle 4.0.
 $string['proceedtocourse'] = 'Proceed to course content';

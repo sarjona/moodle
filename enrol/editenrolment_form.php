@@ -64,6 +64,16 @@ class enrol_user_enrolment_form extends moodleform {
         $mform->addElement('hidden', 'ifilter');
         $mform->setType('ifilter', PARAM_ALPHA);
 
+        $mform->addElement('header', '', get_string('courseavailabilityconditions', 'enrol_paypal'));
+
+        if ($courses = enrol_get_my_courses()) {
+            $course_availability = enrol_get_prerequisites($context->instanceid, $instance->courseid);
+            foreach($courses as $c) {
+                $mform->addElement('checkbox','condition['.$c->id.']',$c->fullname);
+                $mform->setDefault('condition['.$c->id.']', isset($course_availability[$c->id]));
+            }
+        }
+
         // Show action buttons if this is not being rendered as a fragment.
         if (!$modal) {
             $this->add_action_buttons();

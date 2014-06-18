@@ -3259,5 +3259,24 @@ privatefiles,moodle|/user/files.php';
     // Automatically generated Moodle v4.2.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2014061000.00) {
+        $table = new xmldb_table('course_prereqs');
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('prereqcourseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('enrolinstanceid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('courseid', XMLDB_KEY_FOREIGN, array('courseid'), 'course', array('id'));
+        $table->add_key('prereqcourseid', XMLDB_KEY_FOREIGN, array('sourcecourseid'), 'course', array('id'));
+        $table->add_key('enrolinstanceid', XMLDB_KEY_FOREIGN, array('enrolinstanceid'), 'enrol', array('id'));
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_main_savepoint(true, 2014061000.00);
+    }
+
     return true;
 }
