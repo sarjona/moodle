@@ -444,6 +444,15 @@ function message_get_providers_for_user($userid) {
         }
     }
 
+    // If badges are not enabled, remove badge providers
+    if (!$CFG->enablebadges) {
+        foreach ($providers as $providerid => $provider) {
+            if ($provider->name == 'badgecreatornotice' || $provider->name =='badgerecipientnotice') {
+                unset($providers[$providerid]);
+            }
+        }
+    }
+
     // If the component is an enrolment plugin, check it is enabled
     foreach ($providers as $providerid => $provider) {
         list($type, $name) = core_component::normalize_component($provider->component);
