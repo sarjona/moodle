@@ -2712,7 +2712,20 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
 
     // Check that the user has agreed to a site policy if there is one - do not test in case of admins.
     if (!$USER->policyagreed and !is_siteadmin()) {
-        if (!empty($CFG->sitepolicy) and !isguestuser()) {
+        if (!empty($CFG->sitepolicyhandler)) {
+            try {
+                $handler = component_callback($CFG->sitepolicyhandler, 'site_policy_handler');
+            } catch (Exception $e) {
+                debugging('Error while trying to execute the site_policy_handler callback!');
+                $handler = false;
+            }
+            if (!empty($handler) && (empty($PAGE->url) || !$PAGE->url->compare(new moodle_url($handler), URL_MATCH_BASE))) {
+                if ($preventredirect) {
+                    throw new moodle_exception('sitepolicynotagreed', 'error', '', $CFG->sitepolicy);
+                }
+                redirect($handler);
+            }
+        } else if (!empty($CFG->sitepolicy) and !isguestuser()) {
             if ($preventredirect) {
                 throw new moodle_exception('sitepolicynotagreed', 'error', '', $CFG->sitepolicy);
             }
