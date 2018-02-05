@@ -37,6 +37,7 @@ $string['event_acceptance_updated'] = 'User policy acceptance updated';
 $string['guestconsent:continue'] = 'Continue';
 $string['guestconsentmessage'] = 'If you continue browsing this website, we\'ll assume that you agree to the following policy documents:';
 $string['howoldareyou'] = 'How old are you?';
+$string['iagree'] = 'I agree to the {$a}.';
 $string['inactivate'] = 'Inactivate';
 $string['inactivating'] = 'Inactivating a policy document';
 $string['inactivatingconfirm'] = '<p>You are about to inactivate a policy document <em>\'{$a->name}\'</em> revision <em>\'{$a->revision}\'</em>.</p><p>The policy will not apply until some version is made the current one.</p>';
@@ -70,6 +71,17 @@ $string['policydocname'] = 'Policy name';
 $string['policydocrevision'] = 'Revision';
 $string['policydocrevisioncurrent'] = 'Current revision';
 $string['policydocs'] = 'Policy documents';
+$string['policyversionacceptedinotherlang'] = 'This policy version has been accepted previously in a different language.';
+$string['privacyofficer'] = 'Privacy officer';
+$string['privacyofficer_desc'] = 'Information and contact details of the privacy officer.';
+$string['privacyofficer_default'] = 'For any questions or notice, please contact our Privacy officer at:
+
+Institution/Company name
+Address, 1
+State (Country)
+
+Email: xxxxxx@xxxxx.xxx
+Phone: yyyyyyyy';
 $string['privacysettings'] = 'Privacy settings';
 $string['proceed'] = 'Proceed';
 $string['saveasnew'] = 'Save as new version';
@@ -89,5 +101,6 @@ $string['template_thirdparties_name'] = 'Third parties policy example';
 $string['useracceptances'] = 'User acceptances';
 $string['userpolicysettings'] = 'Policies';
 $string['usersaccepted'] = 'Users accepted';
+$string['viewconsentpageforuser'] = 'Viewing this page in behalf of {$a}';
 $string['wheredoyoulive'] = 'Where do you live?';
 $string['whyisthisrequired'] = 'Why is this required?';
