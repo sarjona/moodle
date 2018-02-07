@@ -39,19 +39,20 @@
 {{#policies}}
 
     <div class='agreedoc'>
-    {{! TODO: Review which fields to use for showing policy version summay.
-        ATM, name and description are used, but it's possible we'll need to replace
-        them to new summary field.
-     }}
     <h2>{{{name}}}</h2>
     <div class='agreedoc-summary'>
-      {{{description}}}
+      {{{currentversion.summary}}}
     </div>
     <div class='agreedoc-form'>
         <p>{{{refertofulltext}}}</p>
         <p>
             {{{agreecheckbox}}}
-            {{{versionlangsagreed}}}
+            {{#versionlangsagreed}}
+                <br/>{{{.}}}
+            {{/versionlangsagreed}}
+            {{#versionbehalfsagreed}}
+                <br/>{{{.}}}
+            {{/versionbehalfsagreed}}
         </p>
     </div>
 
