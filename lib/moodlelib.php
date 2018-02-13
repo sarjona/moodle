@@ -2712,7 +2712,6 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
 
     // Check that the user has agreed to a site policy if there is one - do not test in case of admins.
     if (!$USER->policyagreed and !is_siteadmin()) {
-        $PAGE->set_popup_notification_allowed(false);
         if (!empty($CFG->sitepolicyhandler)) {
             try {
                 $handler = component_callback($CFG->sitepolicyhandler, 'site_policy_handler');
