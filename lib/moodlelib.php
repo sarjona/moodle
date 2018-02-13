@@ -2731,6 +2731,9 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
                 if ($preventredirect) {
                     throw new moodle_exception('sitepolicynotagreed', 'error', '', $handler);
                 }
+                if ($setwantsurltome) {
+                    $SESSION->wantsurl = qualified_me();
+                }
                 redirect($handler);
             }
         } else if (!empty($CFG->sitepolicy) and !isguestuser()) {
