@@ -50,6 +50,15 @@ if (!empty($SESSION->wantsurl)) {
     $return = $CFG->wwwroot.'/';
 }
 
+if (!empty($CFG->sitepolicyhandler)) {
+    // We are on the wrong page, site policies are managed by somebody else.
+    if ($sitepolicyurl = get_site_policy_handler()) {
+        redirect($sitepolicyurl);
+    } else {
+        redirect($return);
+    }
+}
+
 if (empty($sitepolicy)) {
     // Nothing to agree to, sorry, hopefully we will not get to infinite loop.
     redirect($return);

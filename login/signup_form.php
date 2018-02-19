@@ -98,7 +98,7 @@ class login_signup_form extends moodleform implements renderable, templatable {
             $mform->closeHeaderBefore('recaptcha_element');
         }
 
-        if (!empty($CFG->sitepolicy)) {
+        if (!empty($CFG->sitepolicy) && empty($CFG->sitepolicyhandler)) {
             $mform->addElement('header', 'policyagreement', get_string('policyagreement'), '');
             $mform->setExpanded('policyagreement');
             $mform->addElement('static', 'policylink', '', '<a href="'.$CFG->sitepolicy.'" onclick="this.target=\'_blank\'">'.get_String('policyagreementclick').'</a>');
