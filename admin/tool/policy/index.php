@@ -60,7 +60,17 @@ if (!$haspermissionagreedocs) {
     if (!$behalfid && \core\session\manager::is_loggedinas()) {
         $behalfid = $USER->id;
     }
-    $outputpage = new \tool_policy\output\page_agreedocs($agreedocs, $behalfid, $submit);
+    // Display link for accessing to the user profile "Policies and agreements".
+    $agreementsurl = null;
+    if ((empty($behalfid) || $behalfid == $USER->id) && !empty($USER->policyagreed)) {
+        $agreementsurl = (new moodle_url('/admin/tool/policy/user.php', ['userid' => $USER->id]))->out(false);
+    }
+    // If $agreementsurl is defined and the form has been submitted, add it to the SESSION return URL.
+    if (!empty($agreementsurl) && $submit) {
+        $SESSION->wantsurl = $agreementsurl;
+    }
+
+    $outputpage = new \tool_policy\output\page_agreedocs($agreedocs, $behalfid, $submit, $agreementsurl);
 }
 
 $output = $PAGE->get_renderer('tool_policy');

@@ -27,6 +27,7 @@ require_once($CFG->dirroot.'/user/editlib.php');
 
 $userid = optional_param('userid', null, PARAM_INT);
 $returnurl = optional_param('returnurl', null, PARAM_LOCALURL);
+$reviewconsenturl = null;
 
 require_login();
 $userid = $userid ?: $USER->id;
@@ -39,6 +40,12 @@ if ($userid != $USER->id) {
     if (!has_capability('tool/policy:acceptbehalf', $context)) {
         require_capability('tool/policy:viewacceptances', $context);
     }
+} else {
+    // Display link to let current user to review his/her consent on the policies.
+    $canacceptpolicy = has_capability('tool/policy:accept', \context_system::instance());
+    if ($canacceptpolicy) {
+        $reviewconsenturl = (new moodle_url('/admin/tool/policy/index.php'))->out(false);
+    }
 }
 
 $PAGE->set_context($context);
@@ -47,7 +54,7 @@ $PAGE->set_url(new moodle_url('/admin/tool/policy/user.php', ['userid' => $useri
 $output = $PAGE->get_renderer('tool_policy');
 echo $output->header();
 echo $output->heading(get_string('policiesagreements', 'tool_policy'));
-$acceptances = new \tool_policy\output\acceptances($userid, $returnurl);
+$acceptances = new \tool_policy\output\acceptances($userid, $returnurl, $reviewconsenturl);
 echo $output->render($acceptances);
 $PAGE->requires->js_call_amd('tool_policy/acceptmodal', 'getInstance', [context_system::instance()->id]);
 echo $output->footer();

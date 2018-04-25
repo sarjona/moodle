@@ -69,14 +69,18 @@ class page_agreedocs implements renderable, templatable {
     /** @var array Info or error messages to show. */
     protected $messages = [];
 
+    /** @var moodle_url */
+    protected $agreementsurl;
+
     /**
      * Prepare the page for rendering.
      *
      * @param array $agreedocs Array with the policy identifiers which the user has agreed using the form.
      * @param int $behalfid The userid to accept the policy versions as (such as child's id).
      * @param string $action Form action to identify when user agreeds policies.
+     * @param string|moodle_url $agreementsurl
      */
-    public function __construct($agreedocs = null, $behalfid = 0, $action = null) {
+    public function __construct($agreedocs = null, $behalfid = 0, $action = null, $agreementsurl) {
         global $USER;
         $realuser = manager::get_realuser();
 
@@ -86,6 +90,7 @@ class page_agreedocs implements renderable, templatable {
         }
 
         $this->action = $action;
+        $this->agreementsurl = $agreementsurl ? (new moodle_url($agreementsurl))->out(false) : null;
 
         $behalfid = $behalfid ?: $USER->id;
         if ($realuser->id != $behalfid) {
@@ -243,7 +248,11 @@ class page_agreedocs implements renderable, templatable {
             $returnurl = $SESSION->wantsurl;
             unset($SESSION->wantsurl);
         } else {
-            $returnurl = $CFG->wwwroot.'/';
+            if (!empty($this->agreementsurl)) {
+                $returnurl = $this->agreementsurl;
+            } else {
+                $returnurl = (new moodle_url('/admin/tool/policy/user.php', ['userid' => $this->behalfid]))->out(false);
+            }
         }
 
         redirect($returnurl);
@@ -366,6 +375,7 @@ class page_agreedocs implements renderable, templatable {
             'pluginbaseurl' => (new moodle_url('/admin/tool/policy'))->out(false),
             'myurl' => (new moodle_url('/admin/tool/policy/index.php', $myparams))->out(false),
             'sesskey' => sesskey(),
+            'agreementsurl' => $this->agreementsurl
         ];
 
         if (!empty($this->messages)) {
