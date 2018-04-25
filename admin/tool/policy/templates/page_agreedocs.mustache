@@ -114,6 +114,10 @@
 {{# str }}somefieldsrequired, form, <i class="icon fa fa-exclamation-circle text-danger fa-fw" title="{{# str }} required {{/ str }}" ></i>{{/ str }}
 <hr>
 
+{{#agreementsurl}}
+    <div class="pull-right"><a href="{{agreementsurl}}">{{#str}} viewagreements, tool_policy {{/str}}</a></div>
+{{/agreementsurl}}
+
 <input type="submit" class="btn btn-primary" name="submit" value={{#quote}}{{#str}} next {{/str}}{{/quote}}>
 {{#cancancel}}
 <input type="submit" class="btn btn-secondary" name="cancel" value={{#quote}}{{#str}} cancel {{/str}}{{/quote}}>

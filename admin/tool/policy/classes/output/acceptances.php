@@ -68,10 +68,17 @@ class acceptances implements renderable, templatable {
      * @return stdClass
      */
     public function export_for_template(renderer_base $output) {
+        global $USER;
+
         $data = (object)[];
         $data->hasonbehalfagreements = false;
         $data->pluginbaseurl = (new moodle_url('/admin/tool/policy'))->out(false);
         $data->returnurl = $this->returnurl;
+        $canacceptpolicy = has_capability('tool/policy:accept', \context_system::instance());
+        if ($this->userid == $USER->id && $canacceptpolicy) {
+            // Display link to let current user to review his/her consent on the policies.
+            $data->reviewconsenturl = (new moodle_url('/admin/tool/policy/index.php'))->out(false);
+        }
 
         // Get the list of policies and versions that current user is able to see
         // and the respective acceptance records for the selected user.

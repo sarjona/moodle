@@ -367,6 +367,10 @@ class page_agreedocs implements renderable, templatable {
             'myurl' => (new moodle_url('/admin/tool/policy/index.php', $myparams))->out(false),
             'sesskey' => sesskey(),
         ];
+        if ((empty($this->behalfid) || $this->behalfid == $USER->id) && !empty($USER->policyagreed)) {
+            // Display link for accessing to the user profile "Policies and agreements".
+            $data->agreementsurl = (new moodle_url('/admin/tool/policy/user.php', ['userid' => $USER->id]))->out(false);
+        }
 
         if (!empty($this->messages)) {
             foreach ($this->messages as $message) {

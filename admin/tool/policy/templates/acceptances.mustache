@@ -124,6 +124,9 @@
         {{/policies}}
     </tbody>
 </table>
+{{#reviewconsenturl}}
+    <div class="pull-right"><a href="{{reviewconsenturl}}">{{#str}} reviewconsent, tool_policy {{/str}}</a></div>
+{{/reviewconsenturl}}
 {{#returnurl}}
     <div><a role="button" href="{{returnurl}}" class="btn btn-primary">{{#str}} back {{/str}}</a></div>
 {{/returnurl}}
