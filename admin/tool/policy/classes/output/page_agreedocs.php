@@ -69,6 +69,9 @@ class page_agreedocs implements renderable, templatable {
     /** @var array Info or error messages to show. */
     protected $messages = [];
 
+    /** @var bool This is an existing user (rather than non-loggedin/guest). */
+    protected $isexistinguser;
+
     /**
      * Prepare the page for rendering.
      *
@@ -87,6 +90,7 @@ class page_agreedocs implements renderable, templatable {
 
         $this->action = $action;
 
+        $this->isexistinguser = isloggedin() && !isguestuser();
         $behalfid = $behalfid ?: $USER->id;
         if ($realuser->id != $behalfid) {
             $this->behalfuser = core_user::get_user($behalfid, '*', MUST_EXIST);
@@ -112,7 +116,7 @@ class page_agreedocs implements renderable, templatable {
     protected function accept_and_revoke_policies() {
         global $USER;
 
-        if (!empty($USER->id)) {
+        if ($this->isexistinguser) {
             // Existing user.
             if (!empty($this->action) && confirm_sesskey()) {
                 // The form has been sent. Update policies acceptances according to $this->agreedocs.
@@ -259,17 +263,17 @@ class page_agreedocs implements renderable, templatable {
 
         // Guest users or not logged users (but the users during the signup process) are not allowed to access to this page.
         $newsignupuser = !empty($SESSION->wantsurl) && strpos($SESSION->wantsurl, 'login/signup.php') !== false;
-        if (isguestuser() || (empty($USER->id) && !$newsignupuser)) {
+        if (!$this->isexistinguser && !$newsignupuser) {
             $this->redirect_to_previous_url();
         }
 
         // Check for correct user capabilities.
-        if (!empty($USER->id)) {
+        if ($this->isexistinguser) {
             // For existing users, it's needed to check if they have the capability for accepting policies.
             api::can_accept_policies($this->behalfid, true);
         } else {
             // For new users, the behalfid parameter is ignored.
-            if ($this->behalfid != $USER->id) {
+            if ($this->behalfid) {
                 redirect(new moodle_url('/admin/tool/policy/index.php'));
             }
         }
@@ -283,7 +287,7 @@ class page_agreedocs implements renderable, templatable {
         }
 
         $myparams = [];
-        if (!empty($USER->id) && !empty($this->behalfid) && $this->behalfid != $USER->id) {
+        if ($this->isexistinguser && !empty($this->behalfid) && $this->behalfid != $USER->id) {
             $myparams['userid'] = $this->behalfid;
         }
         $myurl = new moodle_url('/admin/tool/policy/index.php', $myparams);
@@ -358,7 +362,7 @@ class page_agreedocs implements renderable, templatable {
         global $USER;
 
         $myparams = [];
-        if (!empty($USER->id) && !empty($this->behalfid) && $this->behalfid != $USER->id) {
+        if ($this->isexistinguser && !empty($this->behalfid) && $this->behalfid != $USER->id) {
             $myparams['userid'] = $this->behalfid;
         }
         $data = (object) [
