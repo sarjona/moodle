@@ -194,7 +194,7 @@ class page_agreedocs implements renderable, templatable {
 
         $acceptances = api::get_user_acceptances($userid);
         $allpolicies = $this->policies;
-        if (!empty($userid)) {
+        if ($this->isexistinguser) {
             foreach ($allpolicies as $policy) {
                 if (api::is_user_version_accepted($userid, $policy->id, $acceptances)) {
                     // If this version is accepted by the user, remove from the pending policies list.
@@ -280,7 +280,7 @@ class page_agreedocs implements renderable, templatable {
 
         // If the current user has the $USER->policyagreed = 1 or $userpolicyagreed = 1
         // and $SESSION->wantsurl is defined, redirect to the return page.
-        $hasagreedsignupuser = empty($USER->id) && $this->signupuserpolicyagreed;
+        $hasagreedsignupuser = !$this->isexistinguser && $this->signupuserpolicyagreed;
         $hasagreedloggeduser = $USER->id == $userid && !empty($USER->policyagreed);
         if (!is_siteadmin() && ($hasagreedsignupuser || $hasagreedloggeduser)) {
             $this->redirect_to_previous_url();
@@ -324,7 +324,7 @@ class page_agreedocs implements renderable, templatable {
             $policymodal = html_writer::link($policy->url, $policy->name, $policyattributes);
 
             // Check if this policy version has been agreed or not.
-            if (!empty($userid)) {
+            if ($this->isexistinguser) {
                 // Existing user.
                 $versionagreed = false;
                 $policy->versionacceptance = api::get_user_version_acceptance($userid, $policy->id, $acceptances);
