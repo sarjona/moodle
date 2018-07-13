@@ -38,6 +38,11 @@ define('SEPARATEGROUPS', 1);
  */
 define('VISIBLEGROUPS', 2);
 
+/**
+ * This is for filtering users without any group.
+ */
+define('USERSWITHOUTGROUP', -1);
+
 
 /**
  * Determines if a group with a given groupid exists.
@@ -1138,20 +1143,37 @@ function groups_get_members_ids_sql($groupid) {
 /**
  * Get sql join to return users in a group
  *
- * @param int $groupid
+ * @since Moodle 3.4.5, 3.5.2 and 3.6 has been added the $context argument.
+ * @param int $groupid The groupid, 0 means all groups and USERSWITHOUTGROUP no group
  * @param string $useridcolumn The column of the user id from the calling SQL, e.g. u.id
+ * @param context $context The context
  * @return \core\dml\sql_join Contains joins, wheres, params
  */
-function groups_get_members_join($groupid, $useridcolumn) {
+function groups_get_members_join($groupid, $useridcolumn, context $context = null) {
     // Use unique prefix just in case somebody makes some SQL magic with the result.
     static $i = 0;
     $i++;
     $prefix = 'gm' . $i . '_';
 
-    $join = "JOIN {groups_members} {$prefix}gm ON ({$prefix}gm.userid = $useridcolumn AND {$prefix}gm.groupid = :{$prefix}gmid)";
-    $param = array("{$prefix}gmid" => $groupid);
+    if (!empty($context) && $groupid == USERSWITHOUTGROUP) {
+        // Get members without any group.
+        $param = array();
+        if ($context->contextlevel == CONTEXT_COURSE) {
+            $courseidsql = "AND {$prefix}g.courseid = :{$prefix}gcourseid";
+            $param = array("{$prefix}gcourseid" => $context->instanceid);
+        }
+        $join = "LEFT JOIN ({groups_members} {$prefix}gm JOIN {groups} {$prefix}g ON ({$prefix}g.id = {$prefix}gm.groupid))
+                ON ({$prefix}gm.userid = $useridcolumn $courseidsql)";
+        $where = "{$prefix}gm.userid IS NULL";
+    } else {
+        // Get members of defined groupid.
+        $join = "JOIN {groups_members} {$prefix}gm
+                ON ({$prefix}gm.userid = $useridcolumn AND {$prefix}gm.groupid = :{$prefix}gmid)";
+        $where = '';
+        $param = array("{$prefix}gmid" => $groupid);
+    }
 
-    return new \core\dml\sql_join($join, '', $param);
+    return new \core\dml\sql_join($join, $where, $param);
 }
 
 /**
