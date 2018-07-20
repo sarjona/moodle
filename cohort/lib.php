@@ -530,6 +530,26 @@ function cohort_get_user_cohort_theme($userid) {
 }
 
 /**
+ * Get the list of the categories with a cohort where the user is member.
+ *
+ * @param int $userid
+ * @return array|null list of category identifiers.
+ */
+function cohort_get_user_cohort_categories($userid) {
+    $cohortscategoriesids =  array();
+    $cohorts = cohort_get_user_cohorts($userid);
+    foreach ($cohorts as $cohort) {
+        $context = context::instance_by_id($cohort->contextid);
+        // Check if it's a category cohort.
+        if ($context->contextlevel == CONTEXT_COURSECAT) {
+            $cohortscategoriesids[] = $context->instanceid;
+        }
+    }
+
+    return $cohortscategoriesids;
+}
+
+/**
  * Returns list of contexts where cohorts are present but current user does not have capability to view/manage them.
  *
  * This function is called from {@link cohort_get_all_cohorts()} to ensure correct pagination in rare cases when user

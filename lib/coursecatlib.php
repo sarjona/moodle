@@ -25,6 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot. '/cohort/lib.php');
+
 /**
  * Class to store, cache, render and manage course category
  *
@@ -343,9 +345,25 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
      * @return coursecat
      */
     public static function get_default() {
-        if ($visiblechildren = self::get(0)->get_children()) {
-            $defcategory = reset($visiblechildren);
+        global $CFG, $USER;
+
+        if ($CFG->restrictcategoriesbycohort) {
+            $cohortscategoriesid = cohort_get_user_cohort_categories($USER->id);
+            if (count ($cohortscategoriesid) == 1) {
+                $defcategory = coursecat::get(array_pop($cohortscategoriesid));
+            }
         } else {
+            if ($visiblechildren = self::get(0)->get_children()) {
+                // TODO: Review/remove
+                if (self::get(0)->get_children_count() == 1) {
+                    $defcategory = array_pop($visiblechildren);
+                } else {
+                    $defcategory = reset($visiblechildren);
+                }
+            }
+        }
+
+        if (empty($defcategory)) {
             $toplevelcategories = self::get_tree(0);
             $defcategoryid = $toplevelcategories[0];
             $defcategory = self::get($defcategoryid, MUST_EXIST, true);
@@ -1022,7 +1040,7 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
      * @return array
      */
     protected function get_not_visible_children_ids() {
-        global $DB;
+        global $DB, $CFG, $USER;
         $coursecatcache = cache::make('core', 'coursecat');
         if (($invisibleids = $coursecatcache->get('ic'. $this->id)) === false) {
             // We never checked visible children before.
@@ -1045,6 +1063,24 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
                     }
                 }
             }
+
+            // TODO: Review
+            if (false && $CFG->restrictcategoriesbycohort && !has_capability('moodle/category:manage', $this->get_context())) {
+                // If categories are restricted by cohort, hide all categories but the associated to user cohorts.
+                require_once($CFG->dirroot. '/cohort/lib.php');
+                $cohortscategoriesid = cohort_get_user_cohort_categories($USER->id);
+                if (sizeof($cohortscategoriesid) > 0) {
+                    // If the user is member of some category cohort, hide the other categories.
+                    $categoriesid = self::get_tree($this->id);
+                    $cohortsinvisibleids = array_diff($categoriesid, $cohortscategoriesid);
+                    if (isset($invisibleids)) {
+                        $invisibleids = array_unique(array_merge($cohortsinvisibleids, $invisibleids));
+                    } else {
+                        $invisibleids = $cohortsinvisibleids;
+                    }
+                }
+            }
+
             $coursecatcache->set('ic'. $this->id, $invisibleids);
         }
         return $invisibleids;
@@ -1153,7 +1189,7 @@ class coursecat implements renderable, cacheable_object, IteratorAggregate {
             return array();
         }
 
-        // Now retrieive and return categories.
+        // Now retrieve and return categories.
         if ($offset || $limit) {
             $sortedids = array_slice($sortedids, $offset, $limit);
         }

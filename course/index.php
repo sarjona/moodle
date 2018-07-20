@@ -25,6 +25,7 @@
 
 require_once("../config.php");
 require_once($CFG->dirroot. '/course/lib.php');
+require_once($CFG->dirroot. '/cohort/lib.php');
 require_once($CFG->libdir. '/coursecatlib.php');
 
 $categoryid = optional_param('categoryid', 0, PARAM_INT); // Category id
@@ -37,10 +38,23 @@ if ($categoryid) {
     // And the object has been loaded for us no need for another DB call
     $category = $PAGE->category;
 } else {
+    $category = null;
     // Check if there is only one category, if so use that.
     if (coursecat::count_all() == 1) {
         $category = coursecat::get_default();
+    } else if ($CFG->restrictcategoriesbycohort) {
+        $cohortscategoriesid = cohort_get_user_cohort_categories($USER->id);
+        if (count($cohortscategoriesid) == 1) {
+            $category = coursecat::get(array_pop($cohortscategoriesid));
+        }
+        /*$coursecat = coursecat::get(0);
+        $categories = $coursecat->get_children();
+        if ($coursecat->get_children_count() == 1) {
+            $category = array_pop($categories);
+        }*/
+    }
 
+    if (!empty($category)) {
         $categoryid = $category->id;
         $PAGE->set_category_by_id($categoryid);
         $PAGE->set_pagetype('course-index-category');

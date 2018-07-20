@@ -1606,8 +1606,8 @@ class core_course_renderer extends plugin_renderer_base {
             }
             $this->page->set_title($title);
 
-            // Print the category selector
-            if (coursecat::count_all() > 1) {
+            // Print the category selector.
+            if (coursecat::count_all() > 1 && !$CFG->restrictcategoriesbycohort) {
                 $output .= html_writer::start_tag('div', array('class' => 'categorypicker'));
                 $select = new single_select(new moodle_url('/course/index.php'), 'categoryid',
                         coursecat::make_categories_list(), $coursecat->id, null, 'switchcategory');
@@ -2062,7 +2062,7 @@ class core_course_renderer extends plugin_renderer_base {
      * @return string
      */
     public function frontpage_categories_list() {
-        global $CFG;
+        global $CFG, $USER;
         require_once($CFG->libdir. '/coursecatlib.php');
         $chelper = new coursecat_helper();
         $chelper->set_subcat_depth($CFG->maxcategorydepth)->
@@ -2073,7 +2073,16 @@ class core_course_renderer extends plugin_renderer_base {
                             array('browse' => 'categories', 'page' => 1))
                 ))->
                 set_attributes(array('class' => 'frontpage-category-names'));
-        return $this->coursecat_tree($chelper, coursecat::get(0));
+        $categoryid = 0;
+        // When restrictedcategoryiesbycohort is enabled, show only the category with a cohort where the user is member.
+        if ($CFG->restrictcategoriesbycohort) {
+            require_once($CFG->dirroot. '/cohort/lib.php');
+            $cohortscategoriesid = cohort_get_user_cohort_categories($USER->id);
+            if (count($cohortscategoriesid) == 1) {
+                $categoryid = array_pop($cohortscategoriesid);
+            }
+        }
+        return $this->coursecat_tree($chelper, coursecat::get($categoryid));
     }
 
     /**
