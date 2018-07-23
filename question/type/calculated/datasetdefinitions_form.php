@@ -102,7 +102,6 @@ class question_dataset_dependent_definitions_form extends question_wizard_form {
             if (!isset($datasetmenus[$datasetname])) {
                 list($options, $selected) =
                         $this->qtypeobj->dataset_options($this->question, $datasetname);
-                unset($options['0']); // Mandatory...
                 $label = get_string('wildcard', 'qtype_calculated', $datasetname);
                 $mform->addElement('select', "dataset[{$key}]", $label, $options);
                 if (isset($datadefscat[$datasetname])) {
