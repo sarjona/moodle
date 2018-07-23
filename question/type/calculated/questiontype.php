@@ -1178,7 +1178,6 @@ class qtype_calculated extends question_type {
             if (!isset($datasetmenus[$datasetname])) {
                 list($options, $selected) =
                     $this->dataset_options($form, $datasetname);
-                unset($options['0']); // Mandatory...
                 $datasetmenus[$datasetname] = html_writer::select(
                         $options, 'dataset[]', $selected, null);
             }
