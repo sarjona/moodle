@@ -98,6 +98,16 @@ define('BADGE_MESSAGE_MONTHLY', 4);
  */
 define('BADGE_BACKPACKURL', 'https://backpack.openbadges.org');
 
+/*
+ * Only use for Open Badges 2.0 specification
+ */
+define('OB2_CONTEXT', 'https://w3id.org/openbadges/v2');
+define('OB2_TYPE_ASSERTION', 'Assertion');
+define('OB2_TYPE_BADGE', 'BadgeClass');
+define('OB2_TYPE_ISSUER', 'Issuer');
+define('OB2_TYPE_ENDORSEMENT', 'Endorsement');
+define('OB2_TYPE_AUTHOR', 'Author');
+
 /**
  * Class that represents badge.
  *
@@ -126,6 +136,24 @@ class badge {
     public $notification;
     public $status = 0;
     public $nextcron;
+
+    /** @var string control version of badge */
+    public $version;
+
+    /** @var string language code */
+    public $language;
+
+    /** @var string name image author */
+    public $nameauthorimage;
+
+    /** @var string email image author */
+    public $emailauthorimage;
+
+    /** @var string url image author */
+    public $urlauthorimage;
+
+    /** @var string image caption */
+    public $captionimage;
 
     /** @var array Badge criteria */
     public $criteria = array();
@@ -690,6 +718,144 @@ class badge {
             );
         $event = \core\event\badge_deleted::create($eventparams);
         $event->trigger();
+    }
+
+    /**
+     * Checks if badge has related badges.
+     *
+     * @return bool A status related badge.
+     */
+    public function has_related() {
+        global $DB;
+        $related = $DB->record_exists_sql('SELECT br.id
+                    FROM {badge_related} br
+                    WHERE br.badgeid = :badgeid', array('badgeid' => $this->id));
+        return $related;
+    }
+
+    /**
+     * Get related badges.
+     *
+     * @param bool $inactive Do not get the inactive badges when is true.
+     * @return array|object Related badges information.
+     */
+    public function get_related_badges(bool $inactive = false) {
+        global $DB;
+        $params = array('badgeid' => $this->id);
+        $query = 'SELECT b.id, b.name, b.version, b.language
+            FROM {badge_related} br
+            JOIN {badge} b ON b.id = br.relatedbadgeid
+            WHERE br.badgeid = :badgeid';
+        if ($inactive) {
+            $query .= ' AND b.status <> :status';
+            $params['status'] = BADGE_STATUS_INACTIVE;
+        }
+        $relatedbadges = $DB->get_records_sql($query, $params);
+
+        return $relatedbadges;
+    }
+
+    /**
+     * Get competencies of badge.
+     *
+     * @return array List content competencies.
+     */
+    public function get_alignment() {
+        global $DB;
+        $alignment = $DB->get_records_select('badge_competencies', 'badgeid = ?', array($this->id));
+        return $alignment;
+    }
+
+    /**
+     * Get endorsement of badge.
+     *
+     * @return array or object Endorsement information.
+     */
+    public function get_endorsement() {
+        global $DB;
+        $endorsement = $DB->get_record_select('badge_endorsement', 'badgeid = ?', array($this->id));
+        return $endorsement;
+    }
+
+    /**
+     * Markdown language support for criteria.
+     *
+     * @param string $short Indicates whether to print full info about this badge.
+     * @return string $output Markdown content to output.
+     */
+    public function markdown_badge_criteria($short = '') {
+        $agg = $this->get_aggregation_methods();
+        if (empty($this->criteria)) {
+            return get_string('nocriteria', 'badges');
+        }
+        $overalldescr = '';
+        $overall = $this->criteria[BADGE_CRITERIA_TYPE_OVERALL];
+        if (!$short && !empty($overall->description)) {
+            $overalldescr = $this->output->box(
+                format_text($overall->description, $overall->descriptionformat, array('context' => $badge->get_context())),
+                'criteria-description'
+            );
+        }
+        // Get the condition string.
+        if (count($this->criteria) == 2) {
+            $condition = '';
+            if (!$short) {
+                $condition = get_string('criteria_descr', 'badges');
+            }
+        } else {
+            $condition = get_string('criteria_descr_' . $short . BADGE_CRITERIA_TYPE_OVERALL, 'badges',
+                core_text::strtoupper($agg[$this->get_aggregation_method()]));
+        }
+        unset($this->criteria[BADGE_CRITERIA_TYPE_OVERALL]);
+        $items = array();
+        // If only one criterion left, make sure its description goe to the top.
+        if (count($this->criteria) == 1) {
+            $c = reset($this->criteria);
+            if (!$short && !empty($c->description)) {
+                $overalldescr = $c->description . ' \n ';
+            }
+            if (count($c->params) == 1) {
+                $items[] = ' * ' . get_string('criteria_descr_single_' . $short . $c->criteriatype, 'badges') .
+                    $c->get_details($short);
+            } else {
+                $items[] = '* ' . get_string('criteria_descr_' . $short . $c->criteriatype, 'badges',
+                        core_text::strtoupper($agg[$this->get_aggregation_method($c->criteriatype)])) .
+                    $c->get_details($short);
+            }
+        } else {
+            foreach ($this->criteria as $type => $c) {
+                $criteriadescr = '';
+                if (!$short && !empty($c->description)) {
+                    $criteriadescr = $c->description;
+                }
+                if (count($c->params) == 1) {
+                    $items[] = ' * ' . get_string('criteria_descr_single_' . $short . $type, 'badges') .
+                        $c->get_details($short) . $criteriadescr;
+                } else {
+                    $items[] = '* ' . get_string('criteria_descr_' . $short . $type, 'badges',
+                            core_text::strtoupper($agg[$this->get_aggregation_method($type)])) .
+                        $c->get_details($short) . $criteriadescr;
+                }
+            }
+        }
+        return strip_tags($overalldescr . $condition . html_writer::alist($items, array(), 'ul'));
+    }
+
+    /**
+     * Define issuer information by format Open Badges specification version 2.
+     *
+     * @return array Issuer informations of the badge.
+     */
+    public function get_json_issuer_related_badge() {
+        $issuer = array();
+        $issuerurl = new moodle_url('/badges/badge_json.php', array('id' => $this->id, 'action' => 0));
+        $issuer['name'] = $this->issuername;
+        $issuer['url'] = $this->issuerurl;
+        $issuer['email'] = $this->issuercontact;
+        $issuer['@context'] = OB2_CONTEXT;
+        $issuer['id'] = $issuerurl->out(false);
+        $issuer['type'] = OB2_TYPE_ISSUER;
+        return $issuer;
     }
 }
 

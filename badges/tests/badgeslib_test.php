@@ -38,14 +38,14 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
     protected $coursebadge;
     protected $assertion;
 
+    /** @var $assertion2 to define json format for Open badge version 2 */
+    protected $assertion2;
+
     protected function setUp() {
         global $DB, $CFG;
         $this->resetAfterTest(true);
-
         $CFG->enablecompletion = true;
-
         $user = $this->getDataGenerator()->create_user();
-
         $fordb = new stdClass();
         $fordb->id = null;
         $fordb->name = "Test badge with 'apostrophe' and other friends (<>&@#)";
@@ -60,11 +60,17 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $fordb->expiredate = null;
         $fordb->expireperiod = null;
         $fordb->type = BADGE_TYPE_SITE;
+        $fordb->version = 1;
+        $fordb->language = 'en';
         $fordb->courseid = null;
         $fordb->messagesubject = "Test message subject";
         $fordb->message = "Test message body";
         $fordb->attachment = 1;
         $fordb->notification = 0;
+        $fordb->nameauthorimage = "Image Author";
+        $fordb->emailauthorimage = "author@example.com";
+        $fordb->urlauthorimage = "http://author-url.example.com";
+        $fordb->captionimage = "Test caption image";
         $fordb->status = BADGE_STATUS_INACTIVE;
 
         $this->badgeid = $DB->insert_record('badge', $fordb, true);
@@ -81,7 +87,6 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $maninstance = $DB->get_record('enrol', array('courseid' => $this->course->id, 'enrol' => 'manual'), '*', MUST_EXIST);
         $manplugin->enrol_user($maninstance, $this->user->id, $studentrole->id);
         $this->assertEquals(1, $DB->count_records('user_enrolments'));
-
         $completionauto = array('completion' => COMPLETION_TRACKING_AUTOMATIC);
         $this->module = $this->getDataGenerator()->create_module('forum', array('course' => $this->course->id), $completionauto);
 
@@ -89,12 +94,66 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $fordb->type = BADGE_TYPE_COURSE;
         $fordb->courseid = $this->course->id;
         $fordb->status = BADGE_STATUS_ACTIVE;
-
         $this->coursebadge = $DB->insert_record('badge', $fordb, true);
+
+        // Insert Endorsement.
+        $endorsement = new stdClass();
+        $endorsement->id = null;
+        $endorsement->badgeid = $this->coursebadge;
+        $endorsement->issuername = "Issuer 123";
+        $endorsement->issueremail = "issuer123@email.com";
+        $endorsement->issuerurl = "https://example.org/issuer-123";
+        $endorsement->dateissued = 1524567747;
+        $endorsement->claimid = "https://example.org/robotics-badge.json";
+        $endorsement->claimcomment = "Test endorser comment";
+        $DB->insert_record('badge_endorsement', $endorsement, true);
+
+        // Insert related badges.
+        $badge = new badge($this->coursebadge);
+        $clonedid = $badge->make_clone();
+        $badgeclone = new badge($clonedid);
+        $badgeclone->status = BADGE_STATUS_ACTIVE;
+        $badgeclone->save();
+
+        $relatebadge = new stdClass();
+        $relatebadge->id = null;
+        $relatebadge->badgeid = $this->coursebadge;
+        $relatebadge->relatedbadgeid = $clonedid;
+        $relatebadge->relatedid = $DB->insert_record('badge_related', $relatebadge, true);
+
+        // Insert a competency aligment.
+        $competency = new stdClass();
+        $competency->badgeid = $this->coursebadge;
+        $competency->targetname = 'CCSS.ELA-Literacy.RST.11-12.3';
+        $competency->targeturl = 'http://www.corestandards.org/ELA-Literacy/RST/11-12/3';
+        $competency->targetdescription = 'Test target description';
+        $competency->targetframework = 'CCSS.RST.11-12.3';
+        $competency->targetcode = 'CCSS.RST.11-12.3';
+        $DB->insert_record('badge_competencies', $competency, true);
         $this->assertion = new stdClass();
         $this->assertion->badge = '{"uid":"%s","recipient":{"identity":"%s","type":"email","hashed":true,"salt":"%s"},"badge":"%s","verify":{"type":"hosted","url":"%s"},"issuedOn":"%d","evidence":"%s"}';
         $this->assertion->class = '{"name":"%s","description":"%s","image":"%s","criteria":"%s","issuer":"%s"}';
         $this->assertion->issuer = '{"name":"%s","url":"%s","email":"%s"}';
+        // Format JSON-LD for Openbadge specification version 2.0.
+        $this->assertion2 = new stdClass();
+        $this->assertion2->badge = '{"recipient":{"identity":"%s","type":"email","hashed":true,"salt":"%s"},' .
+            '"badge":{"name":"%s","description":"%s","image":{"id":"%s","author":"%s","caption":"%s"},' .
+            '"criteria":{"id":"%s","narrative":"%s"},"issuer":{"name":"%s","url":"%s","email":"%s",' .
+            '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"Issuer"},' .
+            '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"BadgeClass","version":"%s",' .
+            '"@language":"%s","related":[{"id":"%s","version":"%s","@language":"%s"}],"endorsement":"%s",' .
+            '"alignment":[{"targetName":"%s","targetUrl":"%s","targetDescription":"%s","targetFramework":"%s",' .
+            '"targetCode":"%s"}]},"verify":{"type":"hosted","url":"%s"},"issuedOn":"%s","evidence":"%s",' .
+            '"@context":"https:\/\/w3id.org\/openbadges\/v2","type":"Assertion","id":"%s"}';
+        $this->assertion2->class = '{"name":"%s","description":"%s","image":{"id":"%s","author":"%s","caption":"%s"},' .
+            '"criteria":{"id":"%s","narrative":"%s"},"issuer":{"name":"%s","url":"%s","email":"%s",' .
+            '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"Issuer"},' .
+            '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"BadgeClass","version":"%s",' .
+            '"@language":"%s","related":[{"id":"%s","version":"%s","@language":"%s"}],"endorsement":"%s",' .
+            '"alignment":[{"targetName":"%s","targetUrl":"%s","targetDescription":"%s","targetFramework":"%s",' .
+            '"targetCode":"%s"}]}';
+        $this->assertion2->issuer = '{"name":"%s","url":"%s","email":"%s",' .
+            '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"Issuer"}';
     }
 
     public function test_create_badge() {
@@ -545,6 +604,17 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $this->assertStringMatchesFormat($testassertion->badge, json_encode($assertion->get_badge_assertion()));
         $this->assertStringMatchesFormat($testassertion->class, json_encode($assertion->get_badge_class()));
         $this->assertStringMatchesFormat($testassertion->issuer, json_encode($assertion->get_issuer()));
+
+        // Test Openbadge specification version 2.
+        // Get assertion version 2.
+        $award = reset($awards);
+        $assertion2 = new core_badges_assertion($award->uniquehash, 2);
+        $testassertion2 = $this->assertion2;
+
+        // Make sure JSON strings have the same structure.
+        $this->assertStringMatchesFormat($testassertion2->badge, json_encode($assertion2->get_badge_assertion()));
+        $this->assertStringMatchesFormat($testassertion2->class, json_encode($assertion2->get_badge_class()));
+        $this->assertStringMatchesFormat($testassertion2->issuer, json_encode($assertion2->get_issuer()));
     }
 
     /**

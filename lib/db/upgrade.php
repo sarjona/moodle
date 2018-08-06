@@ -2605,5 +2605,97 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2018102200.00);
     }
 
+    if ($oldversion < 2018102300.02) {
+        // Define fields to be added to the 'badge' table.
+        $tablebadge = new xmldb_table('badge');
+        $fieldversion = new xmldb_field('version', XMLDB_TYPE_CHAR, 255, null, null, null);
+        $fieldlanguage = new xmldb_field('language', XMLDB_TYPE_CHAR, 255, null, null, null);
+        $fieldnameauthorimage = new xmldb_field('nameauthorimage', XMLDB_TYPE_CHAR, '255', null, null, null);
+        $fieldemailauthorimage = new xmldb_field('emailauthorimage', XMLDB_TYPE_CHAR, '255', null, null, null, '', 'authorimage');
+        $fieldurlauthorimage = new xmldb_field('urlauthorimage', XMLDB_TYPE_CHAR, '255', null, null, null, '', 'emailauthorimage');
+        $fieldcaptionimage = new xmldb_field('captionimage', XMLDB_TYPE_TEXT, null, null, null, null);
+
+        if (!$dbman->field_exists($tablebadge, $fieldversion)) {
+            $dbman->add_field($tablebadge, $fieldversion);
+        }
+        if (!$dbman->field_exists($tablebadge, $fieldlanguage)) {
+            $dbman->add_field($tablebadge, $fieldlanguage);
+        }
+        if (!$dbman->field_exists($tablebadge, $fieldnameauthorimage)) {
+            $dbman->add_field($tablebadge, $fieldnameauthorimage);
+        }
+        if (!$dbman->field_exists($tablebadge, $fieldemailauthorimage)) {
+            $dbman->add_field($tablebadge, $fieldemailauthorimage);
+        }
+        if (!$dbman->field_exists($tablebadge, $fieldurlauthorimage)) {
+            $dbman->add_field($tablebadge, $fieldurlauthorimage);
+        }
+        if (!$dbman->field_exists($tablebadge, $fieldcaptionimage)) {
+            $dbman->add_field($tablebadge, $fieldcaptionimage);
+        }
+
+        // Define table badge_endorsement to be created.
+        $table = new xmldb_table('badge_endorsement');
+
+        // Adding fields to table badge_endorsement.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('badgeid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('issuerurl', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('issuername', XMLDB_TYPE_CHAR, 255, null, null, null);
+        $table->add_field('issueremail', XMLDB_TYPE_CHAR, 255, null, null, null);
+        $table->add_field('claimid', XMLDB_TYPE_CHAR, 255, null, null, null);
+        $table->add_field('claimcomment', XMLDB_TYPE_TEXT, null, null, null, null);
+        $table->add_field('dateissued', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table badge_endorsement.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('endorsementbadge', XMLDB_KEY_FOREIGN, array('badgeid'), 'badge', array('id'));
+
+        // Conditionally launch create table for badge_endorsement.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table badge_related to be created.
+        $table = new xmldb_table('badge_related');
+
+        // Adding fields to table badge_related.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('badgeid', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 0);
+        $table->add_field('relatedbadgeid', XMLDB_TYPE_INTEGER, 10, null, null, null);
+
+        // Adding keys to table badge_related.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('relatedbadge', XMLDB_KEY_FOREIGN, array('badgeid'), 'badge', array('id'));
+
+        // Conditionally launch create table for badge_related.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table badge_competencies to be created.
+        $table = new xmldb_table('badge_competencies');
+
+        // Adding fields to table badge_competencies.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('badgeid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('targetname', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('targeturl', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('targetdescription', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('targetframework', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('targetcode', XMLDB_TYPE_CHAR, null, '255', null, null, null);
+
+        // Adding keys to table badge_competencies.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('competenciesbadge', XMLDB_KEY_FOREIGN, array('badgeid'), 'badge', array('id'));
+
+        // Conditionally launch create table for badge_competencies.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018102300.02);
+    }
+
     return true;
 }
