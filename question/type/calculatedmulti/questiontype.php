@@ -197,6 +197,7 @@ class qtype_calculatedmulti extends qtype_calculated {
         $this->initialise_question_answers($question, $questiondata);
 
         foreach ($questiondata->options->answers as $a) {
+            $question->answers[$a->id]->answerformat = $a->answerformat;
             $question->answers[$a->id]->correctanswerlength = $a->correctanswerlength;
             $question->answers[$a->id]->correctanswerformat = $a->correctanswerformat;
         }
