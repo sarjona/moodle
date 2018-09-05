@@ -47,6 +47,21 @@ class api {
     const MESSAGE_ACTION_DELETED = 2;
 
     /**
+     * The privacy setting for being messaged by anyone within courses user is member of.
+     */
+    const MESSAGE_PRIVACY_COURSEMEMBER = 0;
+
+    /**
+     * The privacy setting for being messaged only by contacts.
+     */
+    const MESSAGE_PRIVACY_ONLYCONTACTS = 1;
+
+    /**
+     * The privacy setting for being messaged by anyone on the site.
+     */
+    const MESSAGE_PRIVACY_SITE = 2;
+
+    /**
      * Handles searching for messages in the message area.
      *
      * @param int $userid The user id doing the searching
@@ -937,23 +952,31 @@ class api {
      * @return bool true if $sender is blocked, false otherwise.
      */
     public static function is_user_non_contact_blocked($recipient, $sender = null) {
-        global $USER;
+        global $USER, $CFG;
 
         if (is_null($sender)) {
             // The message is from the logged in user, unless otherwise specified.
             $sender = $USER;
         }
 
-        $blockednoncontacts = get_user_preferences('message_blocknoncontacts', '', $recipient->id);
-        if (!empty($blockednoncontacts)) {
-            // Confirm the sender is a contact of the recipient.
-            if (self::is_contact($sender->id, $recipient->id)) {
-                // All good, the recipient is a contact of the sender.
-                return false;
-            } else {
-                // Oh no, the recipient is not a contact. Looks like we can't send the message.
-                return true;
-            }
+        $privacypreference = get_user_preferences('message_blocknoncontacts', '', $recipient->id);
+        switch ($privacypreference) {
+            case self::MESSAGE_PRIVACY_SITE:
+                if (!empty($CFG->messagingallusers)) {
+                    // Users can be messaged without being contacts or members of the same course.
+                    break;
+                }
+                // When the $CFG->messagingallusers privacy setting is disabled, MESSAGE_PRIVACY_SITE is
+                // also disabled, so it has to be replaced to MESSAGE_PRIVACY_COURSEMEMBER.
+            case self::MESSAGE_PRIVACY_COURSEMEMBER:
+                // Confirm the sender and the recipient are both members of the same course.
+                if (enrol_sharing_course($recipient, $sender)) {
+                    // All good, the recipient and the sender are members of the same course.
+                    return false;
+                }
+            case self::MESSAGE_PRIVACY_ONLYCONTACTS:
+                // True if they aren't contacts (they can't send a message because of the privacy settings), false otherwise.
+                return !self::is_contact($sender->id, $recipient->id);
         }
 
         return false;
