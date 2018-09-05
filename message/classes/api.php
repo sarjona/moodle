@@ -47,6 +47,21 @@ class api {
     const MESSAGE_ACTION_DELETED = 2;
 
     /**
+     * The privacy setting for being messaged by anyone within courses user is member of.
+     */
+    const MESSAGE_PRIVACY_COURSEMEMBER = 0;
+
+    /**
+     * The privacy setting for being messaged only by contacts.
+     */
+    const MESSAGE_PRIVACY_ONLYCONTACTS = 1;
+
+    /**
+     * The privacy setting for being messaged by anyone on the site.
+     */
+    const MESSAGE_PRIVACY_SITE = 2;
+
+    /**
      * Handles searching for messages in the message area.
      *
      * @param int $userid The user id doing the searching
@@ -899,15 +914,59 @@ class api {
     }
 
     /**
-     * Checks if the recipient is allowing messages from users that aren't a
-     * contact. If not then it checks to make sure the sender is in the
-     * recipient's contacts.
+     * Checks if the recipient is allowing messages from users depending on their
+     * privacy preferences. If only contacts are allowed then it checks to make sure
+     * the sender is in the recipient's contacts.
      *
      * @param \stdClass $recipient The user object.
      * @param \stdClass|null $sender The user object.
      * @return bool true if $sender is blocked, false otherwise.
      */
     public static function is_user_non_contact_blocked($recipient, $sender = null) {
+        global $USER, $DB, $CFG;
+
+        if (is_null($sender)) {
+            // The message is from the logged in user, unless otherwise specified.
+            $sender = $USER;
+        }
+
+        $privacypreference = get_user_preferences('message_blocknoncontacts', '', $recipient->id);
+        switch ($privacypreference) {
+            case self::MESSAGE_PRIVACY_SITE:
+                if (!empty($CFG->messagingallusers)) {
+                    // Users can be messaged without being contacts or members of the same course.
+                    break;
+                }
+                // When the $CFG->messagingallusers privacy setting is disabled, MESSAGE_PRIVACY_SITE is
+                // also disabled, so it has to be replaced to MESSAGE_PRIVACY_COURSEMEMBER.
+            case self::MESSAGE_PRIVACY_COURSEMEMBER:
+                // Confirm the sender and the recipient are both members of the same course.
+                if (enrol_sharing_course($recipient, $sender)) {
+                    // All good, the recipient and the sender are members of the same course.
+                    return false;
+                }
+            case self::MESSAGE_PRIVACY_ONLYCONTACTS:
+                // Confirm the sender is a contact of the recipient.
+                if (self::is_a_contact($recipient, $sender)) {
+                    // All good, the recipient is a contact of the sender.
+                    return false;
+                } else {
+                    // Oh no, the recipient is not a contact. Looks like we can't send the message.
+                    return true;
+                }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the sender is in the recipient's contacts.
+     *
+     * @param \stdClass $recipient The user object.
+     * @param \stdClass|null $sender The user object.
+     * @return bool true if $sender is a recipient's contact, false otherwise.
+     */
+    public static function is_a_contact($recipient, $sender = null) {
         global $USER, $DB;
 
         if (is_null($sender)) {
@@ -915,20 +974,7 @@ class api {
             $sender = $USER;
         }
 
-        $blockednoncontacts = get_user_preferences('message_blocknoncontacts', '', $recipient->id);
-        if (!empty($blockednoncontacts)) {
-            // Confirm the sender is a contact of the recipient.
-            $exists = $DB->record_exists('message_contacts', array('userid' => $recipient->id, 'contactid' => $sender->id));
-            if ($exists) {
-                // All good, the recipient is a contact of the sender.
-                return false;
-            } else {
-                // Oh no, the recipient is not a contact. Looks like we can't send the message.
-                return true;
-            }
-        }
-
-        return false;
+        return $DB->record_exists('message_contacts', array('userid' => $recipient->id, 'contactid' => $sender->id));
     }
 
     /**
