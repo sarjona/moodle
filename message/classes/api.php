@@ -895,9 +895,14 @@ class api {
             return false;
         }
 
+        // The sender is able to bypass the recipient privacy messaging preferences.
+        if (self::can_ignore_messaging_preferences($recipient, $sender)) {
+            return true;
+        }
+
         // The recipient blocks messages from non-contacts and the
         // sender isn't a contact.
-        if (self::is_user_non_contact_blocked($recipient, $sender)) {
+        if (self::is_user_non_contact_blocked($recipient, $sender, false)) {
             return false;
         }
 
@@ -906,7 +911,7 @@ class api {
             $senderid = $sender->id;
         }
         // The recipient has specifically blocked this sender.
-        if (self::is_user_blocked($recipient->id, $senderid)) {
+        if (self::is_user_blocked($recipient->id, $senderid, false)) {
             return false;
         }
 
@@ -920,9 +925,11 @@ class api {
      *
      * @param \stdClass $recipient The user object.
      * @param \stdClass|null $sender The user object.
+     * @param bool $checkignoremessagingprefs If set to true then this function will check if
+     *             privacy messaging preferences should be checked.
      * @return bool true if $sender is blocked, false otherwise.
      */
-    public static function is_user_non_contact_blocked($recipient, $sender = null) {
+    public static function is_user_non_contact_blocked($recipient, $sender = null, $checkignoremessagingprefs = true) {
         global $USER, $DB, $CFG;
 
         if (is_null($sender)) {
@@ -951,9 +958,50 @@ class api {
                     // All good, the recipient is a contact of the sender.
                     return false;
                 } else {
+                    if ($checkignoremessagingprefs && self::can_ignore_messaging_preferences($recipient, $sender)) {
+                        // The sender is able to bypass the recipient privacy messaging preferences in one of the shared courses.
+                        return false;
+                    }
+
                     // Oh no, the recipient is not a contact. Looks like we can't send the message.
                     return true;
                 }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines if a user is permitted to ignore another user privacy preferences.
+     * If no sender is provided then it defaults to the logged in user.
+     *
+     * @param stdClass|int $recipient The user object.
+     * @param stdClass|int|null $sender The user object.
+     * @return bool true if $sender can ignore $recipient messaging preferences, false otherwise.
+     */
+    public static function can_ignore_messaging_preferences($recipient, $sender = null) {
+        global $USER;
+
+        if (is_null($sender)) {
+            // The message is from the logged in user, unless otherwise specified.
+            $sender = $USER;
+        }
+        $recipientid = is_object($recipient) ? $recipient->id : $recipient;
+        $senderid = is_object($sender) ? $sender->id : $sender;
+
+        // The sender is able to bypass the recipient privacy messaging preferences a system context level.
+        if (has_capability('moodle/course:ignoremessagingpreferences', \context_system::instance(), $senderid)) {
+            return true;
+        }
+
+        // Get shared courses to check if the sender is able to bypass the recipient privacy messaging preferences in some of them.
+        $courses = enrol_get_shared_courses($recipientid, $senderid, true);
+        foreach ($courses as $course) {
+            $coursecontext = \context_course::instance($course->id);
+            if (has_capability('moodle/course:ignoremessagingpreferences', $coursecontext, $senderid)) {
+                // The sender is able to bypass the recipient privacy messaging preferences in one of the shared courses.
+                return true;
+            }
         }
 
         return false;
@@ -981,13 +1029,16 @@ class api {
      * Checks if the recipient has specifically blocked the sending user.
      *
      * Note: This function will always return false if the sender has the
-     * readallmessages capability at the system context level.
+     * readallmessages capability at the system context level or the
+     * ignoremessagingpreferences capability at the course context level.
      *
      * @param int $recipientid User ID of the recipient.
      * @param int $senderid User ID of the sender.
+     * @param bool $checkignoremessagingprefs If set to true then this function will check if
+     *             privacy messaging preferences should be checked.
      * @return bool true if $sender is blocked, false otherwise.
      */
-    public static function is_user_blocked($recipientid, $senderid = null) {
+    public static function is_user_blocked($recipientid, $senderid = null, $checkignoremessagingprefs = true) {
         global $USER, $DB;
 
         if (is_null($senderid)) {
@@ -997,6 +1048,11 @@ class api {
 
         $systemcontext = \context_system::instance();
         if (has_capability('moodle/site:readallmessages', $systemcontext, $senderid)) {
+            return false;
+        }
+
+        // The sender is able to bypass the recipient privacy messaging preferences so can't be blocked by the $recipient.
+        if ($checkignoremessagingprefs && self::can_ignore_messaging_preferences($recipientid, $senderid)) {
             return false;
         }
 
