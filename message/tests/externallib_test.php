@@ -126,7 +126,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         // We need to execute the return values cleaning process to simulate the web service server.
         $sentmessages = external_api::clean_returnvalue(core_message_external::send_instant_messages_returns(), $sentmessages);
         $this->assertEquals(
-            get_string('usercantbemessaged', 'message', fullname(\core_user::get_user($message1['touserid']))),
+            get_string('usercantbemessaged', 'message'),
             array_pop($sentmessages)['errormessage']
         );
 
@@ -153,6 +153,187 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertEquals($themessage->useridto, $message1['touserid']);
         $this->assertEquals($themessage->smallmessage, $message1['text']);
         $this->assertEquals($sentmessages[0]['clientmsgid'], $message1['clientmsgid']);
+    }
+
+    /**
+     * Test send_conversation_messages.
+     */
+    public function test_send_conversation_messages() {
+        global $DB, $USER, $CFG;
+
+        $this->resetAfterTest(true);
+        // Transactions used in tests, tell phpunit use alternative reset method.
+        $this->preventResetByRollback();
+
+        // Turn off all message processors (so nothing is really sent).
+        require_once($CFG->dirroot . '/message/lib.php');
+        $messageprocessors = get_message_processors();
+        foreach ($messageprocessors as $messageprocessor) {
+            $messageprocessor->enabled = 0;
+            $DB->update_record('message_processors', $messageprocessor);
+        }
+
+        // Set the required capabilities by the external function.
+        $contextid = context_system::instance()->id;
+        $roleid = $this->assignUserCapability('moodle/site:sendmessage', $contextid);
+
+        $user1 = self::getDataGenerator()->create_user();
+
+        if (!$conversationid = \core_message\api::get_conversation_between_users([$USER->id, $user1->id])) {
+            $conversationid = \core_message\api::create_conversation_between_users([$USER->id, $user1->id]);
+        }
+
+        // Create test message data.
+        $message1 = array();
+        $message1['convid'] = $conversationid;
+        $message1['text'] = 'the message.';
+        $message1['clientmsgid'] = 4;
+        $messages = array($message1);
+
+        $sentmessages = core_message_external::send_conversation_messages($messages);
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $sentmessages = external_api::clean_returnvalue(core_message_external::send_conversation_messages_returns(), $sentmessages);
+        $this->assertEquals(get_string('usercantbemessaged', 'message'), array_pop($sentmessages)['errormessage']);
+
+        // Add the user1 as a contact.
+        message_add_contact($USER->id, 0, $user1->id);
+
+        // Send message again. Now it should work properly.
+        $sentmessages = core_message_external::send_conversation_messages($messages);
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $sentmessages = external_api::clean_returnvalue(core_message_external::send_conversation_messages_returns(), $sentmessages);
+
+        $sql = "SELECT m.*, mcm.userid as useridto
+                 FROM {messages} m
+           INNER JOIN {message_conversations} mc
+                   ON m.conversationid = mc.id
+           INNER JOIN {message_conversation_members} mcm
+                   ON mcm.conversationid = mc.id
+                WHERE mcm.userid != ?
+                  AND m.id = ?";
+        $themessage = $DB->get_record_sql($sql, [$USER->id, $sentmessages[0]['msgid']]);
+
+        // Confirm that the message was inserted correctly.
+        $this->assertEquals($themessage->useridfrom, $USER->id);
+        $this->assertEquals($themessage->useridto, $user1->id);
+        $this->assertEquals($themessage->smallmessage, $message1['text']);
+        $this->assertEquals($sentmessages[0]['clientmsgid'], $message1['clientmsgid']);
+    }
+
+    /**
+     * Test send_conversation_messages to conversations with more than 2 members.
+     */
+    public function test_send_group_conversation_messages() {
+        global $DB, $USER, $CFG;
+
+        $this->resetAfterTest(true);
+        // Transactions used in tests, tell phpunit use alternative reset method.
+        $this->preventResetByRollback();
+
+        // Turn off all message processors (so nothing is really sent).
+        require_once($CFG->dirroot . '/message/lib.php');
+        $messageprocessors = get_message_processors();
+        foreach ($messageprocessors as $messageprocessor) {
+            $messageprocessor->enabled = 0;
+            $DB->update_record('message_processors', $messageprocessor);
+        }
+
+        // Set the required capabilities by the external function.
+        $contextid = context_system::instance()->id;
+        $roleid = $this->assignUserCapability('moodle/site:sendmessage', $contextid);
+
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+
+        if (!$convid1 = \core_message\api::get_conversation_between_users([$user1->id, $user2->id, $user3->id])) {
+            $convid1 = \core_message\api::create_conversation_between_users([$user1->id, $user2->id, $user3->id]);
+        }
+
+        // Create test message data.
+        $message1 = array();
+        $message1['convid'] = $convid1;
+        $message1['text'] = 'the message.';
+        $message1['clientmsgid'] = 4;
+        $messages = array($message1);
+
+        $sentmessages = core_message_external::send_conversation_messages($messages);
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $sentmessages = external_api::clean_returnvalue(core_message_external::send_conversation_messages_returns(), $sentmessages);
+        $this->assertEquals(
+            get_string('usercantbemessaged', 'message'),
+            array_pop($sentmessages)['errormessage']
+        );
+
+        // Create a conversation which includes $USER.
+        if (!$convid2 = \core_message\api::get_conversation_between_users([$USER->id, $user1->id, $user2->id])) {
+            $convid2 = \core_message\api::create_conversation_between_users([$USER->id, $user1->id, $user2->id]);
+        }
+
+        // Create test message data.
+        $message2 = array();
+        $message2['convid'] = $convid2;
+        $message2['text'] = 'the message.';
+        $message2['clientmsgid'] = 4;
+        $messages = array($message2);
+
+        // Send message again. Now it should work properly.
+        $sentmessages = core_message_external::send_conversation_messages($messages);
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $sentmessages = external_api::clean_returnvalue(core_message_external::send_conversation_messages_returns(), $sentmessages);
+
+        $sql = "SELECT m.*
+                  FROM {messages} m
+                 WHERE m.id = ?";
+        $themessage = $DB->get_record_sql($sql, [$sentmessages[0]['msgid']]);
+
+        // Confirm that the message was inserted correctly.
+        $this->assertEquals($themessage->useridfrom, $USER->id);
+        $this->assertEquals($themessage->conversationid, $convid2);
+        $this->assertEquals($themessage->smallmessage, $message2['text']);
+        $this->assertEquals($sentmessages[0]['clientmsgid'], $message1['clientmsgid']);
+    }
+
+    /**
+     * Test send_conversation_messages to conversations with more than 2 members.
+     */
+    public function test_send_conversation_messages_with_messaging_disabled() {
+        global $DB, $USER, $CFG;
+
+        $this->resetAfterTest(true);
+        // Transactions used in tests, tell phpunit use alternative reset method.
+        $this->preventResetByRollback();
+        set_config('messaging', false);
+
+        // Turn off all message processors (so nothing is really sent).
+        require_once($CFG->dirroot . '/message/lib.php');
+        $messageprocessors = get_message_processors();
+        foreach ($messageprocessors as $messageprocessor) {
+            $messageprocessor->enabled = 0;
+            $DB->update_record('message_processors', $messageprocessor);
+        }
+
+        // Set the required capabilities by the external function.
+        $contextid = context_system::instance()->id;
+        $roleid = $this->assignUserCapability('moodle/site:sendmessage', $contextid);
+
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+
+        if (!$convid1 = \core_message\api::get_conversation_between_users([$USER->id, $user1->id, $user2->id])) {
+            $convid1 = \core_message\api::create_conversation_between_users([$USER->id, $user1->id, $user2->id]);
+        }
+
+        // Create test message data.
+        $message1 = array();
+        $message1['convid'] = $convid1;
+        $message1['text'] = 'the message.';
+        $message1['clientmsgid'] = 4;
+        $messages = array($message1);
+
+        // Get users without any group on the system context (it should throw an exception).
+        $this->expectException('moodle_exception');
+        $sentmessages = core_message_external::send_conversation_messages($messages);
     }
 
     /**

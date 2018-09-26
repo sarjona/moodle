@@ -66,12 +66,12 @@ class core_message_external extends external_api {
     /**
      * Send private messages from the current USER to other users
      *
-     * @param array $messages An array of message to send.
+     * @param  array $messages An array of message to send.
      * @return array
-     * @since Moodle 2.2
+     * @since  Moodle 2.2
      */
     public static function send_instant_messages($messages = array()) {
-        global $CFG, $USER, $DB;
+        global $CFG, $USER;
 
         // Check if messaging is enabled.
         if (empty($CFG->messaging)) {
@@ -84,41 +84,117 @@ class core_message_external extends external_api {
         require_capability('moodle/site:sendmessage', $context);
 
         $params = self::validate_parameters(self::send_instant_messages_parameters(), array('messages' => $messages));
-
-        //retrieve all tousers of the messages
-        $receivers = array();
-        foreach($params['messages'] as $message) {
-            $receivers[] = $message['touserid'];
+        // Retrieve all tousers of the messages and get their conversation id.
+        foreach ($params['messages'] as $key => $message) {
+            if (!$conversationid = \core_message\api::get_conversation_between_users([$USER->id, $message['touserid']])) {
+                $conversationid = \core_message\api::create_conversation_between_users([$USER->id, $message['touserid']]);
+            }
+            $params['messages'][$key]['convid'] = $conversationid;
+            unset($params['messages'][$key]['touserid']);
         }
-        list($sqluserids, $sqlparams) = $DB->get_in_or_equal($receivers, SQL_PARAMS_NAMED, 'userid_');
-        $tousers = $DB->get_records_select("user", "id " . $sqluserids . " AND deleted = 0", $sqlparams);
+        return self::send_conversation_messages($params['messages']);
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 2.2
+     */
+    public static function send_instant_messages_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'msgid' => new external_value(PARAM_INT, 'test this to know if it succeeds:  id of the created message' .
+                        ' if it succeeded, -1 when failed'),
+                    'clientmsgid' => new external_value(PARAM_ALPHANUMEXT, 'your own id for the message', VALUE_OPTIONAL),
+                    'errormessage' => new external_value(PARAM_TEXT, 'error message - if it failed', VALUE_OPTIONAL)
+                )
+            )
+        );
+    }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 3.6
+     */
+    public static function send_conversation_messages_parameters() {
+        return new external_function_parameters(
+            array(
+                'messages' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'convid' => new external_value(PARAM_INT, 'id of the message conversation'),
+                            'text' => new external_value(PARAM_RAW, 'the text of the message'),
+                            'textformat' => new external_format_value('text', VALUE_DEFAULT, FORMAT_MOODLE),
+                            'clientmsgid' => new external_value(PARAM_ALPHANUMEXT, 'your own client id for the message. If this id'.
+                                ' is provided, the fail message id will be returned to you', VALUE_OPTIONAL),
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * Send private messages from the current user to other users.
+     *
+     * @param array $messages An array of message to send.
+     * @return array
+     * @since Moodle 3.6
+     */
+    public static function send_conversation_messages(array $messages = array()) {
+        global $CFG, $USER, $DB;
+
+        // Check if messaging is enabled.
+        if (empty($CFG->messaging)) {
+            throw new moodle_exception('disabled', 'message');
+        }
+
+        // Ensure the current user is allowed to run this function.
+        $context = context_system::instance();
+        self::validate_context($context);
+        require_capability('moodle/site:sendmessage', $context);
+
+        $params = self::validate_parameters(self::send_conversation_messages_parameters(), array('messages' => $messages));
+
+        // Retrieve all conversations of the messages.
+        $convids = array();
+        foreach ($params['messages'] as $message) {
+            $convids[] = $message['convid'];
+        }
+        list($sqlconvids, $sqlparams) = $DB->get_in_or_equal($convids);
+        $conversations = $DB->get_records_select('message_conversations', 'id '. $sqlconvids, $sqlparams);
 
         $resultmessages = array();
         foreach ($params['messages'] as $message) {
-            $resultmsg = array(); //the infos about the success of the operation
+            $resultmsg = array(); // The infos about the success of the operation.
 
             // We are going to do some checking.
-            // Code should match /messages/index.php checks.
             $success = true;
 
-            // Check the user exists.
-            if (empty($tousers[$message['touserid']])) {
+            // Check the conversation id exists.
+            if (empty($conversations[$message['convid']])) {
                 $success = false;
-                $errormessage = get_string('touserdoesntexist', 'message', $message['touserid']);
+                $errormessage = get_string('conversationdoesntexist', 'message', $message['convid']);
             }
 
-            // TODO MDL-31118 performance improvement - edit the function so we can pass an array instead userid
-            // Check if the recipient can be messaged by the sender.
-            if ($success && !\core_message\api::can_post_message($tousers[$message['touserid']], $USER)) {
+            // Check if the sender can send a message to this conversation.
+            if ($success && !\core_message\api::can_send_message_to_conversation($message['convid'], $USER)) {
                 $success = false;
-                $errormessage = get_string('usercantbemessaged', 'message', fullname(\core_user::get_user($message['touserid'])));
+                $errormessage = get_string('usercantbemessaged', 'message');
             }
 
-            // Now we can send the message (at least try).
+            // Now we can send the message (or at least try).
             if ($success) {
-                // TODO MDL-31118 performance improvement - edit the function so we can pass an array instead one touser object.
-                $success = message_post_message($USER, $tousers[$message['touserid']],
-                        $message['text'], external_validate_format($message['textformat']));
+                $success = \core_message\api::send_conversation_message(
+                    $USER,
+                    $conversations[$message['convid']],
+                    $message['text'],
+                    external_validate_format($message['textformat'])
+                );
             }
 
             // Build the resultmsg.
@@ -147,7 +223,7 @@ class core_message_external extends external_api {
      * @return external_description
      * @since Moodle 2.2
      */
-    public static function send_instant_messages_returns() {
+    public static function send_conversation_messages_returns() {
         return new external_multiple_structure(
             new external_single_structure(
                 array(
@@ -2635,7 +2711,7 @@ class core_message_external extends external_api {
         $result = array(
             'warnings' => array(),
             'preferences' => $notificationlistoutput->export_for_template($renderer),
-            'blocknoncontacts' => get_user_preferences('message_blocknoncontacts', \core_message\api::MESSAGE_PRIVACY_COURSEMEMBER, $user->id),
+            'blocknoncontacts' => get_user_preferences('message_blocknoncontacts', '', $user->id) ? true : false,
         );
         return $result;
     }
@@ -2650,7 +2726,7 @@ class core_message_external extends external_api {
         return new external_function_parameters(
             array(
                 'preferences' => self::get_preferences_structure(),
-                'blocknoncontacts' => new external_value(PARAM_INT, 'Privacy messaging setting to define who can message you'),
+                'blocknoncontacts' => new external_value(PARAM_BOOL, 'Whether to block or not messages from non contacts'),
                 'warnings' => new external_warnings(),
             )
         );

@@ -891,31 +891,182 @@ class api {
             $sender = $USER;
         }
 
+        if (!$conversationid = self::get_conversation_between_users([$sender->id, $recipient->id])) {
+            $conversationid = self::create_conversation_between_users([$sender->id, $recipient->id]);
+        }
+
+        return self::can_send_message_to_conversation($conversationid, $sender);
+    }
+
+    /**
+     * Send a message from one user to a conversation. For 1:1 conversations, it will be delivered according to the
+     * message recipients messaging preferences
+     *
+     * @param  object $userfrom The message sender.
+     * @param  object|int $conversation The conversation where the message has to be sent. Could be an object or just the id.
+     * @param  string $text The message to send.
+     * @param  int $textformat The message format such as FORMAT_PLAIN or FORMAT_HTML.
+     * @return int|false The ID of the new message or false
+     */
+    public static function send_conversation_message($userfrom, $conversation, $text, $textformat) {
+        global $SITE, $CFG, $USER;
+
+        if (is_object($conversation)) {
+            $conversationid = $conversation->id;
+        } else {
+            $conversationid = $conversation;
+        }
+        $eventdata = new \core\message\message();
+        $eventdata->courseid = 1;
+        $eventdata->component = 'moodle';
+        $eventdata->name = 'instantmessage';
+        $eventdata->userfrom = $userfrom;
+        $eventdata->convid = $conversationid;
+
+        if ($textformat == FORMAT_HTML) {
+            $eventdata->fullmessagehtml = $text;
+            // Some message processors may revert to sending plain text even if html is supplied
+            // so we keep both plain and html versions if we're intending to send html.
+            $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
+        } else {
+            $eventdata->fullmessage = $text;
+            $eventdata->fullmessagehtml = '';
+        }
+
+        $eventdata->fullmessageformat = $textformat;
+        // Store the message unfiltered. Clean up on output.
+        $eventdata->smallmessage = $text;
+
+        $eventdata->timecreated = time();
+        $eventdata->notification = 0;
+
+        // For 1:1 conversations, we should also to prepare email message.
+        $recipient = self::get_conversation_recipient($conversationid, $userfrom);
+        if (!empty($recipient)) {
+            $eventdata->userto = $recipient;
+            // Using string manager directly so they will be in the recipients language rather than the sender.
+            $eventdata->subject = get_string_manager()->get_string(
+                'unreadnewmessage',
+                'message',
+                fullname($userfrom), $recipient->lang
+            );
+            $langparams = new \stdClass();
+            $langparams->sitename = format_string($SITE->shortname, true, array('context' => \context_course::instance(SITEID)));
+            // TODO (MDL-63212): Review the following URL for the correct one before removing the index.php file.
+            $langparams->url = $CFG->wwwroot.'/message/index.php?user='.$recipient->id.'&id='.$userfrom->id;
+
+            $emailtagline = get_string_manager()->get_string('emailtagline', 'message', $langparams, $recipient->lang);
+            if (!empty($eventdata->fullmessage)) {
+                $eventdata->fullmessage .= "\n\n---------------------------------------------------------------------\n" .
+                    $emailtagline;
+            }
+            if (!empty($eventdata->fullmessagehtml)) {
+                $eventdata->fullmessagehtml .= '<br /><br />---------------------------------------------------------------------<br />' .
+                    $emailtagline;
+            }
+        } else {
+            // TODO (MDL-63283): Should we change the subject for conversations with more than 3 members?
+            // For now, the subject for group conversations will be empty because is not displayed anywhere.
+            $eventdata->subject = '';
+        }
+
+        return message_send($eventdata);
+    }
+
+    /**
+     * Determines if a user is permitted to send a conversation a message.
+     * If no sender is provided then it defaults to the logged in user.
+     *
+     * @param  int $convid The conversation id where the $sender wants to send a message.
+     * @param  \stdClass|null $sender The user object.
+     * @return bool true if user is permitted, false otherwise.
+     */
+    public static function can_send_message_to_conversation(int $convid, $sender = null) : bool {
+        global $USER, $DB;
+
+        if (is_null($sender)) {
+            // The message is from the logged in user, unless otherwise specified.
+            $sender = $USER;
+        }
+
+        // The sender is not able to send messages in the whole site.
         if (!has_capability('moodle/site:sendmessage', \context_system::instance(), $sender)) {
             return false;
         }
 
-        // The sender is able to bypass the recipient privacy messaging preferences.
-        if (self::can_ignore_messaging_preferences($recipient, $sender)) {
-            return true;
-        }
+        // Get conversation members.
+        $convmembers = $DB->get_records('message_conversation_members', ['conversationid' => $convid]);
+        if (count($convmembers) > 2) {
+            // For group conversations, check the $sender is member of this conversation.
+            $member = array_filter(
+                $convmembers,
+                function ($e) use (&$sender) {
+                    return $e->userid == $sender->id;
+                }
+            );
+            if (empty($member)) {
+                return false;
+            }
+        } else {
+            // User messaging preferences should be checked because it's a 1:1 conversation.
+            // Get the recipient.
+            foreach ($convmembers as $member) {
+                if ($member->userid != $sender->id) {
+                    $recipientid = $member->userid;
+                    break;
+                }
+            }
+            $recipient = \core_user::get_user($recipientid, '*', MUST_EXIST);
+            // The sender is able to bypass the recipient privacy messaging preferences.
+            if (self::can_ignore_messaging_preferences($recipient, $sender)) {
+                return true;
+            }
 
-        // The recipient blocks messages from non-contacts and the
-        // sender isn't a contact.
-        if (self::is_user_non_contact_blocked($recipient, $sender, false)) {
-            return false;
-        }
+            // The recipient blocks messages from non-contacts and the sender isn't a contact.
+            if (self::is_user_non_contact_blocked($recipient, $sender, false)) {
+                return false;
+            }
 
-        $senderid = null;
-        if ($sender !== null && isset($sender->id)) {
-            $senderid = $sender->id;
+            // The recipient has specifically blocked this sender.
+            if (self::is_user_blocked($recipient->id, $sender->id, false)) {
+                return false;
+            }
         }
-        // The recipient has specifically blocked this sender.
-        if (self::is_user_blocked($recipient->id, $senderid, false)) {
-            return false;
-        }
-
         return true;
+    }
+
+    /**
+     * For conversations 1:1, it will return the recipient. Otherwise (group conversations), false.
+     *
+     * @param  int $convid The conversation id where the $sender wants to send a message.
+     * @param  \stdClass|null $sender The user object.
+     * @return \stdClass|bool The recipient user if it's a 1:1 conversation, false otherwise.
+     */
+    public static function get_conversation_recipient(int $convid, $sender = null) {
+        global $USER, $DB;
+
+        if (is_null($sender)) {
+            // The message is from the logged in user, unless otherwise specified.
+            $sender = $USER;
+        }
+
+        // Get conversation members.
+        $convmembers = $DB->get_records('message_conversation_members', ['conversationid' => $convid]);
+        if (count($convmembers) == 2) {
+            // It's a 1:1 conversation, so we can get the recipient.
+            $foundsender = false;
+            foreach ($convmembers as $member) {
+                if ($member->userid == $sender->id) {
+                    $foundsender = true;
+                } else {
+                    $recipientid = $member->userid;
+                }
+            }
+            if ($foundsender && !empty($recipientid)) {
+                return \core_user::get_user($recipientid, '*', MUST_EXIST);
+            }
+        }
+        return false;
     }
 
     /**
@@ -1193,7 +1344,7 @@ class api {
     }
 
     /**
-     * Mark a single message as read.
+     * Mark a single message as read for the defined user.
      *
      * @param int $userid The user id who marked the message as read
      * @param \stdClass $message The message
@@ -1231,6 +1382,24 @@ class api {
             )
         ));
         $event->trigger();
+    }
+
+    /**
+     * Mark a single message as read to all the conversation members.
+     *
+     * @param \stdClass $message The message to mark as read.
+     * @param int|null $timeread The time the message was marked as read, if null will default to time()
+     */
+    public static function mark_message_conversation_as_read($message, $timeread = null) {
+        global $DB;
+
+        $convmembers = $DB->get_records('message_conversation_members', ['conversationid' => $message->conversationid]);
+        foreach ($convmembers as $member) {
+            if ($member->userid != $message->useridfrom) {
+                // This isn't the sender (is one of the receivers).
+                self::mark_message_as_read($member->userid, $message, $timeread);
+            }
+        }
     }
 
     /**

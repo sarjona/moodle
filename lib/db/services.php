@@ -1043,6 +1043,15 @@ $functions = array(
         'ajax' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
+    'core_message_send_conversation_messages' => array(
+        'classname' => 'core_message_external',
+        'methodname' => 'send_conversation_messages',
+        'classpath' => 'message/externallib.php',
+        'description' => 'Send messages to a conversation',
+        'type' => 'write',
+        'capabilities' => 'moodle/site:sendmessage',
+        'ajax' => true,
+    ),
     'core_message_unblock_contacts' => array(
         'classname' => 'core_message_external',
         'methodname' => 'unblock_contacts',
