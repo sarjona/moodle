@@ -282,7 +282,7 @@ class core_message_events_testcase extends core_message_messagelib_testcase {
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
 
-        $messageid = $this->send_fake_message($user1, $user2);
+        $messageid = $this->send_fake_message([$user1->id, $user2->id]);
 
         // Trigger and capture the event.
         $sink = $this->redirectEvents();
@@ -314,7 +314,7 @@ class core_message_events_testcase extends core_message_messagelib_testcase {
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
 
-        $messageid = $this->send_fake_message($user1, $user2);
+        $messageid = $this->send_fake_message([$user1->id, $user2->id]);
 
         // Trigger and capture the event.
         $sink = $this->redirectEvents();
@@ -336,7 +336,7 @@ class core_message_events_testcase extends core_message_messagelib_testcase {
         $this->assertEquals($user2->id, $event->other['useridto']);
 
         // Create a read message.
-        $messageid = $this->send_fake_message($user1, $user2);
+        $messageid = $this->send_fake_message([$user1->id, $user2->id]);
         $m = $DB->get_record('messages', ['id' => $messageid]);
         \core_message\api::mark_message_as_read($user2->id, $m);
 
@@ -376,14 +376,14 @@ class core_message_events_testcase extends core_message_messagelib_testcase {
         // Send some messages back and forth.
         $time = 1;
         $messages = [];
-        $messages[] = $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
-        $messages[] = $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
-        $messages[] = $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 3);
-        $messages[] = $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 4);
-        $messages[] = $this->send_fake_message($user1, $user2, 'You doing much?', 0, $time + 5);
-        $messages[] = $this->send_fake_message($user2, $user1, 'Nah', 0, $time + 6);
-        $messages[] = $this->send_fake_message($user1, $user2, 'You nubz0r!', 0, $time + 7);
-        $messages[] = $this->send_fake_message($user2, $user1, 'Ouch.', 0, $time + 8);
+        $messages[] = $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time + 1);
+        $messages[] = $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 2);
+        $messages[] = $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 3);
+        $messages[] = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 4);
+        $messages[] = $this->send_fake_message([$user1->id, $user2->id], 'You doing much?', 0, $time + 5);
+        $messages[] = $this->send_fake_message([$user2->id, $user1->id], 'Nah', 0, $time + 6);
+        $messages[] = $this->send_fake_message([$user1->id, $user2->id], 'You nubz0r!', 0, $time + 7);
+        $messages[] = $this->send_fake_message([$user2->id, $user1->id], 'Ouch.', 0, $time + 8);
 
         // Mark the last 4 messages as read.
         $m5 = $DB->get_record('messages', ['id' => $messages[4]]);
@@ -446,7 +446,7 @@ class core_message_events_testcase extends core_message_messagelib_testcase {
         $user2 = $this->getDataGenerator()->create_user();
 
         // Send a notification.
-        $notificationid = $this->send_fake_message($user1, $user2, 'Hello world!', 1);
+        $notificationid = $this->send_fake_message([$user1->id, $user2->id], 'Hello world!', 1);
 
         // Containing courseid.
         $event = \core\event\notification_sent::create_from_ids($user1->id, $user2->id, $notificationid, $course->id);
@@ -496,7 +496,7 @@ class core_message_events_testcase extends core_message_messagelib_testcase {
         $user2 = $this->getDataGenerator()->create_user();
 
         // Send a notification.
-        $notificationid = $this->send_fake_message($user1, $user2, 'Hello world!', 1);
+        $notificationid = $this->send_fake_message([$user1->id, $user2->id], 'Hello world!', 1);
 
         // Trigger and capture the event.
         $sink = $this->redirectEvents();

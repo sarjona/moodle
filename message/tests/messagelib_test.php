@@ -59,24 +59,26 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * sent from a user to another. We should stop using it once {@link message_send()} will support
      * transactions. This is not clean at all, this is just used to add rows to the table.
      *
-     * @param stdClass $userfrom user object of the one sending the message.
-     * @param stdClass $userto user object of the one receiving the message.
+     * @param array $userids Array of user identifiers to send the message. The sender will be the first one in the array.
      * @param string $message message to send.
      * @param int $notification if the message is a notification.
      * @param int $time the time the message was sent
      * @return int the id of the message
      */
-    protected function send_fake_message($userfrom, $userto, $message = 'Hello world!', $notification = 0, $time = 0) {
+    protected function send_fake_message($userids, $message = 'Hello world!', $notification = 0, $time = 0) {
         global $DB;
 
         if (empty($time)) {
             $time = time();
         }
 
+        $useridfrom = $userids[0];
+
         if ($notification) {
+            $useridto = $userids[1];
             $record = new stdClass();
-            $record->useridfrom = $userfrom->id;
-            $record->useridto = $userto->id;
+            $record->useridfrom = $useridfrom;
+            $record->useridto = $useridto;
             $record->subject = 'No subject';
             $record->fullmessage = $message;
             $record->smallmessage = $message;
@@ -85,14 +87,13 @@ class core_message_messagelib_testcase extends advanced_testcase {
             return $DB->insert_record('notifications', $record);
         }
 
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$userfrom->id,
-                $userto->id]);
+        if (!$conversationid = \core_message\api::get_conversation_between_users($userids)) {
+            $conversationid = \core_message\api::create_conversation_between_users($userids);
         }
 
         // Ok, send the message.
         $record = new stdClass();
-        $record->useridfrom = $userfrom->id;
+        $record->useridfrom = $useridfrom;
         $record->conversationid = $conversationid;
         $record->subject = 'No subject';
         $record->fullmessage = $message;
@@ -153,9 +154,9 @@ class core_message_messagelib_testcase extends advanced_testcase {
         message_add_contact($user2->id);
 
         // Send some messages.
-        $this->send_fake_message($user1, $USER);
-        $this->send_fake_message($user2, $USER);
-        $this->send_fake_message($user3, $USER);
+        $this->send_fake_message([$user1->id, $USER->id]);
+        $this->send_fake_message([$user2->id, $USER->id]);
+        $this->send_fake_message([$user3->id, $USER->id]);
 
         list($onlinecontacts, $offlinecontacts, $strangers) = message_get_contacts();
         $this->assertDebuggingCalled();
@@ -164,8 +165,8 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $this->assertCount(1, $strangers);
 
         // Send message from noreply and support users.
-        $this->send_fake_message($noreplyuser, $USER);
-        $this->send_fake_message($supportuser, $USER);
+        $this->send_fake_message([$noreplyuser->id, $USER->id]);
+        $this->send_fake_message([$supportuser->id, $USER->id]);
         list($onlinecontacts, $offlinecontacts, $strangers) = message_get_contacts();
         $this->assertDebuggingCalled();
         $this->assertCount(0, $onlinecontacts);
@@ -212,8 +213,8 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $this->assertEquals(0, message_count_unread_messages($userto));
 
         // Send fake messages.
-        $this->send_fake_message($userfrom1, $userto);
-        $this->send_fake_message($userfrom2, $userto);
+        $this->send_fake_message([$userfrom1->id, $userto->id]);
+        $this->send_fake_message([$userfrom2->id, $userto->id]);
 
         $this->assertEquals(2, message_count_unread_messages($userto));
         $this->assertEquals(1, message_count_unread_messages($userto, $userfrom1));
@@ -233,8 +234,8 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $this->assertEquals(0, message_count_unread_messages($userto));
 
         // Send fake messages.
-        $messageid = $this->send_fake_message($userfrom1, $userto);
-        $this->send_fake_message($userfrom2, $userto);
+        $messageid = $this->send_fake_message([$userfrom1->id, $userto->id]);
+        $this->send_fake_message([$userfrom2->id, $userto->id]);
 
         // Mark message as read.
         $message = $DB->get_record('messages', ['id' => $messageid]);
@@ -259,8 +260,8 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $this->assertEquals(0, message_count_unread_messages($userto));
 
         // Send fake messages.
-        $messageid = $this->send_fake_message($userfrom1, $userto);
-        $this->send_fake_message($userfrom2, $userto);
+        $messageid = $this->send_fake_message([$userfrom1->id, $userto->id]);
+        $this->send_fake_message([$userfrom2->id, $userto->id]);
 
         // Delete a message.
         \core_message\api::delete_message($userto->id, $messageid);
@@ -277,7 +278,7 @@ class core_message_messagelib_testcase extends advanced_testcase {
         $userfrom = $this->getDataGenerator()->create_user();
         $userto = $this->getDataGenerator()->create_user();
 
-        $this->send_fake_message($userfrom, $userto);
+        $this->send_fake_message([$userfrom->id, $userto->id]);
 
         $this->assertEquals(0, message_count_unread_messages($userfrom));
     }

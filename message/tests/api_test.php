@@ -43,12 +43,12 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $sender = $this->getDataGenerator()->create_user(array('firstname' => 'Test1', 'lastname' => 'User1'));
         $recipient = $this->getDataGenerator()->create_user(array('firstname' => 'Test2', 'lastname' => 'User2'));
 
-        $this->send_fake_message($sender, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender, $recipient);
-        $this->send_fake_message($sender, $recipient);
-        $this->send_fake_message($sender, $recipient);
+        $this->send_fake_message([$sender->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender->id, $recipient->id]);
+        $this->send_fake_message([$sender->id, $recipient->id]);
+        $this->send_fake_message([$sender->id, $recipient->id]);
 
         \core_message\api::mark_all_read_for_user($recipient->id);
         $this->assertDebuggingCalled();
@@ -60,18 +60,18 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $sender2 = $this->getDataGenerator()->create_user(array('firstname' => 'Test3', 'lastname' => 'User3'));
         $recipient = $this->getDataGenerator()->create_user(array('firstname' => 'Test2', 'lastname' => 'User2'));
 
-        $this->send_fake_message($sender1, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender1, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender1, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender1, $recipient);
-        $this->send_fake_message($sender1, $recipient);
-        $this->send_fake_message($sender1, $recipient);
-        $this->send_fake_message($sender2, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender2, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender2, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender2, $recipient);
-        $this->send_fake_message($sender2, $recipient);
-        $this->send_fake_message($sender2, $recipient);
+        $this->send_fake_message([$sender1->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender1->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender1->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender1->id, $recipient->id]);
+        $this->send_fake_message([$sender1->id, $recipient->id]);
+        $this->send_fake_message([$sender1->id, $recipient->id]);
+        $this->send_fake_message([$sender2->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender2->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender2->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender2->id, $recipient->id]);
+        $this->send_fake_message([$sender2->id, $recipient->id]);
+        $this->send_fake_message([$sender2->id, $recipient->id]);
 
         \core_message\api::mark_all_read_for_user($recipient->id, $sender1->id);
         $this->assertDebuggingCalled();
@@ -82,12 +82,12 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $sender = $this->getDataGenerator()->create_user(array('firstname' => 'Test1', 'lastname' => 'User1'));
         $recipient = $this->getDataGenerator()->create_user(array('firstname' => 'Test2', 'lastname' => 'User2'));
 
-        $this->send_fake_message($sender, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender, $recipient, 'Notification', 1);
-        $this->send_fake_message($sender, $recipient);
-        $this->send_fake_message($sender, $recipient);
-        $this->send_fake_message($sender, $recipient);
+        $this->send_fake_message([$sender->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender->id, $recipient->id]);
+        $this->send_fake_message([$sender->id, $recipient->id]);
+        $this->send_fake_message([$sender->id, $recipient->id]);
 
         \core_message\api::mark_all_read_for_user($recipient->id, 0, MESSAGE_TYPE_NOTIFICATION);
         $this->assertDebuggingCalled();
@@ -286,10 +286,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Perform a search.
         $messages = \core_message\api::search_messages($user1->id, 'o');
@@ -341,19 +341,19 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth, have some different conversations with different users.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 3);
-        $messageid1 = $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 3);
+        $messageid1 = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 4);
 
-        $this->send_fake_message($user1, $user3, 'Booyah', 0, $time + 5);
-        $this->send_fake_message($user3, $user1, 'Whaaat?', 0, $time + 6);
-        $this->send_fake_message($user1, $user3, 'Nothing.', 0, $time + 7);
-        $messageid2 = $this->send_fake_message($user3, $user1, 'Cool.', 0, $time + 8);
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah', 0, $time + 5);
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?', 0, $time + 6);
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.', 0, $time + 7);
+        $messageid2 = $this->send_fake_message([$user3->id, $user1->id], 'Cool.', 0, $time + 8);
 
-        $this->send_fake_message($user1, $user4, 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 9);
-        $this->send_fake_message($user4, $user1, 'Yah brah, it\'s pretty rad.', 0, $time + 10);
-        $messageid3 = $this->send_fake_message($user1, $user4, 'Dope.', 0, $time + 11);
+        $this->send_fake_message([$user1->id, $user4->id], 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 9);
+        $this->send_fake_message([$user4->id, $user1->id], 'Yah brah, it\'s pretty rad.', 0, $time + 10);
+        $messageid3 = $this->send_fake_message([$user1->id, $user4->id], 'Dope.', 0, $time + 11);
 
         // Retrieve the conversations.
         $conversations = \core_message\api::get_conversations($user1->id);
@@ -411,19 +411,19 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth, have some different conversations with different users.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 3);
-        $messageid1 = $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 3);
+        $messageid1 = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 4);
 
-        $this->send_fake_message($user1, $user3, 'Booyah', 0, $time + 5);
-        $this->send_fake_message($user3, $user1, 'Whaaat?', 0, $time + 6);
-        $this->send_fake_message($user1, $user3, 'Nothing.', 0, $time + 7);
-        $messageid2 = $this->send_fake_message($user3, $user1, 'Cool.', 0, $time + 8);
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah', 0, $time + 5);
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?', 0, $time + 6);
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.', 0, $time + 7);
+        $messageid2 = $this->send_fake_message([$user3->id, $user1->id], 'Cool.', 0, $time + 8);
 
-        $this->send_fake_message($user1, $user4, 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 9);
-        $this->send_fake_message($user4, $user1, 'Yah brah, it\'s pretty rad.', 0, $time + 10);
-        $messageid3 = $this->send_fake_message($user1, $user4, 'Dope.', 0, $time + 11);
+        $this->send_fake_message([$user1->id, $user4->id], 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 9);
+        $this->send_fake_message([$user4->id, $user1->id], 'Yah brah, it\'s pretty rad.', 0, $time + 10);
+        $messageid3 = $this->send_fake_message([$user1->id, $user4->id], 'Dope.', 0, $time + 11);
 
         // Retrieve the conversations.
         $conversations = \core_message\api::get_conversations($user1->id, 1, 1);
@@ -479,15 +479,15 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth, have some different conversations with different users.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 3);
-        $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 3);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 4);
 
-        $this->send_fake_message($user1, $user3, 'Booyah', 0, $time + 5);
-        $this->send_fake_message($user3, $user1, 'Whaaat?', 0, $time + 6);
-        $this->send_fake_message($user1, $user3, 'Nothing.', 0, $time + 7);
-        $this->send_fake_message($user3, $user1, 'Cool.', 0, $time + 8);
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah', 0, $time + 5);
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?', 0, $time + 6);
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.', 0, $time + 7);
+        $this->send_fake_message([$user3->id, $user1->id], 'Cool.', 0, $time + 8);
 
         // Delete the second user.
         delete_user($user2);
@@ -875,7 +875,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
             $subject    = $messagedata['subject'];
 
             if (isset($messagedata['state']) && $messagedata['state'] == 'unread') {
-                $messageid = $this->send_fake_message($from, $to, $subject);
+                $messageid = $this->send_fake_message([$from->id, $to->id], $subject);
             } else {
                 // If there is no state, or the state is not 'unread', assume the message is read.
                 $messageid = message_post_message($from, $to, $subject, FORMAT_PLAIN);
@@ -997,10 +997,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 3);
-        $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 3);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 4);
 
         // Retrieve the messages.
         $messages = \core_message\api::get_messages($user1->id, $user2->id);
@@ -1047,10 +1047,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 3);
-        $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 3);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 4);
 
         // Retrieve the most recent messages.
         $message = \core_message\api::get_most_recent_message($user1->id, $user2->id);
@@ -1156,10 +1156,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
-        $m1id = $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
-        $m2id = $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
-        $m3id = $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 3);
-        $m4id = $this->send_fake_message($user2, $user1, 'Word.', 0, $time + 4);
+        $m1id = $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time + 1);
+        $m2id = $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 2);
+        $m3id = $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 3);
+        $m4id = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 4);
 
         // Delete the conversation as user 1.
         \core_message\api::delete_conversation($user1->id, $user2->id);
@@ -1207,19 +1207,19 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $this->setUser($user1);
 
         // Send some messages back and forth, have some different conversations with different users.
-        $this->send_fake_message($user1, $user2, 'Yo!');
-        $this->send_fake_message($user2, $user1, 'Sup mang?');
-        $this->send_fake_message($user1, $user2, 'Writing PHPUnit tests!');
-        $this->send_fake_message($user2, $user1, 'Word.');
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!');
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?');
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!');
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.');
 
-        $this->send_fake_message($user1, $user3, 'Booyah');
-        $this->send_fake_message($user3, $user1, 'Whaaat?');
-        $this->send_fake_message($user1, $user3, 'Nothing.');
-        $this->send_fake_message($user3, $user1, 'Cool.');
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah');
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?');
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.');
+        $this->send_fake_message([$user3->id, $user1->id], 'Cool.');
 
-        $this->send_fake_message($user1, $user4, 'Hey mate, you see the new messaging UI in Moodle?');
-        $this->send_fake_message($user4, $user1, 'Yah brah, it\'s pretty rad.');
-        $this->send_fake_message($user1, $user4, 'Dope.');
+        $this->send_fake_message([$user1->id, $user4->id], 'Hey mate, you see the new messaging UI in Moodle?');
+        $this->send_fake_message([$user4->id, $user1->id], 'Yah brah, it\'s pretty rad.');
+        $this->send_fake_message([$user1->id, $user4->id], 'Dope.');
 
         // Check the amount for the current user.
         $this->assertEquals(3, core_message\api::count_unread_conversations());
@@ -1273,6 +1273,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
      * Tests the user can't post a message without proper capability.
      */
     public function test_can_post_message_without_cap() {
+        $this->resetAfterTest(true);
         global $DB;
 
         // Create some users.
@@ -1671,10 +1672,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Message 1', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Message 2', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Message 3', 0, $time + 3);
-        $this->send_fake_message($user2, $user1, 'Message 4', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 1', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 2', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 3', 0, $time + 3);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 4', 0, $time + 4);
 
         // Retrieve the messages from $time, which should be all of them.
         $messages = \core_message\api::get_messages($user1->id, $user2->id, 0, 0, 'timecreated ASC', $time);
@@ -1718,10 +1719,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Message 1', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Message 2', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Message 3', 0, $time + 3);
-        $this->send_fake_message($user2, $user1, 'Message 4', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 1', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 2', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 3', 0, $time + 3);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 4', 0, $time + 4);
 
         // Retrieve the messages up until $time + 4, which should be all of them.
         $messages = \core_message\api::get_messages($user1->id, $user2->id, 0, 0, 'timecreated ASC', 0, $time + 4);
@@ -1765,10 +1766,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
-        $this->send_fake_message($user1, $user2, 'Message 1', 0, $time + 1);
-        $this->send_fake_message($user2, $user1, 'Message 2', 0, $time + 2);
-        $this->send_fake_message($user1, $user2, 'Message 3', 0, $time + 3);
-        $this->send_fake_message($user2, $user1, 'Message 4', 0, $time + 4);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 1', 0, $time + 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 2', 0, $time + 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 3', 0, $time + 3);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 4', 0, $time + 4);
 
         // Retrieve the messages from $time + 2 up until $time + 3, which should be 2nd and 3rd message.
         $messages = \core_message\api::get_messages($user1->id, $user2->id, 0, 0, 'timecreated ASC', $time + 2, $time + 3);
@@ -1827,19 +1828,19 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         message_add_contact($user2->id, 0, $user1->id);
         message_add_contact($user3->id, 0, $user2->id);
 
-        $this->send_fake_message($user1, $user2);
-        $this->send_fake_message($user1, $user2);
-        $this->send_fake_message($user1, $user2);
-        $message4id = $this->send_fake_message($user1, $user2);
+        $this->send_fake_message([$user1->id, $user2->id]);
+        $this->send_fake_message([$user1->id, $user2->id]);
+        $this->send_fake_message([$user1->id, $user2->id]);
+        $message4id = $this->send_fake_message([$user1->id, $user2->id]);
 
-        $this->send_fake_message($user3, $user2);
-        $message6id = $this->send_fake_message($user3, $user2);
-        $this->send_fake_message($user3, $user2);
-        $this->send_fake_message($user3, $user2);
-        $this->send_fake_message($user3, $user2);
+        $this->send_fake_message([$user3->id, $user2->id]);
+        $message6id = $this->send_fake_message([$user3->id, $user2->id]);
+        $this->send_fake_message([$user3->id, $user2->id]);
+        $this->send_fake_message([$user3->id, $user2->id]);
+        $this->send_fake_message([$user3->id, $user2->id]);
 
         // Send a message that should never be included as the user is not a contact.
-        $this->send_fake_message($user4, $user2);
+        $this->send_fake_message([$user4->id, $user2->id]);
 
         // Get the contacts and the unread message count.
         $messages = \core_message\api::get_contacts_with_unread_message_count($user2->id);
@@ -1877,12 +1878,12 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $this->assertEquals(4, $messageinfo2->messagecount);
 
         // Now, let's populate the database with messages from user2 to user 1.
-        $this->send_fake_message($user2, $user1);
-        $this->send_fake_message($user2, $user1);
-        $messageid = $this->send_fake_message($user2, $user1);
+        $this->send_fake_message([$user2->id, $user1->id]);
+        $this->send_fake_message([$user2->id, $user1->id]);
+        $messageid = $this->send_fake_message([$user2->id, $user1->id]);
 
         // Send a message that should never be included as the user is not a contact.
-        $this->send_fake_message($user4, $user1);
+        $this->send_fake_message([$user4->id, $user1->id]);
 
         // Get the contacts and the unread message count.
         $messages = \core_message\api::get_contacts_with_unread_message_count($user1->id);
@@ -1945,19 +1946,19 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         message_add_contact($user4->id, 0, $user1->id);
         message_add_contact($user4->id, 0, $user2->id);
 
-        $this->send_fake_message($user1, $user2);
-        $this->send_fake_message($user1, $user2);
-        $this->send_fake_message($user1, $user2);
-        $message4id = $this->send_fake_message($user1, $user2);
+        $this->send_fake_message([$user1->id, $user2->id]);
+        $this->send_fake_message([$user1->id, $user2->id]);
+        $this->send_fake_message([$user1->id, $user2->id]);
+        $message4id = $this->send_fake_message([$user1->id, $user2->id]);
 
-        $this->send_fake_message($user3, $user2);
-        $message6id = $this->send_fake_message($user3, $user2);
-        $this->send_fake_message($user3, $user2);
-        $this->send_fake_message($user3, $user2);
-        $this->send_fake_message($user3, $user2);
+        $this->send_fake_message([$user3->id, $user2->id]);
+        $message6id = $this->send_fake_message([$user3->id, $user2->id]);
+        $this->send_fake_message([$user3->id, $user2->id]);
+        $this->send_fake_message([$user3->id, $user2->id]);
+        $this->send_fake_message([$user3->id, $user2->id]);
 
         // Send a message that should never be included as the user is a contact.
-        $this->send_fake_message($user4, $user2);
+        $this->send_fake_message([$user4->id, $user2->id]);
 
         // Get the non-contacts and the unread message count.
         $messages = \core_message\api::get_non_contacts_with_unread_message_count($user2->id);
@@ -1992,12 +1993,12 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $this->assertEquals(4, $messageinfo2->messagecount);
 
         // Now, let's populate the database with messages from user2 to user 1.
-        $this->send_fake_message($user2, $user1);
-        $this->send_fake_message($user2, $user1);
-        $messageid = $this->send_fake_message($user2, $user1);
+        $this->send_fake_message([$user2->id, $user1->id]);
+        $this->send_fake_message([$user2->id, $user1->id]);
+        $messageid = $this->send_fake_message([$user2->id, $user1->id]);
 
         // Send a message that should never be included as the user is a contact.
-        $this->send_fake_message($user4, $user1);
+        $this->send_fake_message([$user4->id, $user1->id]);
 
         // Get the non-contacts and the unread message count.
         $messages = \core_message\api::get_non_contacts_with_unread_message_count($user1->id);
@@ -2031,10 +2032,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $user1 = self::getDataGenerator()->create_user();
         $user2 = self::getDataGenerator()->create_user();
 
-        $this->send_fake_message($user1, $user2);
-        $m2id = $this->send_fake_message($user1, $user2);
-        $this->send_fake_message($user2, $user1);
-        $m4id = $this->send_fake_message($user2, $user1);
+        $this->send_fake_message([$user1->id, $user2->id]);
+        $m2id = $this->send_fake_message([$user1->id, $user2->id]);
+        $this->send_fake_message([$user2->id, $user1->id]);
+        $m4id = $this->send_fake_message([$user2->id, $user1->id]);
 
         $m2 = $DB->get_record('messages', ['id' => $m2id]);
         $m4 = $DB->get_record('messages', ['id' => $m4id]);
@@ -2071,10 +2072,10 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $user1 = self::getDataGenerator()->create_user();
         $user2 = self::getDataGenerator()->create_user();
 
-        $this->send_fake_message($user1, $user2, 'Notification 1', 1);
-        $n2id = $this->send_fake_message($user1, $user2, 'Notification 2', 1);
-        $this->send_fake_message($user2, $user1, 'Notification 3', 1);
-        $n4id = $this->send_fake_message($user2, $user1, 'Notification 4', 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Notification 1', 1);
+        $n2id = $this->send_fake_message([$user1->id, $user2->id], 'Notification 2', 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Notification 3', 1);
+        $n4id = $this->send_fake_message([$user2->id, $user1->id], 'Notification 4', 1);
 
         $n2 = $DB->get_record('notifications', ['id' => $n2id]);
         $n4 = $DB->get_record('notifications', ['id' => $n4id]);
