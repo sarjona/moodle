@@ -354,4 +354,54 @@ class helper {
 
         return $messageexists || $messagereadexists;
     }
+    /**
+     * Send a fake message (for phpunit tests).
+     *
+     * {@link message_send()} does not support transaction, this function will simulate a message
+     * sent from a user to another. We should stop using it once {@link message_send()} will support
+     * transactions. This is not clean at all, this is just used to add rows to the table.
+     *
+     * @param array $userids Array of user identifiers to send the message. The sender will be the first one in the array.
+     * @param string $message message to send.
+     * @param int $notification if the message is a notification.
+     * @param int $time the time the message was sent
+     * @return int the id of the message
+     */
+    public static function send_fake_message($userids, $message = 'Hello world!', $notification = 0, $time = 0) {
+        global $DB;
+
+        if (empty($time)) {
+            $time = time();
+        }
+
+        $useridfrom = $userids[0];
+
+        if ($notification) {
+            $useridto = $userids[1];
+            $record = new  \stdClass();
+            $record->useridfrom = $useridfrom;
+            $record->useridto = $useridto;
+            $record->subject = 'No subject';
+            $record->fullmessage = $message;
+            $record->smallmessage = $message;
+            $record->timecreated = $time;
+
+            return $DB->insert_record('notifications', $record);
+        }
+
+        if (!$conversationid = \core_message\api::get_conversation_between_users($userids)) {
+            $conversationid = \core_message\api::create_conversation_between_users($userids);
+        }
+
+        // Ok, send the message.
+        $record = new \stdClass();
+        $record->useridfrom = $useridfrom;
+        $record->conversationid = $conversationid;
+        $record->subject = 'No subject';
+        $record->fullmessage = $message;
+        $record->smallmessage = $message;
+        $record->timecreated = $time;
+
+        return $DB->insert_record('messages', $record);
+    }
 }

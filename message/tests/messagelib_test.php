@@ -66,41 +66,7 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * @return int the id of the message
      */
     protected function send_fake_message($userids, $message = 'Hello world!', $notification = 0, $time = 0) {
-        global $DB;
-
-        if (empty($time)) {
-            $time = time();
-        }
-
-        $useridfrom = $userids[0];
-
-        if ($notification) {
-            $useridto = $userids[1];
-            $record = new stdClass();
-            $record->useridfrom = $useridfrom;
-            $record->useridto = $useridto;
-            $record->subject = 'No subject';
-            $record->fullmessage = $message;
-            $record->smallmessage = $message;
-            $record->timecreated = $time;
-
-            return $DB->insert_record('notifications', $record);
-        }
-
-        if (!$conversationid = \core_message\api::get_conversation_between_users($userids)) {
-            $conversationid = \core_message\api::create_conversation_between_users($userids);
-        }
-
-        // Ok, send the message.
-        $record = new stdClass();
-        $record->useridfrom = $useridfrom;
-        $record->conversationid = $conversationid;
-        $record->subject = 'No subject';
-        $record->fullmessage = $message;
-        $record->smallmessage = $message;
-        $record->timecreated = $time;
-
-        return $DB->insert_record('messages', $record);
+        return \core_message\helper::send_fake_message($userids, $message, $notification, $time);
     }
 
     /**

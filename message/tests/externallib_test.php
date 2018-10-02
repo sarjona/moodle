@@ -54,40 +54,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
      * @param int $notification is the message a notification.
      * @param int $time the time the message was sent
      */
-    protected function send_message($userfrom, $userto, $message = 'Hello world!', $notification = 0, $time = 0) {
-        global $DB;
-
-        if (empty($time)) {
-            $time = time();
-        }
-
-        if ($notification) {
-            $record = new stdClass();
-            $record->useridfrom = $userfrom->id;
-            $record->useridto = $userto->id;
-            $record->subject = 'No subject';
-            $record->fullmessage = $message;
-            $record->smallmessage = $message;
-            $record->timecreated = $time;
-
-            return $DB->insert_record('notifications', $record);
-        }
-
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$userfrom->id,
-                $userto->id]);
-        }
-
-        // Ok, send the message.
-        $record = new stdClass();
-        $record->useridfrom = $userfrom->id;
-        $record->conversationid = $conversationid;
-        $record->subject = 'No subject';
-        $record->fullmessage = $message;
-        $record->smallmessage = $message;
-        $record->timecreated = $time;
-
-        return $DB->insert_record('messages', $record);
+    protected function send_fake_message($userids, $message = 'Hello world!', $notification = 0, $time = 0) {
+        return \core_message\helper::send_fake_message($userids, $message, $notification, $time);
     }
 
     /**
@@ -528,29 +496,29 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->resetAfterTest(true);
 
         $user1 = self::getDataGenerator()->create_user();
-        $user_stranger = self::getDataGenerator()->create_user();
-        $user_offline1 = self::getDataGenerator()->create_user();
-        $user_offline2 = self::getDataGenerator()->create_user();
-        $user_offline3 = self::getDataGenerator()->create_user();
-        $user_online = new stdClass();
-        $user_online->lastaccess = time();
-        $user_online = self::getDataGenerator()->create_user($user_online);
-        $user_blocked = self::getDataGenerator()->create_user();
+        $userstranger = self::getDataGenerator()->create_user();
+        $useroffline1 = self::getDataGenerator()->create_user();
+        $useroffline2 = self::getDataGenerator()->create_user();
+        $useroffline3 = self::getDataGenerator()->create_user();
+        $useronline = new stdClass();
+        $useronline->lastaccess = time();
+        $useronline = self::getDataGenerator()->create_user($useronline);
+        $userblocked = self::getDataGenerator()->create_user();
         $noreplyuser = core_user::get_user(core_user::NOREPLY_USER);
 
         // Login as user1.
         $this->setUser($user1);
         $this->assertEquals(array(), core_message_external::create_contacts(
-            array($user_offline1->id, $user_offline2->id, $user_offline3->id, $user_online->id)));
+            array($useroffline1->id, $useroffline2->id, $useroffline3->id, $useronline->id)));
 
         // User_stranger sends a couple of messages to user1.
-        $this->send_message($user_stranger, $user1, 'Hello there!');
-        $this->send_message($user_stranger, $user1, 'How you goin?');
-        $this->send_message($user_stranger, $user1, 'Cya!');
-        $this->send_message($noreplyuser, $user1, 'I am not a real user');
+        $this->send_fake_message([$userstranger->id, $user1->id], 'Hello there!');
+        $this->send_fake_message([$userstranger->id, $user1->id], 'How you goin?');
+        $this->send_fake_message([$userstranger->id, $user1->id], 'Cya!');
+        $this->send_fake_message([$noreplyuser->id, $user1->id], 'I am not a real user');
 
         // User_blocked sends a message to user1.
-        $this->send_message($user_blocked, $user1, 'Here, have some spam.');
+        $this->send_fake_message([$userblocked->id, $user1->id], 'Here, have some spam.');
 
         // Retrieve the contacts of the user.
         $this->setUser($user1);
@@ -559,7 +527,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertCount(3, $contacts['offline']);
         $this->assertCount(1, $contacts['online']);
         $this->assertCount(3, $contacts['strangers']);
-        core_message_external::block_contacts(array($user_blocked->id));
+        core_message_external::block_contacts(array($userblocked->id));
         $contacts = core_message_external::get_contacts();
         $contacts = external_api::clean_returnvalue(core_message_external::get_contacts_returns(), $contacts);
         $this->assertCount(3, $contacts['offline']);
@@ -573,9 +541,9 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertEquals(1, $stranger['unread']);
 
         // Check that deleted users are not returned.
-        delete_user($user_offline1);
-        delete_user($user_stranger);
-        delete_user($user_online);
+        delete_user($useroffline1);
+        delete_user($userstranger);
+        delete_user($useronline);
         $contacts = core_message_external::get_contacts();
         $contacts = external_api::clean_returnvalue(core_message_external::get_contacts_returns(), $contacts);
         $this->assertCount(2, $contacts['offline']);
@@ -895,8 +863,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->setUser($user1);
 
         // Send a message from user 1 to two other users.
-        $this->send_message($user1, $user2, 'some random text 1', 0, 1);
-        $this->send_message($user1, $user3, 'some random text 2', 0, 2);
+        $this->send_fake_message([$user1->id, $user2->id], 'some random text 1', 0, 1);
+        $this->send_fake_message([$user1->id, $user3->id], 'some random text 2', 0, 2);
 
         // Get messages sent from user 1.
         $messages = core_message_external::get_messages(0, $user1->id, 'conversations', false, false, 0, 0);
@@ -929,8 +897,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->setUser($user1);
 
         // Send a message to user 1 from two other users.
-        $this->send_message($user2, $user1, 'some random text 1', 0, 1);
-        $this->send_message($user3, $user1, 'some random text 2', 0, 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'some random text 1', 0, 1);
+        $this->send_fake_message([$user3->id, $user1->id], 'some random text 2', 0, 2);
 
         // Get messages sent to user 1.
         $messages = core_message_external::get_messages($user1->id, 0, 'conversations', false, false, 0, 0);
@@ -968,12 +936,12 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
             array($useroffline1->id, $useroffline2->id)));
 
         // The userstranger sends a couple of messages to user1.
-        $this->send_message($userstranger, $user1, 'Hello there!');
-        $this->send_message($userstranger, $user1, 'How you goin?');
+        $this->send_fake_message([$userstranger->id, $user1->id], 'Hello there!');
+        $this->send_fake_message([$userstranger->id, $user1->id], 'How you goin?');
 
         // The userblocked sends a message to user1.
         // Note that this user is not blocked at this point.
-        $this->send_message($userblocked, $user1, 'Here, have some spam.');
+        $this->send_fake_message([$userblocked->id, $user1->id], 'Here, have some spam.');
 
         // Retrieve the list of blocked users.
         $this->setUser($user1);
@@ -1011,10 +979,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
             array($user2->id, $user3->id)));
 
         // The user2 sends a couple of messages to user1.
-        $this->send_message($user2, $user1, 'Hello there!');
-        $this->send_message($user2, $user1, 'How you goin?');
-        $this->send_message($user3, $user1, 'How you goin?');
-        $this->send_message($user3, $user2, 'How you goin?');
+        $this->send_fake_message([$user2->id, $user1->id], 'Hello there!');
+        $this->send_fake_message([$user2->id, $user1->id], 'How you goin?');
+        $this->send_fake_message([$user3->id, $user1->id], 'How you goin?');
+        $this->send_fake_message([$user3->id, $user2->id], 'How you goin?');
 
         // Retrieve all messages sent by user2 (they are currently unread).
         $lastmessages = message_get_messages($user1->id, $user2->id, 0, false);
@@ -1070,10 +1038,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
             array($user2->id, $user3->id)));
 
         // The user2 sends a couple of notifications to user1.
-        $this->send_message($user2, $user1, 'Hello there!', 1);
-        $this->send_message($user2, $user1, 'How you goin?', 1);
-        $this->send_message($user3, $user1, 'How you goin?', 1);
-        $this->send_message($user3, $user2, 'How you goin?', 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'Hello there!', 1);
+        $this->send_fake_message([$user2->id, $user1->id], 'How you goin?', 1);
+        $this->send_fake_message([$user3->id, $user1->id], 'How you goin?', 1);
+        $this->send_fake_message([$user3->id, $user2->id], 'How you goin?', 1);
 
         // Retrieve all notifications sent by user2 (they are currently unread).
         $lastnotifications = message_get_messages($user1->id, $user2->id, 1, false);
@@ -1255,12 +1223,12 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         $this->setUser($recipient);
 
-        $this->send_message($sender1, $recipient, 'Notification', 1);
-        $this->send_message($sender1, $recipient, 'Notification', 1);
-        $this->send_message($sender2, $recipient, 'Notification', 1);
-        $this->send_message($sender2, $recipient, 'Notification', 1);
-        $this->send_message($sender3, $recipient, 'Notification', 1);
-        $this->send_message($sender3, $recipient, 'Notification', 1);
+        $this->send_fake_message([$sender1->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender1->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender2->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender2->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender3->id, $recipient->id], 'Notification', 1);
+        $this->send_fake_message([$sender3->id, $recipient->id], 'Notification', 1);
 
         core_message_external::mark_all_notifications_as_read($recipient->id, $sender1->id);
         $readnotifications = $DB->get_records_select('notifications', 'useridto = ? AND timeread IS NOT NULL', [$recipient->id]);
@@ -1739,10 +1707,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Perform a search.
         $result = core_message_external::data_for_messagearea_search_messages($user1->id, 'o');
@@ -1796,10 +1764,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Perform a search.
         $result = core_message_external::data_for_messagearea_search_messages($user1->id, 'o');
@@ -1895,19 +1863,19 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth, have some different conversations with different users.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $messageid1 = $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $messageid1 = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
-        $this->send_message($user1, $user3, 'Booyah', 0, $time + 4);
-        $this->send_message($user3, $user1, 'Whaaat?', 0, $time + 5);
-        $this->send_message($user1, $user3, 'Nothing.', 0, $time + 6);
-        $messageid2 = $this->send_message($user3, $user1, 'Cool.', 0, $time + 7);
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah', 0, $time + 4);
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?', 0, $time + 5);
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.', 0, $time + 6);
+        $messageid2 = $this->send_fake_message([$user3->id, $user1->id], 'Cool.', 0, $time + 7);
 
-        $this->send_message($user1, $user4, 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 8);
-        $this->send_message($user4, $user1, 'Yah brah, it\'s pretty rad.', 0, $time + 9);
-        $messageid3 = $this->send_message($user1, $user4, 'Dope.', 0, $time + 10);
+        $this->send_fake_message([$user1->id, $user4->id], 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 8);
+        $this->send_fake_message([$user4->id, $user1->id], 'Yah brah, it\'s pretty rad.', 0, $time + 9);
+        $messageid3 = $this->send_fake_message([$user1->id, $user4->id], 'Dope.', 0, $time + 10);
 
         // Retrieve the conversations.
         $result = core_message_external::data_for_messagearea_conversations($user1->id);
@@ -1972,19 +1940,19 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth, have some different conversations with different users.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $messageid1 = $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $messageid1 = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
-        $this->send_message($user1, $user3, 'Booyah', 0, $time + 4);
-        $this->send_message($user3, $user1, 'Whaaat?', 0, $time + 5);
-        $this->send_message($user1, $user3, 'Nothing.', 0, $time + 6);
-        $messageid2 = $this->send_message($user3, $user1, 'Cool.', 0, $time + 7);
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah', 0, $time + 4);
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?', 0, $time + 5);
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.', 0, $time + 6);
+        $messageid2 = $this->send_fake_message([$user3->id, $user1->id], 'Cool.', 0, $time + 7);
 
-        $this->send_message($user1, $user4, 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 8);
-        $this->send_message($user4, $user1, 'Yah brah, it\'s pretty rad.', 0, $time + 9);
-        $messageid3 = $this->send_message($user1, $user4, 'Dope.', 0, $time + 10);
+        $this->send_fake_message([$user1->id, $user4->id], 'Hey mate, you see the new messaging UI in Moodle?', 0, $time + 8);
+        $this->send_fake_message([$user4->id, $user1->id], 'Yah brah, it\'s pretty rad.', 0, $time + 9);
+        $messageid3 = $this->send_fake_message([$user1->id, $user4->id], 'Dope.', 0, $time + 10);
 
         // Retrieve the conversations.
         $result = core_message_external::data_for_messagearea_conversations($user1->id);
@@ -2292,10 +2260,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Retrieve the messages.
         $result = core_message_external::data_for_messagearea_messages($user1->id, $user2->id);
@@ -2356,10 +2324,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $this->send_message($user1, $user2, 'Message 1', 0, $time - 4);
-        $this->send_message($user2, $user1, 'Message 2', 0, $time - 3);
-        $this->send_message($user1, $user2, 'Message 3', 0, $time - 2);
-        $this->send_message($user2, $user1, 'Message 4', 0, $time - 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 1', 0, $time - 4);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 2', 0, $time - 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Message 3', 0, $time - 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Message 4', 0, $time - 1);
 
         // Retrieve the messages from $time - 3, which should be the 3 most recent messages.
         $result = core_message_external::data_for_messagearea_messages($user1->id, $user2->id, 0, 0, false, $time - 3);
@@ -2396,10 +2364,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Retrieve the messages.
         $result = core_message_external::data_for_messagearea_messages($user1->id, $user2->id);
@@ -2502,10 +2470,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Get the most recent message.
         $result = core_message_external::data_for_messagearea_get_most_recent_message($user1->id, $user2->id);
@@ -2535,10 +2503,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Get the most recent message.
         $result = core_message_external::data_for_messagearea_get_most_recent_message($user1->id, $user2->id);
@@ -2753,12 +2721,12 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         $this->setUser($recipient);
 
-        $this->send_message($sender1, $recipient, 'Message');
-        $this->send_message($sender1, $recipient, 'Message');
-        $this->send_message($sender2, $recipient, 'Message');
-        $this->send_message($sender2, $recipient, 'Message');
-        $this->send_message($sender3, $recipient, 'Message');
-        $this->send_message($sender3, $recipient, 'Message');
+        $this->send_fake_message([$sender1->id, $recipient->id], 'Message');
+        $this->send_fake_message([$sender1->id, $recipient->id], 'Message');
+        $this->send_fake_message([$sender2->id, $recipient->id], 'Message');
+        $this->send_fake_message([$sender2->id, $recipient->id], 'Message');
+        $this->send_fake_message([$sender3->id, $recipient->id], 'Message');
+        $this->send_fake_message([$sender3->id, $recipient->id], 'Message');
 
         core_message_external::mark_all_messages_as_read($recipient->id, $sender1->id);
         $this->assertEquals(2, $DB->count_records('message_user_actions'));
@@ -2783,19 +2751,19 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->setUser($user1);
 
         // Send some messages back and forth, have some different conversations with different users.
-        $this->send_message($user1, $user2, 'Yo!');
-        $this->send_message($user2, $user1, 'Sup mang?');
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!');
-        $this->send_message($user2, $user1, 'Word.');
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!');
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?');
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!');
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.');
 
-        $this->send_message($user1, $user3, 'Booyah');
-        $this->send_message($user3, $user1, 'Whaaat?');
-        $this->send_message($user1, $user3, 'Nothing.');
-        $this->send_message($user3, $user1, 'Cool.');
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah');
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?');
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.');
+        $this->send_fake_message([$user3->id, $user1->id], 'Cool.');
 
-        $this->send_message($user1, $user4, 'Hey mate, you see the new messaging UI in Moodle?');
-        $this->send_message($user4, $user1, 'Yah brah, it\'s pretty rad.');
-        $this->send_message($user1, $user4, 'Dope.');
+        $this->send_fake_message([$user1->id, $user4->id], 'Hey mate, you see the new messaging UI in Moodle?');
+        $this->send_fake_message([$user4->id, $user1->id], 'Yah brah, it\'s pretty rad.');
+        $this->send_fake_message([$user1->id, $user4->id], 'Dope.');
 
         // Get the unread conversation count.
         $result = core_message_external::get_unread_conversations_count($user1->id);
@@ -2823,19 +2791,19 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $user4 = self::getDataGenerator()->create_user();
 
         // Send some messages back and forth, have some different conversations with different users.
-        $this->send_message($user1, $user2, 'Yo!');
-        $this->send_message($user2, $user1, 'Sup mang?');
-        $this->send_message($user1, $user2, 'Writing PHPUnit tests!');
-        $this->send_message($user2, $user1, 'Word.');
+        $this->send_fake_message([$user1->id, $user2->id], 'Yo!');
+        $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?');
+        $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!');
+        $this->send_fake_message([$user2->id, $user1->id], 'Word.');
 
-        $this->send_message($user1, $user3, 'Booyah');
-        $this->send_message($user3, $user1, 'Whaaat?');
-        $this->send_message($user1, $user3, 'Nothing.');
-        $this->send_message($user3, $user1, 'Cool.');
+        $this->send_fake_message([$user1->id, $user3->id], 'Booyah');
+        $this->send_fake_message([$user3->id, $user1->id], 'Whaaat?');
+        $this->send_fake_message([$user1->id, $user3->id], 'Nothing.');
+        $this->send_fake_message([$user3->id, $user1->id], 'Cool.');
 
-        $this->send_message($user1, $user4, 'Hey mate, you see the new messaging UI in Moodle?');
-        $this->send_message($user4, $user1, 'Yah brah, it\'s pretty rad.');
-        $this->send_message($user1, $user4, 'Dope.');
+        $this->send_fake_message([$user1->id, $user4->id], 'Hey mate, you see the new messaging UI in Moodle?');
+        $this->send_fake_message([$user4->id, $user1->id], 'Yah brah, it\'s pretty rad.');
+        $this->send_fake_message([$user1->id, $user4->id], 'Dope.');
 
         // Get the unread conversation count.
         $result = core_message_external::get_unread_conversations_count($user1->id);
@@ -2882,10 +2850,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $m1id = $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $m2id = $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $m3id = $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $m4id = $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $m1id = $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $m2id = $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $m3id = $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $m4id = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Delete the conversation.
         core_message_external::delete_conversation($user1->id, $user2->id);
@@ -2933,10 +2901,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $m1id = $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $m2id = $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $m3id = $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $m4id = $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $m1id = $this->send_fake_message([$user1->id, $user2->id], 'Yo!', 0, $time);
+        $m2id = $this->send_fake_message([$user2->id, $user1->id], 'Sup mang?', 0, $time + 1);
+        $m3id = $this->send_fake_message([$user1->id, $user2->id], 'Writing PHPUnit tests!', 0, $time + 2);
+        $m4id = $this->send_fake_message([$user2->id, $user1->id], 'Word.', 0, $time + 3);
 
         // Delete the conversation.
         core_message_external::delete_conversation($user1->id, $user2->id);
