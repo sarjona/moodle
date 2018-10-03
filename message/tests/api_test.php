@@ -1035,6 +1035,343 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Tests retrieving conversation messages.
+     */
+    public function test_get_conversation_messages() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+
+        // Create conversation.
+        $convid = \core_message\api::create_conversation_between_users([$user1->id, $user2->id]);
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Yo!', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Sup mang?', $time + 2);
+        $this->send_fake_conversation_message($user1, $convid, 'Writing PHPUnit tests!', $time + 3);
+        $this->send_fake_conversation_message($user1, $convid, 'Word.', $time + 4);
+
+        // Retrieve the messages.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(4, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+        $message3 = $messages[2];
+        $message4 = $messages[3];
+
+        $this->assertEquals($user1->id, $message1->useridfrom);
+        $this->assertEquals($convid, $message1->convid);
+        $this->assertTrue($message1->displayblocktime);
+        $this->assertContains('Yo!', $message1->text);
+
+        $this->assertEquals($user2->id, $message2->useridfrom);
+        $this->assertEquals($convid, $message2->convid);
+        $this->assertFalse($message2->displayblocktime);
+        $this->assertContains('Sup mang?', $message2->text);
+
+        $this->assertEquals($user1->id, $message3->useridfrom);
+        $this->assertEquals($convid, $message3->convid);
+        $this->assertFalse($message3->displayblocktime);
+        $this->assertContains('Writing PHPUnit tests!', $message3->text);
+
+        $this->assertEquals($user1->id, $message4->useridfrom);
+        $this->assertEquals($convid, $message4->convid);
+        $this->assertFalse($message4->displayblocktime);
+        $this->assertContains('Word.', $message4->text);
+    }
+
+    /**
+     * Tests retrieving group conversation messages.
+     */
+    public function test_get_group_conversation_messages() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Create conversation.
+        $convid = \core_message\api::create_conversation_between_users([$user1->id, $user2->id, $user3->id, $user4->id]);
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Yo!', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Sup mang?', $time + 2);
+        $this->send_fake_conversation_message($user3, $convid, 'Writing PHPUnit tests!', $time + 3);
+        $this->send_fake_conversation_message($user1, $convid, 'Word.', $time + 4);
+        $this->send_fake_conversation_message($user2, $convid, 'Yeah!', $time + 5);
+
+        // Retrieve the messages.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(5, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+        $message3 = $messages[2];
+        $message4 = $messages[3];
+        $message5 = $messages[4];
+
+        $this->assertEquals($user1->id, $message1->useridfrom);
+        $this->assertEquals($convid, $message1->convid);
+        $this->assertTrue($message1->displayblocktime);
+        $this->assertContains('Yo!', $message1->text);
+
+        $this->assertEquals($user2->id, $message2->useridfrom);
+        $this->assertEquals($convid, $message2->convid);
+        $this->assertFalse($message2->displayblocktime);
+        $this->assertContains('Sup mang?', $message2->text);
+
+        $this->assertEquals($user3->id, $message3->useridfrom);
+        $this->assertEquals($convid, $message3->convid);
+        $this->assertFalse($message3->displayblocktime);
+        $this->assertContains('Writing PHPUnit tests!', $message3->text);
+
+        $this->assertEquals($user1->id, $message4->useridfrom);
+        $this->assertEquals($convid, $message4->convid);
+        $this->assertFalse($message4->displayblocktime);
+        $this->assertContains('Word.', $message4->text);
+
+        $this->assertEquals($user2->id, $message5->useridfrom);
+        $this->assertEquals($convid, $message5->convid);
+        $this->assertFalse($message5->displayblocktime);
+        $this->assertContains('Yeah!', $message5->text);
+    }
+
+    /**
+     * Test retrieving conversation messages by providing a minimum timecreated value.
+     */
+    public function test_get_conversation_messages_time_from_only() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Create conversation.
+        $convid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Message 1', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Message 2', $time + 2);
+        $this->send_fake_conversation_message($user1, $convid, 'Message 3', $time + 3);
+        $this->send_fake_conversation_message($user3, $convid, 'Message 4', $time + 4);
+
+        // Retrieve the messages from $time, which should be all of them.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid, 0, 0, 'timecreated ASC', $time);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(4, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+        $message3 = $messages[2];
+        $message4 = $messages[3];
+
+        $this->assertContains('Message 1', $message1->text);
+        $this->assertContains('Message 2', $message2->text);
+        $this->assertContains('Message 3', $message3->text);
+        $this->assertContains('Message 4', $message4->text);
+
+        // Retrieve the messages from $time + 3, which should only be the 2 last messages.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid, 0, 0, 'timecreated ASC', $time + 3);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(2, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+
+        $this->assertContains('Message 3', $message1->text);
+        $this->assertContains('Message 4', $message2->text);
+    }
+
+    /**
+     * Test retrieving conversation messages by providing a maximum timecreated value.
+     */
+    public function test_get_conversation_messages_time_to_only() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Create conversation.
+        $convid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Message 1', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Message 2', $time + 2);
+        $this->send_fake_conversation_message($user1, $convid, 'Message 3', $time + 3);
+        $this->send_fake_conversation_message($user3, $convid, 'Message 4', $time + 4);
+
+        // Retrieve the messages up until $time + 4, which should be all of them.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid, 0, 0, 'timecreated ASC', 0, $time + 4);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(4, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+        $message3 = $messages[2];
+        $message4 = $messages[3];
+
+        $this->assertContains('Message 1', $message1->text);
+        $this->assertContains('Message 2', $message2->text);
+        $this->assertContains('Message 3', $message3->text);
+        $this->assertContains('Message 4', $message4->text);
+
+        // Retrieve the messages up until $time + 2, which should be the first two.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid, 0, 0, 'timecreated ASC', 0, $time + 2);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(2, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+
+        $this->assertContains('Message 1', $message1->text);
+        $this->assertContains('Message 2', $message2->text);
+    }
+
+    /**
+     * Test retrieving conversation messages by providing a minimum and maximum timecreated value.
+     */
+    public function test_get_conversation_messages_time_from_and_to() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Create conversation.
+        $convid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Message 1', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Message 2', $time + 2);
+        $this->send_fake_conversation_message($user1, $convid, 'Message 3', $time + 3);
+        $this->send_fake_conversation_message($user3, $convid, 'Message 4', $time + 4);
+
+        // Retrieve the messages from $time + 2 up until $time + 3, which should be 2nd and 3rd message.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid, 0, 0,
+            'timecreated ASC', $time + 2, $time + 3);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(2, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+
+        $this->assertContains('Message 2', $message1->text);
+        $this->assertContains('Message 3', $message2->text);
+    }
+
+
+    /**
+     * Test retrieving conversation messages by providing a limitfrom value.
+     */
+    public function test_get_conversation_messages_limitfrom_only() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Create conversation.
+        $convid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Message 1', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Message 2', $time + 2);
+        $this->send_fake_conversation_message($user1, $convid, 'Message 3', $time + 3);
+        $this->send_fake_conversation_message($user3, $convid, 'Message 4', $time + 4);
+
+        // Retrieve the messages from $time, which should be all of them.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid, 2);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(2, count($messages));
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+
+        $this->assertContains('Message 3', $message1->text);
+        $this->assertContains('Message 4', $message2->text);
+    }
+
+    /**
+     * Test retrieving conversation messages by providing a limitnum value.
+     */
+    public function test_get_conversation_messages_limitnum() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Create conversation.
+        $convid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Message 1', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Message 2', $time + 2);
+        $this->send_fake_conversation_message($user1, $convid, 'Message 3', $time + 3);
+        $this->send_fake_conversation_message($user3, $convid, 'Message 4', $time + 4);
+
+        // Retrieve the messages from $time, which should be all of them.
+        $messages = \core_message\api::get_conversation_messages($user1->id, $convid, 2, 1);
+
+        // Confirm the message data is correct.
+        $this->assertEquals(1, count($messages));
+
+        $message1 = $messages[0];
+
+        $this->assertContains('Message 3', $message1->text);
+    }
+
+    /**
      * Tests retrieving most recent message.
      */
     public function test_get_most_recent_message() {
@@ -1058,6 +1395,37 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         // Check the results are correct.
         $this->assertEquals($user2->id, $message->useridfrom);
         $this->assertEquals($user1->id, $message->useridto);
+        $this->assertContains('Word.', $message->text);
+    }
+
+    /**
+     * Tests retrieving most recent conversation message.
+     */
+    public function test_get_most_recent_conversation_message() {
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+
+        // Create group conversation.
+        $convid = \core_message\api::create_conversation_between_users([$user1->id, $user2->id, $user3->id]);
+
+        // The person getting the most recent conversation message.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = 1;
+        $this->send_fake_conversation_message($user1, $convid, 'Yo!', $time + 1);
+        $this->send_fake_conversation_message($user2, $convid, 'Sup mang?', $time + 2);
+        $this->send_fake_conversation_message($user1, $convid, 'Writing PHPUnit tests!', $time + 3);
+        $this->send_fake_conversation_message($user2, $convid, 'Word.', $time + 4);
+
+        // Retrieve the most recent messages.
+        $message = \core_message\api::get_most_recent_conversation_message($convid, $user1->id);
+
+        // Check the results are correct.
+        $this->assertEquals($user2->id, $message->useridfrom);
+        $this->assertEquals($convid, $message->convid);
         $this->assertContains('Word.', $message->text);
     }
 
@@ -2442,6 +2810,85 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         $this->assertEquals($conversationid,
             \core_message\api::get_conversation_between_users([$user1->id, $user2->id]));
+    }
+
+    /**
+     * Tests get_conversation_members for conversations (only the user ids).
+     */
+    public function test_get_conversation_members_onlyids() {
+        global $DB;
+
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Add users to the contact list.
+        message_add_contact($user1->id, 0, $user2->id);
+        message_add_contact($user1->id, 0, $user3->id);
+        message_add_contact($user2->id, 0, $user1->id);
+        message_add_contact($user2->id, 0, $user3->id);
+        message_add_contact($user3->id, 0, $user1->id);
+        message_add_contact($user3->id, 0, $user2->id);
+
+        $conversationid = \core_message\api::create_conversation_between_users([$user1->id, $user2->id, $user3->id]);
+
+        // Send some messages to this conversation.
+        $this->send_fake_message([$user1->id, $user2->id, $user3->id]);
+        $this->send_fake_message([$user1->id, $user2->id, $user3->id]);
+        $this->send_fake_message([$user2->id, $user1->id, $user3->id]);
+
+        // Member ids for a 1:1 conversation.
+        $memberids = \core_message\api::get_conversation_members($conversationid);
+
+        // Confirm the total members is correct.
+        $this->assertEquals(3, count($memberids));
+
+        $this->assertContains($user1->id, $memberids);
+        $this->assertContains($user2->id, $memberids);
+        $this->assertContains($user3->id, $memberids);
+        $this->assertNotContains($user4->id, $memberids);
+    }
+
+    /**
+     * Tests get_conversation_members for conversations (user object instead of just the id).
+     */
+    public function test_get_conversation_members_fullusers() {
+        global $DB;
+
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        // Add users to the contact list.
+        message_add_contact($user1->id, 0, $user2->id);
+        message_add_contact($user1->id, 0, $user3->id);
+        message_add_contact($user2->id, 0, $user1->id);
+        message_add_contact($user2->id, 0, $user3->id);
+        message_add_contact($user3->id, 0, $user1->id);
+        message_add_contact($user3->id, 0, $user2->id);
+
+        $conversationid = \core_message\api::create_conversation_between_users([$user1->id, $user2->id, $user3->id]);
+
+        // Send some messages to this conversation.
+        $this->send_fake_message([$user1->id, $user2->id, $user3->id]);
+        $this->send_fake_message([$user1->id, $user2->id, $user3->id]);
+        $this->send_fake_message([$user2->id, $user1->id, $user3->id]);
+
+        // Member ids for a 1:1 conversation.
+        $members = \core_message\api::get_conversation_members($conversationid, false);
+
+        // Confirm the total members is correct.
+        $this->assertEquals(3, count($members));
+
+        foreach ($members as $member) {
+            // Check the user objects have the expected values.
+            $this->assertContains($member->id, [$user1->id, $user2->id, $user3->id]);
+            $this->assertContains($user1->username, [$user1->username, $user2->username, $user3->username]);
+            $this->assertContains($user1->firstname, [$user1->firstname, $user2->firstname, $user3->firstname]);
+            $this->assertContains($user1->email, [$user1->email, $user2->email, $user3->email]);
+        }
     }
 
     /**

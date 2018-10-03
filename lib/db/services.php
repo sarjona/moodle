@@ -1052,6 +1052,23 @@ $functions = array(
         'capabilities' => 'moodle/site:sendmessage',
         'ajax' => true,
     ),
+    'core_message_get_conversation_messages' => array(
+        'classname' => 'core_message_external',
+        'methodname' => 'get_conversation_messages',
+        'classpath' => 'message/externallib.php',
+        'description' => 'Retrieve the template data for the conversation messages',
+        'type' => 'read',
+        'ajax' => true,
+        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+    ),
+    'core_message_get_most_recent_conversation_message' => array(
+        'classname' => 'core_message_external',
+        'methodname' => 'get_most_recent_conversation_message',
+        'classpath' => 'message/externallib.php',
+        'description' => 'Retrieve the template data for the most recent conversation message',
+        'type' => 'read',
+        'ajax' => true,
+    ),
     'core_message_unblock_contacts' => array(
         'classname' => 'core_message_external',
         'methodname' => 'unblock_contacts',

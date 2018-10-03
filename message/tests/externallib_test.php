@@ -59,6 +59,23 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
     }
 
     /**
+     * Send a fake message to a conversation.
+     *
+     * {@link message_send()} does not support transaction, this function will simulate a message
+     * sent from a user to another. We should stop using it once {@link message_send()} will support
+     * transactions. This is not clean at all, this is just used to add rows to the table.
+     *
+     * @param int|object $userfrom The sender user identifier.
+     * @param int $convid The conversation identifier.
+     * @param string $message The message to send.
+     * @param int $time The time the message was sent.
+     * @return int The id of the message.
+     */
+    protected function send_fake_conversation_message($userfrom, $convid, $message = 'Hello world!', $time = 0) {
+        return \core_message\helper::send_fake_conversation_message($userfrom, $convid, $message, $time);
+    }
+
+    /**
      * Test send_instant_messages
      */
     public function test_send_instant_messages() {
@@ -147,9 +164,9 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         $user1 = self::getDataGenerator()->create_user();
 
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$USER->id, $user1->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$USER->id, $user1->id]);
-        }
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$USER->id, $user1->id]
+        );
 
         // Create test message data.
         $message1 = array();
@@ -214,9 +231,9 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $user2 = self::getDataGenerator()->create_user();
         $user3 = self::getDataGenerator()->create_user();
 
-        if (!$convid1 = \core_message\api::get_conversation_between_users([$user1->id, $user2->id, $user3->id])) {
-            $convid1 = \core_message\api::create_conversation_between_users([$user1->id, $user2->id, $user3->id]);
-        }
+        $convid1 = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id]
+        );
 
         // Create test message data.
         $message1 = array();
@@ -234,9 +251,9 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         );
 
         // Create a conversation which includes $USER.
-        if (!$convid2 = \core_message\api::get_conversation_between_users([$USER->id, $user1->id, $user2->id])) {
-            $convid2 = \core_message\api::create_conversation_between_users([$USER->id, $user1->id, $user2->id]);
-        }
+        $convid2 = \core_message\api::create_conversation_between_users(
+            [$USER->id, $user1->id, $user2->id]
+        );
 
         // Create test message data.
         $message2 = array();
@@ -288,9 +305,9 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $user1 = self::getDataGenerator()->create_user();
         $user2 = self::getDataGenerator()->create_user();
 
-        if (!$convid1 = \core_message\api::get_conversation_between_users([$USER->id, $user1->id, $user2->id])) {
-            $convid1 = \core_message\api::create_conversation_between_users([$USER->id, $user1->id, $user2->id]);
-        }
+        $convid1 = \core_message\api::create_conversation_between_users(
+            [$USER->id, $user1->id, $user2->id]
+        );
 
         // Create test message data.
         $message1 = array();
@@ -2456,6 +2473,275 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
     }
 
     /**
+     * Tests get_conversation_messages for retrieving messages.
+     */
+    public function test_get_conversation_messages() {
+        $this->resetAfterTest(true);
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+        $user5 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person asking for the messages.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = time();
+        $this->send_fake_conversation_message($user1, $conversationid, 'Yo!', $time);
+        $this->send_fake_conversation_message($user3, $conversationid, 'Sup mang?', $time + 1);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Writing PHPUnit tests!', $time + 2);
+        $this->send_fake_conversation_message($user1, $conversationid, 'Word.', $time + 3);
+
+        // Retrieve the messages.
+        $result = core_message_external::get_conversation_messages($user1->id, $conversationid);
+
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $result = external_api::clean_returnvalue(core_message_external::get_conversation_messages_returns(),
+            $result);
+
+        // Check the results are correct.
+        $this->assertEquals($conversationid, $result['conversationid']);
+        $this->assertTrue($result['iscurrentuser']);
+        $this->assertEquals($user1->id, $result['currentuserid']);
+
+        // Confirm the members data is correct.
+        $members = $result['members'];
+        $this->assertCount(3, $members);
+        $membersid = [$members[0]['id'], $members[1]['id'], $members[2]['id']];
+        $this->assertContains($user1->id, $membersid);
+        $this->assertContains($user2->id, $membersid);
+        $this->assertContains($user3->id, $membersid);
+        $this->assertNotContains($user4->id, $membersid);
+        $this->assertNotContains($user5->id, $membersid);
+        $membersfullnames = [$members[0]['fullname'], $members[1]['fullname'], $members[2]['fullname']];
+        $this->assertContains(fullname($user1), $membersfullnames);
+        $this->assertContains(fullname($user2), $membersfullnames);
+        $this->assertContains(fullname($user3), $membersfullnames);
+        $this->assertNotContains(fullname($user4), $membersfullnames);
+        $this->assertNotContains(fullname($user5), $membersfullnames);
+
+        // Confirm the messages data is correct.
+        $messages = $result['messages'];
+        $this->assertCount(4, $messages);
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+        $message3 = $messages[2];
+        $message4 = $messages[3];
+
+        $this->assertEquals($user1->id, $message1['useridfrom']);
+        $this->assertEquals($conversationid, $message1['conversationid']);
+        $this->assertTrue($message1['displayblocktime']);
+        $this->assertContains('Yo!', $message1['text']);
+
+        $this->assertEquals($user3->id, $message2['useridfrom']);
+        $this->assertEquals($conversationid, $message2['conversationid']);
+        $this->assertFalse($message2['displayblocktime']);
+        $this->assertContains('Sup mang?', $message2['text']);
+
+        $this->assertEquals($user2->id, $message3['useridfrom']);
+        $this->assertEquals($conversationid, $message3['conversationid']);
+        $this->assertFalse($message3['displayblocktime']);
+        $this->assertContains('Writing PHPUnit tests!', $message3['text']);
+
+        $this->assertEquals($user1->id, $message4['useridfrom']);
+        $this->assertEquals($conversationid, $message4['conversationid']);
+        $this->assertFalse($message4['displayblocktime']);
+        $this->assertContains('Word.', $message4['text']);
+    }
+
+    /**
+     * Tests get_conversation_messages for retrieving messages using timefrom parameter.
+     */
+    public function test_get_conversation_messages_timefrom() {
+        $this->resetAfterTest(true);
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id]
+        );
+
+        // The person asking for the messages.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = time();
+        $this->send_fake_conversation_message($user1, $conversationid, 'Message 1', $time - 4);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Message 2', $time - 3);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Message 3', $time - 2);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Message 4', $time - 1);
+
+        // Retrieve the messages from $time - 3, which should be the 3 most recent messages.
+        $result = core_message_external::get_conversation_messages($user1->id, $conversationid, 0, 0, false, $time - 3);
+
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $result = external_api::clean_returnvalue(core_message_external::get_conversation_messages_returns(),
+            $result);
+
+        // Check the results are correct.
+        $this->assertEquals($conversationid, $result['conversationid']);
+        $this->assertTrue($result['iscurrentuser']);
+        $this->assertEquals($user1->id, $result['currentuserid']);
+
+        // Confirm the messages data is correct.
+        $messages = $result['messages'];
+        $this->assertCount(3, $messages);
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+        $message3 = $messages[2];
+
+        $this->assertContains('Message 2', $message1['text']);
+        $this->assertContains('Message 3', $message2['text']);
+        $this->assertContains('Message 4', $message3['text']);
+
+        // Confirm the members data is correct.
+        $members = $result['members'];
+        $this->assertCount(1, $members);
+        $this->assertEquals($user2->id, $members[0]['id']);
+    }
+
+    /**
+     * Tests get_conversation_messages for retrieving messages as another user.
+     */
+    public function test_get_conversation_messages_as_other_user() {
+        $this->resetAfterTest(true);
+
+        // Set as admin.
+        $this->setAdminUser();
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // Send some messages back and forth.
+        $time = time();
+        $this->send_fake_conversation_message($user1, $conversationid, 'Yo!', $time);
+        $this->send_fake_conversation_message($user3, $conversationid, 'Sup mang?', $time + 1);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Writing PHPUnit tests!', $time + 2);
+        $this->send_fake_conversation_message($user1, $conversationid, 'Word.', $time + 3);
+
+        // Retrieve the messages.
+        $result = core_message_external::get_conversation_messages($user1->id, $conversationid);
+
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $result = external_api::clean_returnvalue(core_message_external::get_conversation_messages_returns(),
+            $result);
+
+        // Check the results are correct.
+        $this->assertEquals($conversationid, $result['conversationid']);
+        $this->assertFalse($result['iscurrentuser']);
+        $this->assertEquals($user1->id, $result['currentuserid']);
+
+        // Confirm the members data is correct.
+        $members = $result['members'];
+        $this->assertCount(3, $members);
+        $membersid = [$members[0]['id'], $members[1]['id'], $members[2]['id']];
+        $this->assertContains($user1->id, $membersid);
+        $this->assertContains($user2->id, $membersid);
+        $this->assertContains($user3->id, $membersid);
+        $this->assertNotContains($user4->id, $membersid);
+
+        // Confirm the message data is correct.
+        $messages = $result['messages'];
+        $this->assertCount(4, $messages);
+
+        $message1 = $messages[0];
+        $message2 = $messages[1];
+        $message3 = $messages[2];
+        $message4 = $messages[3];
+
+        $this->assertEquals($user1->id, $message1['useridfrom']);
+        $this->assertEquals($conversationid, $message1['conversationid']);
+        $this->assertTrue($message1['displayblocktime']);
+        $this->assertContains('Yo!', $message1['text']);
+
+        $this->assertEquals($user3->id, $message2['useridfrom']);
+        $this->assertEquals($conversationid, $message2['conversationid']);
+        $this->assertFalse($message2['displayblocktime']);
+        $this->assertContains('Sup mang?', $message2['text']);
+
+        $this->assertEquals($user2->id, $message3['useridfrom']);
+        $this->assertEquals($conversationid, $message3['conversationid']);
+        $this->assertFalse($message3['displayblocktime']);
+        $this->assertContains('Writing PHPUnit tests!', $message3['text']);
+
+        $this->assertEquals($user1->id, $message4['useridfrom']);
+        $this->assertEquals($conversationid, $message4['conversationid']);
+        $this->assertFalse($message4['displayblocktime']);
+        $this->assertContains('Word.', $message4['text']);
+    }
+
+    /**
+     * Tests get_conversation_messages for retrieving messages as another user without the proper capabilities.
+     */
+    public function test_get_conversation_messages_as_other_user_without_cap() {
+        $this->resetAfterTest(true);
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person asking for the messages for another user.
+        $this->setUser($user1);
+
+        // Ensure an exception is thrown.
+        $this->expectException('moodle_exception');
+        core_message_external::get_conversation_messages($user2->id, $conversationid);
+    }
+
+    /**
+     * Tests get_conversation_messages for retrieving messages with messaging disabled.
+     */
+    public function test_get_conversation_messages_messaging_disabled() {
+        $this->resetAfterTest(true);
+
+        // Create some skeleton data just so we can call the WS.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person asking for the messages for another user.
+        $this->setUser($user1);
+
+        // Disable messaging.
+        set_config('messaging', 0);
+
+        // Ensure an exception is thrown.
+        $this->expectException('moodle_exception');
+        core_message_external::get_conversation_messages($user1->id, $conversationid);
+    }
+
+    /**
      * Tests retrieving most recent message.
      */
     public function test_messagearea_get_most_recent_message() {
@@ -2561,6 +2847,135 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         // Ensure an exception is thrown.
         $this->expectException('moodle_exception');
         core_message_external::data_for_messagearea_get_most_recent_message($user1->id, $user2->id);
+    }
+
+    /**
+     * Tests get_most_recent_conversation_message for retrieving most recent message.
+     */
+    public function test_get_most_recent_conversation_message() {
+        $this->resetAfterTest(true);
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person doing the search.
+        $this->setUser($user1);
+
+        // Send some messages back and forth.
+        $time = time();
+        $this->send_fake_conversation_message($user1, $conversationid, 'Yo!', $time);
+        $this->send_fake_conversation_message($user3, $conversationid, 'Sup mang?', $time + 1);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Writing PHPUnit tests!', $time + 2);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Word.', $time + 3);
+
+        // Get the most recent message.
+        $result = core_message_external::get_most_recent_conversation_message($conversationid, $user1->id);
+
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $result = external_api::clean_returnvalue(core_message_external::get_most_recent_conversation_message_returns(),
+            $result);
+
+        // Check the results are correct.
+        $this->assertEquals($user2->id, $result['useridfrom']);
+        $this->assertEquals($conversationid, $result['conversationid']);
+        $this->assertContains('Word.', $result['text']);
+    }
+
+    /**
+     * Tests get_most_recent_conversation_message for retrieving most recent message as another user.
+     */
+    public function test_get_most_recent_conversation_message_as_other_user() {
+        $this->resetAfterTest(true);
+
+        // The person doing the search.
+        $this->setAdminUser();
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // Send some messages back and forth.
+        $time = time();
+        $this->send_fake_conversation_message($user1, $conversationid, 'Yo!', $time);
+        $this->send_fake_conversation_message($user3, $conversationid, 'Sup mang?', $time + 1);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Writing PHPUnit tests!', $time + 2);
+        $this->send_fake_conversation_message($user2, $conversationid, 'Word.', $time + 3);
+
+        // Get the most recent message.
+        $result = core_message_external::get_most_recent_conversation_message($conversationid, $user1->id);
+
+        // We need to execute the return values cleaning process to simulate the web service server.
+        $result = external_api::clean_returnvalue(core_message_external::get_most_recent_conversation_message_returns(),
+            $result);
+
+        // Check the results are correct.
+        $this->assertEquals($user2->id, $result['useridfrom']);
+        $this->assertEquals($conversationid, $result['conversationid']);
+        $this->assertContains('Word.', $result['text']);
+    }
+
+    /**
+     * Tests get_most_recent_conversation_message for retrieving the message as another user without the proper capabilities.
+     */
+    public function test_get_most_recent_conversation_message_as_other_user_without_cap() {
+        $this->resetAfterTest(true);
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person asking for the most recent message for another user.
+        $this->setUser($user1);
+
+        // Ensure an exception is thrown.
+        $this->expectException('moodle_exception');
+        core_message_external::get_most_recent_conversation_message($conversationid, $user2->id);
+    }
+
+    /**
+     * Tests get_most_recent_conversation_message for retrieving most recent message with messaging disabled.
+     */
+    public function test_get_most_recent_conversation_message_messaging_disabled() {
+        $this->resetAfterTest(true);
+
+        // Create some skeleton data just so we can call the WS.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+        $user4 = self::getDataGenerator()->create_user();
+
+        $conversationid = \core_message\api::create_conversation_between_users(
+            [$user1->id, $user2->id, $user3->id, $user4->id]
+        );
+
+        // The person asking for the most recent message.
+        $this->setUser($user1);
+
+        // Disable messaging.
+        set_config('messaging', 0);
+
+        // Ensure an exception is thrown.
+        $this->expectException('moodle_exception');
+        core_message_external::get_most_recent_conversation_message($conversationid, $user1->id);
     }
 
     /**

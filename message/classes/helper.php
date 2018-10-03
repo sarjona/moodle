@@ -109,6 +109,79 @@ class helper {
     }
 
     /**
+     * Helper function to retrieve the messages between two users
+     *
+     * @param  int $userid The current user.
+     * @param  int $convid The conversation identifier.
+     * @param  int $timedeleted The time the message was deleted
+     * @param  int $limitfrom Return a subset of records, starting at this point (optional).
+     * @param  int $limitnum Return a subset comprising this many records in total (optional, required if $limitfrom is set).
+     * @param  string $sort The column name to order by including optionally direction.
+     * @param  int $timefrom The time from the message being sent.
+     * @param  int $timeto The time up until the message being sent.
+     * @return array of messages
+     */
+    public static function get_conversation_messages($userid, $convid, $timedeleted = 0, $limitfrom = 0, $limitnum = 0,
+                                        $sort = 'timecreated ASC', $timefrom = 0, $timeto = 0) {
+        global $DB;
+
+        $sql = "SELECT m.id, m.useridfrom, m.subject, m.fullmessage, m.fullmessagehtml,
+                       m.fullmessageformat, m.smallmessage, m.timecreated, muaread.timecreated AS timeread
+                  FROM {message_conversations} mc
+            INNER JOIN {messages} m
+                    ON m.conversationid = mc.id
+             LEFT JOIN {message_user_actions} muaread
+                    ON (muaread.messageid = m.id
+                   AND muaread.userid = :userid1
+                   AND muaread.action = :readaction)";
+        $params = ['userid1' => $userid, 'readaction' => api::MESSAGE_ACTION_READ, 'convid' => $convid];
+
+        if (empty($timedeleted)) {
+            $sql .= " LEFT JOIN {message_user_actions} mua
+                             ON (mua.messageid = m.id
+                            AND mua.userid = :userid2
+                            AND mua.action = :deleteaction
+                            AND mua.timecreated is NOT NULL)";
+        } else {
+            $sql .= " INNER JOIN {message_user_actions} mua
+                              ON (mua.messageid = m.id
+                             AND mua.userid = :userid2
+                             AND mua.action = :deleteaction
+                             AND mua.timecreated = :timedeleted)";
+            $params['timedeleted'] = $timedeleted;
+        }
+
+        $params['userid2'] = $userid;
+        $params['deleteaction'] = api::MESSAGE_ACTION_DELETED;
+
+        $sql .= " WHERE mc.id = :convid";
+
+        if (!empty($timefrom)) {
+            $sql .= " AND m.timecreated >= :timefrom";
+            $params['timefrom'] = $timefrom;
+        }
+
+        if (!empty($timeto)) {
+            $sql .= " AND m.timecreated <= :timeto";
+            $params['timeto'] = $timeto;
+        }
+
+        if (empty($timedeleted)) {
+            $sql .= " AND mua.id is NULL";
+        }
+
+        $sql .= " ORDER BY m.$sort";
+
+        $messages = $DB->get_records_sql($sql, $params, $limitfrom, $limitnum);
+
+        foreach ($messages as &$message) {
+            $message->convid = $convid;
+        }
+
+        return $messages;
+    }
+
+    /**
      * Helper function to return an array of messages.
      *
      * @param int $userid
@@ -146,7 +219,12 @@ class helper {
             $msg->text = message_format_message_text($message);
             $msg->currentuserid = $userid;
             $msg->useridfrom = $message->useridfrom;
-            $msg->useridto = $message->useridto;
+            if (!empty($message->useridto)) {
+                $msg->useridto = $message->useridto;
+            }
+            if (!empty($message->convid)) {
+                $msg->convid = $message->convid;
+            }
             $msg->displayblocktime = $displayblocktime;
             $msg->timecreated = $message->timecreated;
             $msg->timeread = $message->timeread;
@@ -319,16 +397,13 @@ class helper {
     }
 
     /**
-     * Returns the cache key for the time created value of the last message between two users.
+     * Returns the cache key for the time created value of the last message of this conversation.
      *
-     * @param int $userid
-     * @param int $user2id
-     * @return string
+     * @param int $convid The conversation identifier.
+     * @return string The key.
      */
-    public static function get_last_message_time_created_cache_key($userid, $user2id) {
-        $ids = [$userid, $user2id];
-        sort($ids);
-        return implode('_', $ids);
+    public static function get_last_message_time_created_cache_key($convid) {
+        return $convid;
     }
 
     /**
@@ -354,6 +429,7 @@ class helper {
 
         return $messageexists || $messagereadexists;
     }
+
     /**
      * Send a fake message (for phpunit tests).
      *
@@ -393,10 +469,39 @@ class helper {
             $conversationid = \core_message\api::create_conversation_between_users($userids);
         }
 
-        // Ok, send the message.
+        return self::send_fake_conversation_message($useridfrom, $conversationid, $message, $time);
+    }
+
+    /**
+     * Send a fake message to a conversation (for phpunit tests).
+     *
+     * {@link message_send()} does not support transaction, this function will simulate a message
+     * sent from a user to another. We should stop using it once {@link message_send()} will support
+     * transactions. This is not clean at all, this is just used to add rows to the table.
+     *
+     * @param int|object $userfrom The sender user identifier.
+     * @param int $convid The conversation identifier.
+     * @param string $message The message to send.
+     * @param int $time The time the message was sent.
+     * @return int The id of the message.
+     */
+    public static function send_fake_conversation_message($userfrom, $convid, $message = 'Hello world!', $time = 0) {
+        global $DB;
+
+        if (empty($time)) {
+            $time = time();
+        }
+
+        if (is_object($userfrom)) {
+            $useridfrom = $userfrom->id;
+        } else {
+            $useridfrom = $userfrom;
+        }
+
+        // Send the message.
         $record = new \stdClass();
         $record->useridfrom = $useridfrom;
-        $record->conversationid = $conversationid;
+        $record->conversationid = $convid;
         $record->subject = 'No subject';
         $record->fullmessage = $message;
         $record->smallmessage = $message;

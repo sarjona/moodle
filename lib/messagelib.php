@@ -305,14 +305,10 @@ function message_send(\core\message\message $eventdata) {
 
     // Only cache messages, not notifications.
     if (!$eventdata->notification) {
-        // TODO (MDL-63466): Change the cache key to convid during the get_messages refactoring.
-        if (!empty($eventdata->userto)) {
-            // Cache the timecreated value of the last message between these two users.
+        if (!empty($eventdata->convid)) {
+            // Cache the timecreated value of the last message in this conversation.
             $cache = cache::make('core', 'message_time_last_message_between_users');
-            $key = \core_message\helper::get_last_message_time_created_cache_key(
-                $eventdata->userfrom->id,
-                $eventdata->userto->id
-            );
+            $key = \core_message\helper::get_last_message_time_created_cache_key($eventdata->convid);
             $cache->set($key, $tabledata->timecreated);
         }
     }

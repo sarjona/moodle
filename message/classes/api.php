@@ -503,22 +503,60 @@ class api {
     /**
      * Returns the messages to display in the message area.
      *
-     * @param int $userid the current user
-     * @param int $otheruserid the other user
+     * @param int $userid the current user.
+     * @param int $otheruserid the other user.
      * @param int $limitfrom
      * @param int $limitnum
      * @param string $sort
-     * @param int $timefrom the time from the message being sent
-     * @param int $timeto the time up until the message being sent
+     * @param int $timefrom the time from the message being sent.
+     * @param int $timeto the time up until the message being sent.
      * @return array
      */
     public static function get_messages($userid, $otheruserid, $limitfrom = 0, $limitnum = 0,
         $sort = 'timecreated ASC', $timefrom = 0, $timeto = 0) {
 
+        if (!$conversationid = self::get_conversation_between_users([$userid, $otheruserid])) {
+            $conversationid = self::create_conversation_between_users([$userid, $otheruserid]);
+        }
+
+        // Get the conversation messages.
+        $convmessages = self::get_conversation_messages($userid, $conversationid, $limitfrom, $limitnum,
+            $sort, $timefrom, $timeto);
+
+        // Parse the messages to add the useridto for backward compatibility because it is expected.
+        $messages = array_map(function($message) use ($userid, $otheruserid) {
+            if (empty($message->useridto)) {
+                if ($message->useridfrom == $userid) {
+                    $message->useridto = $otheruserid;
+                } else {
+                    $message->useridto = $userid;
+                }
+            }
+            return $message;
+        }, $convmessages);
+
+        return $messages;
+    }
+
+    /**
+     * Returns the messages for the defined conversation.
+     *
+     * @param  object $userid The current user.
+     * @param  object|int $convid The conversation where the messages belong. Could be an object or just the id.
+     * @param  int $limitfrom Return a subset of records, starting at this point (optional).
+     * @param  int $limitnum Return a subset comprising this many records in total (optional, required if $limitfrom is set).
+     * @param  string $sort The column name to order by including optionally direction.
+     * @param  int $timefrom The time from the message being sent.
+     * @param  int $timeto The time up until the message being sent.
+     * @return array of messages
+     */
+    public static function get_conversation_messages($userid, $convid, $limitfrom = 0, $limitnum = 0,
+        $sort = 'timecreated ASC', $timefrom = 0, $timeto = 0) {
+
         if (!empty($timefrom)) {
             // Check the cache to see if we even need to do a DB query.
             $cache = \cache::make('core', 'message_time_last_message_between_users');
-            $key = helper::get_last_message_time_created_cache_key($otheruserid, $userid);
+            $key = helper::get_last_message_time_created_cache_key($convid);
             $lastcreated = $cache->get($key);
 
             // The last known message time is earlier than the one being requested so we can
@@ -529,9 +567,8 @@ class api {
         }
 
         $arrmessages = array();
-        if ($messages = helper::get_messages($userid, $otheruserid, 0, $limitfrom, $limitnum,
+        if ($messages = helper::get_conversation_messages($userid, $convid, 0, $limitfrom, $limitnum,
                                              $sort, $timefrom, $timeto)) {
-
             $arrmessages = helper::create_messages($userid, $messages);
         }
 
@@ -551,6 +588,31 @@ class api {
             // Swap the order so we now have them in historical order.
             $messages = array_reverse($messages);
             $arrmessages = helper::create_messages($userid, $messages);
+            return array_pop($arrmessages);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the most recent message in a conversation.
+     *
+     * @param int $convid The conversation identifier.
+     * @param int $currentuserid The current user identifier.
+     * @return \stdClass|null The most recent message.
+     */
+    public static function get_most_recent_conversation_message($convid, $currentuserid = 0) {
+        global $USER;
+
+        if (empty($currentuserid)) {
+            $currentuserid = $USER->id;
+        }
+
+        // We want two messages here so we get an accurate 'blocktime' value.
+        if ($messages = helper::get_conversation_messages($currentuserid, $convid, 0, 0, 2, 'timecreated DESC')) {
+            // Swap the order so we now have them in historical order.
+            $messages = array_reverse($messages);
+            $arrmessages = helper::create_messages($currentuserid, $messages);
             return array_pop($arrmessages);
         }
 
@@ -961,8 +1023,8 @@ class api {
                     $emailtagline;
             }
             if (!empty($eventdata->fullmessagehtml)) {
-                $eventdata->fullmessagehtml .= '<br /><br />---------------------------------------------------------------------<br />' .
-                    $emailtagline;
+                $eventdata->fullmessagehtml .= '<br /><br />------------------------------------------------------------' .
+                    '---------<br />' . $emailtagline;
             }
         } else {
             // TODO (MDL-63283): Should we change the subject for conversations with more than 3 members?
@@ -1036,6 +1098,31 @@ class api {
     }
 
     /**
+     * Return conversation members.
+     *
+     * @param  int $convid The conversation id where the $sender wants to send a message.
+     * @param  bool $onlyid True if only the user id is returned, false for returning the user object instead.
+     * @return array Array with the conversation members.
+     */
+    public static function get_conversation_members(int $convid, bool $onlyid = true) {
+        global $USER, $DB;
+
+        // Get conversation members.
+        $convmembersid = $DB->get_records('message_conversation_members', ['conversationid' => $convid], '', 'userid');
+        if ($onlyid) {
+            return array_keys($convmembersid);
+        }
+
+        // Get the user objects.
+        $ufields = 'id, ' . get_all_user_name_fields(true) . ', lastaccess';
+        $convmembers = array_map(function($member) use ($ufields) {
+            return \core_user::get_user($member->userid, $ufields, MUST_EXIST);
+        }, $convmembersid);
+
+        return $convmembers;
+    }
+
+    /**
      * For conversations 1:1, it will return the recipient. Otherwise (group conversations), false.
      *
      * @param  int $convid The conversation id where the $sender wants to send a message.
@@ -1043,7 +1130,7 @@ class api {
      * @return \stdClass|bool The recipient user if it's a 1:1 conversation, false otherwise.
      */
     public static function get_conversation_recipient(int $convid, $sender = null) {
-        global $USER, $DB;
+        global $USER;
 
         if (is_null($sender)) {
             // The message is from the logged in user, unless otherwise specified.
@@ -1051,15 +1138,15 @@ class api {
         }
 
         // Get conversation members.
-        $convmembers = $DB->get_records('message_conversation_members', ['conversationid' => $convid]);
+        $convmembers = self::get_conversation_members($convid);
         if (count($convmembers) == 2) {
             // It's a 1:1 conversation, so we can get the recipient.
             $foundsender = false;
-            foreach ($convmembers as $member) {
-                if ($member->userid == $sender->id) {
+            foreach ($convmembers as $memberid) {
+                if ($memberid == $sender->id) {
                     $foundsender = true;
                 } else {
-                    $recipientid = $member->userid;
+                    $recipientid = $memberid;
                 }
             }
             if ($foundsender && !empty($recipientid)) {

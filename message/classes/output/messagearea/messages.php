@@ -97,6 +97,17 @@ class messages implements templatable, renderable {
 
         $data->messages = array();
         foreach ($this->messages as $message) {
+            // TODO (MDL-63467): The useridto must be removed from here when the external web services with useridfrom and
+            // useridto parameters using this class will be deprecated.
+            // For now, it has been added for compatibility with some WS, like data_for_messagearea_messages because they
+            // are expecting this field in the return parameter.
+            if (empty($message->useridto)) {
+                if ($message->useridfrom == $this->currentuserid) {
+                    $message->useridto = $this->otheruserid;
+                } else {
+                    $message->useridto = $this->currentuserid;
+                }
+            }
             $message = new message($message);
             $data->messages[] = $message->export_for_template($output);
         }

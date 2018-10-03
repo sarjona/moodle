@@ -70,6 +70,23 @@ class core_message_messagelib_testcase extends advanced_testcase {
     }
 
     /**
+     * Send a fake message to a conversation.
+     *
+     * {@link message_send()} does not support transaction, this function will simulate a message
+     * sent from a user to another. We should stop using it once {@link message_send()} will support
+     * transactions. This is not clean at all, this is just used to add rows to the table.
+     *
+     * @param int|object $userfrom The sender user identifier.
+     * @param int $convid The conversation identifier.
+     * @param string $message The message to send.
+     * @param int $time The time the message was sent.
+     * @return int The id of the message.
+     */
+    protected function send_fake_conversation_message($userfrom, $convid, $message = 'Hello world!', $time = 0) {
+        return \core_message\helper::send_fake_conversation_message($userfrom, $convid, $message, $time);
+    }
+
+    /**
      * Test message_get_blocked_users.
      */
     public function test_message_get_blocked_users() {

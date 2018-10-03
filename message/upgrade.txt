@@ -23,10 +23,16 @@ information provided here is intended especially for developers.
   - api.php:
     . send_conversation_message
     . can_send_message_to_conversation
-    . get_conversation_recipient
     . mark_message_conversation_as_read
+    . get_conversation_messages
+    . get_most_recent_conversation_message
+    . get_conversation_members
+    . get_conversation_recipient
   - externallib.php:
-    . send_conversation_messages_parameters
+    . send_conversation_messages
+    . get_conversation_messages
+    . get_most_recent_conversation_message
+  Besides, the core_message\output\messagearea\conversation class has been created for exporting conversations.
 
 === 3.5 ===
 
