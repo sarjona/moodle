@@ -1392,6 +1392,44 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Tests whether the user messaging privacy preferences should be ignored or not.
+     */
+    public function test_can_ignore_messaging_preferences() {
+        global $DB;
+         // Create some users.
+        $teacher1 = self::getDataGenerator()->create_user();
+        $student1 = self::getDataGenerator()->create_user();
+        $student2 = self::getDataGenerator()->create_user();
+        // Not enrolled in any course.
+        $user1 = self::getDataGenerator()->create_user();
+         $course1 = $this->getDataGenerator()->create_course();
+         // Enrol the users in the course.
+        $this->getDataGenerator()->enrol_user($teacher1->id, $course1->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($student1->id, $course1->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course1->id, 'student');
+         // Set some student preferences to not receive messages from non-contacts.
+        set_user_preference('message_blocknoncontacts', \core_message\api::MESSAGE_PRIVACY_ONLYCONTACTS, $student1->id);
+        set_user_preference('message_blocknoncontacts', \core_message\api::MESSAGE_PRIVACY_COURSEMEMBER, $user1->id);
+         // By default, students can't ignore messaging preferences of the others participants.
+        $this->assertFalse(\core_message\api::can_ignore_messaging_preferences($teacher1, $student1));
+        $this->assertFalse(\core_message\api::can_ignore_messaging_preferences($student2, $student1));
+        $this->assertFalse(\core_message\api::can_ignore_messaging_preferences($user1, $student1));
+         // Teachers can contact always with students sharing a course with them.
+        $this->assertTrue(\core_message\api::can_ignore_messaging_preferences($student1, $teacher1));
+        $this->assertTrue(\core_message\api::can_ignore_messaging_preferences($student2, $teacher1));
+        $this->assertFalse(\core_message\api::can_ignore_messaging_preferences($user1, $teacher1));
+         // Remove the ignoremessagingpreferences capability from the course1 for teachers.
+        $coursecontext = context_course::instance($course1->id);
+        $teacherrole = $DB->get_record('role', ['shortname' => 'editingteacher']);
+        assign_capability('moodle/course:ignoremessagingpreferences', CAP_PROHIBIT, $teacherrole->id, $coursecontext->id);
+        $coursecontext->mark_dirty();
+         // Now the teacher can't ignore privacy messaging user preferences.
+        $this->assertFalse(\core_message\api::can_ignore_messaging_preferences($teacher1, $teacher1));
+        $this->assertFalse(\core_message\api::can_ignore_messaging_preferences($student2, $teacher1));
+        $this->assertFalse(\core_message\api::can_ignore_messaging_preferences($user1, $teacher1));
+    }
+
+    /**
      * Tests that when blocking messages from non-contacts is enabled that
      * non-contacts trying to send a message return false.
      */
@@ -1430,6 +1468,36 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Tests that when blocking messages from non-contacts is enabled that
+     * teachers can send a message to non-contacts.
+     */
+    public function test_is_user_non_contact_blocked_as_teacher() {
+        // Create some users.
+        $teacher1 = self::getDataGenerator()->create_user();
+        $student1 = self::getDataGenerator()->create_user();
+        $student2 = self::getDataGenerator()->create_user();
+        // Not enrolled in any course.
+        $student3 = self::getDataGenerator()->create_user();
+         $course1 = $this->getDataGenerator()->create_course();
+         // Enrol the users in the course.
+        $this->getDataGenerator()->enrol_user($teacher1->id, $course1->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($student1->id, $course1->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course1->id, 'student');
+         // Set some student preferences to not receive messages from non-contacts.
+        set_user_preference('message_blocknoncontacts', \core_message\api::MESSAGE_PRIVACY_ONLYCONTACTS, $student1->id);
+        set_user_preference('message_blocknoncontacts', \core_message\api::MESSAGE_PRIVACY_COURSEMEMBER, $student3->id);
+         // Change to the teacher user.
+        $this->setUser($teacher1);
+         // Teachers can contact always with students sharing a course with them.
+        $this->assertFalse(\core_message\api::is_user_non_contact_blocked($student1));
+        $this->assertTrue(\core_message\api::is_user_non_contact_blocked($student1, $teacher1, false));
+        $this->assertFalse(\core_message\api::is_user_non_contact_blocked($student2));
+        $this->assertFalse(\core_message\api::is_user_non_contact_blocked($student2, $teacher1, false));
+        // This student is not sharing any course with the teacher, so he/she couldn't contact student3.
+        $this->assertTrue(\core_message\api::is_user_non_contact_blocked($student3));
+    }
+
+    /**
      * Tests that we return true when a user is blocked, or false
      * if they are not blocked.
      */
@@ -1442,20 +1510,17 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $this->setUser($user1);
 
         // User shouldn't be blocked.
-        $this->assertFalse(\core_message\api::is_user_blocked($user1->id, $user2->id));
-        $this->assertDebuggingCalled();
+        $this->assertFalse(\core_message\api::is_blocked($user1->id, $user2->id));
 
         // Block the user.
         \core_message\api::block_user($user1->id, $user2->id);
 
         // User should be blocked.
-        $this->assertTrue(\core_message\api::is_user_blocked($user1->id, $user2->id));
-        $this->assertDebuggingCalled();
+        $this->assertTrue(\core_message\api::is_blocked($user1->id, $user2->id));
 
         // Unblock the user.
         \core_message\api::unblock_user($user1->id, $user2->id);
-        $this->assertFalse(\core_message\api::is_user_blocked($user1->id, $user2->id));
-        $this->assertDebuggingCalled();
+        $this->assertFalse(\core_message\api::is_blocked($user1->id, $user2->id));
     }
 
     /**
@@ -1475,8 +1540,34 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $this->setAdminUser();
 
         // As the admin you should still be able to send messages to the user.
-        $this->assertFalse(\core_message\api::is_user_blocked($user1->id));
-        $this->assertDebuggingCalled();
+        $this->assertFalse(\core_message\api::is_blocked($user1->id, 2));
+    }
+
+    /**
+     * Tests that the teacher is not blocked even if some of their students have chosen to block them.
+     */
+    public function test_is_user_blocked_as_teacher() {
+        // Create some users.
+        $teacher1 = self::getDataGenerator()->create_user();
+        $student1 = self::getDataGenerator()->create_user();
+        $student2 = self::getDataGenerator()->create_user();
+         $course1 = $this->getDataGenerator()->create_course();
+         // Enrol the users in the course.
+        $this->getDataGenerator()->enrol_user($teacher1->id, $course1->id, 'editingteacher');
+        $this->getDataGenerator()->enrol_user($student1->id, $course1->id, 'student');
+        $this->getDataGenerator()->enrol_user($student2->id, $course1->id, 'student');
+         // Set the user.
+        $this->setUser($student1);
+         // Block the teacher user.
+        \core_message\api::block_user($student1->id, $teacher1->id);
+         // Now change to the teacher user.
+        $this->setUser($teacher1);
+         // As the teacher, you should still be able to send messages to the student1 who has blocked you.
+        $this->assertFalse(\core_message\api::is_blocked($student1->id, $teacher1->id));
+        $this->assertTrue(\core_message\api::is_blocked($student1->id, $teacher1->id, false));
+         // As the teacher, you should be able to send messages to the student2.
+        $this->assertFalse(\core_message\api::is_blocked($student2->id, $teacher1->id));
+        $this->assertFalse(\core_message\api::is_blocked($student2->id, $teacher1->id, false));
     }
 
     /*

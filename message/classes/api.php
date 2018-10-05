@@ -917,10 +917,14 @@ class api {
         if (!has_capability('moodle/site:sendmessage', \context_system::instance(), $sender)) {
             return false;
         }
+        // The sender is able to bypass the recipient privacy messaging preferences.
+        if (self::can_ignore_messaging_preferences($recipient, $sender)) {
+            return true;
+        }
 
         // The recipient blocks messages from non-contacts and the
         // sender isn't a contact.
-        if (self::is_user_non_contact_blocked($recipient, $sender)) {
+        if (self::is_user_non_contact_blocked($recipient, $sender, false)) {
             return false;
         }
 
@@ -935,7 +939,7 @@ class api {
         }
 
         // The recipient has specifically blocked this sender.
-        if (self::is_blocked($recipient->id, $senderid)) {
+        if (self::is_blocked($recipient->id, $senderid, false)) {
             return false;
         }
 
@@ -949,9 +953,11 @@ class api {
      *
      * @param \stdClass $recipient The user object.
      * @param \stdClass|null $sender The user object.
+     * @param bool $checkignoremessagingprefs If set to true then this function will check if
+     *             privacy messaging preferences should be checked.
      * @return bool true if $sender is blocked, false otherwise.
      */
-    public static function is_user_non_contact_blocked($recipient, $sender = null) {
+    public static function is_user_non_contact_blocked($recipient, $sender = null, $checkignoremessagingprefs = true) {
         global $USER, $CFG;
 
         if (is_null($sender)) {
@@ -964,7 +970,7 @@ class api {
             case self::MESSAGE_PRIVACY_SITE:
                 if (!empty($CFG->messagingallusers)) {
                     // Users can be messaged without being contacts or members of the same course.
-                    break;
+                    return false;
                 }
                 // When the $CFG->messagingallusers privacy setting is disabled, MESSAGE_PRIVACY_SITE is
                 // also disabled, so it has to be replaced to MESSAGE_PRIVACY_COURSEMEMBER.
@@ -975,11 +981,18 @@ class api {
                     return false;
                 }
             case self::MESSAGE_PRIVACY_ONLYCONTACTS:
-                // True if they aren't contacts (they can't send a message because of the privacy settings), false otherwise.
-                return !self::is_contact($sender->id, $recipient->id);
+                // Confirm the sender is a contact of the recipient.
+                if (self::is_contact($sender->id, $recipient->id)) {
+                    // All good, the recipient is a contact of the sender.
+                    return false;
+                } else {
+                    // If needed, check if the sender is able to bypass the recipient privacy messaging preferences in at least
+                    // one of the shared courses.
+                    return !($checkignoremessagingprefs && self::can_ignore_messaging_preferences($recipient, $sender));
+                }
         }
 
-        return false;
+        return true;
     }
 
     /**
@@ -1014,6 +1027,41 @@ class api {
         }
 
         return false;
+    }
+
+    /**
+     * Determines if a user is permitted to ignore another user privacy preferences.
+     * If no sender is provided then it defaults to the logged in user.
+     *
+     * @param stdClass|int $recipient The user object.
+     * @param stdClass|int|null $sender The user object.
+     * @return bool true if $sender can ignore $recipient messaging preferences, false otherwise.
+     */
+    public static function can_ignore_messaging_preferences($recipient, $sender = null) : bool {
+        global $USER;
+
+        if (is_null($sender)) {
+            // The message is from the logged in user, unless otherwise specified.
+            $sender = $USER;
+        }
+        $recipientid = is_object($recipient) ? $recipient->id : $recipient;
+        $senderid = is_object($sender) ? $sender->id : $sender;
+
+         // The sender is able to bypass the recipient privacy messaging preferences a system context level.
+        if (has_capability('moodle/course:ignoremessagingpreferences', \context_system::instance(), $senderid)) {
+            return true;
+        }
+
+         // Get shared courses to check if the sender is able to bypass the recipient privacy messaging preferences in some of them.
+        $courses = enrol_get_shared_courses($recipientid, $senderid, true);
+        foreach ($courses as $course) {
+            $coursecontext = \context_course::instance($course->id);
+            if (has_capability('moodle/course:ignoremessagingpreferences', $coursecontext, $senderid)) {
+                // The sender is able to bypass the recipient privacy messaging preferences in one of the shared courses.
+                return true;
+            }
+        }
+         return false;
     }
 
     /**
@@ -1609,12 +1657,22 @@ class api {
     /**
      * Checks if a user is already blocked.
      *
+     * Note: This function will return false if $checkignoremessagingprefs = true and the sender has the
+     * ignoremessagingpreferences capability at the course context level.
+     *
      * @param int $userid
      * @param int $blockeduserid
+     * @param bool $checkignoremessagingprefs If set to true then this function will check if
+     *             privacy messaging preferences should be checked.
      * @return bool Returns true if they are a blocked, false otherwise
      */
-    public static function is_blocked(int $userid, int $blockeduserid) : bool {
+    public static function is_blocked(int $userid, int $blockeduserid, bool $checkignoremessagingprefs = true) : bool {
         global $DB;
+
+        // The userid is able to bypass the blockeduserid privacy messaging preferences so can't be blocked by her.
+        if ($checkignoremessagingprefs && self::can_ignore_messaging_preferences($userid, $blockeduserid)) {
+            return false;
+        }
 
         return $DB->record_exists('message_users_blocked', ['userid' => $userid, 'blockeduserid' => $blockeduserid]);
     }

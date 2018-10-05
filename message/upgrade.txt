@@ -32,6 +32,9 @@ information provided here is intended especially for developers.
   - core_message_external::block_contacts, please use core_message_external::block_user instead.
   - core_message_external::unblock_contacts, please use core_message_external::unblock_user instead.
   - core_message_external::create_contacts, please use core_message_external::create_contact_request instead.
+* A new function `can_ignore_messaging_preferences` has been added. This function determines whether a user is permitted
+to bypass other users privacy preferences. Besides, is_user_non_contact_blocked and is_blocked functions from
+core_message have an extra parameter to specify if privacy messaging preferences should be checked or not. (MDL-63289)
 
 === 3.5 ===
 

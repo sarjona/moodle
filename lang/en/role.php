@@ -167,6 +167,7 @@ $string['course:enrolreview'] = 'Review course enrolments';
 $string['course:setforcedlanguage'] = 'Force course language';
 $string['course:ignoreavailabilityrestrictions'] = 'Ignore availability restrictions';
 $string['course:ignorefilesizelimits'] = 'Use files larger than any file size restrictions';
+$string['course:ignoremessagingpreferences'] = 'Bypass user privacy preferences for messaging';
 $string['course:isincompletionreports'] = 'Be shown on completion reports';
 $string['course:manageactivities'] = 'Manage activities';
 $string['course:managefiles'] = 'Manage files';
