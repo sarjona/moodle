@@ -42,8 +42,13 @@ core_message have an extra parameter to specify if privacy messaging preferences
     . mark_message_conversation_as_read
     . get_conversation_recipient
     . get_conversation_members
+    . get_conversation_messages
+    . get_most_recent_conversation_message
   - externallib.php:
     . send_conversation_messages
+    . get_conversation_messages
+    . get_most_recent_conversation_message
+  Besides, the core_message\output\messagearea\conversation class has been created for exporting conversations.
 
 === 3.5 ===
 
