@@ -39,6 +39,13 @@ information provided here is intended especially for developers.
   - core_message_external::delete_conversation(), please use core_message_external::delete_conversations_by_id() instead.
 * The following function has been added for getting the privacy messaging preference:
   - get_user_privacy_messaging_preference()
+* The following functions have been created for adding group conversation support:
+  - api.php:
+    . get_conversation_messages
+    . get_most_recent_conversation_message
+  - externallib.php:
+    . get_conversation_messages
+    . get_most_recent_conversation_message
 
 === 3.5 ===
 
