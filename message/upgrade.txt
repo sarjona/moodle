@@ -35,6 +35,15 @@ information provided here is intended especially for developers.
 * A new function `can_ignore_messaging_preferences` has been added. This function determines whether a user is permitted
 to bypass other users privacy preferences. Besides, is_user_non_contact_blocked and is_blocked functions from
 core_message have an extra parameter to specify if privacy messaging preferences should be checked or not. (MDL-63289)
+* The following functions have been added for adding group conversation support:
+  - api.php:
+    . send_conversation_message
+    . can_send_message_to_conversation
+    . mark_message_conversation_as_read
+    . get_conversation_recipient
+    . get_conversation_members
+  - externallib.php:
+    . send_conversation_messages
 
 === 3.5 ===
 

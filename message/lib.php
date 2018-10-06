@@ -324,46 +324,10 @@ function message_format_contexturl($message) {
  * @return int|false the ID of the new message or false
  */
 function message_post_message($userfrom, $userto, $message, $format) {
-    global $SITE, $CFG, $USER;
-
-    $eventdata = new \core\message\message();
-    $eventdata->courseid         = 1;
-    $eventdata->component        = 'moodle';
-    $eventdata->name             = 'instantmessage';
-    $eventdata->userfrom         = $userfrom;
-    $eventdata->userto           = $userto;
-
-    //using string manager directly so that strings in the message will be in the message recipients language rather than the senders
-    $eventdata->subject          = get_string_manager()->get_string('unreadnewmessage', 'message', fullname($userfrom), $userto->lang);
-
-    if ($format == FORMAT_HTML) {
-        $eventdata->fullmessagehtml  = $message;
-        //some message processors may revert to sending plain text even if html is supplied
-        //so we keep both plain and html versions if we're intending to send html
-        $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
-    } else {
-        $eventdata->fullmessage      = $message;
-        $eventdata->fullmessagehtml  = '';
+    if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
+        $conversationid = \core_message\api::create_conversation_between_users([$userfrom->id, $userto->id]);
     }
-
-    $eventdata->fullmessageformat = $format;
-    $eventdata->smallmessage     = $message;//store the message unfiltered. Clean up on output.
-
-    $s = new stdClass();
-    $s->sitename = format_string($SITE->shortname, true, array('context' => context_course::instance(SITEID)));
-    $s->url = $CFG->wwwroot.'/message/index.php?user='.$userto->id.'&id='.$userfrom->id;
-
-    $emailtagline = get_string_manager()->get_string('emailtagline', 'message', $s, $userto->lang);
-    if (!empty($eventdata->fullmessage)) {
-        $eventdata->fullmessage .= "\n\n---------------------------------------------------------------------\n".$emailtagline;
-    }
-    if (!empty($eventdata->fullmessagehtml)) {
-        $eventdata->fullmessagehtml .= "<br /><br />---------------------------------------------------------------------<br />".$emailtagline;
-    }
-
-    $eventdata->timecreated     = time();
-    $eventdata->notification    = 0;
-    return message_send($eventdata);
+    return \core_message\api::send_conversation_message($userfrom, $conversationid, $message, $format);
 }
 
 /**

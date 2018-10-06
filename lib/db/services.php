@@ -1078,6 +1078,16 @@ $functions = array(
         'type' => 'read',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
+    'core_message_send_conversation_messages' => array(
+        'classname' => 'core_message_external',
+        'methodname' => 'send_conversation_messages',
+        'classpath' => 'message/externallib.php',
+        'description' => 'Send messages to a conversation',
+        'type' => 'write',
+        'capabilities' => 'moodle/site:sendmessage',
+        'ajax' => true,
+        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+    ),
     'core_message_send_instant_messages' => array(
         'classname' => 'core_message_external',
         'methodname' => 'send_instant_messages',
