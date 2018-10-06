@@ -55,39 +55,11 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
      * @param int $time the time the message was sent
      */
     protected function send_message($userfrom, $userto, $message = 'Hello world!', $notification = 0, $time = 0) {
-        global $DB;
+        return self::send_fake_message([$userfrom->id, $userto->id], $message, $notification, $time);
+    }
 
-        if (empty($time)) {
-            $time = time();
-        }
-
-        if ($notification) {
-            $record = new stdClass();
-            $record->useridfrom = $userfrom->id;
-            $record->useridto = $userto->id;
-            $record->subject = 'No subject';
-            $record->fullmessage = $message;
-            $record->smallmessage = $message;
-            $record->timecreated = $time;
-
-            return $DB->insert_record('notifications', $record);
-        }
-
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$userfrom->id,
-                $userto->id]);
-        }
-
-        // Ok, send the message.
-        $record = new stdClass();
-        $record->useridfrom = $userfrom->id;
-        $record->conversationid = $conversationid;
-        $record->subject = 'No subject';
-        $record->fullmessage = $message;
-        $record->smallmessage = $message;
-        $record->timecreated = $time;
-
-        return $DB->insert_record('messages', $record);
+    protected function send_fake_message($userids, $message = 'Hello world!', $notification = 0, $time = 0) {
+        return \core_message\helper::send_fake_message($userids, $message, $notification, $time);
     }
 
     /**
@@ -999,31 +971,31 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->resetAfterTest(true);
 
         $user1 = self::getDataGenerator()->create_user();
-        $user_stranger = self::getDataGenerator()->create_user();
-        $user_offline1 = self::getDataGenerator()->create_user();
-        $user_offline2 = self::getDataGenerator()->create_user();
-        $user_offline3 = self::getDataGenerator()->create_user();
-        $user_online = new stdClass();
-        $user_online->lastaccess = time();
-        $user_online = self::getDataGenerator()->create_user($user_online);
-        $user_blocked = self::getDataGenerator()->create_user();
+        $userstranger = self::getDataGenerator()->create_user();
+        $useroffline1 = self::getDataGenerator()->create_user();
+        $useroffline2 = self::getDataGenerator()->create_user();
+        $useroffline3 = self::getDataGenerator()->create_user();
+        $useronline = new stdClass();
+        $useronline->lastaccess = time();
+        $useronline = self::getDataGenerator()->create_user($useronline);
+        $userblocked = self::getDataGenerator()->create_user();
         $noreplyuser = core_user::get_user(core_user::NOREPLY_USER);
 
         // Login as user1.
         $this->setUser($user1);
-        \core_message\api::add_contact($user1->id, $user_offline1->id);
-        \core_message\api::add_contact($user1->id, $user_offline2->id);
-        \core_message\api::add_contact($user1->id, $user_offline3->id);
-        \core_message\api::add_contact($user1->id, $user_online->id);
+        \core_message\api::add_contact($user1->id, $useroffline1->id);
+        \core_message\api::add_contact($user1->id, $useroffline2->id);
+        \core_message\api::add_contact($user1->id, $useroffline3->id);
+        \core_message\api::add_contact($user1->id, $useronline->id);
 
-        // User_stranger sends a couple of messages to user1.
-        $this->send_message($user_stranger, $user1, 'Hello there!');
-        $this->send_message($user_stranger, $user1, 'How you goin?');
-        $this->send_message($user_stranger, $user1, 'Cya!');
+        // Userstranger sends a couple of messages to user1.
+        $this->send_message($userstranger, $user1, 'Hello there!');
+        $this->send_message($userstranger, $user1, 'How you goin?');
+        $this->send_message($userstranger, $user1, 'Cya!');
         $this->send_message($noreplyuser, $user1, 'I am not a real user');
 
         // User_blocked sends a message to user1.
-        $this->send_message($user_blocked, $user1, 'Here, have some spam.');
+        $this->send_message($userblocked, $user1, 'Here, have some spam.');
 
         // Retrieve the contacts of the user.
         $this->setUser($user1);
@@ -1032,7 +1004,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertCount(3, $contacts['offline']);
         $this->assertCount(1, $contacts['online']);
         $this->assertCount(3, $contacts['strangers']);
-        core_message_external::block_contacts(array($user_blocked->id));
+        core_message_external::block_contacts(array($userblocked->id));
         $this->assertDebuggingCalled();
         $contacts = core_message_external::get_contacts();
         $contacts = external_api::clean_returnvalue(core_message_external::get_contacts_returns(), $contacts);
@@ -1047,9 +1019,9 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->assertEquals(1, $stranger['unread']);
 
         // Check that deleted users are not returned.
-        delete_user($user_offline1);
-        delete_user($user_stranger);
-        delete_user($user_online);
+        delete_user($useroffline1);
+        delete_user($userstranger);
+        delete_user($useronline);
         $contacts = core_message_external::get_contacts();
         $contacts = external_api::clean_returnvalue(core_message_external::get_contacts_returns(), $contacts);
         $this->assertCount(2, $contacts['offline']);

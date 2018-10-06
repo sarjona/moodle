@@ -59,6 +59,23 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * sent from a user to another. We should stop using it once {@link message_send()} will support
      * transactions. This is not clean at all, this is just used to add rows to the table.
      *
+     * @param array $userids Array of user identifiers to send the message. The sender will be the first one in the array.
+     * @param string $message message to send.
+     * @param int $notification if the message is a notification.
+     * @param int $time the time the message was sent
+     * @return int the id of the message
+     */
+    protected function send_fake_message_to_users($userids, $message = 'Hello world!', $notification = 0, $time = 0) {
+        return \core_message\helper::send_fake_message($userids, $message, $notification, $time);
+    }
+
+    /**
+     * Send a fake message.
+     *
+     * {@link message_send()} does not support transaction, this function will simulate a message
+     * sent from a user to another. We should stop using it once {@link message_send()} will support
+     * transactions. This is not clean at all, this is just used to add rows to the table.
+     *
      * @param stdClass $userfrom user object of the one sending the message.
      * @param stdClass $userto user object of the one receiving the message.
      * @param string $message message to send.
@@ -67,39 +84,24 @@ class core_message_messagelib_testcase extends advanced_testcase {
      * @return int the id of the message
      */
     protected function send_fake_message($userfrom, $userto, $message = 'Hello world!', $notification = 0, $time = 0) {
-        global $DB;
+        return self::send_fake_message_to_users([$userfrom->id, $userto->id], $message, $notification, $time);
+    }
 
-        if (empty($time)) {
-            $time = time();
-        }
-
-        if ($notification) {
-            $record = new stdClass();
-            $record->useridfrom = $userfrom->id;
-            $record->useridto = $userto->id;
-            $record->subject = 'No subject';
-            $record->fullmessage = $message;
-            $record->smallmessage = $message;
-            $record->timecreated = $time;
-
-            return $DB->insert_record('notifications', $record);
-        }
-
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$userfrom->id,
-                $userto->id]);
-        }
-
-        // Ok, send the message.
-        $record = new stdClass();
-        $record->useridfrom = $userfrom->id;
-        $record->conversationid = $conversationid;
-        $record->subject = 'No subject';
-        $record->fullmessage = $message;
-        $record->smallmessage = $message;
-        $record->timecreated = $time;
-
-        return $DB->insert_record('messages', $record);
+    /**
+     * Send a fake message to a conversation.
+     *
+     * {@link message_send()} does not support transaction, this function will simulate a message
+     * sent from a user to another. We should stop using it once {@link message_send()} will support
+     * transactions. This is not clean at all, this is just used to add rows to the table.
+     *
+     * @param int|object $userfrom The sender user identifier.
+     * @param int $convid The conversation identifier.
+     * @param string $message The message to send.
+     * @param int $time The time the message was sent.
+     * @return int The id of the message.
+     */
+    protected function send_fake_conversation_message($userfrom, $convid, $message = 'Hello world!', $time = 0) {
+        return \core_message\helper::send_fake_conversation_message($userfrom, $convid, $message, $time);
     }
 
     /**
