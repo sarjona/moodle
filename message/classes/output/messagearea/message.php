@@ -59,6 +59,11 @@ class message implements templatable, renderable {
     public $useridfrom;
 
     /**
+     * @var int The conversation id where this message belongs.
+     */
+    public $convid;
+
+    /**
      * @var string The message text.
      */
     public $text;
@@ -86,7 +91,12 @@ class message implements templatable, renderable {
     public function __construct($message) {
         $this->id = $message->id;
         $this->currentuserid = $message->currentuserid;
-        $this->useridto = $message->useridto;
+        if (!empty($message->useridto)) {
+            $this->useridto = $message->useridto;
+        }
+        if (!empty($message->convid)) {
+            $this->convid = $message->convid;
+        }
         $this->useridfrom = $message->useridfrom;
         $this->text = $message->text;
         $this->displayblocktime = $message->displayblocktime;
@@ -97,8 +107,14 @@ class message implements templatable, renderable {
     public function export_for_template(\renderer_base $output) {
         $message = new \stdClass();
         $message->id = $this->id;
-        $message->useridto = $this->useridto;
+        // TODO (MDL-63467): Remove references to useridto when the functions using it will be deprecated.
+        if (!empty($this->useridto)) {
+            $message->useridto = $this->useridto;
+        }
         $message->useridfrom = $this->useridfrom;
+        if (!empty($this->convid)) {
+            $message->conversationid = $this->convid;
+        }
         $message->text = $this->text;
         $message->displayblocktime = $this->displayblocktime;
         $message->blocktime = userdate($this->timecreated, get_string('strftimedaydate'));

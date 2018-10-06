@@ -530,10 +530,48 @@ class api {
     public static function get_messages($userid, $otheruserid, $limitfrom = 0, $limitnum = 0,
         $sort = 'timecreated ASC', $timefrom = 0, $timeto = 0) {
 
+        if (!$conversationid = self::get_conversation_between_users([$userid, $otheruserid])) {
+            $conversationid = self::create_conversation_between_users([$userid, $otheruserid]);
+        }
+
+        // Get the conversation messages.
+        $convmessages = self::get_conversation_messages($userid, $conversationid, $limitfrom, $limitnum,
+            $sort, $timefrom, $timeto);
+
+        // Parse the messages to add the useridto for backward compatibility because it is expected.
+        $messages = array_map(function($message) use ($userid, $otheruserid) {
+            if (empty($message->useridto)) {
+                if ($message->useridfrom == $userid) {
+                    $message->useridto = $otheruserid;
+                } else {
+                    $message->useridto = $userid;
+                }
+            }
+            return $message;
+        }, $convmessages);
+
+        return $messages;
+    }
+
+    /**
+     * Returns the messages for the defined conversation.
+     *
+     * @param  object $userid The current user.
+     * @param  object|int $convid The conversation where the messages belong. Could be an object or just the id.
+     * @param  int $limitfrom Return a subset of records, starting at this point (optional).
+     * @param  int $limitnum Return a subset comprising this many records in total (optional, required if $limitfrom is set).
+     * @param  string $sort The column name to order by including optionally direction.
+     * @param  int $timefrom The time from the message being sent.
+     * @param  int $timeto The time up until the message being sent.
+     * @return array of messages
+     */
+    public static function get_conversation_messages($userid, $convid, $limitfrom = 0, $limitnum = 0,
+        $sort = 'timecreated ASC', $timefrom = 0, $timeto = 0) {
+
         if (!empty($timefrom)) {
             // Check the cache to see if we even need to do a DB query.
             $cache = \cache::make('core', 'message_time_last_message_between_users');
-            $key = helper::get_last_message_time_created_cache_key($otheruserid, $userid);
+            $key = helper::get_last_message_time_created_cache_key($convid);
             $lastcreated = $cache->get($key);
 
             // The last known message time is earlier than the one being requested so we can
@@ -544,9 +582,8 @@ class api {
         }
 
         $arrmessages = array();
-        if ($messages = helper::get_messages($userid, $otheruserid, 0, $limitfrom, $limitnum,
+        if ($messages = helper::get_conversation_messages($userid, $convid, 0, $limitfrom, $limitnum,
                                              $sort, $timefrom, $timeto)) {
-
             $arrmessages = helper::create_messages($userid, $messages);
         }
 
@@ -566,6 +603,31 @@ class api {
             // Swap the order so we now have them in historical order.
             $messages = array_reverse($messages);
             $arrmessages = helper::create_messages($userid, $messages);
+            return array_pop($arrmessages);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the most recent message in a conversation.
+     *
+     * @param int $convid The conversation identifier.
+     * @param int $currentuserid The current user identifier.
+     * @return \stdClass|null The most recent message.
+     */
+    public static function get_most_recent_conversation_message($convid, $currentuserid = 0) {
+        global $USER;
+
+        if (empty($currentuserid)) {
+            $currentuserid = $USER->id;
+        }
+
+        // We want two messages here so we get an accurate 'blocktime' value.
+        if ($messages = helper::get_conversation_messages($currentuserid, $convid, 0, 0, 2, 'timecreated DESC')) {
+            // Swap the order so we now have them in historical order.
+            $messages = array_reverse($messages);
+            $arrmessages = helper::create_messages($currentuserid, $messages);
             return array_pop($arrmessages);
         }
 
