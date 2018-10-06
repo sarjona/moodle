@@ -61,39 +61,72 @@ class manager {
         require_once($CFG->dirroot.'/message/lib.php'); // This is most probably already included from messagelib.php file.
 
         if (empty($processorlist)) {
-            // Trigger event for sending a message or notification - we need to do this before marking as read!
-            if ($eventdata->notification) {
-                \core\event\notification_sent::create_from_ids(
-                    $eventdata->userfrom->id,
-                    $eventdata->userto->id,
-                    $savemessage->id,
-                    $eventdata->courseid
-                )->trigger();
-            } else { // Must be a message.
+            // Trigger event for sending a message or notification - we need to do this before marking as read.
+            return self::trigger_send_message($eventdata, $savemessage);
+        }
+
+        // Let the manager do the sending or buffering when db transaction in progress.
+        return self::send_message_to_processors($eventdata, $savemessage, $processorlist);
+    }
+
+    /**
+     * Trigger event for sending a message or notification and mark it as read (if needed).
+     *
+     * @param \core\message\message $eventdata Fully prepared event data for processors.
+     * @param \stdClass $savemessage The message saved in 'messages' table.
+     * @return int $messageid The id from 'messages' (false is not returned).
+     */
+    protected static function trigger_send_message (message $eventdata, \stdClass $savemessage) {
+        global $DB, $CFG;
+
+        if ($eventdata->notification) {
+            // Must be a notification.
+            \core\event\notification_sent::create_from_ids(
+                $eventdata->userfrom->id,
+                $eventdata->userto->id,
+                $savemessage->id,
+                $eventdata->courseid
+            )->trigger();
+        } else {
+            // Must be a message.
+            if (!empty($eventdata->userto)) {
+                // 1:1 personal message.
                 \core\event\message_sent::create_from_ids(
                     $eventdata->userfrom->id,
                     $eventdata->userto->id,
                     $savemessage->id,
                     $eventdata->courseid
                 )->trigger();
-            }
-
-            if ($eventdata->notification or empty($CFG->messaging)) {
-                // If they have deselected all processors and its a notification mark it read. The user doesn't want to be bothered.
-                // The same goes if the messaging is completely disabled.
-                if ($eventdata->notification) {
-                    $savemessage->timeread = null;
-                    \core_message\api::mark_notification_as_read($savemessage);
-                } else {
-                    \core_message\api::mark_message_as_read($eventdata->userto->id, $savemessage);
+            } else {
+                // Group conversation message. Get the members and trigger the event for all them (except the sender).
+                $convmembers = $DB->get_records('message_conversation_members', ['conversationid' => $eventdata->convid]);
+                foreach ($convmembers as $member) {
+                    if ($member->id == $eventdata->userfrom->id) {
+                        // This is the sender, so we should ignore him/her as receiver.
+                        continue;
+                    }
+                    \core\event\message_sent::create_from_ids(
+                        $eventdata->userfrom->id,
+                        $member->id,
+                        $savemessage->id,
+                        $eventdata->courseid
+                    )->trigger();
                 }
             }
-
-            return $savemessage->id;
         }
 
-        // Let the manager do the sending or buffering when db transaction in progress.
-        return self::send_message_to_processors($eventdata, $savemessage, $processorlist);
+        if ($eventdata->notification or empty($CFG->messaging)) {
+            // If they have deselected all processors and its a notification mark it read. The user doesn't want to be bothered.
+            // The same goes if the messaging is completely disabled.
+            if ($eventdata->notification) {
+                $savemessage->timeread = null;
+                \core_message\api::mark_notification_as_read($savemessage);
+            } else {
+                \core_message\api::mark_message_conversation_as_read($savemessage);
+            }
+        }
+
+        return $savemessage->id;
     }
 
     /**
@@ -106,20 +139,23 @@ class manager {
      */
     protected static function send_message_to_processors($eventdata, \stdClass $savemessage, array
     $processorlist) {
+        // TODO (MDL-63283): Review $processor->object->send_message functions. For now this function isn't
+        // called for conversations with more than 2 members.
         global $CFG, $DB;
 
         // We cannot communicate with external systems in DB transactions,
         // buffer the messages if necessary.
-
         if ($DB->is_transaction_started()) {
             // We need to clone all objects so that devs may not modify it from outside later.
             $eventdata = clone($eventdata);
-            $eventdata->userto = clone($eventdata->userto);
             $eventdata->userfrom = clone($eventdata->userfrom);
-
             // Conserve some memory the same was as $USER setup does.
-            unset($eventdata->userto->description);
             unset($eventdata->userfrom->description);
+            if (!empty($eventdata->userto)) {
+                $eventdata->userto = clone($eventdata->userto);
+                // Conserve some memory the same was as $USER setup does.
+                unset($eventdata->userto->description);
+            }
 
             self::$buffer[] = array($eventdata, $savemessage, $processorlist);
             return $savemessage->id;
@@ -136,35 +172,8 @@ class manager {
             }
         }
 
-        // Trigger event for sending a message or notification - we need to do this before marking as read!
-        if ($eventdata->notification) {
-            \core\event\notification_sent::create_from_ids(
-                $eventdata->userfrom->id,
-                $eventdata->userto->id,
-                $savemessage->id,
-                $eventdata->courseid
-            )->trigger();
-        } else { // Must be a message.
-            \core\event\message_sent::create_from_ids(
-                $eventdata->userfrom->id,
-                $eventdata->userto->id,
-                $savemessage->id,
-                $eventdata->courseid
-            )->trigger();
-        }
-
-        if (empty($CFG->messaging)) {
-            // If they have deselected all processors and its a notification mark it read. The user doesn't want to be bothered.
-            // The same goes if the messaging is completely disabled.
-            if ($eventdata->notification) {
-                $savemessage->timeread = null;
-                \core_message\api::mark_notification_as_read($savemessage);
-            } else {
-                \core_message\api::mark_message_as_read($eventdata->userto->id, $savemessage);
-            }
-        }
-
-        return $savemessage->id;
+        // Trigger event for sending a message or notification - we need to do this before marking as read.
+        return self::trigger_send_message($eventdata, $savemessage);
     }
 
     /**

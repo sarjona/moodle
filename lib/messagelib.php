@@ -35,12 +35,15 @@ require_once(__DIR__ . '/../message/lib.php');
  *  component string component name. must exist in message_providers
  *  name string message type name. must exist in message_providers
  *  userfrom object|int the user sending the message
- *  userto object|int the message recipient
+ *  userto object|int the message recipient. This is mandatory for NOTIFICACIONS and 1:1 personal messages.
  *  subject string the message subject
  *  fullmessage string the full message in a given format
  *  fullmessageformat int the format if the full message (FORMAT_MOODLE, FORMAT_HTML, ..)
  *  fullmessagehtml string the full version (the message processor will choose with one to use)
  *  smallmessage string the small version of the message
+ *
+ * Required parameters of the $eventdata object for PERSONAL MESSAGES:
+ *  convid int the conversation identifier where this message will be sent
  *
  * Optional parameters of the $eventdata object:
  *  notification bool should the message be considered as a notification rather than a personal message
@@ -74,62 +77,66 @@ function message_send(\core\message\message $eventdata) {
         $eventdata->notification = 1;
     }
 
-    if (!is_object($eventdata->userto)) {
-        $eventdata->userto = core_user::get_user($eventdata->userto);
-    }
     if (!is_object($eventdata->userfrom)) {
         $eventdata->userfrom = core_user::get_user($eventdata->userfrom);
     }
-    if (!$eventdata->userto) {
-        debugging('Attempt to send msg to unknown user', DEBUG_NORMAL);
-        return false;
-    }
+
     if (!$eventdata->userfrom) {
         debugging('Attempt to send msg from unknown user', DEBUG_NORMAL);
         return false;
     }
 
-    // If the provider's component is disabled or the user can't receive messages from it, don't send the message.
-    $isproviderallowed = false;
-    foreach (message_get_providers_for_user($eventdata->userto->id) as $provider) {
-        if ($provider->component === $eventdata->component && $provider->name === $eventdata->name) {
-            $isproviderallowed = true;
-            break;
+    if (!empty($eventdata->userto)) {
+        // This is a notification or a personal 1:1 message. Prepare some extra data for the message receiver.
+        if (!is_object($eventdata->userto)) {
+            $eventdata->userto = core_user::get_user($eventdata->userto);
         }
-    }
-    if (!$isproviderallowed) {
-        debugging('Attempt to send msg from a provider '.$eventdata->component.'/'.$eventdata->name.
-            ' that is inactive or not allowed for the user id='.$eventdata->userto->id, DEBUG_NORMAL);
-        return false;
-    }
+        if (!$eventdata->userto) {
+            debugging('Attempt to send msg to unknown user', DEBUG_NORMAL);
+            return false;
+        }
 
-    // Verify all necessary data fields are present.
-    if (!isset($eventdata->userto->auth) or !isset($eventdata->userto->suspended)
-            or !isset($eventdata->userto->deleted) or !isset($eventdata->userto->emailstop)) {
+        // If the provider's component is disabled or the user can't receive messages from it, don't send the message.
+        $isproviderallowed = false;
+        foreach (message_get_providers_for_user($eventdata->userto->id) as $provider) {
+            if ($provider->component === $eventdata->component && $provider->name === $eventdata->name) {
+                $isproviderallowed = true;
+                break;
+            }
+        }
+        if (!$isproviderallowed) {
+            debugging('Attempt to send msg from a provider '.$eventdata->component.'/'.$eventdata->name.
+                ' that is inactive or not allowed for the user id='.$eventdata->userto->id, DEBUG_NORMAL);
+            return false;
+        }
 
-        debugging('Necessary properties missing in userto object, fetching full record', DEBUG_DEVELOPER);
-        $eventdata->userto = core_user::get_user($eventdata->userto->id);
-    }
+        // Verify all necessary data fields are present.
+        if (!isset($eventdata->userto->auth) or !isset($eventdata->userto->suspended)
+                or !isset($eventdata->userto->deleted) or !isset($eventdata->userto->emailstop)) {
+            debugging('Necessary properties missing in userto object, fetching full record', DEBUG_DEVELOPER);
+            $eventdata->userto = core_user::get_user($eventdata->userto->id);
+        }
+        $usertoisrealuser = (core_user::is_real_user($eventdata->userto->id) != false);
 
-    $usertoisrealuser = (core_user::is_real_user($eventdata->userto->id) != false);
-    // If recipient is internal user (noreply user), and emailstop is set then don't send any msg.
-    if (!$usertoisrealuser && !empty($eventdata->userto->emailstop)) {
-        debugging('Attempt to send msg to internal (noreply) user', DEBUG_NORMAL);
-        return false;
-    }
+        // If recipient is internal user (noreply user), and emailstop is set then don't send any msg.
+        if (!$usertoisrealuser && !empty($eventdata->userto->emailstop)) {
+            debugging('Attempt to send msg to internal (noreply) user', DEBUG_NORMAL);
+            return false;
+        }
 
-    //after how long inactive should the user be considered logged off?
-    if (isset($CFG->block_online_users_timetosee)) {
-        $timetoshowusers = $CFG->block_online_users_timetosee * 60;
-    } else {
-        $timetoshowusers = 300;//5 minutes
-    }
+        // After how long inactive should the user be considered logged off?
+        if (isset($CFG->block_online_users_timetosee)) {
+            $timetoshowusers = $CFG->block_online_users_timetosee * 60;
+        } else {
+            $timetoshowusers = 300; // 5 minutes.
+        }
 
-    // Work out if the user is logged in or not
-    if (!empty($eventdata->userto->lastaccess) && (time()-$timetoshowusers) < $eventdata->userto->lastaccess) {
-        $userstate = 'loggedin';
-    } else {
-        $userstate = 'loggedoff';
+        // Work out if the user is logged in or not.
+        if (!empty($eventdata->userto->lastaccess) && (time() - $timetoshowusers) < $eventdata->userto->lastaccess) {
+            $userstate = 'loggedin';
+        } else {
+            $userstate = 'loggedoff';
+        }
     }
 
     // Check if we are creating a notification or message.
@@ -160,17 +167,19 @@ function message_send(\core\message\message $eventdata) {
         }
     } else {
         $table = 'messages';
-
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$eventdata->userfrom->id,
-                $eventdata->userto->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$eventdata->userfrom->id,
-                $eventdata->userto->id]);
+        if (empty($eventdata->convid)) {
+            // For now we're leaving this part of the code for backward compatibility (to get convid when is not defined).
+            if (!$eventdata->convid = \core_message\api::get_conversation_between_users([$eventdata->userfrom->id,
+                    $eventdata->userto->id])) {
+                $eventdata->convid = \core_message\api::create_conversation_between_users([$eventdata->userfrom->id,
+                    $eventdata->userto->id]);
+            }
         }
 
         $tabledata = new stdClass();
         $tabledata->courseid = $eventdata->courseid;
         $tabledata->useridfrom = $eventdata->userfrom->id;
-        $tabledata->conversationid = $conversationid;
+        $tabledata->conversationid = $eventdata->convid;
         $tabledata->subject = $eventdata->subject;
         $tabledata->fullmessage = $eventdata->fullmessage;
         $tabledata->fullmessageformat = $eventdata->fullmessageformat;
@@ -190,25 +199,29 @@ function message_send(\core\message\message $eventdata) {
             throw new coding_exception("$eventdata->component does not contain db/messages.php necessary for message_send()");
         }
         $messageproviders = null;
+
         include("$componentdir/db/messages.php");
         if (!isset($messageproviders[$eventdata->name])) {
             throw new coding_exception("Missing messaging defaults for event '$eventdata->name' in '$eventdata->component' messages.php file");
         }
         unset($componentdir);
         unset($messageproviders);
+
         // Now ask phpunit if it wants to catch this message.
         if (phpunit_util::is_redirecting_messages()) {
             $messageid = $DB->insert_record($table, $tabledata);
             $message = $DB->get_record($table, array('id' => $messageid));
 
             // Add the useridto attribute for BC.
-            $message->useridto = $eventdata->userto->id;
+            if (!empty($eventdata->userto)) {
+                $message->useridto = $eventdata->userto->id;
+            }
 
             // Mark the message/notification as read.
             if ($eventdata->notification) {
                 \core_message\api::mark_notification_as_read($message);
             } else {
-                \core_message\api::mark_message_as_read($eventdata->userto->id, $message);
+                \core_message\api::mark_message_conversation_as_read($message);
             }
 
             // Unit tests need this detail.
@@ -218,67 +231,71 @@ function message_send(\core\message\message $eventdata) {
         }
     }
 
-    // Fetch enabled processors.
-    // If we are dealing with a message some processors may want to handle it regardless of user and site settings.
-    if (!$eventdata->notification) {
-        $processors = array_filter(get_message_processors(false), function($processor) {
-            if ($processor->object->force_process_messages()) {
-                return true;
+    // Preset variables.
+    $processorlist = array();
+    // Disable all processors for group conversations. For 1:1 and notifications, the behaviour hasn't been changed.
+    // TODO (MDL-63283): Review this part. What processors should we disable for group conversations?
+    if (!empty($eventdata->userto)) {
+        // Fetch enabled processors.
+        // If we are dealing with a message some processors may want to handle it regardless of user and site settings.
+        if (!$eventdata->notification) {
+            $processors = array_filter(get_message_processors(false), function($processor) {
+                if ($processor->object->force_process_messages()) {
+                    return true;
+                }
+                return ($processor->enabled && $processor->configured);
+            });
+        } else {
+            $processors = get_message_processors(true);
+        }
+        // Fill in the array of processors to be used based on default and user preferences.
+        foreach ($processors as $processor) {
+            // Skip adding processors for internal user, if processor doesn't support sending message to internal user.
+            if (!$usertoisrealuser && !$processor->object->can_send_to_any_users()) {
+                continue;
             }
 
-            return ($processor->enabled && $processor->configured);
-        });
-    } else {
-        $processors = get_message_processors(true);
-    }
+            // First find out permissions.
+            $defaultpreference = $processor->name.'_provider_'.$preferencebase.'_permitted';
+            if (isset($defaultpreferences->{$defaultpreference})) {
+                $permitted = $defaultpreferences->{$defaultpreference};
+            } else {
+                // MDL-25114 They supplied an $eventdata->component $eventdata->name combination which doesn't
+                // exist in the message_provider table (thus there is no default settings for them).
+                $preferrormsg = "Could not load preference $defaultpreference. Make sure the component and name you supplied
+                        to message_send() are valid.";
+                throw new coding_exception($preferrormsg);
+            }
 
-    // Preset variables
-    $processorlist = array();
-    // Fill in the array of processors to be used based on default and user preferences
-    foreach ($processors as $processor) {
-        // Skip adding processors for internal user, if processor doesn't support sending message to internal user.
-        if (!$usertoisrealuser && !$processor->object->can_send_to_any_users()) {
-            continue;
-        }
+            // Find out if user has configured this output.
+            // Some processors cannot function without settings from the user.
+            $userisconfigured = $processor->object->is_user_configured($eventdata->userto);
+            // DEBUG: notify if we are forcing unconfigured output.
+            if ($permitted == 'forced' && !$userisconfigured) {
+                debugging(
+                    'Attempt to force message delivery to user who has "'.$processor->name.'" output unconfigured',
+                    DEBUG_NORMAL
+                );
+            }
 
-        // First find out permissions
-        $defaultpreference = $processor->name.'_provider_'.$preferencebase.'_permitted';
-        if (isset($defaultpreferences->{$defaultpreference})) {
-            $permitted = $defaultpreferences->{$defaultpreference};
-        } else {
-            // MDL-25114 They supplied an $eventdata->component $eventdata->name combination which doesn't
-            // exist in the message_provider table (thus there is no default settings for them).
-            $preferrormsg = "Could not load preference $defaultpreference. Make sure the component and name you supplied
-                    to message_send() are valid.";
-            throw new coding_exception($preferrormsg);
-        }
-
-        // Find out if user has configured this output
-        // Some processors cannot function without settings from the user
-        $userisconfigured = $processor->object->is_user_configured($eventdata->userto);
-
-        // DEBUG: notify if we are forcing unconfigured output
-        if ($permitted == 'forced' && !$userisconfigured) {
-            debugging('Attempt to force message delivery to user who has "'.$processor->name.'" output unconfigured', DEBUG_NORMAL);
-        }
-
-        // Populate the list of processors we will be using
-        if (!$eventdata->notification && $processor->object->force_process_messages()) {
-            $processorlist[] = $processor->name;
-        } else if ($permitted == 'forced' && $userisconfigured) {
-            // An admin is forcing users to use this message processor. Use this processor unconditionally.
-            $processorlist[] = $processor->name;
-        } else if ($permitted == 'permitted' && $userisconfigured && !$eventdata->userto->emailstop) {
-            // User has not disabled notifications
-            // See if user set any notification preferences, otherwise use site default ones
-            $userpreferencename = 'message_provider_'.$preferencebase.'_'.$userstate;
-            if ($userpreference = get_user_preferences($userpreferencename, null, $eventdata->userto)) {
-                if (in_array($processor->name, explode(',', $userpreference))) {
-                    $processorlist[] = $processor->name;
-                }
-            } else if (isset($defaultpreferences->{$userpreferencename})) {
-                if (in_array($processor->name, explode(',', $defaultpreferences->{$userpreferencename}))) {
-                    $processorlist[] = $processor->name;
+            // Populate the list of processors we will be using.
+            if (!$eventdata->notification && $processor->object->force_process_messages()) {
+                $processorlist[] = $processor->name;
+            } else if ($permitted == 'forced' && $userisconfigured) {
+                // An admin is forcing users to use this message processor. Use this processor unconditionally.
+                $processorlist[] = $processor->name;
+            } else if ($permitted == 'permitted' && $userisconfigured && !$eventdata->userto->emailstop) {
+                // User has not disabled notifications.
+                // See if user set any notification preferences, otherwise use site default ones.
+                $userpreferencename = 'message_provider_'.$preferencebase.'_'.$userstate;
+                if ($userpreference = get_user_preferences($userpreferencename, null, $eventdata->userto)) {
+                    if (in_array($processor->name, explode(',', $userpreference))) {
+                        $processorlist[] = $processor->name;
+                    }
+                } else if (isset($defaultpreferences->{$userpreferencename})) {
+                    if (in_array($processor->name, explode(',', $defaultpreferences->{$userpreferencename}))) {
+                        $processorlist[] = $processor->name;
+                    }
                 }
             }
         }
@@ -286,11 +303,16 @@ function message_send(\core\message\message $eventdata) {
 
     // Only cache messages, not notifications.
     if (!$eventdata->notification) {
-        // Cache the timecreated value of the last message between these two users.
-        $cache = cache::make('core', 'message_time_last_message_between_users');
-        $key = \core_message\helper::get_last_message_time_created_cache_key($eventdata->userfrom->id,
-            $eventdata->userto->id);
-        $cache->set($key, $tabledata->timecreated);
+        // TODO (MDL-63466): Change the cache key to convid during the get_messages refactoring.
+        if (!empty($eventdata->userto)) {
+            // Cache the timecreated value of the last message between these two users.
+            $cache = cache::make('core', 'message_time_last_message_between_users');
+            $key = \core_message\helper::get_last_message_time_created_cache_key(
+                $eventdata->userfrom->id,
+                $eventdata->userto->id
+            );
+            $cache->set($key, $tabledata->timecreated);
+        }
     }
 
     // Store unread message just in case we get a fatal error any time later.
@@ -300,7 +322,6 @@ function message_send(\core\message\message $eventdata) {
     // Let the manager do the sending or buffering when db transaction in progress.
     return \core\message\manager::send_message($eventdata, $tabledata, $processorlist);
 }
-
 
 /**
  * Updates the message_providers table with the current set of message providers
