@@ -135,7 +135,19 @@ if (!empty($user2->id)) {
         $conversations[$user2->id]->isread = 1;
     }
 
-    $messages = \core_message\api::get_messages($user1->id, $user2->id, 0, 20, 'timecreated DESC');
+    $convmessages = \core_message\api::get_conversation_messages($user1->id, $conversationid, 0, 20, 'timecreated DESC');
+    $messages = $convmessages['messages'];
+    // Parse the messages to add the useridto for backward compatibility because it is expected.
+    $messages = array_map(function($message) use ($user1, $user2) {
+        if (empty($message->useridto)) {
+            if ($message->useridfrom == $user1->id) {
+                $message->useridto = $user2->id;
+            } else {
+                $message->useridto = $user1->id;
+            }
+        }
+        return $message;
+    }, $messages);
 }
 
 $pollmin = !empty($CFG->messagingminpoll) ? $CFG->messagingminpoll : MESSAGE_DEFAULT_MIN_POLL_IN_SECONDS;

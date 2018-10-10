@@ -37,6 +37,7 @@ class helper {
     /**
      * Helper function to retrieve the messages between two users
      *
+     * @deprecated since 3.6
      * @param int $userid the current user
      * @param int $otheruserid the other user
      * @param int $timedeleted the time the message was deleted
@@ -49,6 +50,9 @@ class helper {
      */
     public static function get_messages($userid, $otheruserid, $timedeleted = 0, $limitfrom = 0, $limitnum = 0,
                                         $sort = 'timecreated ASC', $timefrom = 0, $timeto = 0) {
+        debugging('\core_message\helper::get_messages() is deprecated, please use ' .
+            '\core_message\helper::get_conversation_messages() instead.', DEBUG_DEVELOPER);
+
         global $DB;
 
         $hash = self::get_conversation_hash([$userid, $otheruserid]);
@@ -268,6 +272,9 @@ class helper {
      * @return array
      */
     public static function create_messages($userid, $messages) {
+        debugging('\core_message\helper::create_messages() is deprecated, please use ' .
+            '\core_message\helper::create_conversation_messages() instead.', DEBUG_DEVELOPER);
+
         // Store the messages.
         $arrmessages = array();
 
