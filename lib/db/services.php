@@ -1104,6 +1104,7 @@ $functions = array(
         'description' => 'Retrieve the template data for the most recent conversation message',
         'type' => 'read',
         'ajax' => true,
+        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
     'core_message_unblock_user' => array(
         'classname' => 'core_message_external',
