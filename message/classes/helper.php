@@ -109,6 +109,89 @@ class helper {
     }
 
     /**
+     * Helper function to return a conversation messages with the involved members (only the ones
+     * who have sent any of these messages).
+     *
+     * @param int $userid The current userid.
+     * @param int $convid The conversation id.
+     * @param array $messages The formated array messages.
+     * @return array A conversation array with the messages and the involved members.
+     */
+    public static function create_conversation_messages(int $userid, int $convid, array $messages) : array {
+        global $USER;
+
+        // Create the conversation array.
+        $conversation = array(
+            'id' => $convid,
+            'iscurrentuser' => ($USER->id == $userid),
+            'currentuserid' => $userid,
+        );
+
+        // Store the messages.
+        $arrmessages = array();
+
+        // We always view messages from oldest to newest, ensure we have it in that order.
+        $lastmessage = end($messages);
+        $firstmessage = reset($messages);
+        if ($lastmessage->timecreated < $firstmessage->timecreated) {
+            $messages = array_reverse($messages);
+        }
+
+        // Keeps track of the last day, month and year combo we were viewing.
+        $day = '';
+        $month = '';
+        $year = '';
+        foreach ($messages as $message) {
+            // Check if we are now viewing a different block period.
+            $displayblocktime = false;
+            $date = usergetdate($message->timecreated);
+            if ($day != $date['mday'] || $month != $date['month'] || $year != $date['year']) {
+                $day = $date['mday'];
+                $month = $date['month'];
+                $year = $date['year'];
+                $displayblocktime = true;
+            }
+            // Store the message to pass to the renderable.
+            $msg = new \stdClass();
+            $msg->id = $message->id;
+            $msg->text = message_format_message_text($message);
+            $msg->currentuserid = $userid;
+            $msg->useridfrom = $message->useridfrom;
+            $msg->conversationid = $convid;
+            $msg->displayblocktime = $displayblocktime;
+            $msg->timecreated = $message->timecreated;
+            $msg->timeread = $message->timeread;
+            $arrmessages[] = $msg;
+        }
+        // Add the messages to the conversation.
+        $conversation['messages'] = $arrmessages;
+
+        // Get the users who have sent any of the $messages.
+        $memberids = array_unique(array_map(function($message) {
+            return $message->useridfrom;
+        }, $messages));
+        $ufields = 'id, ' . get_all_user_name_fields(true) . ', lastaccess';
+        $arrmembers = array_map(function($memberid) use ($ufields) {
+            global $PAGE;
+
+            $user = \core_user::get_user($memberid, '*', MUST_EXIST);
+            $member = new \stdClass();
+            $member->id = $memberid;
+            $member->fullname = fullname($user);
+            $userpicture = new \user_picture($user);
+            $userpicture->size = 0; // Size f2.
+            $member->profileimageurlsmall = $userpicture->get_url($PAGE)->out(false);
+
+            return $member;
+        }, $memberids);
+
+        // Add the members to the conversation.
+        $conversation['members'] = $arrmembers;
+
+        return $conversation;
+    }
+
+    /**
      * Helper function to return an array of messages.
      *
      * @param int $userid
