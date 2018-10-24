@@ -1675,6 +1675,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // With the default privacy setting, users can't message them.
         $this->assertFalse(\core_message\api::can_post_message($user2));
+        $this->assertDebuggingCalled();
 
         // Enrol users to the same course.
         $course = $this->getDataGenerator()->create_course();
@@ -1682,6 +1683,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $this->getDataGenerator()->enrol_user($user2->id, $course->id);
         // After enrolling users to the course, they should be able to message them with the default privacy setting.
         $this->assertTrue(\core_message\api::can_post_message($user2));
+        $this->assertDebuggingCalled();
     }
 
     /**

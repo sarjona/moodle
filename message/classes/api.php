@@ -1022,6 +1022,9 @@ class api {
      * @return bool true if user is permitted, false otherwise.
      */
     public static function can_post_message($recipient, $sender = null) {
+        debugging('\core_message\api::can_post_message is deprecated, please use ' .
+            '\core_message\api::can_post_conversation_message instead.', DEBUG_DEVELOPER);
+
         global $USER;
 
         if (is_null($sender)) {
