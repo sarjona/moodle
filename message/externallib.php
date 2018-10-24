@@ -109,9 +109,9 @@ class core_message_external extends external_api {
 
             // TODO MDL-31118 performance improvement - edit the function so we can pass an array instead userid
             // Check if the recipient can be messaged by the sender.
-            if ($success && !\core_message\api::can_post_message($tousers[$message['touserid']], $USER)) {
+            if ($success && !\core_message\api::can_post_conversation_message($message['touserid'], $USER->id)) {
                 $success = false;
-                $errormessage = get_string('usercantbemessaged', 'message', fullname(\core_user::get_user($message['touserid'])));
+                $errormessage = get_string('usercantbemessaged', 'message', fullname($tousers[$message['touserid']]));
             }
 
             // Now we can send the message (at least try).

@@ -1029,17 +1029,28 @@ class api {
             $sender = $USER;
         }
 
+        return self::can_post_conversation_message($recipient->id, $sender->id);
+    }
+
+    /**
+     * Determines if a user is permitted to send another user a private message.
+     *
+     * @param int $recipientid The recipient identifier.
+     * @param int $senderid The sender identifier.
+     * @return bool true if user is permitted, false otherwise.
+     */
+    public static function can_post_conversation_message(int $recipientid, int $senderid) : bool {
         $systemcontext = \context_system::instance();
-        if (!has_capability('moodle/site:sendmessage', $systemcontext, $sender)) {
+        if (!has_capability('moodle/site:sendmessage', $systemcontext, $senderid)) {
             return false;
         }
 
-        if (has_capability('moodle/site:readallmessages', $systemcontext, $sender->id)) {
+        if (has_capability('moodle/site:readallmessages', $systemcontext, $senderid)) {
             return true;
         }
 
         // Check if the recipient can be messaged by the sender.
-        return (self::can_contact_user($recipient, $sender));
+        return (self::can_contact_user($recipientid, $senderid));
     }
 
     /**
@@ -1829,12 +1840,12 @@ class api {
     /**
      * Checks if the sender can message the recipient.
      *
-     * @param \stdClass $recipient The user object.
-     * @param \stdClass $sender The user object.
+     * @param int $recipientid The recipient identifier.
+     * @param int $senderid The sender identifier.
      * @return bool true if recipient hasn't blocked sender and sender can contact to recipient, false otherwise.
      */
-    protected static function can_contact_user(\stdClass $recipient, \stdClass $sender) : bool {
-        if (has_capability('moodle/site:messageanyuser', \context_system::instance(), $sender->id)) {
+    protected static function can_contact_user(int $recipientid, int $senderid) : bool {
+        if (has_capability('moodle/site:messageanyuser', \context_system::instance(), $senderid)) {
             // The sender has the ability to contact any user across the entire site.
             return true;
         }
@@ -1842,7 +1853,7 @@ class api {
         // The initial value of $cancontact is null to indicate that a value has not been determined.
         $cancontact = null;
 
-        if (self::is_blocked($recipient->id, $sender->id)) {
+        if (self::is_blocked($recipientid, $senderid)) {
             // The recipient has specifically blocked this sender.
             $cancontact = false;
         }
@@ -1856,7 +1867,7 @@ class api {
             //
             // The Site option is only possible when the messagingallusers site setting is also enabled.
 
-            $privacypreference = self::get_user_privacy_messaging_preference($recipient->id);
+            $privacypreference = self::get_user_privacy_messaging_preference($recipientid);
             if (self::MESSAGE_PRIVACY_SITE === $privacypreference) {
                 // The user preference is to allow any user to contact them.
                 // No need to check anything else.
@@ -1864,12 +1875,12 @@ class api {
             } else {
                 // This user only allows their own contacts, and possibly course peers, to contact them.
                 // If the users are contacts then we can avoid the more expensive shared courses check.
-                $cancontact = self::is_contact($sender->id, $recipient->id);
+                $cancontact = self::is_contact($senderid, $recipientid);
 
                 if (!$cancontact && self::MESSAGE_PRIVACY_COURSEMEMBER === $privacypreference) {
                     // The users are not contacts and the user allows course member messaging.
                     // Check whether these two users share any course together.
-                    $sharedcourses = enrol_get_shared_courses($recipient->id, $sender->id, true);
+                    $sharedcourses = enrol_get_shared_courses($recipientid, $senderid, true);
                     $cancontact = (!empty($sharedcourses));
                 }
             }
@@ -1882,12 +1893,12 @@ class api {
 
             // Note: You cannot use empty($sharedcourses) here because this may be an empty array.
             if (null === $sharedcourses) {
-                $sharedcourses = enrol_get_shared_courses($recipient->id, $sender->id, true);
+                $sharedcourses = enrol_get_shared_courses($recipientid, $senderid, true);
             }
 
             foreach ($sharedcourses as $course) {
                 // Note: enrol_get_shared_courses will preload any shared context.
-                if (has_capability('moodle/site:messageanyuser', \context_course::instance($course->id), $sender->id)) {
+                if (has_capability('moodle/site:messageanyuser', \context_course::instance($course->id), $senderid)) {
                     $cancontact = true;
                     break;
                 }
