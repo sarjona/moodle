@@ -50,14 +50,14 @@ class endorsement_form extends moodleform {
         $mform->setType('issueremail', PARAM_RAW);
         $mform->addHelpButton('issueremail', 'issueremail', 'badges');
         $mform->addElement('text', 'issuerurl', get_string('issuerurl', 'badges'), array('size' => '70'));
-        $mform->setType('issuerurl', PARAM_RAW);
+        $mform->setType('issuerurl', PARAM_URL);
         $mform->addRule('issuerurl', null, 'required');
         $mform->addHelpButton('issuerurl', 'issuerurl', 'badges');
         $mform->addElement('date_time_selector', 'dateissued',
             get_string('dateawarded', 'badges'));
         $mform->addElement('header', 'claim', get_string('claim', 'badges'));
         $mform->addElement('text', 'claimid', get_string('claimid', 'badges'), array('size' => '70'));
-        $mform->setType('claimid', PARAM_RAW);
+        $mform->setType('claimid', PARAM_URL);
         $mform->addRule('claimid', null, 'required');
         $mform->addElement('textarea', 'claimcomment', get_string('claimcomment', 'badges'), 'wrap="virtual" rows="8" cols="70"');
         $mform->setType('claimcomment', PARAM_NOTAGS);
@@ -85,12 +85,6 @@ class endorsement_form extends moodleform {
         $errors = parent::validation($data, $files);
         if ($data['issueremail'] && !validate_email($data['issueremail'])) {
             $errors['issueremail'] = get_string('invalidemail');
-        }
-        if ($data['issuerurl'] && !filter_var($data['issuerurl'], FILTER_VALIDATE_URL)) {
-            $errors['issuerurl'] = get_string('invalidurl', 'badges');
-        }
-        if ($data['claimid'] && !filter_var($data['claimid'], FILTER_VALIDATE_URL)) {
-            $errors['claimid'] = get_string('invalidurl', 'badges');
         }
         return $errors;
     }

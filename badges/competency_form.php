@@ -51,7 +51,7 @@ class competency_alignment_form extends moodleform {
         $mform->addRule('targetname', null, 'required');
         $mform->addHelpButton('targetname', 'targetname', 'badges');
         $mform->addElement('text', 'targeturl', get_string('targeturl', 'badges'), array('size' => '70'));
-        $mform->setType('targeturl', PARAM_RAW);
+        $mform->setType('targeturl', PARAM_URL);
         $mform->addRule('targeturl', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
         $mform->addRule('targeturl', null, 'required');
         $mform->addHelpButton('targeturl', 'targeturl', 'badges');
@@ -75,20 +75,5 @@ class competency_alignment_form extends moodleform {
                 $mform->hardFreezeAllVisibleExcept(array());
             }
         }
-    }
-
-    /**
-     * Validates form data.
-     *
-     * @param array $data submitted data.
-     * @param array $files submitted files.
-     * @return array $errors An array of errors.
-     */
-    public function validation($data, $files) {
-        $errors = parent::validation($data, $files);
-        if ($data['targeturl'] && !filter_var($data['targeturl'], FILTER_VALIDATE_URL)) {
-            $errors['targeturl'] = get_string('invalidurl', 'badges');
-        }
-        return $errors;
     }
 }

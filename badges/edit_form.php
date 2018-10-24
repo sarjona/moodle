@@ -82,7 +82,7 @@ class edit_details_form extends moodleform {
         $mform->setType('emailauthorimage', PARAM_TEXT);
         $mform->addHelpButton('emailauthorimage', 'emailauthorimage', 'badges');
         $mform->addElement('text', 'urlauthorimage', get_string('urlauthorimage', 'badges'), array('size' => '70'));
-        $mform->setType('urlauthorimage', PARAM_TEXT);
+        $mform->setType('urlauthorimage', PARAM_URL);
         $mform->addHelpButton('urlauthorimage', 'urlauthorimage', 'badges');
         $mform->addElement('text', 'captionimage', get_string('captionimage', 'badges'), array('size' => '70'));
         $mform->setType('captionimage', PARAM_TEXT);
@@ -196,10 +196,6 @@ class edit_details_form extends moodleform {
 
         if ($data['emailauthorimage'] && !validate_email($data['emailauthorimage'])) {
             $errors['emailauthorimage'] = get_string('invalidemail');
-        }
-
-        if ($data['urlauthorimage'] && !filter_var($data['urlauthorimage'], FILTER_VALIDATE_URL)) {
-            $errors['urlauthorimage'] = get_string('invalidurl', 'badges');
         }
 
         // Check for duplicate badge names.
