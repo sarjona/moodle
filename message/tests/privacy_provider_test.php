@@ -46,7 +46,7 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $collection = new collection('core_message');
         $newcollection = provider::get_metadata($collection);
         $itemcollection = $newcollection->get_collection();
-        $this->assertCount(8, $itemcollection);
+        $this->assertCount(9, $itemcollection);
 
         $messagestable = array_shift($itemcollection);
         $this->assertEquals('messages', $messagestable->get_name());
@@ -71,6 +71,9 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
 
         $usersettings = array_shift($itemcollection);
         $this->assertEquals('core_message_messageprovider_settings', $usersettings->get_name());
+
+        $favouriteconversations = array_shift($itemcollection);
+        $this->assertEquals('core_favourites', $favouriteconversations->get_name());
 
         $privacyfields = $messagestable->get_privacy_fields();
         $this->assertArrayHasKey('useridfrom', $privacyfields);
@@ -129,6 +132,8 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $this->assertArrayHasKey('timeread', $privacyfields);
         $this->assertArrayHasKey('timecreated', $privacyfields);
         $this->assertEquals('privacy:metadata:notifications', $notificationstable->get_summary());
+
+        $this->assertEquals('privacy:metadata:core_favourites', $favouriteconversations->get_summary());
     }
 
     /**
@@ -932,6 +937,7 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $n2 = $this->create_notification($user2->id, $user1->id, $now + (8 * DAYSECS));
 
         // Get conversation.
+        $privateconversationid = \core_message\api::get_conversation_between_users([$user1->id, $user2->id]);
         $component = 'core_group';
         $itemtype = 'groups';
         $conversation1 = \core_message\api::get_conversation_by_area(
@@ -940,6 +946,11 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
             $group1a->id,
             $coursecontext1->id
         );
+
+        // Make favourite this conversation.
+        \core_message\api::set_favourite_conversation($privateconversationid, $user1->id);
+        \core_message\api::set_favourite_conversation($conversation1->id, $user1->id);
+        \core_message\api::set_favourite_conversation($conversation1->id, $user2->id);
 
         // Send some conversation messages.
         $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 1', $now + 1);
@@ -980,6 +991,10 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         // There should be four: two notifications and two for the contact request.
         $this->assertEquals(4, $DB->count_records('notifications'));
 
+        // There should be three favourite conversations.
+        $this->assertEquals(3, $DB->count_records('favourite'));
+
+        // Delete data for user1 in the user context.
         $contextlist = new \core_privacy\local\request\approved_contextlist($user1, 'core_message',
             [$user1context->id]);
         provider::delete_data_for_user($contextlist);
@@ -1028,6 +1043,9 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $notification = reset($notifications);
         $this->assertEquals($user2->id, $notification->useridfrom);
         $this->assertEquals($user4->id, $notification->useridto);
+
+        // Only should exists the favourite conversation for the user2.
+        $this->assertEquals(1, $DB->count_records('favourite'));
     }
 
     /**
@@ -1292,6 +1310,7 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $n2 = $this->create_notification($user2->id, $user1->id, $now + (8 * DAYSECS));
 
         // Get conversation.
+        $privateconversationid = \core_message\api::get_conversation_between_users([$user1->id, $user2->id]);
         $component = 'core_group';
         $itemtype = 'groups';
         $conversation1 = \core_message\api::get_conversation_by_area(
@@ -1300,6 +1319,11 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
             $group1a->id,
             $coursecontext1->id
         );
+
+        // Make favourite this conversation.
+        \core_message\api::set_favourite_conversation($privateconversationid, $user1->id);
+        \core_message\api::set_favourite_conversation($conversation1->id, $user1->id);
+        \core_message\api::set_favourite_conversation($conversation1->id, $user2->id);
 
         // Send some conversation messages.
         $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 1', $now + 1);
@@ -1337,6 +1361,13 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         // There should be three conversations: one private, one for group1a and one for group2a.
         $this->assertEquals(3, $DB->count_records('message_conversations'));
 
+        // There should be four: two notifications and two for the contact request.
+        $this->assertEquals(4, $DB->count_records('notifications'));
+
+        // There should be three favourite conversations.
+        $this->assertEquals(3, $DB->count_records('favourite'));
+
+        // Delete data for user1 in the course1 context.
         $contextlist = new \core_privacy\local\request\approved_contextlist($user1, 'core_message',
             [$coursecontext1->id]);
         provider::delete_data_for_user($contextlist);
@@ -1349,6 +1380,8 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $this->assertEquals(2, $DB->count_records('message_users_blocked'));
         $this->assertEquals(3, $DB->count_records('message_conversations'));
         $this->assertEquals(4, $DB->count_records('notifications'));
+        // For now, all the favourite conversations are related to the system context, even the group ones.
+        $this->assertEquals(3, $DB->count_records('favourite'));
 
         // Only user1 messages in group1a conversation (from course1) have been removed.
         $messages = $DB->get_records('messages', null, 'smallmessage ASC');
