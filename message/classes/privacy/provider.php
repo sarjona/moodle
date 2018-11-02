@@ -143,6 +143,9 @@ class provider implements
         $items->add_user_preference('core_message_messageprovider_settings',
             'privacy:metadata:preference:core_message_settings');
 
+        // Add favourite conversations.
+        $items->link_subsystem('core_favourites', 'privacy:metadata:core_favourites');
+
         return $items;
     }
 
@@ -203,6 +206,9 @@ class provider implements
             'userid' => $userid,
         ];
         $contextlist->add_from_sql($sql, $params);
+
+        // For now, we don't need to call add_contexts_for_userid from the core_favourite because a user can only favourite
+        // their own conversations and they have been included previously.
 
         return $contextlist;
     }
@@ -290,6 +296,9 @@ class provider implements
                 break;
 
         }
+
+        // Delete all the favourite conversations.
+        \core_favourites\privacy\provider::delete_favourites_for_all_users($context, 'core_message', 'message_conversations');
     }
 
     /**
@@ -316,6 +325,9 @@ class provider implements
         if (!empty($contextids)) {
             static::delete_all_context_user_data($contextids, $userid);
         }
+
+        // Delete the favourite conversations.
+        \core_favourites\privacy\provider::delete_favourites_for_user($contextlist, 'core_message', 'message_conversations');
     }
 
     /**
