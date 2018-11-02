@@ -175,9 +175,34 @@ class provider implements
      * @return contextlist the list of contexts containing user info for the user.
      */
     public static function get_contexts_for_userid(int $userid) : contextlist {
-        // Messages are in the system context.
+        global $DB;
+
         $contextlist = new contextlist();
-        $contextlist->add_system_context();
+
+        $sql = "SELECT mc.id
+              FROM {message_conversations} mc
+              JOIN {message_conversation_members} mcm
+                ON (mcm.conversationid = mc.id AND mcm.userid = :userid)
+             WHERE mc.contextid IS NULL";
+        $params = [
+            'userid' => $userid,
+        ];
+        if ($DB->record_exists_sql($sql, $params)) {
+            // There is at least one message without context, so we need to add the system context.
+            $contextlist->add_system_context();
+        }
+
+        // Search for conversations for this user in other contexts.
+        $sql = "SELECT mc.contextid
+              FROM {message_conversations} mc
+              JOIN {message_conversation_members} mcm
+                ON (mcm.conversationid = mc.id AND mcm.userid = :userid)
+              JOIN {context} ctx
+                ON mc.contextid = ctx.id";
+        $params = [
+            'userid' => $userid,
+        ];
+        $contextlist->add_from_sql($sql, $params);
 
         return $contextlist;
     }
@@ -188,35 +213,49 @@ class provider implements
      * @param approved_contextlist $contextlist a list of contexts approved for export.
      */
     public static function export_user_data(approved_contextlist $contextlist) {
-        if (empty($contextlist->count())) {
-            return;
-        }
-
-        // Remove non-system contexts. If it ends up empty then early return.
-        $contexts = array_filter($contextlist->get_contexts(), function($context) {
-            return $context->contextlevel == CONTEXT_SYSTEM;
-        });
-
-        if (empty($contexts)) {
-            return;
-        }
+        // Get valid contexts.
+        $contexts = array_reduce($contextlist->get_contexts(), function($carry, $context) {
+            $level = $context->contextlevel;
+            if ($level == CONTEXT_USER && $userid == $context->instanceid) {
+                $carry[$level][] = $context->instanceid;
+            } else if ($level == CONTEXT_SYSTEM) {
+                $carry[$level] = SYSCONTEXTID;
+            } else {
+                // Any other context.
+                $carry['other'][] = $context->id;
+            }
+            return $carry;
+        }, [
+            CONTEXT_SYSTEM => null,
+            CONTEXT_USER => [],
+            'other' => [],
+        ]);
 
         $userid = $contextlist->get_user()->id;
+        $exportemptycontext = false;
+        if (!empty($contexts[CONTEXT_SYSTEM]) || !empty($contexts[CONTEXT_USER])) {
+            // Export all the messaging information for the given userid.
 
-        // Export the contacts.
-        self::export_user_data_contacts($userid);
+            // Export the contacts.
+            self::export_user_data_contacts($userid);
 
-        // Export the contact requests.
-        self::export_user_data_contact_requests($userid);
+            // Export the contact requests.
+            self::export_user_data_contact_requests($userid);
 
-        // Export the blocked users.
-        self::export_user_data_blocked_users($userid);
+            // Export the blocked users.
+            self::export_user_data_blocked_users($userid);
 
-        // Export the notifications.
-        self::export_user_data_notifications($userid);
+            // Export the notifications.
+            self::export_user_data_notifications($userid);
 
-        // Export the messages, with any related actions.
-        self::export_user_data_messages($userid);
+            // Export also the conversations without context (because they are related to the system/user context).
+            $exportemptycontext = true;
+        }
+
+        if ($exportemptycontext || !empty($contexts['other'])) {
+            // Export the conversations.
+            self::export_user_data_conversations($userid, $contexts['other'], $exportemptycontext);
+        }
     }
 
     /**
@@ -227,17 +266,30 @@ class provider implements
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
 
-        if (!$context instanceof \context_system) {
-            return;
-        }
+        switch ($context->contextlevel) {
+            case CONTEXT_SYSTEM:
+                // Delete all the messaging information.
+                $DB->delete_records('messages');
+                $DB->delete_records('message_user_actions');
+                $DB->delete_records('message_conversations');
+                $DB->delete_records('message_conversation_members');
+                $DB->delete_records('message_contacts');
+                $DB->delete_records('message_contact_requests');
+                $DB->delete_records('message_users_blocked');
+                $DB->delete_records('notifications');
+                break;
 
-        $DB->delete_records('messages');
-        $DB->delete_records('message_user_actions');
-        $DB->delete_records('message_conversation_members');
-        $DB->delete_records('message_contacts');
-        $DB->delete_records('message_contact_requests');
-        $DB->delete_records('message_users_blocked');
-        $DB->delete_records('notifications');
+            case CONTEXT_USER:
+                // Delete only the messaging information for this user.
+                static::delete_all_user_data($context->instanceid);
+                break;
+
+            default:
+                // Delete only conversations in this context.
+                static::delete_all_context_data([$context->id]);
+                break;
+
+        }
     }
 
     /**
@@ -246,22 +298,34 @@ class provider implements
      * @param approved_contextlist $contextlist a list of contexts approved for deletion.
      */
     public static function delete_data_for_user(approved_contextlist $contextlist) {
-        global $DB;
-
-        if (empty($contextlist->count())) {
-            return;
-        }
-
-        // Remove non-system contexts. If it ends up empty then early return.
-        $contexts = array_filter($contextlist->get_contexts(), function($context) {
-            return $context->contextlevel == CONTEXT_SYSTEM;
-        });
-
-        if (empty($contexts)) {
-            return;
-        }
-
         $userid = $contextlist->get_user()->id;
+
+        $contextids = [];
+        foreach ($contextlist->get_contexts() as $context) {
+            $level = $context->contextlevel;
+            $isusercontext = $level == CONTEXT_USER && $userid == $context->instanceid;
+            if ($level == CONTEXT_SYSTEM || $isusercontext) {
+                // User attempts to delete data in their own context.
+                static::delete_all_user_data($userid);
+            } else {
+                // Get the context ids.
+                $contextids[] = $context->id;
+            }
+        }
+
+        if (!empty($contextids)) {
+            static::delete_all_context_user_data($contextids, $userid);
+        }
+    }
+
+    /**
+     * Delete all the data for a user.
+     *
+     * @param int $userid The user ID.
+     * @return void
+     */
+    protected static function delete_all_user_data(int $userid) {
+        global $DB;
 
         $DB->delete_records('messages', ['useridfrom' => $userid]);
         $DB->delete_records('message_user_actions', ['userid' => $userid]);
@@ -270,6 +334,85 @@ class provider implements
         $DB->delete_records_select('message_contact_requests', 'userid = ? OR requesteduserid = ?', [$userid, $userid]);
         $DB->delete_records_select('message_users_blocked', 'userid = ? OR blockeduserid = ?', [$userid, $userid]);
         $DB->delete_records_select('notifications', 'useridfrom = ? OR useridto = ?', [$userid, $userid]);
+    }
+
+    /**
+     * Delete all the data in several contexts for all the users.
+     *
+     * @param  array $contextids The context identifiers where we have to delete messaging data.
+     * @return void
+     */
+    protected static function delete_all_context_data(array $contextids) {
+        global $DB;
+
+        if (empty($contextids)) {
+            return;
+        }
+
+        list($contextidsql, $contextidparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED);
+        $select = "component = 'core_group' AND itemtype = 'groups' AND contextid $contextidsql";
+        // Get and remove all the conversations and messages for the specified contexts.
+        if ($conversationids = $DB->get_records_select('message_conversations', $select, $contextidparams, '', 'id')) {
+            $conversationids = array_keys($conversationids);
+            $messageids = $DB->get_records_list('messages', 'conversationid', $conversationids);
+            $messageids = array_keys($messageids);
+
+            // Delete messages and user_actions.
+            $DB->delete_records_list('message_user_actions', 'messageid', $messageids);
+            $DB->delete_records_list('messages', 'id', $messageids);
+
+            // Delete members and conversations.
+            $DB->delete_records_list('message_conversation_members', 'conversationid', $conversationids);
+            $DB->delete_records_list('message_conversations', 'id', $conversationids);
+        }
+    }
+
+    /**
+     * Delete all the data in several contexts for the specified user.
+     *
+     * @param  array $contextids The context identifiers where we have to delete messaging data.
+     * @param  int $userid The user ID.
+     * @return void
+     */
+    protected static function delete_all_context_user_data(array $contextids, int $userid) {
+        global $DB;
+
+        if (empty($contextids)) {
+            return;
+        }
+
+        list($contextidsql, $contextidparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED);
+        $select = "mc.component = 'core_group' AND mc.itemtype = 'groups' AND mc.contextid $contextidsql";
+
+        // Get conversations in these contexts where the specified userid is a member of.
+        $sql = "SELECT DISTINCT mcm.conversationid as id
+                  FROM {message_conversation_members} mcm
+            INNER JOIN {message_conversations} mc
+                    ON mc.id = mcm.conversationid AND $select
+                 WHERE mcm.userid = :userid";
+        $conversationids = array_keys($DB->get_records_sql($sql, ['userid' => $userid] + $contextidparams));
+        list($conversationidsql, $conversationidparams) = $DB->get_in_or_equal($conversationids, SQL_PARAMS_NAMED);
+
+        // Get all the messages in the context conversations which the userid has sent.
+        $sql = "SELECT DISTINCT m.id
+                  FROM {messages} m
+            INNER JOIN {message_conversations} mc
+                    ON mc.id = m.conversationid AND mc.id $conversationidsql
+                 WHERE m.useridfrom = :userid";
+        $params = ['userid' => $userid] + $conversationidparams;
+        $messageids = array_keys($DB->get_records_sql($sql, $params));
+
+        if (!empty($messageids)) {
+            // Delete all the messages and user_actions for the userid.
+            $DB->delete_records_list('message_user_actions', 'messageid', $messageids);
+            $DB->delete_records_list('messages', 'id', $messageids);
+        }
+
+        // In that case, conversations can't be removed, because they could have more members and messages.
+        // So, remove only userid from the context conversations where he/she is member.
+        $sql = "conversationid $conversationidsql AND userid = :userid";
+        // Reuse the $params var because it contains the userid and the conversationids.
+        $DB->delete_records_select('message_conversation_members', $sql, $params);
     }
 
     /**
@@ -350,72 +493,148 @@ class provider implements
     /**
      * Export the messaging data.
      *
-     * @param int $userid
+     * @param int $userid The user identifier.
+     * @param array $contextids The context identifiers where we have to export messaging data.
+     * @param bool $exportemptycontext True if we should also export conversations without any context; false otherwise.
      */
-    protected static function export_user_data_messages(int $userid) {
+    protected static function export_user_data_conversations(int $userid, array $contextids, bool $exportemptycontext) {
         global $DB;
 
-        $context = \context_system::instance();
+        $contextidsql = '';
+        $contextidparams = [];
+        if (!empty($contextids)) {
+            // Get the context ids.
+            list($contextidsql, $contextidparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED);
+            $contextidsql = "mc.contextid $contextidsql";
+        }
 
-        $sql = "SELECT DISTINCT mcm.conversationid as id
+        if ($exportemptycontext) {
+            // Export also the conversations without any context.
+            $condition = "mc.contextid IS NULL";
+            if (!empty($contextidsql)) {
+                $contextidsql = "($contextidsql OR $condition)";
+            } else {
+                $contextidsql = $condition;
+            }
+        }
+
+        if (!empty($contextidsql)) {
+             $contextidsql = "AND $contextidsql";
+        }
+
+        $sql = "SELECT DISTINCT mcm.conversationid as id, mc.*
                   FROM {message_conversation_members} mcm
+            INNER JOIN {message_conversations} mc
+                    ON mc.id = mcm.conversationid $contextidsql
                  WHERE mcm.userid = :userid";
-        if ($conversations = $DB->get_records_sql($sql, ['userid' => $userid])) {
-            // Ok, let's get the other users in the conversations.
-            $conversationids = array_keys($conversations);
-            list($conversationidsql, $conversationparams) = $DB->get_in_or_equal($conversationids, SQL_PARAMS_NAMED);
+        if ($conversations = $DB->get_records_sql($sql, ['userid' => $userid] + $contextidparams)) {
+            // Ok, let's get the other users in the private conversations.
+            // We don't need this information for the group conversations, because they are organised by group name.
+            $privateconversationids = array_map(function($conversation) {
+                if ($conversation->type == \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL) {
+                    return $conversation->id;
+                }
+            }, $conversations);
+            list($conversationidsql, $conversationparams) = $DB->get_in_or_equal($privateconversationids, SQL_PARAMS_NAMED);
             $userfields = \user_picture::fields('u');
-            $userssql = "SELECT mcm.conversationid, $userfields
-                           FROM {user} u
-                     INNER JOIN {message_conversation_members} mcm
-                             ON u.id = mcm.userid
-                          WHERE mcm.conversationid $conversationidsql
-                            AND mcm.userid != :userid
-                            AND u.deleted = 0";
+            $userssql = "SELECT DISTINCT mcm.conversationid, $userfields
+                                    FROM {user} u
+                              INNER JOIN {message_conversation_members} mcm
+                                      ON u.id = mcm.userid
+                                   WHERE mcm.conversationid $conversationidsql
+                                     AND mcm.userid != :userid
+                                     AND u.deleted = 0";
             $otherusers = $DB->get_records_sql($userssql, $conversationparams + ['userid' => $userid]);
-            foreach ($conversations as $conversation) {
-                $otheruserfullname = get_string('unknownuser', 'core_message');
 
-                // It's possible the other user has requested to be deleted, so might not exist
-                // as a conversation member, or they have just been deleted.
+            // Export conversation messages.
+            foreach ($conversations as $conversation) {
+                self::export_user_data_conversation_messages($userid, $conversation, $otherusers);
+            }
+        }
+    }
+
+    /**
+     * Export conversation messages.
+     *
+     * @param int $userid The user identifier.
+     * @param \stdClass $conversation The conversation to export the messages.
+     * @param array $otherusers Array with all the users who have a private conversation with $userid.
+     */
+    protected static function export_user_data_conversation_messages(int $userid, \stdClass $conversation, array $otherusers) {
+        global $DB;
+
+        // Get all the messages for this conversation from start to finish.
+        $sql = "SELECT m.*, muadelete.timecreated as timedeleted, muaread.timecreated as timeread
+                  FROM {messages} m
+             LEFT JOIN {message_user_actions} muadelete
+                    ON m.id = muadelete.messageid AND muadelete.action = :deleteaction AND muadelete.userid = :deleteuserid
+             LEFT JOIN {message_user_actions} muaread
+                    ON m.id = muaread.messageid AND muaread.action = :readaction AND muaread.userid = :readuserid
+                 WHERE conversationid = :conversationid
+              ORDER BY m.timecreated ASC";
+        $messages = $DB->get_recordset_sql($sql, ['deleteaction' => \core_message\api::MESSAGE_ACTION_DELETED,
+            'readaction' => \core_message\api::MESSAGE_ACTION_READ, 'conversationid' => $conversation->id,
+            'deleteuserid' => $userid, 'readuserid' => $userid]);
+        $messagedata = [];
+        foreach ($messages as $message) {
+            $timeread = !is_null($message->timeread) ? transform::datetime($message->timeread) : '-';
+            $issender = $userid == $message->useridfrom;
+
+            $data = [
+                'issender' => transform::yesno($issender),
+                'message' => message_format_message_text($message),
+                'timecreated' => transform::datetime($message->timecreated),
+                'timeread' => $timeread
+            ];
+            if ($conversation->type == \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP && !$issender) {
+                // Only export sender for group conversations when is not the current user.
+                $data['sender'] = transform::user($message->useridfrom);
+            }
+
+            if (!is_null($message->timedeleted)) {
+                $data['timedeleted'] = transform::datetime($message->timedeleted);
+            }
+
+            $messagedata[] = (object) $data;
+        }
+        $messages->close();
+
+        if (!empty($messagedata)) {
+            // Get context and subcontext.
+            if (empty($conversation->contextid)) {
+                // Conversations without contextid are located in the system context.
+                $context = \context_system::instance();
+
+                // System conversations are stored in 'Messages | <Other user full name>'.
                 if (isset($otherusers[$conversation->id])) {
                     $otheruserfullname = fullname($otherusers[$conversation->id]);
+                } else {
+                    // It's possible the other user has requested to be deleted, so might not exist
+                    // as a conversation member, or they have just been deleted.
+                    $otheruserfullname = get_string('unknownuser', 'core_message');
                 }
 
-                // Get all the messages for this conversation from start to finish.
-                $sql = "SELECT m.*, muadelete.timecreated as timedeleted, muaread.timecreated as timeread
-                          FROM {messages} m
-                     LEFT JOIN {message_user_actions} muadelete
-                            ON m.id = muadelete.messageid AND muadelete.action = :deleteaction
-                     LEFT JOIN {message_user_actions} muaread
-                            ON m.id = muaread.messageid AND muaread.action = :readaction
-                         WHERE conversationid = :conversationid
-                      ORDER BY m.timecreated ASC";
-                $messages = $DB->get_recordset_sql($sql, ['deleteaction' => \core_message\api::MESSAGE_ACTION_DELETED,
-                    'readaction' => \core_message\api::MESSAGE_ACTION_READ, 'conversationid' => $conversation->id]);
-                $messagedata = [];
-                foreach ($messages as $message) {
-                    $timeread = !is_null($message->timeread) ? transform::datetime($message->timeread) : '-';
-                    $issender = $userid == $message->useridfrom;
+                $subcontext = [get_string('messages', 'core_message'), $otheruserfullname];
+            } else {
+                // This conversation has its own context.
+                $context = \context::instance_by_id($conversation->contextid);
 
-                    $data = [
-                        'sender' => transform::yesno($issender),
-                        'message' => message_format_message_text($message),
-                        'timecreated' => transform::datetime($message->timecreated),
-                        'timeread' => $timeread
-                    ];
-
-                    if (!is_null($message->timedeleted)) {
-                        $data['timedeleted'] = transform::datetime($message->timedeleted);
-                    }
-
-                    $messagedata[] = (object) $data;
+                // If the itemtype doesn't exist in the component string file, the raw itemtype will be returned.
+                if (get_string_manager()->string_exists($conversation->itemtype, $conversation->component)) {
+                    $itemtypestring = get_string($conversation->itemtype, $conversation->component);
+                } else {
+                    $itemtypestring = $conversation->itemtype;
                 }
-                $messages->close();
-
-                writer::with_context($context)->export_data([get_string('messages', 'core_message'), $otheruserfullname],
-                    (object) $messagedata);
+                // Context conversations are stored in 'Messages | <Conversation item type> | <Conversation name>'.
+                $subcontext = [
+                    get_string('messages', 'core_message'),
+                    $itemtypestring,
+                    $conversation->name
+                ];
             }
+
+            // Export the conversation messages.
+            writer::with_context($context)->export_data($subcontext, (object) $messagedata);
         }
     }
 

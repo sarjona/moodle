@@ -26,6 +26,7 @@ use core_privacy\local\metadata\collection;
 use core_message\privacy\provider;
 use \core_privacy\local\request\writer;
 use \core_privacy\local\request\transform;
+use \core_message\tests\helper as testhelper;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -194,14 +195,105 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
     /**
      * Test for provider::get_contexts_for_userid().
      */
-    public function test_get_contexts_for_userid() {
+    public function test_get_contexts_for_userid_without_messages() {
         $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user();
         $contextlist = provider::get_contexts_for_userid($user->id);
-        $this->assertCount(1, $contextlist);
-        $contextforuser = $contextlist->current();
-        $this->assertEquals(SYSCONTEXTID, $contextforuser->id);
+        $this->assertCount(0, $contextlist);
+    }
+
+    /**
+     * Test for provider::get_contexts_for_userid().
+     */
+    public function test_get_contexts_for_userid_with_messages() {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $now = time();
+
+        // Create users to test with.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $coursecontext1 = context_course::instance($course1->id);
+        $coursecontext2 = context_course::instance($course2->id);
+
+        // Enrol users to courses.
+        $this->getDataGenerator()->enrol_user($user1->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course2->id);
+
+        // Create groups (only one with enablemessaging = 1).
+        $group1a = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 1));
+        $group1b = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 0));
+        $group2a = $this->getDataGenerator()->create_group(array('courseid' => $course2->id, 'enablemessaging' => 1));
+
+        // Add users to groups.
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user1->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user2->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1b->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group2a->id, 'userid' => $user1->id));
+
+        // Get conversation.
+        $component = 'core_group';
+        $itemtype = 'groups';
+        $conversation1 = \core_message\api::get_conversation_by_area(
+            $component,
+            $itemtype,
+            $group1a->id,
+            $coursecontext1->id
+        );
+
+        // Send some private messages between user 1 and user 2.
+        $this->create_message($user1->id, $user2->id, $now);
+
+        // Send some messages to the conversation.
+        $now = time();
+        $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 1', $now + 1);
+        $m2 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 2', $now + 2);
+        $m3 = testhelper::send_fake_message_to_conversation($user2, $conversation1->id, 'Message 3', $now + 3);
+
+        $dbm1 = $DB->get_record('messages', ['id' => $m1]);
+        $dbm2 = $DB->get_record('messages', ['id' => $m2]);
+        $dbm3 = $DB->get_record('messages', ['id' => $m3]);
+
+        // Mark as read and delete some messages.
+        \core_message\api::mark_message_as_read($user2->id, $dbm1);
+        \core_message\api::delete_message($user1->id, $m2);
+
+        // Check user1 has system context (for the private message) and 2 course contexts.
+        $contextlist = provider::get_contexts_for_userid($user1->id);
+        $contexts = $contextlist->get_contextids();
+        $this->assertCount(3, $contexts);
+        $this->assertTrue(in_array(SYSCONTEXTID, $contexts));
+        $this->assertTrue(in_array($coursecontext1->id, $contexts));
+        $this->assertTrue(in_array($coursecontext2->id, $contexts));
+
+        // Check user2 has system context (for the private message) and 1 course context.
+        $contextlist = provider::get_contexts_for_userid($user2->id);
+        $contexts = $contextlist->get_contextids();
+        $this->assertCount(2, $contexts);
+        $this->assertTrue(in_array(SYSCONTEXTID, $contexts));
+        $this->assertTrue(in_array($coursecontext1->id, $contexts));
+
+        // Check user3 has only 1 course context.
+        $contextlist = provider::get_contexts_for_userid($user3->id);
+        $contexts = $contextlist->get_contextids();
+        $this->assertCount(1, $contexts);
+        $this->assertTrue(in_array($coursecontext1->id, $contexts));
+
+        // Check user4 hasn't any context.
+        $contextlist = provider::get_contexts_for_userid($user4->id);
+        $contexts = $contextlist->get_contextids();
+        $this->assertCount(0, $contexts);
     }
 
     /**
@@ -313,7 +405,7 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
     /**
      * Test for provider::export_user_data().
      */
-    public function test_export_for_context_with_messages() {
+    public function test_export_for_context_with_private_messages() {
         global $DB;
 
         $this->resetAfterTest();
@@ -363,19 +455,19 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $m2 = array_shift($messages);
         $m3 = array_shift($messages);
 
-        $this->assertEquals(get_string('yes'), $m1->sender);
+        $this->assertEquals(get_string('yes'), $m1->issender);
         $this->assertEquals(message_format_message_text($dbm1), $m1->message);
         $this->assertEquals(transform::datetime($now - (9 * DAYSECS)), $m1->timecreated);
-        $this->assertNotEquals('-', $m1->timeread);
+        $this->assertEquals('-', $m1->timeread);
         $this->assertArrayNotHasKey('timedeleted', (array) $m1);
 
-        $this->assertEquals(get_string('no'), $m2->sender);
+        $this->assertEquals(get_string('no'), $m2->issender);
         $this->assertEquals(message_format_message_text($dbm2), $m2->message);
         $this->assertEquals(transform::datetime($now - (8 * DAYSECS)), $m2->timecreated);
         $this->assertEquals('-', $m2->timeread);
         $this->assertArrayHasKey('timedeleted', (array) $m2);
 
-        $this->assertEquals(get_string('yes'), $m3->sender);
+        $this->assertEquals(get_string('yes'), $m3->issender);
         $this->assertEquals(message_format_message_text($dbm3), $m3->message);
         $this->assertEquals(transform::datetime($now - (7 * DAYSECS)), $m3->timecreated);
         $this->assertEquals('-', $m3->timeread);
@@ -393,22 +485,192 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $m5 = array_shift($messages);
         $m6 = array_shift($messages);
 
-        $this->assertEquals(get_string('no'), $m4->sender);
+        $this->assertEquals(get_string('no'), $m4->issender);
         $this->assertEquals(message_format_message_text($dbm4), $m4->message);
         $this->assertEquals(transform::datetime($now - (6 * DAYSECS)), $m4->timecreated);
         $this->assertNotEquals('-', $m4->timeread);
         $this->assertArrayNotHasKey('timedeleted', (array) $m4);
 
-        $this->assertEquals(get_string('yes'), $m5->sender);
+        $this->assertEquals(get_string('yes'), $m5->issender);
         $this->assertEquals(message_format_message_text($dbm5), $m5->message);
         $this->assertEquals(transform::datetime($now - (5 * DAYSECS)), $m5->timecreated);
         $this->assertEquals('-', $m5->timeread);
         $this->assertArrayHasKey('timedeleted', (array) $m5);
 
-        $this->assertEquals(get_string('no'), $m6->sender);
+        $this->assertEquals(get_string('no'), $m6->issender);
         $this->assertEquals(message_format_message_text($dbm6), $m6->message);
         $this->assertEquals(transform::datetime($now - (4 * DAYSECS)), $m6->timecreated);
         $this->assertEquals('-', $m6->timeread);
+    }
+
+    /**
+     * Test for provider::export_user_data().
+     */
+    public function test_export_for_context_with_group_messages() {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $now = time();
+        $systemcontext = \context_system::instance();
+
+        // Create users to test with.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $coursecontext1 = context_course::instance($course1->id);
+        $coursecontext2 = context_course::instance($course2->id);
+
+        // Enrol users to courses.
+        $this->getDataGenerator()->enrol_user($user1->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course2->id);
+
+        // Create groups (only one with enablemessaging = 1).
+        $group1a = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 1));
+
+        // Add users to group1a.
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user1->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user2->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user3->id));
+
+        // Get conversation.
+        $component = 'core_group';
+        $itemtype = 'groups';
+        $conversation = \core_message\api::get_conversation_by_area(
+            $component,
+            $itemtype,
+            $group1a->id,
+            $coursecontext1->id
+        );
+
+        // Send some private messages between user 1 and user 2.
+        $this->create_message($user1->id, $user2->id, $now);
+
+        // Send some messages to the conversation.
+        $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation->id, 'Message 1', $now + 1);
+        $m2 = testhelper::send_fake_message_to_conversation($user1, $conversation->id, 'Message 2', $now + 2);
+        $m3 = testhelper::send_fake_message_to_conversation($user2, $conversation->id, 'Message 3', $now + 3);
+
+        $dbm1 = $DB->get_record('messages', ['id' => $m1]);
+        $dbm2 = $DB->get_record('messages', ['id' => $m2]);
+        $dbm3 = $DB->get_record('messages', ['id' => $m3]);
+
+        // Mark as read and delete some messages.
+        \core_message\api::mark_message_as_read($user2->id, $dbm1);
+        \core_message\api::delete_message($user1->id, $m2);
+
+        // Confirm the user1 has no messages data in course2.
+        $this->export_context_data_for_user($user1->id, $coursecontext2, 'core_message');
+
+        // Check that system context hasn't been exported.
+        $writer = writer::with_context($systemcontext);
+        $this->assertFalse($writer->has_any_data());
+
+        // Check that course1 context hasn't been exported.
+        $writer = writer::with_context($coursecontext1);
+        $this->assertFalse($writer->has_any_data());
+
+        $writer = writer::with_context($coursecontext2);
+        $this->assertFalse($writer->has_any_data());
+
+        // Confirm the messages for user1 in course1 are correct.
+        $this->export_context_data_for_user($user1->id, $coursecontext1, 'core_message');
+        $writer = writer::with_context($coursecontext1);
+
+        $this->assertTrue($writer->has_any_data());
+
+        $messages = (array) $writer->get_data([
+            get_string('messages', 'core_message'),
+            get_string($itemtype, $component),
+            $conversation->name
+        ]);
+        $this->assertCount(3, $messages);
+
+        usort($messages, ['static', 'sort_messages']);
+        $m1 = array_shift($messages);
+        $m2 = array_shift($messages);
+        $m3 = array_shift($messages);
+
+        $this->assertEquals(get_string('yes'), $m1->issender);
+        $this->assertEquals(message_format_message_text($dbm1), $m1->message);
+        $this->assertEquals(transform::datetime($now + 1), $m1->timecreated);
+        $this->assertEquals('-', $m1->timeread);
+        $this->assertArrayNotHasKey('timedeleted', (array) $m1);
+
+        $this->assertEquals(get_string('yes'), $m2->issender);
+        $this->assertEquals(message_format_message_text($dbm2), $m2->message);
+        $this->assertEquals(transform::datetime($now + 2), $m2->timecreated);
+        $this->assertEquals('-', $m2->timeread);
+        $this->assertArrayHasKey('timedeleted', (array) $m2);
+
+        $this->assertEquals(get_string('no'), $m3->issender);
+        $this->assertEquals(message_format_message_text($dbm3), $m3->message);
+        $this->assertEquals(transform::datetime($now + 3), $m3->timecreated);
+        $this->assertEquals('-', $m3->timeread);
+
+        // Confirm the messages for user1 in all the contexts are correct.
+        $this->export_all_data_for_user($user1->id, 'core_message');
+
+        // Check course1 context for user1.
+        $writer = writer::with_context($coursecontext1);
+        $this->assertTrue($writer->has_any_data());
+
+        $messages = (array) $writer->get_data([
+            get_string('messages', 'core_message'),
+            get_string($itemtype, $component),
+            $conversation->name
+        ]);
+        $this->assertCount(3, $messages);
+
+        // Check system context for user1.
+        $writer = writer::with_context($systemcontext);
+        $this->assertTrue($writer->has_any_data());
+
+        $messages = (array) $writer->get_data([
+            get_string('messages', 'core_message'),
+            fullname($user2)
+        ]);
+        $this->assertCount(1, $messages);
+
+        // Confirm the messages for user2 in course1 are correct.
+        $this->export_context_data_for_user($user2->id, $coursecontext1, 'core_message');
+        $writer = writer::with_context($coursecontext1);
+
+        $this->assertTrue($writer->has_any_data());
+
+        $messages = (array) $writer->get_data([
+            get_string('messages', 'core_message'),
+            get_string($itemtype, $component),
+            $conversation->name
+        ]);
+        $this->assertCount(3, $messages);
+
+        usort($messages, ['static', 'sort_messages']);
+        $m1 = array_shift($messages);
+        $m2 = array_shift($messages);
+        $m3 = array_shift($messages);
+
+        $this->assertEquals(get_string('no'), $m1->issender);
+        $this->assertEquals(message_format_message_text($dbm1), $m1->message);
+        $this->assertEquals(transform::datetime($now + 1), $m1->timecreated);
+        $this->assertNotEquals('-', $m1->timeread);
+        $this->assertArrayNotHasKey('timedeleted', (array) $m1);
+
+        $this->assertEquals(get_string('no'), $m2->issender);
+        $this->assertEquals(message_format_message_text($dbm2), $m2->message);
+        $this->assertEquals(transform::datetime($now + 2), $m2->timecreated);
+        $this->assertEquals('-', $m2->timeread);
+        $this->assertArrayNotHasKey('timedeleted', (array) $m2);
+
+        $this->assertEquals(get_string('yes'), $m3->issender);
+        $this->assertEquals(message_format_message_text($dbm3), $m3->message);
+        $this->assertEquals(transform::datetime($now + 3), $m3->timecreated);
+        $this->assertEquals('-', $m3->timeread);
     }
 
     /**
@@ -525,12 +787,155 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
     }
 
     /**
-     * Test for provider::delete_data_for_user().
+     * Test for provider::delete_data_for_all_users_in_context().
      */
-    public function test_delete_data_for_user() {
+    public function test_delete_data_for_all_users_in_context_with_group_conversations() {
         global $DB;
 
         $this->resetAfterTest();
+        $this->setAdminUser();
+        $now = time();
+
+        // Create users to test with.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $coursecontext1 = context_course::instance($course1->id);
+        $coursecontext2 = context_course::instance($course2->id);
+
+        // Enrol users to courses.
+        $this->getDataGenerator()->enrol_user($user1->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course2->id);
+
+        // Create groups (only one with enablemessaging = 1).
+        $group1a = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 1));
+        $group1b = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 0));
+        $group2a = $this->getDataGenerator()->create_group(array('courseid' => $course2->id, 'enablemessaging' => 1));
+
+        // Add users to groups.
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user1->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user2->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1b->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group2a->id, 'userid' => $user1->id));
+
+        // Create contacts.
+        \core_message\api::add_contact($user1->id, $user2->id);
+
+        // Create contact requests.
+        \core_message\api::create_contact_request($user1->id, $user3->id);
+
+        // Block a user.
+        \core_message\api::block_user($user1->id, $user3->id);
+
+        // Create private messages.
+        $privatemsg1 = $this->create_message($user1->id, $user2->id, $now + (9 * DAYSECS), true);
+        $privatemsg2 = $this->create_message($user2->id, $user1->id, $now + (8 * DAYSECS));
+
+        // Get conversation.
+        $component = 'core_group';
+        $itemtype = 'groups';
+        $conversation1 = \core_message\api::get_conversation_by_area(
+            $component,
+            $itemtype,
+            $group1a->id,
+            $coursecontext1->id
+        );
+
+        // Send some conversation messages.
+        $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 1', $now + 1);
+        $m2 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 2', $now + 2);
+        $m3 = testhelper::send_fake_message_to_conversation($user2, $conversation1->id, 'Message 3', $now + 3);
+
+        $dbm1 = $DB->get_record('messages', ['id' => $m1]);
+        $dbm2 = $DB->get_record('messages', ['id' => $m2]);
+        $dbm3 = $DB->get_record('messages', ['id' => $m3]);
+
+        // Mark some message as read.
+        \core_message\api::mark_message_as_read($user2->id, $dbm1);
+
+        // Create notifications.
+        $n1 = $this->create_notification($user1->id, $user2->id, $now + (9 * DAYSECS));
+        $n2 = $this->create_notification($user2->id, $user1->id, $now + (8 * DAYSECS));
+
+        // Delete one of the messages.
+        \core_message\api::delete_message($user1->id, $m2);
+
+        // There should be 1 contact.
+        $this->assertEquals(1, $DB->count_records('message_contacts'));
+
+        // There should be 1 contact request.
+        $this->assertEquals(1, $DB->count_records('message_contact_requests'));
+
+        // There should be 1 blocked user.
+        $this->assertEquals(1, $DB->count_records('message_users_blocked'));
+
+        // There should be five messages - 2 private and 3 group.
+        $this->assertEquals(5, $DB->count_records('messages'));
+
+        // There should be three user actions - two for reading the message, one for deleting.
+        $this->assertEquals(3, $DB->count_records('message_user_actions'));
+
+        // There should be six members - two for the private conversation, three for the group1a and one for the group2a.
+        $this->assertEquals(6, $DB->count_records('message_conversation_members'));
+
+        // There should be three conversations - one private, one for group1a and one for group2a.
+        $this->assertEquals(3, $DB->count_records('message_conversations'));
+
+        // There should be two notifications + one for the contact request.
+        $this->assertEquals(3, $DB->count_records('notifications'));
+
+        // Delete messaging data for course2.
+        provider::delete_data_for_all_users_in_context($coursecontext2);
+
+        // Confirm all these tables haven't changed (because they are related to system context).
+        $this->assertEquals(1, $DB->count_records('message_contacts'));
+        $this->assertEquals(1, $DB->count_records('message_contact_requests'));
+        $this->assertEquals(1, $DB->count_records('message_users_blocked'));
+        $this->assertEquals(3, $DB->count_records('notifications'));
+
+        // There should be the same messages and user_actions (because non of them were from the course2).
+        $this->assertEquals(5, $DB->count_records('messages'));
+        $this->assertEquals(3, $DB->count_records('message_user_actions'));
+
+        // There should be two conversations - one private and one for group1a (group2a has been removed).
+        $this->assertEquals(2, $DB->count_records('message_conversations'));
+        // There should be five members - two for the private conversation and three for the group1a.
+        $this->assertEquals(5, $DB->count_records('message_conversation_members'));
+
+        // Delete messaging data for course1.
+        provider::delete_data_for_all_users_in_context($coursecontext1);
+
+        // Confirm all these tables haven't changed (because they are related to system context).
+        $this->assertEquals(1, $DB->count_records('message_contacts'));
+        $this->assertEquals(1, $DB->count_records('message_contact_requests'));
+        $this->assertEquals(1, $DB->count_records('message_users_blocked'));
+        $this->assertEquals(3, $DB->count_records('notifications'));
+
+        // There should be only two private messages.
+        $this->assertEquals(2, $DB->count_records('messages'));
+        // There should be only one user action (the one for the notification).
+        $this->assertEquals(1, $DB->count_records('message_user_actions'));
+        // There should be only one conversation, the private one (group1a has been removed).
+        $this->assertEquals(1, $DB->count_records('message_conversations'));
+        // There should be two members (from the private conversation).
+        $this->assertEquals(2, $DB->count_records('message_conversation_members'));
+    }
+
+    /**
+     * Test for provider::delete_data_for_user().
+     */
+    public function test_delete_data_for_user_in_systemcontext() {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $now = time();
 
         // Create users to test with.
         $user1 = $this->getDataGenerator()->create_user();
@@ -540,8 +945,23 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $user5 = $this->getDataGenerator()->create_user();
         $user6 = $this->getDataGenerator()->create_user();
 
-        $now = time();
-        $timeread = $now - DAYSECS;
+        $course1 = $this->getDataGenerator()->create_course();
+        $coursecontext1 = context_course::instance($course1->id);
+
+        // Enrol users to courses.
+        $this->getDataGenerator()->enrol_user($user1->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course1->id);
+
+        // Create groups (only one with enablemessaging = 1).
+        $group1a = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 1));
+        $group1b = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 0));
+
+        // Add users to groups.
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user1->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user2->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1b->id, 'userid' => $user3->id));
 
         // Create contacts.
         \core_message\api::add_contact($user1->id, $user2->id);
@@ -555,38 +975,62 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         \core_message\api::block_user($user1->id, $user5->id);
         \core_message\api::block_user($user2->id, $user6->id);
 
-        // Create messages.
-        $m1 = $this->create_message($user1->id, $user2->id, $now + (9 * DAYSECS), $timeread);
-        $m2 = $this->create_message($user2->id, $user1->id, $now + (8 * DAYSECS));
+        // Create private messages.
+        $privatemsgid1 = $this->create_message($user1->id, $user2->id, $now + (9 * DAYSECS));
+        $privatemsgid2 = $this->create_message($user2->id, $user1->id, $now + (8 * DAYSECS), true);
 
         // Create notifications.
-        $n1 = $this->create_notification($user1->id, $user2->id, $now + (9 * DAYSECS), $timeread);
+        $n1 = $this->create_notification($user1->id, $user2->id, $now + (9 * DAYSECS));
         $n2 = $this->create_notification($user2->id, $user1->id, $now + (8 * DAYSECS));
-        $n2 = $this->create_notification($user2->id, $user3->id, $now + (8 * DAYSECS));
+
+        // Get conversation.
+        $component = 'core_group';
+        $itemtype = 'groups';
+        $conversation1 = \core_message\api::get_conversation_by_area(
+            $component,
+            $itemtype,
+            $group1a->id,
+            $coursecontext1->id
+        );
+
+        // Send some conversation messages.
+        $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 1', $now + 1);
+        $m2 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 2', $now + 2);
+        $m3 = testhelper::send_fake_message_to_conversation($user2, $conversation1->id, 'Message 3', $now + 3);
+
+        $dbm1 = $DB->get_record('messages', ['id' => $m1]);
+        $dbm2 = $DB->get_record('messages', ['id' => $m2]);
+        $dbm3 = $DB->get_record('messages', ['id' => $m3]);
+
+        // Mark some message as read.
+        \core_message\api::mark_message_as_read($user2->id, $dbm1);
 
         // Delete one of the messages.
         \core_message\api::delete_message($user1->id, $m2);
 
-        // There should be 2 contacts.
+        // There should be two contacts.
         $this->assertEquals(2, $DB->count_records('message_contacts'));
 
-        // There should be 1 contact request.
+        // There should be two contact requests.
         $this->assertEquals(2, $DB->count_records('message_contact_requests'));
 
-        // There should be 1 blocked user.
+        // There should be two blocked users.
         $this->assertEquals(2, $DB->count_records('message_users_blocked'));
 
-        // There should be two messages.
-        $this->assertEquals(2, $DB->count_records('messages'));
+        // There should be five messages: two private and three for group1a.
+        $this->assertEquals(5, $DB->count_records('messages'));
 
-        // There should be two user actions - one for reading the message, one for deleting.
-        $this->assertEquals(2, $DB->count_records('message_user_actions'));
+        // There should be three user actions: two for reading the message and one for deleting.
+        $this->assertEquals(3, $DB->count_records('message_user_actions'));
 
-        // There should be two conversation members.
-        $this->assertEquals(2, $DB->count_records('message_conversation_members'));
+        // There should be five members: two for the private conversation and three for the group1a.
+        $this->assertEquals(5, $DB->count_records('message_conversation_members'));
 
-        // There should be three notifications + two for the contact requests.
-        $this->assertEquals(5, $DB->count_records('notifications'));
+        // There should be two conversations: one private and one for group1a.
+        $this->assertEquals(2, $DB->count_records('message_conversations'));
+
+        // There should be four: two notifications and two for the contact request.
+        $this->assertEquals(4, $DB->count_records('notifications'));
 
         $systemcontext = \context_system::instance();
         $contextlist = new \core_privacy\local\request\approved_contextlist($user1, 'core_message',
@@ -597,7 +1041,7 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $contacts = $DB->get_records('message_contacts');
         $contactrequests = $DB->get_records('message_contact_requests');
         $blockedusers = $DB->get_records('message_users_blocked');
-        $messages = $DB->get_records('messages');
+        $messages = $DB->get_records('messages', null, 'smallmessage ASC');
         $muas = $DB->get_records('message_user_actions');
         $mcms = $DB->get_records('message_conversation_members');
         $notifications = $DB->get_records('notifications');
@@ -617,30 +1061,330 @@ class core_message_privacy_provider_testcase extends \core_privacy\tests\provide
         $this->assertEquals($user2->id, $blockeduser->userid);
         $this->assertEquals($user6->id, $blockeduser->blockeduserid);
 
-        $this->assertCount(1, $messages);
-        $message = reset($messages);
-        $this->assertEquals($m2, $message->id);
+        $this->assertCount(2, $messages);
+        $m1 = array_shift($messages);
+        $m2 = array_shift($messages);
+        $this->assertEquals($privatemsgid2, $m1->id);
+        $this->assertEquals($dbm3->id, $m2->id);
 
         $this->assertCount(1, $muas);
         $mua = reset($muas);
         $this->assertEquals($user2->id, $mua->userid);
-        $this->assertEquals($m1, $mua->messageid);
+        $this->assertEquals($dbm1->id, $mua->messageid);
         $this->assertEquals(\core_message\api::MESSAGE_ACTION_READ, $mua->action);
 
-        $this->assertCount(1, $mcms);
-        $mcm = reset($mcms);
-        $this->assertEquals($user2->id, $mcm->userid);
+        $this->assertCount(3, $mcms);
 
-        $this->assertCount(2, $notifications);
-        ksort($notifications);
+        $this->assertCount(1, $notifications);
 
-        $notification = array_shift($notifications);
+        // The contact request.
+        $notification = reset($notifications);
         $this->assertEquals($user2->id, $notification->useridfrom);
         $this->assertEquals($user4->id, $notification->useridto);
+    }
 
-        $notification = array_shift($notifications);
+    /**
+     * Test for provider::delete_data_for_user().
+     */
+    public function test_delete_data_for_user_in_usercontext() {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $now = time();
+
+        // Create users to test with.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user();
+        $user5 = $this->getDataGenerator()->create_user();
+        $user6 = $this->getDataGenerator()->create_user();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $coursecontext1 = context_course::instance($course1->id);
+
+        // Enrol users to courses.
+        $this->getDataGenerator()->enrol_user($user1->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course1->id);
+
+        // Create groups (only one with enablemessaging = 1).
+        $group1a = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 1));
+        $group1b = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 0));
+
+        // Add users to groups.
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user1->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user2->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1b->id, 'userid' => $user3->id));
+
+        // Create contacts.
+        \core_message\api::add_contact($user1->id, $user2->id);
+        \core_message\api::add_contact($user2->id, $user3->id);
+
+        // Create contact requests.
+        \core_message\api::create_contact_request($user1->id, $user3->id);
+        \core_message\api::create_contact_request($user2->id, $user4->id);
+
+        // Block users.
+        \core_message\api::block_user($user1->id, $user5->id);
+        \core_message\api::block_user($user2->id, $user6->id);
+
+        // Create private messages.
+        $privatemsgid1 = $this->create_message($user1->id, $user2->id, $now + (9 * DAYSECS));
+        $privatemsgid2 = $this->create_message($user2->id, $user1->id, $now + (8 * DAYSECS), true);
+
+        // Create notifications.
+        $n1 = $this->create_notification($user1->id, $user2->id, $now + (9 * DAYSECS));
+        $n2 = $this->create_notification($user2->id, $user1->id, $now + (8 * DAYSECS));
+
+        // Get conversation.
+        $component = 'core_group';
+        $itemtype = 'groups';
+        $conversation1 = \core_message\api::get_conversation_by_area(
+            $component,
+            $itemtype,
+            $group1a->id,
+            $coursecontext1->id
+        );
+
+        // Send some conversation messages.
+        $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 1', $now + 1);
+        $m2 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 2', $now + 2);
+        $m3 = testhelper::send_fake_message_to_conversation($user2, $conversation1->id, 'Message 3', $now + 3);
+
+        $dbm1 = $DB->get_record('messages', ['id' => $m1]);
+        $dbm2 = $DB->get_record('messages', ['id' => $m2]);
+        $dbm3 = $DB->get_record('messages', ['id' => $m3]);
+
+        // Mark some message as read.
+        \core_message\api::mark_message_as_read($user2->id, $dbm1);
+
+        // Delete one of the messages.
+        \core_message\api::delete_message($user1->id, $m2);
+
+        // There should be two contacts.
+        $this->assertEquals(2, $DB->count_records('message_contacts'));
+
+        // There should be two contact requests.
+        $this->assertEquals(2, $DB->count_records('message_contact_requests'));
+
+        // There should be two blocked users.
+        $this->assertEquals(2, $DB->count_records('message_users_blocked'));
+
+        // There should be five messages: two private and three for group1a.
+        $this->assertEquals(5, $DB->count_records('messages'));
+
+        // There should be three user actions: two for reading the message and one for deleting.
+        $this->assertEquals(3, $DB->count_records('message_user_actions'));
+
+        // There should be five members: two for the private conversation and three for the group1a.
+        $this->assertEquals(5, $DB->count_records('message_conversation_members'));
+
+        // There should be two conversations: one private and one for group1a.
+        $this->assertEquals(2, $DB->count_records('message_conversations'));
+
+        // There should be four: two notifications and two for the contact request.
+        $this->assertEquals(4, $DB->count_records('notifications'));
+
+        $usercontext = \context_user::instance($user1->id);
+        $contextlist = new \core_privacy\local\request\approved_contextlist($user1, 'core_message',
+            [$usercontext->id]);
+        provider::delete_data_for_user($contextlist);
+
+        // Confirm the user 2 data still exists.
+        $contacts = $DB->get_records('message_contacts');
+        $contactrequests = $DB->get_records('message_contact_requests');
+        $blockedusers = $DB->get_records('message_users_blocked');
+        $messages = $DB->get_records('messages', null, 'smallmessage ASC');
+        $muas = $DB->get_records('message_user_actions');
+        $mcms = $DB->get_records('message_conversation_members');
+        $notifications = $DB->get_records('notifications');
+
+        $this->assertCount(1, $contacts);
+        $contact = reset($contacts);
+        $this->assertEquals($user2->id, $contact->userid);
+        $this->assertEquals($user3->id, $contact->contactid);
+
+        $this->assertCount(1, $contactrequests);
+        $contactrequest = reset($contactrequests);
+        $this->assertEquals($user2->id, $contactrequest->userid);
+        $this->assertEquals($user4->id, $contactrequest->requesteduserid);
+
+        $this->assertCount(1, $blockedusers);
+        $blockeduser = reset($blockedusers);
+        $this->assertEquals($user2->id, $blockeduser->userid);
+        $this->assertEquals($user6->id, $blockeduser->blockeduserid);
+
+        $this->assertCount(2, $messages);
+        $m1 = array_shift($messages);
+        $m2 = array_shift($messages);
+        $this->assertEquals($privatemsgid2, $m1->id);
+        $this->assertEquals($dbm3->id, $m2->id);
+
+        $this->assertCount(1, $muas);
+        $mua = reset($muas);
+        $this->assertEquals($user2->id, $mua->userid);
+        $this->assertEquals($dbm1->id, $mua->messageid);
+        $this->assertEquals(\core_message\api::MESSAGE_ACTION_READ, $mua->action);
+
+        $this->assertCount(3, $mcms);
+
+        $this->assertCount(1, $notifications);
+
+        // The contact request.
+        $notification = reset($notifications);
         $this->assertEquals($user2->id, $notification->useridfrom);
-        $this->assertEquals($user3->id, $notification->useridto);
+        $this->assertEquals($user4->id, $notification->useridto);
+    }
+
+    /**
+     * Test for provider::delete_data_for_user().
+     */
+    public function test_delete_data_for_user_in_coursecontext() {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $now = time();
+
+        // Create users to test with.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user();
+        $user5 = $this->getDataGenerator()->create_user();
+        $user6 = $this->getDataGenerator()->create_user();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $coursecontext1 = context_course::instance($course1->id);
+        $coursecontext2 = context_course::instance($course2->id);
+
+        // Enrol users to courses.
+        $this->getDataGenerator()->enrol_user($user1->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course2->id);
+
+        // Create groups (only one with enablemessaging = 1).
+        $group1a = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 1));
+        $group1b = $this->getDataGenerator()->create_group(array('courseid' => $course1->id, 'enablemessaging' => 0));
+        $group2a = $this->getDataGenerator()->create_group(array('courseid' => $course2->id, 'enablemessaging' => 1));
+
+        // Add users to groups.
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user1->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user2->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1a->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group1b->id, 'userid' => $user3->id));
+        $this->getDataGenerator()->create_group_member(array('groupid' => $group2a->id, 'userid' => $user1->id));
+
+        // Create contacts.
+        \core_message\api::add_contact($user1->id, $user2->id);
+        \core_message\api::add_contact($user2->id, $user3->id);
+
+        // Create contact requests.
+        \core_message\api::create_contact_request($user1->id, $user3->id);
+        \core_message\api::create_contact_request($user2->id, $user4->id);
+
+        // Block users.
+        \core_message\api::block_user($user1->id, $user5->id);
+        \core_message\api::block_user($user2->id, $user6->id);
+
+        // Create private messages.
+        $privatemsgid1 = $this->create_message($user1->id, $user2->id, $now + (9 * DAYSECS));
+        $privatemsgid2 = $this->create_message($user2->id, $user1->id, $now + (8 * DAYSECS), true);
+
+        // Create notifications.
+        $n1 = $this->create_notification($user1->id, $user2->id, $now + (9 * DAYSECS));
+        $n2 = $this->create_notification($user2->id, $user1->id, $now + (8 * DAYSECS));
+
+        // Get conversation.
+        $component = 'core_group';
+        $itemtype = 'groups';
+        $conversation1 = \core_message\api::get_conversation_by_area(
+            $component,
+            $itemtype,
+            $group1a->id,
+            $coursecontext1->id
+        );
+
+        // Send some conversation messages.
+        $m1 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 1', $now + 1);
+        $m2 = testhelper::send_fake_message_to_conversation($user1, $conversation1->id, 'Message 2', $now + 2);
+        $m3 = testhelper::send_fake_message_to_conversation($user2, $conversation1->id, 'Message 3', $now + 3);
+
+        $dbm1 = $DB->get_record('messages', ['id' => $m1]);
+        $dbm2 = $DB->get_record('messages', ['id' => $m2]);
+        $dbm3 = $DB->get_record('messages', ['id' => $m3]);
+
+        // Mark some message as read.
+        \core_message\api::mark_message_as_read($user2->id, $dbm1);
+
+        // Delete one of the messages.
+        \core_message\api::delete_message($user1->id, $m2);
+
+        // There should be two contacts.
+        $this->assertEquals(2, $DB->count_records('message_contacts'));
+
+        // There should be two contact requests.
+        $this->assertEquals(2, $DB->count_records('message_contact_requests'));
+
+        // There should be two blocked users.
+        $this->assertEquals(2, $DB->count_records('message_users_blocked'));
+
+        // There should be five messages: two private and three for group1a.
+        $this->assertEquals(5, $DB->count_records('messages'));
+
+        // There should be three user actions: two for reading the message and one for deleting.
+        $this->assertEquals(3, $DB->count_records('message_user_actions'));
+
+        // There should be six members: two for the private conversation, three for group1a and one for group2a.
+        $this->assertEquals(6, $DB->count_records('message_conversation_members'));
+
+        // There should be three conversations: one private, one for group1a and one for group2a.
+        $this->assertEquals(3, $DB->count_records('message_conversations'));
+
+        // There should be four: two notifications and two for the contact request.
+        $this->assertEquals(4, $DB->count_records('notifications'));
+
+        $contextlist = new \core_privacy\local\request\approved_contextlist($user1, 'core_message',
+            [$coursecontext1->id]);
+        provider::delete_data_for_user($contextlist);
+
+        // Confirm the content of these tables should be the same.
+        $this->assertEquals(2, $DB->count_records('message_contacts'));
+        $this->assertEquals(2, $DB->count_records('message_contact_requests'));
+        $this->assertEquals(2, $DB->count_records('message_users_blocked'));
+        $this->assertEquals(3, $DB->count_records('message_conversations'));
+        $this->assertEquals(4, $DB->count_records('notifications'));
+
+        // Only user1 messages in group1a conversation (from course1) have been removed.
+        $messages = $DB->get_records('messages', null, 'smallmessage ASC');
+        $this->assertCount(3, $messages);
+        $m1 = array_shift($messages);
+        $m2 = array_shift($messages);
+        $m3 = array_shift($messages);
+        $this->assertEquals($privatemsgid1, $m1->id);
+        $this->assertEquals($privatemsgid2, $m2->id);
+        $this->assertEquals($dbm3->id, $m3->id);
+
+        // Only read action for user1 private message. Read action for user2 in group1a has been removed because this message
+        // has been removed.
+        $muas = $DB->get_records('message_user_actions');
+        $this->assertCount(1, $muas);
+        $mua = reset($muas);
+        $this->assertEquals($user1->id, $mua->userid);
+        $this->assertEquals($privatemsgid2, $mua->messageid);
+        $this->assertEquals(\core_message\api::MESSAGE_ACTION_READ, $mua->action);
+
+        // Only user1 has removed as member in group1a.
+        $this->assertEquals(5, $DB->count_records('message_conversation_members'));
+        $this->assertEquals(
+            0,
+            $DB->count_records('message_conversation_members', ['conversationid' => $conversation1->id, 'userid' => $user1->id])
+        );
     }
 
     /**
