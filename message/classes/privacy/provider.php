@@ -157,6 +157,9 @@ class provider implements
         $items->add_user_preference('core_message_messageprovider_settings',
             'privacy:metadata:preference:core_message_settings');
 
+        // Add favourite conversations.
+        $items->link_subsystem('core_favourites', 'privacy:metadata:core_favourites');
+
         return $items;
     }
 
@@ -223,6 +226,9 @@ class provider implements
         if ($hasdata) {
             $contextlist->add_user_context($userid);
         }
+
+        // Add favourite conversations.
+        \core_favourites\privacy\provider::add_contexts_for_userid($contextlist, $userid, 'core_message', 'message_conversations');
 
         return $contextlist;
     }
@@ -407,6 +413,10 @@ class provider implements
         }
 
         $contextlist->add_from_sql($sql, $params);
+
+        // Add favourite conversations. We don't need to filter by itemid because for now they are in the system context.
+        \core_favourites\privacy\provider::add_contexts_for_userid($contextlist, $userid, 'core_message', 'message_conversations');
+
     }
 
     /**
@@ -448,6 +458,16 @@ class provider implements
                  WHERE $select";
 
         $userlist->add_from_sql('userid', $sql, $params);
+
+        // Add favourite conversations.
+        $component = $userlist->get_component();
+        if ($component != 'core_message') {
+            $userlist->set_component('core_message');
+        }
+        \core_favourites\privacy\provider::add_userids_for_context($userlist, 'message_conversations');
+        if ($component != 'core_message') {
+            $userlist->set_component($component);
+        }
     }
 
     /**
@@ -558,6 +578,16 @@ class provider implements
             $messageids = $DB->get_records_list('messages', 'conversationid', $conversationids);
             $messageids = array_keys($messageids);
 
+            // Delete these favourite conversations to all the users.
+            foreach ($conversationids as $conversationid) {
+                // For now, all the favourite conversations belong to the system context.
+                \core_favourites\privacy\provider::delete_favourites_for_all_users(
+                    \context_system::instance(),
+                    'core_message',
+                    'message_conversations',
+                    $conversationid);
+            }
+
             // Delete messages and user_actions.
             $DB->delete_records_list('message_user_actions', 'messageid', $messageids);
             $DB->delete_records_list('messages', 'id', $messageids);
@@ -662,6 +692,18 @@ class provider implements
             $sql = "conversationid $conversationidsql AND userid = :userid";
             // Reuse the $params var because it contains the userid and the conversationids.
             $DB->delete_records_select('message_conversation_members', $sql, $params);
+
+            // Delete the favourite conversations.
+            $systemcontext = \context_system::instance(); // For now, all them belong to the system context.
+            $contextlist = new approved_contextlist(\core_user::get_user($userid), 'core_message', [$systemcontext->id]);
+            foreach ($conversationids as $conversationid) {
+                \core_favourites\privacy\provider::delete_favourites_for_user(
+                    $contextlist,
+                    'core_message',
+                    'message_conversations',
+                    $conversationid
+                );
+            }
         }
     }
 
@@ -748,6 +790,17 @@ class provider implements
             $sql = "conversationid $conversationidsql AND userid $useridsql";
             // Reuse the $params var because it contains the useridparams and the conversationids.
             $DB->delete_records_select('message_conversation_members', $sql, $params);
+
+            // Delete the favourite conversations.
+            $systemcontext = \context_system::instance(); // For now, all them belong to the system context.
+            $userlist = new \core_privacy\local\request\approved_userlist($systemcontext, 'core_message', $userids);
+            foreach ($conversationids as $conversationid) {
+                \core_favourites\privacy\provider::delete_favourites_for_userlist(
+                    $userlist,
+                    'message_conversations',
+                    $conversationid
+                );
+            }
         }
     }
 
@@ -906,6 +959,7 @@ class provider implements
                 }
 
                 $subcontext = [get_string('messages', 'core_message'), $otheruserfullname];
+                $subcontextfavourite = [get_string('favouriteconversations', 'core_message'), $otheruserfullname];
             } else {
                 // Conversations with context are stored in 'Messages | <Conversation item type> | <Conversation name>'.
                 if (get_string_manager()->string_exists($conversation->itemtype, $conversation->component)) {
@@ -920,10 +974,24 @@ class provider implements
                     $itemtypestring,
                     $conversation->name
                 ];
+                $subcontextfavourite = [
+                    get_string('favouriteconversations', 'core_message'),
+                    $itemtypestring,
+                    $conversation->name
+                ];
             }
 
             // Export the conversation messages.
             writer::with_context($context)->export_data($subcontext, (object) $messagedata);
+
+            // Get user's favourites information for the particular conversation.
+            $systemcontext = \context_system::instance(); // // For now, the favourite conversations belong to the system context.
+            $conversationfavourite = \core_favourites\privacy\provider::get_favourites_info_for_user($userid, $systemcontext,
+                'core_message', 'message_conversations', $conversation->id);
+            if ($conversationfavourite) {
+                // If the conversation has been favorited by the user, include it in the export.
+                writer::with_context($context)->export_data($subcontextfavourite, (object) $conversationfavourite);
+            }
         }
     }
 
