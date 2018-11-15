@@ -525,7 +525,8 @@ function translate_message_default_setting($plugindefault, $processorname) {
 
 /**
  * Get messages sent or/and received by the specified users.
- * Please note that this function return deleted messages too.
+ * Please note that this function return deleted messages too. Besides, only individual conversation messages
+ * are returned to maintain backwards compatibility.
  *
  * @param  int      $useridto       the user id who received the message
  * @param  int      $useridfrom     the user id who sent the message. -10 or -20 for no-reply or support user
@@ -598,11 +599,20 @@ function message_get_messages($useridto, $useridfrom = 0, $notifications = -1, $
                                $messagejoinsql
                             WHERE mcm.userid = ?
                               AND mr.useridfrom != mcm.userid
-                              AND u.deleted = 0 ";
-        $messageparams = array_merge($messagejoinparams, [$useridto]);
+                              AND u.deleted = 0
+                              AND mc.type = ? ";
+        $messageparams = array_merge($messagejoinparams, [$useridto, \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL]);
         if (!empty($useridfrom)) {
             $messagesql .= " AND mr.useridfrom = ? ";
             $messageparams[] = $useridfrom;
+
+            // There should be an individual conversation between the users. If not, we can return early.
+            $conversationid = \core_message\api::get_conversation_between_users([$useridto, $useridfrom]);
+            if (empty($conversationid)) {
+                return [];
+            }
+            $messagesql .= " AND mc.id = ? ";
+            $messageparams[] = $conversationid;
         }
 
         // Create the notifications query and params.
