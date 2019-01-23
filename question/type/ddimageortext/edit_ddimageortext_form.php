@@ -124,6 +124,9 @@ class qtype_ddimageortext_edit_form extends qtype_ddtoimage_edit_form_base {
     // Drag items.
 
     protected function definition_draggable_items($mform, $itemrepeatsatstart) {
+        // BEWARE HACK: In order for things to work we need to override the form id and set it to mform1 (related to MDL-64324).
+        $mform->updateAttributes(array('id' => 'mform1'));
+
         $mform->addElement('header', 'draggableitemheader',
                                 get_string('draggableitems', 'qtype_ddimageortext'));
         $mform->addElement('advcheckbox', 'shuffleanswers', ' ',

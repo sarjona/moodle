@@ -44,6 +44,9 @@ class qtype_ddmarker_edit_form extends qtype_ddtoimage_edit_form_base {
     }
 
     protected function definition_inner($mform) {
+        // BEWARE HACK: In order for things to work we need to override the form id and set it to mform1 (related to MDL-64324).
+        $mform->updateAttributes(array('id' => 'mform1'));
+
         $mform->addElement('advcheckbox', 'showmisplaced', ' ',
                                                 get_string('showmisplaced', 'qtype_ddmarker'));
         parent::definition_inner($mform);
