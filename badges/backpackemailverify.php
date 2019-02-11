@@ -28,7 +28,7 @@ require_once(__DIR__ . '/lib/backpacklib.php');
 
 $data = optional_param('data', '', PARAM_RAW);
 require_login();
-$PAGE->set_url('/badges/openbackpackemailverify.php');
+$PAGE->set_url('/badges/backpackemailverify.php');
 $PAGE->set_context(context_user::instance($USER->id));
 $redirect = '/badges/mybackpack.php';
 
@@ -37,17 +37,21 @@ $storedsecret = get_user_preferences('badges_email_verify_secret');
 if (!is_null($storedsecret)) {
     if ($data === $storedsecret) {
         $storedemail = get_user_preferences('badges_email_verify_address');
+        $backpackid = get_user_preferences('badges_email_verify_backpackid');
+        $password = get_user_preferences('badges_email_verify_password');
+
+        $backpack = badges_get_site_backpack($backpackid);
 
         $data = new stdClass();
-        $data->backpackurl = BADGE_BACKPACKURL;
+        $data->backpackurl = $backpack->backpackapiurl;
+        $data->apiversion = $backpack->apiversion;
         $data->email = $storedemail;
-        $bp = new OpenBadgesBackpackHandler($data);
+        $data->password = $password;
+        $bp = new OpenBadgesBackpackHandler($backpack, $data);
 
         // Make sure we have all the required information before trying to save the connection.
-        $backpackuser = $bp->curl_request('user');
-        if (isset($backpackuser->status) && $backpackuser->status === 'okay' && isset($backpackuser->userId)) {
-            $backpackuid = $backpackuser->userId;
-        } else {
+        $backpackuid = $bp->authenticate();
+        if ($backpackuid === false) {
             redirect(new moodle_url($redirect), get_string('backpackconnectionunexpectedresult', 'badges'),
                 null, \core\output\notification::NOTIFY_ERROR);
         }
@@ -55,10 +59,12 @@ if (!is_null($storedsecret)) {
         $obj = new stdClass();
         $obj->userid = $USER->id;
         $obj->email = $data->email;
-        $obj->backpackurl = $data->backpackurl;
+        $obj->backpackurl = $backpack->backpackapiurl;
+        $obj->apiversion = $backpack->apiversion;
         $obj->backpackuid = $backpackuid;
         $obj->autosync = 0;
-        $obj->password = '';
+        $obj->password = $password;
+
         $DB->insert_record('badge_backpack', $obj);
 
         // Remove the verification vars and redirect to the mypackpack page.

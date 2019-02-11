@@ -88,11 +88,37 @@ class core_badges_assertion {
     }
 
     /**
+     * Get the local id for this badge.
+     *
+     * @return int
+     */
+    public function get_badge_id() {
+        $badgeid = 0;
+        if ($this->_data) {
+            $badgeid = $this->_data->id;
+        }
+        return $badgeid;
+    }
+
+    /**
+     * Get the local id for this badge assertion.
+     *
+     * @return string
+     */
+    public function get_assertion_hash() {
+        $hash = '';
+        if ($this->_data) {
+            $hash = $this->_data->uniquehash;
+        }
+        return $hash;
+    }
+
+    /**
      * Get badge assertion.
      *
      * @return array Badge assertion.
      */
-    public function get_badge_assertion() {
+    public function get_badge_assertion($issued = true, $usesalt = true) {
         global $CFG;
         $assertion = array();
         if ($this->_data) {
@@ -104,17 +130,27 @@ class core_badges_assertion {
             // Required.
             $assertion['uid'] = $hash;
             $assertion['recipient'] = array();
-            $assertion['recipient']['identity'] = 'sha256$' . hash('sha256', $email . $CFG->badges_badgesalt);
+            if ($usesalt) {
+                $assertion['recipient']['identity'] = 'sha256$' . hash('sha256', $email . $CFG->badges_badgesalt);
+            } else {
+                $assertion['recipient']['identity'] = $email;
+            }
             $assertion['recipient']['type'] = 'email'; // Currently the only supported type.
             $assertion['recipient']['hashed'] = true; // We are always hashing recipient.
-            $assertion['recipient']['salt'] = $CFG->badges_badgesalt;
-            $assertion['badge'] = $classurl->out(false);
+            if ($usesalt) {
+                $assertion['recipient']['salt'] = $CFG->badges_badgesalt;
+            }
+            if ($issued) {
+                $assertion['badge'] = $classurl->out(false);
+            }
             $assertion['verify'] = array();
             $assertion['verify']['type'] = 'hosted'; // 'Signed' is not implemented yet.
             $assertion['verify']['url'] = $assertionurl->out(false);
             $assertion['issuedOn'] = $this->_data->dateissued;
+            if ($issued) {
+                $assertion['evidence'] = $this->_url->out(false); // Currently issued badge URL.
+            }
             // Optional.
-            $assertion['evidence'] = $this->_url->out(false); // Currently issued badge URL.
             if (!empty($this->_data->dateexpire)) {
                 $assertion['expires'] = $this->_data->dateexpire;
             }
@@ -128,23 +164,34 @@ class core_badges_assertion {
      *
      * @return array Badge Class information.
      */
-    public function get_badge_class() {
-        $class = array();
+    public function get_badge_class($issued = true) {
         if ($this->_data) {
             if (empty($this->_data->courseid)) {
                 $context = context_system::instance();
             } else {
                 $context = context_course::instance($this->_data->courseid);
             }
-            $issuerurl = new moodle_url('/badges/assertion.php', array('b' => $this->_data->uniquehash, 'action' => 0));
-
             // Required.
             $class['name'] = $this->_data->name;
             $class['description'] = $this->_data->description;
-            $class['image'] = moodle_url::make_pluginfile_url($context->id, 'badges', 'badgeimage', $this->_data->id, '/', 'f1')->out(false);
+            $storage = get_file_storage();
+            $imagefile = $storage->get_file($context->id, 'badges', 'badgeimage', $this->_data->id, '/', 'f1.png');
+            if ($imagefile) {
+                $imagedata = base64_encode($imagefile->get_content());
+            } else {
+                // Unit tests the file might not exists yet.
+                $imagedata = '';
+            }
+            $class['image'] = 'data:image/png;base64,' . $imagedata;
             $class['criteria'] = $this->_url->out(false); // Currently issued badge URL.
-            $class['issuer'] = $issuerurl->out(false);
+            if ($issued) {
+                $issuerurl = new moodle_url('/badges/assertion.php', array('b' => $this->_data->uniquehash, 'action' => 0));
+                $class['issuer'] = $issuerurl->out(false);
+            }
             $this->embed_data_badge_version2($class, OPEN_BADGES_V2_TYPE_BADGE);
+            if (!$issued) {
+                unset($class['issuer']);
+            }
         }
         return $class;
     }
@@ -284,7 +331,6 @@ class core_badges_assertion {
                 }
                 unset($json['uid']);
             }
-
             // For Badge.
             if ($type == OPEN_BADGES_V2_TYPE_BADGE) {
                 $json['@context'] = OPEN_BADGES_V2_CONTEXT;
@@ -308,17 +354,15 @@ class core_badges_assertion {
                         $this->_data->imageauthoremail ||
                         $this->_data->imageauthorurl ||
                         $this->_data->imagecaption) {
-                    $urlimage = moodle_url::make_pluginfile_url($context->id,
-                        'badges', 'badgeimage', $this->_data->id, '/', 'f1')->out(false);
-                    $json['image'] = array();
-                    $json['image']['id'] = $urlimage;
-                    if ($this->_data->imageauthorname || $this->_data->imageauthoremail || $this->_data->imageauthorurl) {
-                        $authorimage = new moodle_url('/badges/image_author_json.php', array('id' => $this->_data->id));
-                        $json['image']['author'] = $authorimage->out(false);
+                    $storage = get_file_storage();
+                    $imagefile = $storage->get_file($context->id, 'badges', 'badgeimage', $this->_data->id, '/', 'f1.png');
+                    if ($imagefile) {
+                        $imagedata = base64_encode($imagefile->get_content());
+                    } else {
+                        // The file might not exist in unit tests.
+                        $imagedata = '';
                     }
-                    if ($this->_data->imagecaption) {
-                        $json['image']['caption'] = $this->_data->imagecaption;
-                    }
+                    $json['image'] = 'data:image/png;base64,' . $imagedata;
                 }
             }
 
