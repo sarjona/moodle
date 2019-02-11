@@ -62,8 +62,7 @@ if (($type == BADGE_TYPE_COURSE) && ($course = $DB->get_record('course', array('
 
 require_capability('moodle/badges:createbadge', $PAGE->context);
 
-$PAGE->requires->js('/badges/backpack.js');
-$PAGE->requires->js_init_call('check_site_access', null, false);
+badges_local_backpack_js(true);
 
 $fordb = new stdClass();
 $fordb->id = null;

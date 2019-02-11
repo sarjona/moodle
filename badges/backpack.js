@@ -8,6 +8,8 @@ function addtobackpack(event, args) {
     var errorhtml = '<div id="addtobackpack-error" class="box boxaligncenter notifyproblem">' + errortext + '</div>';
 
     if (typeof OpenBadges !== 'undefined') {
+        debugger;
+        console.log(args.assertion);
         OpenBadges.issue([args.assertion], function(errors, successes) { });
     } else {
         // Add error div if it doesn't exist yet.
