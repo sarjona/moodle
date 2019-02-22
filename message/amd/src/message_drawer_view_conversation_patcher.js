@@ -274,10 +274,11 @@ function(
         var confirmContactRequest = buildConfirmContactRequest(state, newState);
         var oldOtherUser = getOtherUserFromState(state);
         var newOtherUser = getOtherUserFromState(newState);
+        var isSelfConversation = (newState.loggedInUserId === newOtherUser.id);
         var requiresAddContact = requireAddContact && requireAddContact.show && !requireAddContact.hasMessages;
         var requiredAddContact = requireAddContact && !requireAddContact.show;
         // Render the header once we've got a user.
-        var shouldRenderHeader = !oldOtherUser && newOtherUser;
+        var shouldRenderHeader = (oldOtherUser === null) && (newOtherUser !== null);
         // We should also re-render the header if the other user requires
         // being added as a contact or if they did but no longer do.
         shouldRenderHeader = shouldRenderHeader || requiresAddContact || requiredAddContact;
@@ -288,9 +289,10 @@ function(
         if (shouldRenderHeader) {
             return {
                 type: Constants.CONVERSATION_TYPES.PRIVATE,
-                // We can show controls if the other user doesn't require add contact
-                // and we aren't waiting for this user to respond to a contact request.
-                showControls: !requiresAddContact && !confirmContactRequest,
+                // We can show controls if the other user doesn't require add contact,
+                // we aren't waiting for this user to respond to a contact request
+                // and is not a self-conversation.
+                showControls: !requiresAddContact && !confirmContactRequest && !isSelfConversation,
                 context: {
                     id: newState.id,
                     name: newState.name,
@@ -762,13 +764,21 @@ function(
      * @return {Array} List of users.
      */
     var getOtherUserFromState = function(state) {
-        return Object.keys(state.members).reduce(function(carry, userId) {
-            if (userId != state.loggedInUserId && !carry) {
-                carry = state.members[userId];
-            }
+        var otherUser = null;
+        if (state.totalMemberCount == 1) {
+            // Self conversation.
+            otherUser = state.members[state.loggedInUserId];
+        } else {
+            otherUser = Object.keys(state.members).reduce(function(carry, userId) {
+                if (userId != state.loggedInUserId && !carry) {
+                    carry = state.members[userId];
+                }
 
-            return carry;
-        }, null);
+                return carry;
+            }, null);
+        }
+
+        return otherUser;
     };
 
     /**

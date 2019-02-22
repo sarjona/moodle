@@ -5354,12 +5354,12 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $member = array_pop($members);
         $this->assertEquals($user1->id, $member->userid);
 
-        // Verify this conversation is not returned by the method.
+        // Verify this conversation is also returned by the method.
         $this->setUser($user1);
         $result = core_message_external::get_conversations($user1->id, 0, 20);
         $result = external_api::clean_returnvalue(core_message_external::get_conversations_returns(), $result);
         $conversations = $result['conversations'];
-        $this->assertCount(0, $conversations);
+        $this->assertCount(1, $conversations);
     }
 
     /**
@@ -6628,7 +6628,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
                 'deletemessages' => [],
                 'arguments' => [$user8],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [

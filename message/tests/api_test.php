@@ -716,6 +716,8 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
      * Tests searching messages.
      */
     public function test_search_messages() {
+        $this->resetAfterTest();
+
         // Create some users.
         $user1 = self::getDataGenerator()->create_user();
         $user2 = self::getDataGenerator()->create_user();
@@ -724,8 +726,15 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         // The person doing the search.
         $this->setUser($user1);
 
+        // Create group conversation.
+        $conversation = \core_message\api::create_conversation(
+            \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP,
+            [$user1->id, $user2->id, $user3->id]
+        );
+
         // Send some messages back and forth.
         $time = 1;
+        testhelper::send_fake_message_to_conversation($user1, $conversation->id, 'Yo2!', $time - 1);
         $this->send_fake_message($user3, $user1, 'Don\'t block me.', 0, $time);
         $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
         $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
@@ -742,7 +751,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $messages = \core_message\api::search_messages($user1->id, 'o');
 
         // Confirm the data is correct.
-        $this->assertEquals(3, count($messages));
+        $this->assertEquals(4, count($messages));
 
         $message1 = $messages[0];
         $message2 = $messages[1];
@@ -1384,9 +1393,9 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $member = array_pop($members);
         $this->assertEquals($user1->id, $member->userid);
 
-        // Verify this conversation is not returned by the method.
+        // Verify this conversation is returned also by the method.
         $conversations = \core_message\api::get_conversations($user1->id);
-        $this->assertCount(0, $conversations);
+        $this->assertCount(1, $conversations);
     }
 
     /**
@@ -5633,6 +5642,32 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Test returning members of a self conversation.
+     */
+    public function test_get_conversation_members_with_self_conversation() {
+        $lastaccess = new stdClass();
+        $lastaccess->lastaccess = time();
+
+        $user1 = self::getDataGenerator()->create_user($lastaccess);
+
+        $this->send_fake_message($user1, $user1, 'This is a self-message!');
+        $selfconversationid = \core_message\api::get_conversation_between_users([$user1->id, $user1->id]);
+        $members = \core_message\api::get_conversation_members($user1->id, $selfconversationid);
+
+        $this->assertCount(1, $members);
+
+        $member1 = array_shift($members);
+
+        // Confirm the standard fields are OK.
+        $this->assertEquals($user1->id, $member1->id);
+        $this->assertEquals(fullname($user1), $member1->fullname);
+        $this->assertEquals(true, $member1->isonline);
+        $this->assertEquals(true, $member1->showonlinestatus);
+        $this->assertEquals(false, $member1->iscontact);
+        $this->assertEquals(false, $member1->isblocked);
+    }
+
+    /**
      * Test verifying that messages can be sent to existing individual conversations.
      */
     public function test_send_message_to_conversation_individual_conversation() {
@@ -6086,7 +6121,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'deletemessages' => [],
                 'arguments' => [$user8],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [

@@ -175,12 +175,18 @@ function(
             };
 
             if (conversation.type == MessageDrawerViewConversationContants.CONVERSATION_TYPES.PRIVATE) {
-                var otherUser = conversation.members.reduce(function(carry, member) {
-                    if (!carry && member.id != userId) {
-                        carry = member;
-                    }
-                    return carry;
-                }, null);
+                var otherUser = null;
+                if (conversation.membercount == 1) {
+                    // Self conversation.
+                    otherUser = conversation.members[0];
+                } else {
+                    otherUser = conversation.members.reduce(function(carry, member) {
+                        if (!carry && member.id != userId) {
+                            carry = member;
+                        }
+                        return carry;
+                    }, null);
+                }
 
                 formattedConversation.userid = otherUser.id;
                 formattedConversation.showonlinestatus = otherUser.showonlinestatus;

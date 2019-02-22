@@ -98,10 +98,12 @@ class api {
         // Get the user fields we want.
         $ufields = \user_picture::fields('u', array('lastaccess'), 'userfrom_id', 'userfrom_');
         $ufields2 = \user_picture::fields('u2', array('lastaccess'), 'userto_id', 'userto_');
+        // Add the uniqueid column to make each row unique and avoid SQL errors.
+        $uniqueidsql = $DB->sql_concat('m.id', "'_'", 'm.useridfrom', "'_'", 'mcm.userid');
 
-        $sql = "SELECT m.id, m.useridfrom, mcm.userid as useridto, m.subject, m.fullmessage, m.fullmessagehtml, m.fullmessageformat,
-                       m.smallmessage, m.conversationid, m.timecreated, 0 as isread, $ufields, mub.id as userfrom_blocked,
-                       $ufields2, mub2.id as userto_blocked
+        $sql = "SELECT $uniqueidsql AS uniqueid, m.id, m.useridfrom, mcm.userid as useridto, m.subject, m.fullmessage,
+                       m.fullmessagehtml, m.fullmessageformat, m.smallmessage, m.conversationid, m.timecreated, 0 as isread,
+                       $ufields, mub.id as userfrom_blocked, $ufields2, mub2.id as userto_blocked
                   FROM {messages} m
             INNER JOIN {user} u
                     ON u.id = m.useridfrom
@@ -118,7 +120,6 @@ class api {
              LEFT JOIN {message_user_actions} mua
                     ON (mua.messageid = m.id AND mua.userid = ? AND mua.action = ?)
                  WHERE (m.useridfrom = ? OR mcm.userid = ?)
-                   AND m.useridfrom != mcm.userid
                    AND u.deleted = 0
                    AND u2.deleted = 0
                    AND mua.id is NULL
@@ -141,8 +142,14 @@ class api {
                 $message->blocked = $message->$blockedcol ? 1 : 0;
 
                 $message->messageid = $message->id;
-                $conversations[] = helper::create_contact($message, $prefix);
+                // To avoid duplicate messages, only add the message if it hasn't been added previously and the
+                // userfrom is different from the useridto.
+                if (!array_key_exists($message->messageid, $conversations) || $message->useridfrom != $message->useridto) {
+                    $conversations[$message->messageid] = helper::create_contact($message, $prefix);
+                }
             }
+            // Remove the messageid keys.
+            $conversations = array_values($conversations);
         }
 
         return $conversations;
@@ -304,7 +311,11 @@ class api {
         $fullname = $DB->sql_fullname();
 
         // Users not to include.
-        $excludeusers = array($userid, $CFG->siteguest);
+        $excludeusers = array($CFG->siteguest);
+        if (!$selfconversationid = self::get_conversation_between_users([$userid, $userid])) {
+            // Userid should only be excluded when she hasn't a self-conversation.
+            $excludeusers[] = $userid;
+        }
         list($exclude, $excludeparams) = $DB->get_in_or_equal($excludeusers, SQL_PARAMS_NAMED, 'param', false);
 
         $params = array('search' => '%' . $DB->sql_like_escape($search) . '%', 'userid1' => $userid, 'userid2' => $userid);
@@ -415,7 +426,24 @@ class api {
         if (!empty($foundusers)) {
             $noncontacts = helper::get_member_info($userid, array_keys($foundusers));
             foreach ($noncontacts as $memberuserid => $memberinfo) {
-                $noncontacts[$memberuserid]->conversations = self::get_conversations_between_users($userid, $memberuserid, 0, 1000);
+                if ($memberuserid !== $userid) {
+                    $noncontacts[$memberuserid]->conversations = self::get_conversations_between_users($userid,
+                        $memberuserid,
+                        0,
+                        1000
+                    );
+                } else {
+                    // Users with self-conversations will be treated always as non-contact because they can't add
+                    // themselves as contacts.
+                    $conversation = new \stdClass();
+                    $conversation->id = $selfconversationid;
+                    $conversation->type = self::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL;
+                    $conversation->name = null;
+                    // Ignore for now the real timecreated for this conversation (it's not used). If needed, a SQL will be needed
+                    // to get it.
+                    $conversation->timecreated = null;
+                    $noncontacts[$memberuserid]->conversations[$selfconversationid] = $conversation;
+                }
             }
         }
 
@@ -766,11 +794,6 @@ class api {
                 continue;
             }
 
-            // Exclude 'self' conversations for now.
-            if (isset($selfconversations[$conversation->id])) {
-                continue;
-            }
-
             $conv = new \stdClass();
             $conv->id = $conversation->id;
 
@@ -907,10 +930,16 @@ class api {
             $memberoffset,
             $memberlimit
         );
-        // Strip out the requesting user to match what get_conversations does.
-        $members = array_filter($members, function($member) use ($userid) {
-            return $member->id != $userid;
-        });
+
+        $membercount = count($members);
+        if ($membercount > 1) {
+            // Strip out the requesting user to match what get_conversations does except for self conversations.
+            $members = array_filter($members, function($member) use ($userid) {
+                return $member->id != $userid;
+            });
+            // Get the real membercount from DB.
+            $membercount = $DB->count_records('message_conversation_members', ['conversationid' => $conversationid]);
+        }
 
         $messages = self::get_conversation_messages(
             $userid,
@@ -947,8 +976,6 @@ class api {
                 $userid
             ]
         );
-
-        $membercount = $DB->count_records('message_conversation_members', ['conversationid' => $conversationid]);
 
         return (object) [
             'id' => $conversation->id,
@@ -1547,7 +1574,7 @@ class api {
         // Some restrictions we need to be aware of:
         // - Individual conversations containing soft-deleted user must be counted.
         // - Individual conversations containing only deleted messages must NOT be counted.
-        // - Individual conversations which are legacy 'self' conversations (2 members, both the same user) must NOT be counted.
+        // - Individual conversations which are legacy 'self' conversations (2 members, both the same user) must be counted.
         // - Group conversations with 0 messages must be counted.
         // - Linked conversations which are disabled (enabled = 0) must NOT be counted.
         // - Any type of conversation can be included in the favourites count, however, the type counts and the favourites count
@@ -1563,17 +1590,6 @@ class api {
                   FROM {message_conversations} mc
             INNER JOIN {message_conversation_members} mcm
                     ON mcm.conversationid = mc.id
-            INNER JOIN (
-                              SELECT mcm.conversationid, count(distinct mcm.userid) as membercount
-                                FROM {message_conversation_members} mcm
-                               WHERE mcm.conversationid IN (
-                                        SELECT DISTINCT conversationid
-                                          FROM {message_conversation_members} mcm2
-                                         WHERE userid = :userid5
-                                     )
-                            GROUP BY mcm.conversationid
-                       ) uniquemembercount
-                    ON uniquemembercount.conversationid = mc.id
              LEFT JOIN (
                               SELECT m.conversationid as convid, MAX(m.timecreated) as maxtime
                                 FROM {messages} m
@@ -1590,7 +1606,7 @@ class api {
                  WHERE mcm.userid = :userid3
                    AND mc.enabled = :enabled
                    AND (
-                          (mc.type = :individualtype AND maxvisibleconvmessage.convid IS NOT NULL AND membercount > 1) OR
+                          (mc.type = :individualtype AND maxvisibleconvmessage.convid IS NOT NULL) OR
                           (mc.type = :grouptype)
                        )
               GROUP BY mc.type, fav.itemtype
@@ -1844,12 +1860,19 @@ class api {
         } else if ($conversation->type == self::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL) {
             // Get the other user in the conversation.
             $members = self::get_conversation_members($userid, $conversationid);
-            $otheruser = array_filter($members, function($member) use($userid) {
-                return $member->id != $userid;
-            });
-            $otheruser = reset($otheruser);
+            if (count($members) == 1) {
+                // This is a self-conversation. The other user is the same userid.
+                $otheruserid = $userid;
+            } else {
+                // This is an individual conversation. Remove the userid from the members array to get the other user.
+                $otheruser = array_filter($members, function($member) use($userid) {
+                    return $member->id != $userid;
+                });
+                $otheruser = reset($otheruser);
+                $otheruserid = $otheruser->id;
+            }
 
-            return self::can_contact_user($otheruser->id, $userid);
+            return self::can_contact_user($otheruserid, $userid);
         } else {
             throw new \moodle_exception("Invalid conversation type '$conversation->type'.");
         }
@@ -2815,8 +2838,9 @@ class api {
      * @return bool true if recipient hasn't blocked sender and sender can contact to recipient, false otherwise.
      */
     protected static function can_contact_user(int $recipientid, int $senderid) : bool {
-        if (has_capability('moodle/site:messageanyuser', \context_system::instance(), $senderid)) {
-            // The sender has the ability to contact any user across the entire site.
+        if (has_capability('moodle/site:messageanyuser', \context_system::instance(), $senderid) ||
+            $recipientid == $senderid) {
+            // The sender has the ability to contact any user across the entire site or is a self-conversation.
             return true;
         }
 
@@ -3070,8 +3094,11 @@ class api {
         global $DB;
 
         if ($members = $DB->get_records('message_conversation_members', ['conversationid' => $conversationid],
-                'timecreated ASC, id ASC', 'userid', $limitfrom, $limitnum)) {
-            $userids = array_keys($members);
+                'timecreated ASC, id ASC', '*', $limitfrom, $limitnum)) {
+            $userids = array_map(function($member) {
+                return $member->userid;
+            }, $members);
+            $userids = array_unique($userids);
             $members = helper::get_member_info($userid, $userids, $includecontactrequests, $includeprivacyinfo);
 
             return $members;

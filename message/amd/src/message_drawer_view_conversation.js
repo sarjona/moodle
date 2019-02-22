@@ -125,6 +125,11 @@ function(
         }
 
         var loggedInUserId = viewState.loggedInUserId;
+        if (Object.keys(viewState.members).length == 1) {
+            // It's a self-conversation, so the other user is the logged in.
+            return loggedInUserId;
+        }
+
         var otherUserIds = Object.keys(viewState.members).filter(function(userId) {
             return loggedInUserId != userId;
         });
@@ -282,13 +287,25 @@ function(
                 }
             })
             .then(function(profile) {
-                var newState = StateManager.addMembers(viewState, [profile, loggedInUserProfile]);
+                var members = [];
+                members[0] = profile;
+                if (loggedInUserProfile.id !== profile.id) {
+                    // Only add the member when is not a self-conversation.
+                    members[1] = loggedInUserProfile;
+                }
+                var newState = StateManager.addMembers(viewState, members);
                 newState = StateManager.setLoadingMembers(newState, false);
                 newState = StateManager.setLoadingMessages(newState, false);
                 newState = StateManager.setName(newState, profile.fullname);
-                newState = StateManager.setType(newState, 1);
+                newState = StateManager.setType(newState, Constants.CONVERSATION_TYPES.PRIVATE);
                 newState = StateManager.setImageUrl(newState, profile.profileimageurl);
-                newState = StateManager.setTotalMemberCount(newState, 2);
+                var totalMemberCount = 2;
+                if (loggedInUserId === otherUserId) {
+                    // For self-conversations, set the total member count to just one.
+                    totalMemberCount = 1;
+                }
+                newState = StateManager.setTotalMemberCount(newState, totalMemberCount);
+
                 return render(newState)
                     .then(function() {
                         return profile;
@@ -309,9 +326,15 @@ function(
      * @return {Object} new state.
      */
     var updateStateFromConversation = function(conversation, loggedInUserId) {
-        var otherUsers = conversation.members.filter(function(member) {
-            return member.id != loggedInUserId;
-        });
+        var otherUsers = [];
+        if (conversation.membercount == 1) {
+            // Self conversation.
+            otherUsers[0] = conversation.members[0];
+        } else {
+            otherUsers = conversation.members.filter(function(member) {
+                return member.id != loggedInUserId;
+            });
+        }
         var otherUser = otherUsers.length ? otherUsers[0] : null;
         var name = conversation.name;
         var imageUrl = conversation.imageurl;

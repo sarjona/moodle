@@ -928,14 +928,19 @@ class provider implements
             // Get subcontext.
             if (empty($conversation->contextid)) {
                 // Conversations without context are stored in 'Messages | <Other user id>'.
-                $members = $DB->get_records('message_conversation_members', ['conversationid' => $conversation->id]);
-                $members = array_filter($members, function ($member) use ($userid) {
-                    return $member->userid != $userid;
-                });
-                if ($otheruser = reset($members)) {
-                    $otherusertext = $otheruser->userid;
+                $members = \core_message\api::get_conversation_members($userid, $conversation->id);
+                if (count($members) == 1) {
+                    // This is a self-conversation. The other user is the same userid.
+                    $otherusertext = $userid;
                 } else {
-                    $otherusertext = get_string('unknownuser', 'core_message') . '_' . $conversation->id;
+                    $members = array_filter($members, function ($member) use ($userid) {
+                        return $member->id != $userid;
+                    });
+                    if ($otheruser = reset($members)) {
+                        $otherusertext = $otheruser->id;
+                    } else {
+                        $otherusertext = get_string('unknownuser', 'core_message') . '_' . $conversation->id;
+                    }
                 }
 
                 $subcontext = array_merge(

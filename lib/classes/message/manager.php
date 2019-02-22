@@ -99,8 +99,10 @@ class manager {
             $localisedeventdata->userfrom = $members[$localisedeventdata->userfrom];
         }
 
-        // This should now hold only the other users (recipients).
-        unset($members[$localisedeventdata->userfrom->id]);
+        // This should now hold only the other users (recipients), except for self-conversations.
+        if (count($members) > 1) {
+            unset($members[$localisedeventdata->userfrom->id]);
+        }
         $otherusers = $members;
 
         // Get conversation type and name. We'll use this to determine which message subject to generate, depending on type.
