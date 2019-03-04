@@ -147,3 +147,4 @@ outputdisabled,core_message
 outputdoesnotexist,core_message
 outputenabled,core_message
 outputnotconfigured,core_message
+canceledit,core_message
