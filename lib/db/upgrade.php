@@ -2923,5 +2923,122 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2019032200.02);
     }
 
+    if ($oldversion < 2019032800.01) {
+        // STEP 1. For the existing and migrated self-conversations, set the type to the new MESSAGE_CONVERSATION_TYPE_SELF, update
+        // the convhash and star them.
+        $sql = "SELECT mcm.conversationid, mcm.userid, MAX(mcm.id) as maxid
+                  FROM {message_conversation_members} mcm
+              GROUP BY mcm.conversationid, mcm.userid
+                HAVING COUNT(*) > 1";
+        if ($selfconversationsrs = $DB->get_recordset_sql($sql)) {
+            $maxids = [];
+            foreach ($selfconversationsrs as $selfconversation) {
+                $DB->update_record('message_conversations',
+                    ['id' => $selfconversation->conversationid,
+                     'type' => \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+                     'convhash' => \core_message\helper::get_conversation_hash([$selfconversation->userid])
+                    ]
+                );
+                // Star the existing self-conversation.
+                \core_message\api::set_favourite_conversation($selfconversation->conversationid, $selfconversation->userid);
+                $maxids[] = $selfconversation->maxid;
+            }
+
+            // Remove the repeated member with the higher id for all the existing self-conversations.
+            if (!empty($maxids)) {
+                list($insql, $inparams) = $DB->get_in_or_equal($maxids);
+                $DB->delete_records_select('message_conversation_members', "id $insql", $inparams);
+            }
+        }
+        $selfconversationsrs->close();
+
+        // STEP 2. Migrate existing self-conversation relying on old message tables, setting the type to the new
+        // MESSAGE_CONVERSATION_TYPE_SELF and the convhash to the proper one. Star them also.
+
+        // On the messaging legacy tables, self-conversations are only present in the 'message_read' table, so we don't need to
+        // check the content in the 'message' table.
+        $select = 'useridfrom = useridto AND notification = 0';
+        if ($legacyselfmessagesrs = $DB->get_recordset_select('message_read', $select)) {
+            foreach ($legacyselfmessagesrs as $message) {
+                // Get the self-conversation or create and star it if doesn't exist.
+                $conversation = \core_message\api::get_self_conversation($message->useridfrom);
+                if (empty($conversation)) {
+                    // Create the self-conversation.
+                    $conversation = \core_message\api::create_conversation(
+                        \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+                        [$message->useridfrom]
+                    );
+                    // Star the self-conversation.
+                    \core_message\api::set_favourite_conversation($conversation->id, $message->useridfrom);
+                }
+
+                // Create the object we will be inserting into the database.
+                $tabledata = new \stdClass();
+                $tabledata->useridfrom = $message->useridfrom;
+                $tabledata->conversationid = $conversation->id;
+                $tabledata->subject = $message->subject;
+                $tabledata->fullmessage = $message->fullmessage;
+                $tabledata->fullmessageformat = $message->fullmessageformat ?? FORMAT_MOODLE;
+                $tabledata->fullmessagehtml = $message->fullmessagehtml;
+                $tabledata->smallmessage = $message->smallmessage;
+                $tabledata->timecreated = $message->timecreated;
+
+                $messageid = $DB->insert_record('messages', $tabledata);
+
+                // Check if we need to mark this message as deleted (self-conversations add this information on the
+                // timeuserfromdeleted field.
+                if ($message->timeuserfromdeleted) {
+                    $mua = new \stdClass();
+                    $mua->userid = $message->useridfrom;
+                    $mua->messageid = $messageid;
+                    $mua->action = \core_message\api::MESSAGE_ACTION_DELETED;
+                    $mua->timecreated = $message->timeuserfromdeleted;
+
+                    $DB->insert_record('message_user_actions', $mua);
+                }
+
+                // Mark this message as read.
+                $mua = new \stdClass();
+                $mua->userid = $message->useridto;
+                $mua->messageid = $messageid;
+                $mua->action = \core_message\api::MESSAGE_ACTION_READ;
+                $mua->timecreated = $message->timeread;
+
+                $DB->insert_record('message_user_actions', $mua);
+            }
+        }
+        $legacyselfmessagesrs->close();
+        // We can now delete the records from legacy table because the self-conversations have been migrated from the legacy tables.
+        $DB->delete_records_select('message_read', $select);
+
+        // STEP 3. For existing users without self-conversations, create and star it.
+
+        // Get all the users without a self-conversation.
+        $sql = "SELECT u.id
+                  FROM {user} u
+                  WHERE u.id NOT IN (SELECT mcm.userid
+                                     FROM {message_conversation_members} mcm
+                                     INNER JOIN mdl_message_conversations mc
+                                             ON mc.id = mcm.conversationid AND mc.type = ?
+                                    )";
+        $useridsrs = $DB->get_recordset_sql($sql, [\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF]);
+        // Create the self-conversation for all these users.
+        foreach ($useridsrs as $user) {
+            $conversation = \core_message\api::get_self_conversation($user->id);
+            if (empty($conversation)) {
+                $conversation = \core_message\api::create_conversation(
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+                    [$user->id]
+                );
+                // Star the self-conversation.
+                \core_message\api::set_favourite_conversation($conversation->id, $user->id);
+            }
+        }
+        $useridsrs->close();
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2019032800.01);
+    }
+
     return true;
 }

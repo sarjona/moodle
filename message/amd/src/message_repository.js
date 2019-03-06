@@ -26,7 +26,8 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
 
     var CONVERSATION_TYPES = {
         PRIVATE: 1,
-        PUBLIC: 2
+        PUBLIC: 2,
+        SELF: 3
     };
 
     /**
@@ -772,6 +773,45 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
     };
 
     /**
+     * Get a self-conversation.
+     *
+     * @param {int} loggedInUserId The logged in user
+     * @param {int} messageLimit Limit for messages
+     * @param {int} messageOffset Offset for messages
+     * @param {bool} newestMessagesFirst Order the messages by newest first
+     * @return {object} jQuery promise
+     */
+    var getSelfConversation = function(
+        loggedInUserId,
+        messageLimit,
+        messageOffset,
+        newestMessagesFirst
+    ) {
+        var args = {
+            userid: loggedInUserId
+        };
+
+        if (typeof messageLimit != 'undefined' && messageLimit !== null) {
+            args.messagelimit = messageLimit;
+        }
+
+        if (typeof messageOffset != 'undefined' && messageOffset !== null) {
+            args.messageoffset = messageOffset;
+        }
+
+        if (typeof newestMessagesFirst != 'undefined' && newestMessagesFirst !== null) {
+            args.newestmessagesfirst = newestMessagesFirst;
+        }
+
+        var request = {
+            methodname: 'core_message_get_self_conversation',
+            args: args
+        };
+
+        return Ajax.call([request])[0];
+    };
+
+    /**
      * Get the conversations for a user.
      *
      * @param {int} userId The logged in user
@@ -786,7 +826,8 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         type,
         limit,
         offset,
-        favourites
+        favourites,
+        mergeself
     ) {
         var args = {
             userid: userId,
@@ -805,6 +846,10 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
             args.favourites = favourites;
         }
 
+        if (typeof mergeself != 'undefined' && mergeself !== null) {
+            args.mergeself = mergeself;
+        }
+
         var request = {
             methodname: 'core_message_get_conversations',
             args: args
@@ -814,7 +859,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
             .then(function(result) {
                 if (result.conversations.length) {
                     result.conversations = result.conversations.map(function(conversation) {
-                        if (conversation.type == CONVERSATION_TYPES.PRIVATE) {
+                        if (conversation.type == CONVERSATION_TYPES.PRIVATE || conversation.type == CONVERSATION_TYPES.SELF) {
                             var otherUser = conversation.members.length ? conversation.members[0] : null;
 
                             if (otherUser) {
@@ -1093,6 +1138,7 @@ define(['jquery', 'core/ajax', 'core/notification'], function($, Ajax, Notificat
         declineContactRequest: declineContactRequest,
         getConversation: getConversation,
         getConversationBetweenUsers: getConversationBetweenUsers,
+        getSelfConversation: getSelfConversation,
         getConversations: getConversations,
         getConversationMembers: getConversationMembers,
         setFavouriteConversations: setFavouriteConversations,
