@@ -176,14 +176,21 @@ function(
                 lastmessage: lastMessage ? $(lastMessage.text).text() || lastMessage.text : null
             };
 
-            if (conversation.type == MessageDrawerViewConversationContants.CONVERSATION_TYPES.PRIVATE) {
-                var otherUser = conversation.members.reduce(function(carry, member) {
+            var otherUser = null;
+            if (conversation.type == MessageDrawerViewConversationContants.CONVERSATION_TYPES.SELF) {
+                // Self-conversations have only one member.
+                otherUser = conversation.members[0];
+            } else if (conversation.type == MessageDrawerViewConversationContants.CONVERSATION_TYPES.PRIVATE) {
+                // For private conversations, remove the current userId from the members to get the other user.
+                otherUser = conversation.members.reduce(function(carry, member) {
                     if (!carry && member.id != userId) {
                         carry = member;
                     }
                     return carry;
                 }, null);
+            }
 
+            if (otherUser !== null) {
                 formattedConversation.userid = otherUser.id;
                 formattedConversation.showonlinestatus = otherUser.showonlinestatus;
                 formattedConversation.isonline = otherUser.isonline;

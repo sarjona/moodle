@@ -781,7 +781,7 @@ function(
         var headerContainer = getHeaderContent(header);
         var template = TEMPLATES.HEADER_PUBLIC;
 
-        if (data.type == CONVERSATION_TYPES.PRIVATE) {
+        if (data.type == CONVERSATION_TYPES.PRIVATE || data.type == CONVERSATION_TYPES.SELF) {
             template = data.showControls ? TEMPLATES.HEADER_PRIVATE : TEMPLATES.HEADER_PRIVATE_NO_CONTROLS;
         }
 

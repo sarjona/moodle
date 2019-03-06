@@ -49,6 +49,7 @@ function(
         FAVOURITES: '[data-region="view-overview-favourites"]',
         GROUP_MESSAGES: '[data-region="view-overview-group-messages"]',
         MESSAGES: '[data-region="view-overview-messages"]',
+        SELF_MESSAGES: '[data-region="view-overview-self-messages"]',
         SEARCH_INPUT: '[data-region="view-overview-search-input"]',
         SECTION_TOGGLE_BUTTON: '[data-toggle]'
     };
@@ -56,6 +57,7 @@ function(
     var CONVERSATION_TYPES = {
         PRIVATE: 1,
         PUBLIC: 2,
+        SELF: 3,
         FAVOURITE: null
     };
 
@@ -225,6 +227,8 @@ function(
         var allCounts = loadAllCounts(loggedInUserId);
 
         var sections = [
+            // Self-conversations section.
+            [body.find(SELECTORS.SELF_MESSAGES), CONVERSATION_TYPES.SELF, false],
             // Favourite conversations section.
             [body.find(SELECTORS.FAVOURITES), CONVERSATION_TYPES.FAVOURITE, true],
             // Group conversations section.

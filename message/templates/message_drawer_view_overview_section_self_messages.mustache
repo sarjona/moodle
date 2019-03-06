@@ -15,9 +15,10 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template core_message/message_drawer_view_overview_body
+    @template core_message/message_drawer_view_overview_section_self_messages
 
-    This template will render the body of the overview section of the message drawer.
+    This template will render the self-messages section of the overview page
+    in the message drawer.
 
     Classes required for JS:
     * none
@@ -33,11 +34,21 @@
     {}
 
 }}
-<div class="h-100 view-overview-body" aria-hidden="false" data-region="view-overview" data-user-id="{{loggedinuser.id}}">
-    <div id="message-drawer-view-overview-container-{{uniqid}}" class="d-flex flex-column h-100" style="overflow-y: auto">
-            {{> core_message/message_drawer_view_overview_section_self_messages }}
-            {{> core_message/message_drawer_view_overview_section_favourites }}
-            {{> core_message/message_drawer_view_overview_section_group_messages }}
-            {{> core_message/message_drawer_view_overview_section_messages }}
-    </div>
-</div>
+
+{{< core_message/message_drawer_view_overview_section }}
+    {{$region}}view-overview-self-messages{{/region}}
+    {{$title}}{{#str}} selfconversations, core_message {{/str}}{{/title}}
+    {{$placeholder}}
+        <div class="text-center py-2">{{> core/loading }}</div>
+    {{/placeholder}}
+    {{$notification}}
+        {{#overview.notification}}
+            <div class="text-center p-2">
+                <p class="text-center text-muted mt-2">{{.}}</p>
+            </div>
+        {{/overview.notification}}
+    {{/notification}}
+    {{$emptymessage}}
+        <p class="text-muted mt-2">{{#str}} noselfconversations, core_message {{/str}}</p>
+    {{/emptymessage}}
+{{/ core_message/message_drawer_view_overview_section }}

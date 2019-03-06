@@ -313,6 +313,45 @@ function(
         return null;
     };
 
+    /**
+     * Build a patch for the header of this conversation. Check if this conversation
+     * is a group conversation.
+     *
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} patch
+     */
+    var buildHeaderPatchTypeSelf = function(state, newState) {
+        var oldOtherUser = getOtherUserFromState(state);
+        var newOtherUser = getOtherUserFromState(newState);
+        // Render the header once we've got a user.
+        var shouldRenderHeader = (oldOtherUser === null) && (newOtherUser !== null);
+
+        if (shouldRenderHeader) {
+            return {
+                type: Constants.CONVERSATION_TYPES.SELF,
+                // Don't display the controls for the self-conversations.
+                showControls: false,
+                context: {
+                    id: newState.id,
+                    name: newState.name,
+                    subname: newState.subname,
+                    totalmembercount: newState.totalMemberCount,
+                    imageurl: newState.imageUrl,
+                    isfavourite: newState.isFavourite,
+                    // Don't show favouriting if we don't have a conversation.
+                    showfavourite: newState.id !== null,
+                    userid: newOtherUser.id,
+                    showonlinestatus: newOtherUser.showonlinestatus,
+                    isonline: newOtherUser.isonline,
+                    isblocked: newOtherUser.isblocked,
+                    iscontact: newOtherUser.iscontact
+                }
+            };
+        }
+
+        return null;
+    };
 
     /**
      * Build a patch for the header of this conversation. Check if this conversation
@@ -797,13 +836,21 @@ function(
      * @return {Array} List of users.
      */
     var getOtherUserFromState = function(state) {
-        return Object.keys(state.members).reduce(function(carry, userId) {
-            if (userId != state.loggedInUserId && !carry) {
-                carry = state.members[userId];
-            }
+        var otherUser = null;
+        if (state.type == Constants.CONVERSATION_TYPES.SELF) {
+            // The other user on the conversation is the current one logged in.
+             otherUser = state.members[state.loggedInUserId];
+        } else {
+            otherUser = Object.keys(state.members).reduce(function(carry, userId) {
+                if (userId != state.loggedInUserId && !carry) {
+                    carry = state.members[userId];
+                }
 
-            return carry;
-        }, null);
+                return carry;
+            }, null);
+        }
+
+        return otherUser;
     };
 
     /**
@@ -948,6 +995,11 @@ function(
         var oldOtherUser = getOtherUserFromState(state);
         var newOtherUser = getOtherUserFromState(newState);
 
+        if (newState.type == Constants.CONVERSATION_TYPES.SELF) {
+            // Users always can send message themselves on self-conversations.
+            return null;
+        }
+
         if (!oldOtherUser && !newOtherUser) {
             return null;
         } else if (oldOtherUser && !newOtherUser) {
@@ -1014,6 +1066,56 @@ function(
             [unableToMessage, {type: 'unable-to-message'}],
             [requireUnblock, {type: 'unblock'}],
             [showRequireAddContact, {type: 'add-contact', user: otherUser}]
+        ];
+
+        for (var i = 0; i < checks.length; i++) {
+            var checkValue = checks[i][0];
+            var successReturn = checks[i][1];
+            var result = generateReturnValue(checkValue, successReturn);
+
+            if (result !== null) {
+                return result;
+            }
+        }
+
+        return {
+            type: 'content'
+        };
+    };
+
+    /**
+     * Build patch for footer information for a self-conversation.
+     *
+     * @param  {Object} state The current state.
+     * @param  {Object} newState The new state.
+     * @return {Object} containing footer state type.
+     */
+    var buildFooterPatchTypeSelf = function(state, newState) {
+        var loadingFirstMessages = buildLoadingFirstMessages(state, newState);
+        var inEditMode = buildInEditMode(state, newState);
+        var otherUser = getOtherUserFromState(newState);
+        var generateReturnValue = function(checkValue, successReturn) {
+            if (checkValue) {
+                return successReturn;
+            } else if (checkValue !== null && !checkValue) {
+                if (!otherUser) {
+                    return {type: 'content'};
+                }
+            }
+
+            return null;
+        };
+
+        if (
+            loadingFirstMessages === null &&
+            inEditMode === null
+        ) {
+            return null;
+        }
+
+        var checks = [
+            [loadingFirstMessages, {type: 'placeholder'}],
+            [inEditMode, {type: 'edit-mode'}]
         ];
 
         for (var i = 0; i < checks.length; i++) {
@@ -1189,6 +1291,11 @@ function(
         config[Constants.CONVERSATION_TYPES.PUBLIC] = {
             header: buildHeaderPatchTypePublic,
             footer: buildFooterPatchTypePublic,
+        };
+        // These build functions are only applicable to self-conversations.
+        config[Constants.CONVERSATION_TYPES.SELF] = {
+            header: buildHeaderPatchTypeSelf,
+            footer: buildFooterPatchTypeSelf
         };
 
         var patchConfig = $.extend({}, config.all);

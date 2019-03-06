@@ -95,7 +95,8 @@ define([], function() {
 
     var CONVERSATION_TYPES = {
         PRIVATE: 1,
-        PUBLIC: 2
+        PUBLIC: 2,
+        SELF: 3
     };
 
     return {
