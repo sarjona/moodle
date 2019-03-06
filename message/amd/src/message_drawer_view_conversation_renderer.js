@@ -783,6 +783,8 @@ function(
 
         if (data.type == CONVERSATION_TYPES.PRIVATE) {
             template = data.showControls ? TEMPLATES.HEADER_PRIVATE : TEMPLATES.HEADER_PRIVATE_NO_CONTROLS;
+        } else if (data.type == CONVERSATION_TYPES.SELF) {
+            template = TEMPLATES.HEADER_SELF;
         }
 
         return Templates.render(template, data.context)
