@@ -88,6 +88,7 @@ define([], function() {
         HEADER_PRIVATE: 'core_message/message_drawer_view_conversation_header_content_type_private',
         HEADER_PRIVATE_NO_CONTROLS: 'core_message/message_drawer_view_conversation_header_content_type_private_no_controls',
         HEADER_PUBLIC: 'core_message/message_drawer_view_conversation_header_content_type_public',
+        HEADER_SELF: 'core_message/message_drawer_view_conversation_header_content_type_self',
         DAY: 'core_message/message_drawer_view_conversation_body_day',
         MESSAGE: 'core_message/message_drawer_view_conversation_body_message',
         MESSAGES: 'core_message/message_drawer_view_conversation_body_messages'
@@ -95,7 +96,8 @@ define([], function() {
 
     var CONVERSATION_TYPES = {
         PRIVATE: 1,
-        PUBLIC: 2
+        PUBLIC: 2,
+        SELF: 3
     };
 
     return {

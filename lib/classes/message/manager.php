@@ -102,12 +102,16 @@ class manager {
             $localisedeventdata->userfrom = $members[$localisedeventdata->userfrom];
         }
 
-        // This should now hold only the other users (recipients).
-        unset($members[$localisedeventdata->userfrom->id]);
-        $otherusers = $members;
-
         // Get conversation type and name. We'll use this to determine which message subject to generate, depending on type.
         $conv = $DB->get_record('message_conversations', ['id' => $eventdata->convid], 'id, type, name');
+
+        // For individual or group conversations, the members array should contain only the other users (recipients).
+        // For self conversations, the members array must contain the current user (who is both the sended and the recipient
+        // in such conversations).
+        if ($conv->type != \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF) {
+            unset($members[$localisedeventdata->userfrom->id]);
+        }
+        $otherusers = $members;
 
         // We treat individual conversations the same as any direct message with 'userfrom' and 'userto' specified.
         // We know the other user, so set the 'userto' field so that the event code will get access to this field.

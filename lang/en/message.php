@@ -209,6 +209,8 @@ $string['searchcombined'] = 'Search people and messages';
 $string['seeall'] = 'See all';
 $string['selectmessagestodelete'] = 'Select messages to delete';
 $string['selectnotificationtoview'] = 'Select from the list of notifications on the side to view more details';
+$string['selfconversationdefaultmessage'] = 'This is a conversation with yourself. You can use it for saving quick messages or
+links to read later, create personal notes or track to-do lists.';
 $string['send'] = 'Send';
 $string['sender'] = '{$a}:';
 $string['sendingvia'] = 'Sending "{$a->provider}" via "{$a->processor}"';

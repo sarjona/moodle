@@ -559,7 +559,8 @@ class core_phpunit_advanced_testcase extends advanced_testcase {
         $message->notification      = 0;
 
         message_send($message);
-        $this->assertEquals(2, $sink->count());
+        // Self-conversations has a default message when they are created to explain how to use them.
+        $this->assertEquals(3, $sink->count());
     }
 
     /**

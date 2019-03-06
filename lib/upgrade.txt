@@ -17,6 +17,12 @@ attribute on forms to avoid collisions in forms loaded in AJAX requests.
   This will allow queries to remain backwards-compatible with older versions of Moodle but will have significantly better performance in version supporting the innerjoin parameter.
 * /message/defaultoutputs.php file and admin_page_defaultmessageoutputs class have been deprecated
   and all their settings moved to admin/message.php (see MDL-64495). Please use admin_page_managemessageoutputs class instead.
+* A new conversation type has been created for self-conversations. During the upgrade process:
+  - The existing self-conversations will be starred and migrated to the new type, removing the duplicated members in the
+  message_conversation_members table. A default message will be added to them, to explain how to use them.
+  - An adhoc task (\core_message\task\create_missing_self_conversations) has been added to create the starred self-conversation
+  with the default message to all the existing users without them (only if $CFG->messaging is enabled).
+Besides, the self-conversation will be created also by default for all the new users (only if $CFG->messaging is enabled).
 
 === 3.6 ===
 
