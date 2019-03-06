@@ -4498,6 +4498,8 @@ class core_message_external extends external_api {
                             'Total number of individual conversations'),
                         \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => new external_value(PARAM_INT,
                             'Total number of group conversations'),
+                        \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => new external_value(PARAM_INT,
+                            'Total number of self conversations'),
                     ]
                 ),
             ]
@@ -4573,6 +4575,8 @@ class core_message_external extends external_api {
                             'Total number of unread individual conversations'),
                         \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => new external_value(PARAM_INT,
                             'Total number of unread group conversations'),
+                        \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => new external_value(PARAM_INT,
+                            'Total number of unread self conversations'),
                     ]
                 ),
             ]

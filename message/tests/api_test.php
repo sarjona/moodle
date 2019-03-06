@@ -477,6 +477,35 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Verify searching for users find themselves when they have self-conversations.
+     */
+    public function test_message_search_users_self_conversations() {
+        $this->resetAfterTest();
+
+        // Create some users.
+        $user1 = new stdClass();
+        $user1->firstname = 'User';
+        $user1->lastname = 'One';
+        $user1 = $this->getDataGenerator()->create_user($user1);
+        $user2 = new stdClass();
+        $user2->firstname = 'User';
+        $user2->lastname = 'Two';
+        $user2 = $this->getDataGenerator()->create_user($user2);
+
+        // Create self-conversation for user1.
+        $sc1 = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF, [$user1->id]);
+        testhelper::send_fake_message_to_conversation($user1, $sc1->id, 'Hi myself!');
+
+        // Perform a search as user1.
+        $this->setUser($user1);
+        $result = \core_message\api::message_search_users($user1->id, 'One');
+
+        // Check user1 is found as non-contacts.
+        $this->assertCount(0, $result[0]);
+        $this->assertCount(1, $result[1]);
+    }
+
+    /**
      * Verify searching for users works even if no matching users from either contacts, or non-contacts can be found.
      */
     public function test_message_search_users_with_empty_result() {
@@ -726,6 +755,9 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         // The person doing the search.
         $this->setUser($user1);
 
+        // Create self-conversation.
+        $sc = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF, [$user1->id]);
+
         // Create group conversation.
         $gc = \core_message\api::create_conversation(
             \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP,
@@ -734,6 +766,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
 
         // Send some messages back and forth.
         $time = 1;
+        testhelper::send_fake_message_to_conversation($user1, $sc->id, 'Test message to self!', $time - 2);
         testhelper::send_fake_message_to_conversation($user1, $gc->id, 'My hero!', $time - 1);
         $this->send_fake_message($user3, $user1, 'Don\'t block me.', 0, $time);
         $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
@@ -751,12 +784,12 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $messages = \core_message\api::search_messages($user1->id, 'o');
 
         // Confirm the data is correct.
-        $this->assertEquals(4, count($messages));
-
+        $this->assertEquals(5, count($messages));
         $message1 = $messages[0];
         $message2 = $messages[1];
         $message3 = $messages[2];
         $message4 = $messages[3];
+        $message5 = $messages[4];
 
         $this->assertEquals($user2->id, $message1->userid);
         $this->assertEquals($user2->id, $message1->useridfrom);
@@ -803,6 +836,18 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
         $this->assertTrue($message4->isread);
         $this->assertNull($message4->unreadcount);
         $this->assertEquals($gc->id, $message4->conversationid);
+
+        $this->assertEquals($user1->id, $message5->userid);
+        $this->assertEquals($user1->id, $message5->useridfrom);
+        $this->assertEquals(fullname($user1), $message5->fullname);
+        $this->assertTrue($message5->ismessaging);
+        $this->assertEquals('Test message to self!', $message5->lastmessage);
+        $this->assertNotEmpty($message5->messageid);
+        $this->assertFalse($message5->isonline);
+        $this->assertTrue($message5->isread);
+        $this->assertFalse($message5->isblocked);
+        $this->assertNull($message5->unreadcount);
+        $this->assertEquals($sc->id, $message5->conversationid);
     }
 
     /**
@@ -1385,28 +1430,25 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
-     * Tests retrieving conversations when a legacy 'self' conversation exists.
+     * Tests retrieving conversations when a 'self' conversation exists.
      */
-    public function test_get_conversations_legacy_self_conversations() {
+    public function test_get_conversations_self_conversations() {
         global $DB;
 
-        // Create a legacy conversation between one user and themself.
+        // Create a conversation between one user and themself.
         $user1 = self::getDataGenerator()->create_user();
-        $conversation = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL,
-            [$user1->id, $user1->id]);
+        $conversation = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF, [$user1->id]);
         testhelper::send_fake_message_to_conversation($user1, $conversation->id, 'Test message to self!');
 
         // Verify we are in a 'self' conversation state.
         $members = $DB->get_records('message_conversation_members', ['conversationid' => $conversation->id]);
-        $this->assertCount(2, $members);
-        $member = array_pop($members);
-        $this->assertEquals($user1->id, $member->userid);
+        $this->assertCount(1, $members);
         $member = array_pop($members);
         $this->assertEquals($user1->id, $member->userid);
 
-        // Verify this conversation is not returned by the method.
+        // Verify this conversation is returned by the method.
         $conversations = \core_message\api::get_conversations($user1->id);
-        $this->assertCount(0, $conversations);
+        $this->assertCount(1, $conversations);
     }
 
     /**
@@ -3340,8 +3382,17 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
             ]
         );
 
+        // Create a self-conversation for user1.
+        $sc1 = \core_message\api::create_conversation(
+            \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+            [$user1->id]
+        );
+
         // For group conversations, there are no user privacy checks, so only membership in the conversation is needed.
         $this->assertTrue(\core_message\api::can_send_message_to_conversation($user1->id, $gc1->id));
+
+        // For self conversations, there are no user privacy checks, so only membership in the conversation is needed.
+        $this->assertTrue(\core_message\api::can_send_message_to_conversation($user1->id, $sc1->id));
 
         // For individual conversations, the default privacy setting of 'only contacts and course members' applies.
         // Users are not in the same course, nor are they contacts, so messages cannot be sent.
@@ -3492,9 +3543,16 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
             ]
         );
 
+        // Create a self-conversation for user1.
+        $sc1 = \core_message\api::create_conversation(
+            \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+            [$user1->id]
+        );
+
         // Verify, non members cannot send a message.
         $this->assertFalse(\core_message\api::can_send_message_to_conversation($user4->id, $gc1->id));
         $this->assertFalse(\core_message\api::can_send_message_to_conversation($user4->id, $ic1->id));
+        $this->assertFalse(\core_message\api::can_send_message_to_conversation($user4->id, $sc1->id));
     }
 
     /**
@@ -5653,6 +5711,32 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Test returning members of a self conversation.
+     */
+    public function test_get_conversation_members_with_self_conversation() {
+        $lastaccess = new stdClass();
+        $lastaccess->lastaccess = time();
+
+        $user1 = self::getDataGenerator()->create_user($lastaccess);
+
+        $this->send_fake_message($user1, $user1, 'This is a self-message!');
+        $selfconversation = \core_message\api::create_conversation(\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+            [$user1->id]);
+        $members = \core_message\api::get_conversation_members($user1->id, $selfconversation->id);
+        $this->assertCount(1, $members);
+
+        $member1 = array_shift($members);
+
+        // Confirm the standard fields are OK.
+        $this->assertEquals($user1->id, $member1->id);
+        $this->assertEquals(fullname($user1), $member1->fullname);
+        $this->assertEquals(true, $member1->isonline);
+        $this->assertEquals(true, $member1->showonlinestatus);
+        $this->assertEquals(false, $member1->iscontact);
+        $this->assertEquals(false, $member1->isblocked);
+    }
+
+    /**
      * Test verifying that messages can be sent to existing individual conversations.
      */
     public function test_send_message_to_conversation_individual_conversation() {
@@ -5798,6 +5882,7 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     public function test_get_conversation_counts_test_cases() {
         $typeindividual = \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL;
         $typegroup = \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP;
+        $typeself = \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF;
         list($user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8) = [0, 1, 2, 3, 4, 5, 6, 7];
         $conversations = [
             [
@@ -5836,11 +5921,11 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'enabled' => false
             ],
             [
-                'type' => $typeindividual,
-                'users' => [$user8, $user8],
-                'messages' => [$user8, $user8],
+                'type' => $typeself,
+                'users' => [$user8],
+                'messages' => [$user8],
                 'favourites' => [],
-                'enabled' => null // Individual conversations cannot be disabled.
+                'enabled' => null // Self-conversations cannot be disabled.
             ],
         ];
 
@@ -5852,11 +5937,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user5],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5867,11 +5954,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user4],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5882,11 +5971,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5897,11 +5988,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user2],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5912,11 +6005,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user4],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5927,11 +6022,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5942,11 +6039,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5957,11 +6056,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5972,11 +6073,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -5987,11 +6090,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user2],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -6002,11 +6107,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user3],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 2,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -6017,11 +6124,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -6032,11 +6141,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -6047,11 +6158,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => [$user2]
             ],
@@ -6062,11 +6175,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user1],
                 'expectedcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 1, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 1,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 1,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => [$user2, $user3, $user4]
             ],
@@ -6077,11 +6192,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user6],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -6092,11 +6209,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user7],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -6107,11 +6226,13 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
                 'arguments' => [$user8],
                 'expectedcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 1
                 ]],
                 'expectedunreadcounts' => ['favourites' => 0, 'types' => [
                     \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL => 0,
-                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP => 0,
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF => 0
                 ]],
                 'deletedusers' => []
             ],
@@ -6197,6 +6318,8 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
             $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL]);
         $this->assertEquals($expectedcounts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP],
             $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP]);
+        $this->assertEquals($expectedcounts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF],
+            $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF]);
     }
 
     /**
@@ -6309,6 +6432,8 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
             $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL]);
         $this->assertEquals($expectedunreadcounts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP],
             $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_GROUP]);
+        $this->assertEquals($expectedunreadcounts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF],
+            $counts['types'][\core_message\api::MESSAGE_CONVERSATION_TYPE_SELF]);
     }
 
     /**
