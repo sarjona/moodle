@@ -2917,5 +2917,37 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2019031500.01);
     }
 
+    if ($oldversion < 2019032200.01) {
+        // For the existing self-conversations, set the type to the new MESSAGE_CONVERSATION_TYPE_SELF, update the convhash,
+        // star them and send a default message explaining how to use them.
+        $sql = "SELECT mcm.conversationid, mcm.userid, MAX(mcm.id) as maxid
+                  FROM {message_conversation_members} mcm
+              GROUP BY mcm.conversationid, mcm.userid
+                HAVING COUNT(*) > 1";
+        if ($selfconversations = $DB->get_records_sql($sql)) {
+            foreach ($selfconversations as $selfconversation) {
+                $DB->update_record('message_conversations',
+                    ['id' => $selfconversation->conversationid,
+                     'type' => \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+                     'convhash' => \core_message\helper::get_conversation_hash([$selfconversation->userid])
+                    ]
+                );
+                // Star the existing self-conversation.
+                \core_message\api::set_favourite_conversation($selfconversation->conversationid, $selfconversation->userid);
+            }
+
+            // Remove the repeated member with the higher id for all the existing self-conversations.
+            list($insql, $inparams) = $DB->get_in_or_equal(array_column($selfconversations, 'maxid'));
+            $DB->delete_records_select('message_conversation_members', "id $insql", $inparams);
+        }
+
+        // For existing users without self-conversations, queue the adhoc task to create them.
+        $task = new \core_message\task\create_missing_self_conversations();
+        \core\task\manager::queue_adhoc_task($task, true);
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2019032200.01);
+    }
+
     return true;
 }

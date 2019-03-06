@@ -122,7 +122,17 @@ class migrate_message_data extends \core\task\adhoc_task {
     private function migrate_data($userid, $otheruserid) {
         global $DB;
 
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userid, $otheruserid])) {
+        if ($userid == $otheruserid) {
+            // It's a self conversation.
+            $conversation = \core_message\api::get_self_conversation($userid);
+            if (empty($conversation)) {
+                $conversation = \core_message\api::create_conversation(
+                    \core_message\api::MESSAGE_CONVERSATION_TYPE_SELF,
+                    [$userid]
+                );
+            }
+            $conversationid = $conversation->id;
+        } else if (!$conversationid = \core_message\api::get_conversation_between_users([$userid, $otheruserid])) {
             $conversation = \core_message\api::create_conversation(
                 \core_message\api::MESSAGE_CONVERSATION_TYPE_INDIVIDUAL,
                 [

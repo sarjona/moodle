@@ -72,6 +72,12 @@ $observers = array(
         'eventname'   => '\core\event\course_module_completion_updated',
         'callback'    => 'core_competency\api::observe_course_module_completion_updated',
     ),
+
+    // Messages.
+    array(
+        'eventname'   => '\core\event\user_created',
+        'callback'    => 'core_message\api::create_self_conversation_user_created',
+    ),
 );
 
 // List of all events triggered by Moodle can be found using Events list report.
