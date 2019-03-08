@@ -78,7 +78,7 @@ if (empty($badge)) {
 
 $output = $PAGE->get_renderer('core', 'badges');
 
-$badge = new external_badge($badge, $userid);
+$badge = new \core_badges\output\external_badge($badge, $userid);
 
 $PAGE->set_pagelayout('base');
 $PAGE->set_title(get_string('issuedbadge', 'badges'));

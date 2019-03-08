@@ -65,7 +65,7 @@ class external_backpack extends \moodleform {
         $mform->addElement('static', 'apiversioninfo', get_string('apiversion', 'core_badges'), $label);
         $mform->addElement('hidden', 'apiversion', $backpack->apiversion);
         $mform->setType('apiversion', PARAM_INTEGER);
-        
+
         $mform->addElement('hidden', 'id', $backpack->id);
         $mform->setType('id', PARAM_INTEGER);
 
@@ -78,8 +78,10 @@ class external_backpack extends \moodleform {
         $issuercontact = $CFG->badges_defaultissuercontact;
         $mform->addElement('static', 'issuerinfo', get_string('defaultissuercontact', 'core_badges'), $issuercontact);
 
-        $mform->addElement('passwordunmask', 'password', get_string('password'));
+        $mform->addElement('passwordunmask', 'password', get_string('defaultissuerpassword', 'core_badges'));
         $mform->setType('password', PARAM_RAW);
+        $mform->addHelpButton('password', 'defaultissuerpassword', 'badges');
+        $mform->hideIf('password', 'apiversion', 'eq', 1);
 
         $this->set_data($backpack);
 

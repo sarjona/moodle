@@ -24,7 +24,6 @@
 
 require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
-require_once($CFG->dirroot . '/badges/lib/backpacklib.php');
 
 if (badges_open_badges_backpack_api() != OPEN_BADGES_V2) {
     throw new coding_exception('No backpacks support Open Badges V2.');
@@ -38,7 +37,7 @@ $PAGE->set_url('/badges/backpack-add.php', array('hash' => $id));
 $PAGE->set_context(context_system::instance());
 $output = $PAGE->get_renderer('core', 'badges');
 
-$issuedbadge = new issued_badge($id);
+$issuedbadge = new \core_badges\output\issued_badge($id);
 if (!empty($issuedbadge->recipient->id)) {
     // The flow for issuing a badge is:
     // * Create issuer
@@ -51,7 +50,7 @@ if (!empty($issuedbadge->recipient->id)) {
     $backpack = $DB->get_record('badge_backpack', array('userid' => $USER->id));
     $sitebackpack = badges_get_site_backpack(0, $backpack->backpackurl);
     $assertion = new core_badges_assertion($id, $backpack->apiversion);
-    $api = new OpenBadgesBackpackHandler($sitebackpack);
+    $api = new \core_badges\backpack_api($sitebackpack);
     $api->authenticate();
 
     // Create issuer.

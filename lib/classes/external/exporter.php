@@ -87,9 +87,6 @@ abstract class exporter {
                 if (array_key_exists($key, $related) && is_array($related[$key])) {
                     foreach ($related[$key] as $index => $value) {
                         if (!$value instanceof $classname) {
-                            var_dump($value instanceof $classname);
-                            var_dump($value, $classname);
-                            die();
                             throw new coding_exception($missingdataerr . $key . ' => ' . $classname . '[]');
                         }
                     }

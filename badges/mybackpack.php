@@ -26,8 +26,6 @@
 
 require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
-require_once($CFG->dirroot . '/badges/backpack_form.php');
-require_once($CFG->dirroot . '/badges/lib/backpacklib.php');
 
 require_login();
 
@@ -59,7 +57,7 @@ if ($disconnect && $backpack) {
     require_sesskey();
     $sitebackpack = badges_get_site_backpack(0, $backpack->backpackurl);
     // If backpack is connected, need to select collections.
-    $bp = new OpenBadgesBackpackHandler($sitebackpack, $backpack);
+    $bp = new \core_badges\backpack_api($sitebackpack, $backpack);
     $bp->disconnect_backpack($USER->id, $backpack->id);
     redirect(new moodle_url('/badges/mybackpack.php'));
 }
@@ -68,7 +66,7 @@ if ($backpack) {
     $sitebackpack = badges_get_site_backpack(0, $backpack->backpackurl);
 
     // If backpack is connected, need to select collections.
-    $bp = new OpenBadgesBackpackHandler($sitebackpack, $backpack);
+    $bp = new \core_badges\backpack_api($sitebackpack, $backpack);
     $request = $bp->get_collections();
     $groups = $request;
     if (isset($request->groups)) {
@@ -84,7 +82,7 @@ if ($backpack) {
     $params['email'] = $backpack->email;
     $params['selected'] = $bp->get_collection_record($backpack->id);
     $params['backpackweburl'] = $sitebackpack->backpackweburl;
-    $form = new edit_collections_form(new moodle_url('/badges/mybackpack.php'), $params);
+    $form = new \core_badges\form\collections(new moodle_url('/badges/mybackpack.php'), $params);
 
     if ($form->is_cancelled()) {
         redirect(new moodle_url('/badges/mybadges.php'));
@@ -113,7 +111,7 @@ if ($backpack) {
     $params['backpackpassword'] = get_user_preferences('badges_email_verify_password');
     $params['backpackid'] = get_user_preferences('badges_email_verify_backpackid');
 
-    $form = new edit_backpack_form(new moodle_url('/badges/mybackpack.php'), $params);
+    $form = new \core_badges\form\backpack(new moodle_url('/badges/mybackpack.php'), $params);
     if ($form->is_cancelled()) {
         redirect(new moodle_url('/badges/mybadges.php'));
     } else if ($data = $form->get_data()) {
@@ -126,6 +124,7 @@ if ($backpack) {
             redirect(new moodle_url('/badges/mybackpack.php'));
         } else if (isset($data->email)) {
             if (badges_send_verification_email($data->email, $data->backpackid, $data->backpackpassword)) {
+                $a = get_user_preferences('badges_email_verify_backpackid');
                 redirect(new moodle_url('/badges/mybackpack.php'),
                     get_string('backpackemailverifypending', 'badges', $data->email),
                     null, \core\output\notification::NOTIFY_INFO);
