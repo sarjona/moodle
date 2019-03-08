@@ -35,16 +35,12 @@
             <td> {{{backpackweburl}}} </td>
             <td> {{#sitebackpack}}Yes{{/sitebackpack}} </td>
             <td>
-            <div class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="menu{{id}}">{{#str}}edit{{/str}}</a><b class="caret"></b>
-                    <ul class="dropdown-menu" aria-labelledby="menu{{id}}" role="menu">
-                        <li class="dropdown-item">
-                            <a href="{{baseurl}}?id={{id}}&action=edit" role="menuitem">
-                                {{#pix}}t/edit{{/pix}} {{#str}}edit{{/str}}
-                            </a>
-                        </li>
-                    </ul>
-            </div>
+            {{#canedit}}
+                <a href="{{baseurl}}?id={{id}}&action=edit">
+                    {{#str}}editsettings, core_badges{{/str}}
+                </a>
+            {{/canedit}}
+            </td>
             </td>
         </tr>
         {{/backpacks}}

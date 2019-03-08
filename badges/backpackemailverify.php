@@ -24,7 +24,6 @@
  */
 require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
-require_once(__DIR__ . '/lib/backpacklib.php');
 
 $data = optional_param('data', '', PARAM_RAW);
 require_login();
@@ -47,11 +46,11 @@ if (!is_null($storedsecret)) {
         $data->apiversion = $backpack->apiversion;
         $data->email = $storedemail;
         $data->password = $password;
-        $bp = new OpenBadgesBackpackHandler($backpack, $data);
+        $bp = new \core_badges\backpack_api($backpack, $data);
 
         // Make sure we have all the required information before trying to save the connection.
         $backpackuid = $bp->authenticate();
-        if ($backpackuid === false) {
+        if (empty($backpackuid) || !empty($backpackuid->error)) {
             redirect(new moodle_url($redirect), get_string('backpackconnectionunexpectedresult', 'badges'),
                 null, \core\output\notification::NOTIFY_ERROR);
         }

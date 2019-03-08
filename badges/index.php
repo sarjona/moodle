@@ -178,7 +178,7 @@ if ($totalcount) {
         echo $OUTPUT->notification(get_string($msg, 'badges'), 'notifysuccess');
     }
 
-    $badges             = new badge_management($records);
+    $badges             = new \core_badges\output\badge_management($records);
     $badges->sort       = $sortby;
     $badges->dir        = $sorthow;
     $badges->page       = $page;
@@ -190,8 +190,8 @@ if ($totalcount) {
     echo $output->notification(get_string('nobadges', 'badges'));
 
     if (has_capability('moodle/badges:createbadge', $PAGE->context)) {
-        echo $OUTPUT->single_button(new moodle_url('newbadge.php', array('type' => $type, 'id' => $courseid)),
-            get_string('newbadge', 'badges'));
+        echo $OUTPUT->box($OUTPUT->single_button(new moodle_url('newbadge.php', array('type' => $type, 'id' => $courseid)),
+            get_string('newbadge', 'badges')));
     }
 }
 

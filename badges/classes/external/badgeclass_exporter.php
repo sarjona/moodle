@@ -38,18 +38,13 @@ use core\external\exporter;
 class badgeclass_exporter extends exporter {
 
     /**
-     * Either map version 1 data to version 2 or return it untouched.
+     * Map data from a request response to the internal structure.
      *
      * @param stdClass $data The remote data.
      * @param string $apiversion The backpack version used to communicate remotely.
      * @return stdClass
      */
     public static function map_external_data($data, $apiversion) {
-        if ($apiversion == OPEN_BADGES_V1) {
-            $result = new \stdClass();
-            die('who knows?');
-            return $result;
-        }
         $mapped = new \stdClass();
         if (isset($data->entityType)) {
             $mapped->type = $data->entityType;
@@ -68,7 +63,7 @@ class badgeclass_exporter extends exporter {
         if (isset($data->openBadgeId)) {
             $mapped->hostedUrl = $data->openBadgeId;
         }
-        
+
         return $mapped;
     }
 

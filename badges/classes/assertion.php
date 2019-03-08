@@ -116,6 +116,8 @@ class core_badges_assertion {
     /**
      * Get badge assertion.
      *
+     * @param boolean $issued Include the nested badge issued information.
+     * @param boolean $usesalt Hash the identity and include the salt information for the hash.
      * @return array Badge assertion.
      */
     public function get_badge_assertion($issued = true, $usesalt = true) {
@@ -162,6 +164,7 @@ class core_badges_assertion {
     /**
      * Get badge class information.
      *
+     * @param boolean $issued Include the nested badge issuer information.
      * @return array Badge Class information.
      */
     public function get_badge_class($issued = true) {
@@ -179,8 +182,12 @@ class core_badges_assertion {
             if ($imagefile) {
                 $imagedata = base64_encode($imagefile->get_content());
             } else {
-                // Unit tests the file might not exists yet.
-                $imagedata = '';
+                if (defined('PHPUNIT_TEST') && PHPUNIT_TEST) {
+                    // Unit tests the file might not exist yet.
+                    $imagedata = '';
+                } else {
+                    throw new coding_exception('Image file does not exist.');
+                }
             }
             $class['image'] = 'data:image/png;base64,' . $imagedata;
             $class['criteria'] = $this->_url->out(false); // Currently issued badge URL.
@@ -202,6 +209,7 @@ class core_badges_assertion {
      * @return array Issuer information.
      */
     public function get_issuer() {
+        global $CFG;
         $issuer = array();
         if ($this->_data) {
             // Required.
@@ -210,6 +218,8 @@ class core_badges_assertion {
             // Optional.
             if (!empty($this->_data->issuercontact)) {
                 $issuer['email'] = $this->_data->issuercontact;
+            } else {
+                $issuer['email'] = $CFG->badges_defaultissuercontact;
             }
         }
         $this->embed_data_badge_version2($issuer, OPEN_BADGES_V2_TYPE_ISSUER);
@@ -360,7 +370,11 @@ class core_badges_assertion {
                         $imagedata = base64_encode($imagefile->get_content());
                     } else {
                         // The file might not exist in unit tests.
-                        $imagedata = '';
+                        if (defined('PHPUNIT_TEST') && PHPUNIT_TEST) {
+                            $imagedata = '';
+                        } else {
+                            throw new coding_exception('Image file does not exist.');
+                        }
                     }
                     $json['image'] = 'data:image/png;base64,' . $imagedata;
                 }

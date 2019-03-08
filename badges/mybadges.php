@@ -109,7 +109,7 @@ if (!empty($success)) {
 $totalcount = count($badges);
 $records = badges_get_user_badges($USER->id, null, $page, BADGE_PERPAGE, $search);
 
-$userbadges             = new badge_user_collection($records, $USER->id);
+$userbadges             = new \core_badges\output\badge_user_collection($records, $USER->id);
 $userbadges->sort       = 'dateissued';
 $userbadges->dir        = 'DESC';
 $userbadges->page       = $page;

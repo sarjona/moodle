@@ -278,7 +278,7 @@ class core_badges_renderer extends plugin_renderer_base {
 
         // Edit badge.
         if (has_capability('moodle/badges:configuredetails', $context)) {
-            $url = new moodle_url('/badges/edit.php', array('id' => $badge->id, 'action' => 'details'));
+            $url = new moodle_url('/badges/edit.php', array('id' => $badge->id, 'action' => 'badge'));
             $actions .= $this->output->action_icon($url, new pix_icon('t/edit', get_string('edit'))) . " ";
         }
 
@@ -299,7 +299,7 @@ class core_badges_renderer extends plugin_renderer_base {
     }
 
     // Outputs issued badge with actions available.
-    protected function render_issued_badge(issued_badge $ibadge) {
+    protected function render_issued_badge(\core_badges\output\issued_badge $ibadge) {
         global $USER, $CFG, $DB, $SITE;
         $issued = $ibadge->issued;
         $userinfo = $ibadge->recipient;
@@ -473,7 +473,7 @@ class core_badges_renderer extends plugin_renderer_base {
     }
 
     // Outputs external badge.
-    protected function render_external_badge(external_badge $ibadge) {
+    protected function render_external_badge(\core_badges\output\external_badge $ibadge) {
         $issued = $ibadge->issued;
         $assertion = $issued->assertion;
         $issuer = $assertion->badge->issuer;
@@ -564,7 +564,7 @@ class core_badges_renderer extends plugin_renderer_base {
     }
 
     // Displays the user badges.
-    protected function render_badge_user_collection(badge_user_collection $badges) {
+    protected function render_badge_user_collection(\core_badges\output\badge_user_collection $badges) {
         global $CFG, $USER, $SITE, $OUTPUT;
         $backpack = $badges->backpack;
         $mybackpack = new moodle_url('/badges/mybackpack.php');
@@ -640,7 +640,7 @@ class core_badges_renderer extends plugin_renderer_base {
     }
 
     // Displays the available badges.
-    protected function render_badge_collection(badge_collection $badges) {
+    protected function render_badge_collection(\core_badges\output\badge_collection $badges) {
         $paging = new paging_bar($badges->totalcount, $badges->page, $badges->perpage, $this->page->url, 'page');
         $htmlpagingbar = $this->render($paging);
         $table = new html_table();
@@ -683,7 +683,7 @@ class core_badges_renderer extends plugin_renderer_base {
     }
 
     // Outputs table of badges with actions available.
-    protected function render_badge_management(badge_management $badges) {
+    protected function render_badge_management(\core_badges\output\badge_management $badges) {
         $paging = new paging_bar($badges->totalcount, $badges->page, $badges->perpage, $this->page->url, 'page');
 
         // New badge button.
@@ -691,7 +691,8 @@ class core_badges_renderer extends plugin_renderer_base {
         if (has_capability('moodle/badges:createbadge', $this->page->context)) {
             $n['type'] = $this->page->url->get_param('type');
             $n['id'] = $this->page->url->get_param('id');
-            $htmlnew = $this->output->single_button(new moodle_url('newbadge.php', $n), get_string('newbadge', 'badges'));
+            $btn = $this->output->single_button(new moodle_url('newbadge.php', $n), get_string('newbadge', 'badges')); 
+            $htmlnew = $this->output->box($btn);
         }
 
         $htmlpagingbar = $this->render($paging);
@@ -749,7 +750,7 @@ class core_badges_renderer extends plugin_renderer_base {
 
         if (has_capability('moodle/badges:configuredetails', $context)) {
             $row[] = new tabobject('details',
-                        new moodle_url('/badges/edit.php', array('id' => $badgeid, 'action' => 'details')),
+                        new moodle_url('/badges/edit.php', array('id' => $badgeid, 'action' => 'badge')),
                         get_string('bdetails', 'badges')
                     );
         }
@@ -961,7 +962,7 @@ class core_badges_renderer extends plugin_renderer_base {
 
     // Renders a table with users who have earned the badge.
     // Based on stamps collection plugin.
-    protected function render_badge_recipients(badge_recipients $recipients) {
+    protected function render_badge_recipients(\core_badges\output\badge_recipients $recipients) {
         $paging = new paging_bar($recipients->totalcount, $recipients->page, $recipients->perpage, $this->page->url, 'page');
         $htmlpagingbar = $this->render($paging);
         $table = new html_table();
@@ -1177,10 +1178,10 @@ class core_badges_renderer extends plugin_renderer_base {
     /**
      * Renders a table for related badges.
      *
-     * @param badge_related $related list related badges.
+     * @param \core_badges\output\badge_related $related list related badges.
      * @return string list related badges to output.
      */
-    protected function render_badge_related(badge_related $related) {
+    protected function render_badge_related(\core_badges\output\badge_related $related) {
         $currentbadge = new badge($related->currentbadgeid);
         $languages = get_string_manager()->get_list_of_languages();
         $paging = new paging_bar($related->totalcount, $related->page, $related->perpage, $this->page->url, 'page');
@@ -1237,10 +1238,10 @@ class core_badges_renderer extends plugin_renderer_base {
     /**
      * Renders a table with alignment.
      *
-     * @param badge_alignments $alignments List alignments.
+     * @param core_badges\output\badge_alignments $alignments List alignments.
      * @return string List alignment to output.
      */
-    protected function render_badge_alignments(badge_alignments $alignments) {
+    protected function render_badge_alignments(\core_badges\output\badge_alignments $alignments) {
         $currentbadge = new badge($alignments->currentbadgeid);
         $paging = new paging_bar($alignments->totalcount, $alignments->page, $alignments->perpage, $this->page->url, 'page');
         $htmlpagingbar = $this->render($paging);
@@ -1298,292 +1299,3 @@ class core_badges_renderer extends plugin_renderer_base {
     }
 }
 
-/**
- * An issued badges for badge.php page
- */
-class issued_badge implements renderable {
-    /** @var issued badge */
-    public $issued;
-
-    /** @var badge recipient */
-    public $recipient;
-
-    /** @var badge class */
-    public $badgeclass;
-
-    /** @var badge visibility to others */
-    public $visible = 0;
-
-    /** @var badge class */
-    public $badgeid = 0;
-
-    /**
-     * Initializes the badge to display
-     *
-     * @param string $hash Issued badge hash
-     */
-    public function __construct($hash) {
-        global $DB;
-
-        $assertion = new core_badges_assertion($hash);
-        $this->issued = $assertion->get_badge_assertion();
-        $this->badgeclass = $assertion->get_badge_class();
-
-        $rec = $DB->get_record_sql('SELECT userid, visible, badgeid
-                FROM {badge_issued}
-                WHERE ' . $DB->sql_compare_text('uniquehash', 40) . ' = ' . $DB->sql_compare_text(':hash', 40),
-                array('hash' => $hash), IGNORE_MISSING);
-        if ($rec) {
-            // Get a recipient from database.
-            $namefields = get_all_user_name_fields(true, 'u');
-            $user = $DB->get_record_sql("SELECT u.id, $namefields, u.deleted, u.email
-                        FROM {user} u WHERE u.id = :userid", array('userid' => $rec->userid));
-            $this->recipient = $user;
-            $this->visible = $rec->visible;
-            $this->badgeid = $rec->badgeid;
-        }
-    }
-}
-
-/**
- * An external badges for external.php page
- */
-class external_badge implements renderable {
-    /** @var issued badge */
-    public $issued;
-
-    /** @var User ID */
-    public $recipient;
-
-    /** @var validation of external badge */
-    public $valid = true;
-
-    /**
-     * Initializes the badge to display
-     *
-     * @param object $badge External badge information.
-     * @param int $recipient User id.
-     */
-    public function __construct($badge, $recipient) {
-        global $DB;
-        // At this point a user has connected a backpack. So, we are going to get
-        // their backpack email rather than their account email.
-        $namefields = get_all_user_name_fields(true, 'u');
-        $user = $DB->get_record_sql("SELECT {$namefields}, b.email
-                    FROM {user} u INNER JOIN {badge_backpack} b ON u.id = b.userid
-                    WHERE b.userid = :userid", array('userid' => $recipient), IGNORE_MISSING);
-
-        $this->issued = $badge;
-        $this->recipient = $user;
-
-        // Check if recipient is valid.
-        // There is no way to be 100% sure that a badge belongs to a user.
-        // Backpack does not return any recipient information.
-        // All we can do is compare that backpack email hashed using salt
-        // provided in the assertion matches a badge recipient from the assertion.
-        if ($user) {
-            if (isset($badge->assertion->recipient->identity)) {
-                $badge->assertion->salt = $badge->assertion->recipient->salt;
-                $badge->assertion->recipient = $badge->assertion->recipient->identity;
-            }
-            // Open Badges V2 does not even include a recipient.
-            if (!isset($badge->assertion->recipient)) {
-                $this->valid = false;
-            } else if (validate_email($badge->assertion->recipient) && $badge->assertion->recipient == $user->email) {
-                // If we have email, compare emails.
-                $this->valid = true;
-            } else if ($badge->assertion->recipient == 'sha256$' . hash('sha256', $user->email)) {
-                // If recipient is hashed, but no salt, compare hashes without salt.
-                $this->valid = true;
-            } else if ($badge->assertion->recipient == 'sha256$' . hash('sha256', $user->email . $badge->assertion->salt)) {
-                // If recipient is hashed, compare hashes.
-                $this->valid = true;
-            } else {
-                // Otherwise, we cannot be sure that this user is a recipient.
-                $this->valid = false;
-            }
-        } else {
-            $this->valid = false;
-        }
-    }
-}
-
-/**
- * Badge recipients rendering class
- */
-class badge_recipients implements renderable {
-    /** @var string how are the data sorted */
-    public $sort = 'lastname';
-
-    /** @var string how are the data sorted */
-    public $dir = 'ASC';
-
-    /** @var int page number to display */
-    public $page = 0;
-
-    /** @var int number of badge recipients to display per page */
-    public $perpage = 30;
-
-    /** @var int the total number or badge recipients to display */
-    public $totalcount = null;
-
-    /** @var array internal list of  badge recipients ids */
-    public $userids = array();
-    /**
-     * Initializes the list of users to display
-     *
-     * @param array $holders List of badge holders
-     */
-    public function __construct($holders) {
-        $this->userids = $holders;
-    }
-}
-
-/**
- * Collection of all badges for view.php page
- */
-class badge_collection implements renderable {
-
-    /** @var string how are the data sorted */
-    public $sort = 'name';
-
-    /** @var string how are the data sorted */
-    public $dir = 'ASC';
-
-    /** @var int page number to display */
-    public $page = 0;
-
-    /** @var int number of badges to display per page */
-    public $perpage = BADGE_PERPAGE;
-
-    /** @var int the total number of badges to display */
-    public $totalcount = null;
-
-    /** @var array list of badges */
-    public $badges = array();
-
-    /**
-     * Initializes the list of badges to display
-     *
-     * @param array $badges Badges to render
-     */
-    public function __construct($badges) {
-        $this->badges = $badges;
-    }
-}
-
-/**
- * Collection of badges used at the index.php page
- */
-class badge_management extends badge_collection implements renderable {
-}
-
-/**
- * Collection of user badges used at the mybadges.php page
- */
-class badge_user_collection extends badge_collection implements renderable {
-    /** @var array backpack settings */
-    public $backpack = null;
-
-    /** @var string search */
-    public $search = '';
-
-    /**
-     * Initializes user badge collection.
-     *
-     * @param array $badges Badges to render
-     * @param int $userid Badges owner
-     */
-    public function __construct($badges, $userid) {
-        global $CFG;
-        parent::__construct($badges);
-
-        if (!empty($CFG->badges_allowexternalbackpack)) {
-            $this->backpack = get_backpack_settings($userid, true);
-        }
-    }
-}
-
-/**
- * Collection of all related badges.
- *
- * @copyright  2018 Tung Thai
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author     Tung Thai <Tung.ThaiDuc@nashtechglobal.com>
- */
-class badge_related implements renderable {
-
-    /** @var string how are the data sorted. */
-    public $sort = 'name';
-
-    /** @var string how are the data sorted. */
-    public $dir = 'ASC';
-
-    /** @var int page number to display. */
-    public $page = 0;
-
-    /** @var int number of badges to display per page. */
-    public $perpage = BADGE_PERPAGE;
-
-    /** @var int the total number of badges to display. */
-    public $totalcount = null;
-
-    /** @var int the current badge. */
-    public $currentbadgeid = 0;
-
-    /** @var array list of badges. */
-    public $badges = array();
-
-    /**
-     * Initializes the list of badges to display.
-     *
-     * @param array $badges related badges to render.
-     * @param int $currentbadgeid ID current badge.
-     */
-    public function __construct($badges, $currentbadgeid) {
-        $this->badges = $badges;
-        $this->currentbadgeid = $currentbadgeid;
-    }
-}
-
-/**
- * Collection of all alignments.
- *
- * @copyright  2018 Tung Thai
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author     Tung Thai <Tung.ThaiDuc@nashtechglobal.com>
- */
-class badge_alignments implements renderable
-{
-    /** @var string how are the data sorted. */
-    public $sort = 'name';
-
-    /** @var string how are the data sorted. */
-    public $dir = 'ASC';
-
-    /** @var int page number to display. */
-    public $page = 0;
-
-    /** @var int number of badges to display per page. */
-    public $perpage = BADGE_PERPAGE;
-
-    /** @var int the total number of badges to display. */
-    public $totalcount = null;
-
-    /** @var array list of badges. */
-    public $alignments = array();
-
-    /** @var array list of badges. */
-    public $currentbadgeid = 0;
-
-    /**
-     * Initializes the list of alignments to display.
-     *
-     * @param array $alignments List alignments to render.
-     * @param int $currentbadgeid ID current badge.
-     */
-    public function __construct($alignments, $currentbadgeid) {
-        $this->alignments = $alignments;
-        $this->currentbadgeid = $currentbadgeid;
-    }
-}

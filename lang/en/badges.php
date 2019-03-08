@@ -130,6 +130,7 @@ $string['backpackimport'] = 'Badge import settings';
 $string['backpackimport_help'] = 'After the backpack connection is successfully established, badges from your backpack can be displayed on your badges page and your profile page.
 
 In this area, you can select collections of badges from your backpack that you would like to display in your profile.';
+$string['backpacksettings'] = 'Backpack settings';
 $string['backpackapiurl'] = 'Backpack API URL';
 $string['backpackweburl'] = 'Backpack Website URL';
 $string['badges'] = 'Badges';
@@ -260,9 +261,11 @@ $string['dateearned'] = 'Date: {$a}';
 $string['day'] = 'Day(s)';
 $string['deactivate'] = 'Disable access';
 $string['deactivatesuccess'] = 'Access to the badges was successfully disabled.';
-$string['defaultissuercontact'] = 'Default badge issuer contact details';
-$string['defaultissuercontact_desc'] = 'An email address associated with the badge issuer.';
-$string['defaultissuername'] = 'Default badge issuer name';
+$string['defaultissuercontact'] = 'Badge issuer email address';
+$string['defaultissuercontact_desc'] = 'An email address associated with the badge issuer. For an Open Badges v2.0 backpack, this is used for authentication when publishing badges to a backpack.';
+$string['defaultissuerpassword'] = 'Badge issuer password';
+$string['defaultissuerpassword_help'] = 'When publishing Badges to a Backpack using Open Badges v2.0, the "Badge issuer email address" and "Badge issuer password" must correspond to an account on the Backpack site that is used to issue Badges representing this site.';
+$string['defaultissuername'] = 'Badge issuer name';
 $string['defaultissuername_desc'] = 'Name of the issuing agent or authority.';
 $string['delbadge'] = 'Would you like to delete badge \'{$a}\' and remove all existing issued badges?';
 $string['delexternalbackpackconfirm'] = 'Delete site backpack \'{$a}\'?';

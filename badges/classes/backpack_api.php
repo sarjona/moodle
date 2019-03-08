@@ -15,23 +15,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * External backpack library.
+ * Communicate with backpacks.
  *
- * @package    core
- * @subpackage badges
  * @copyright  2012 onwards Totara Learning Solutions Ltd {@link http://www.totaralms.com/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @author     Yuliya Bozhko <yuliya.bozhko@totaralms.com>
  */
 
+namespace core_badges;
+
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
 require_once($CFG->libdir . '/filelib.php');
+
+use cache;
+use coding_exception;
 use core_badges\external\assertion_exporter;
 use core_badges\external\collection_exporter;
 use core_badges\external\issuer_exporter;
 use core_badges\external\badgeclass_exporter;
+use curl;
+use stdClass;
 
 define('BADGE_ACCESS_TOKEN', 'access');
 define('BADGE_USER_ID_TOKEN', 'user_id');
@@ -39,242 +43,31 @@ define('BADGE_BACKPACK_ID_TOKEN', 'backpack_id');
 define('BADGE_REFRESH_TOKEN', 'refresh');
 define('BADGE_EXPIRES_TOKEN', 'expires');
 
-// Adopted from https://github.com/jbkc85/openbadges-class-php.
-// Author Jason Cameron <jbkc85@gmail.com>.
+/**
+ * Class for communicating with backpacks.
+ */
+class backpack_api {
 
-class backpack_api_mapping {
-    public $action;
-    private $url;
-    public $params;
-    public $requestexporter;
-    public $responseexporter;
-    public $multiple;
-    public $method;
-    public $json;
-    public $authrequired;
-    private $isuserbackpack;
-
-    public function __construct($action, $url, $postparams, $requestexporter, $responseexporter,
-                                $multiple, $method, $json, $authrequired, $isuserbackpack, $backpackapiversion) {
-        $this->action = $action;
-        $this->url = $url;
-        $this->postparams = $postparams;
-        $this->requestexporter = $requestexporter;
-        $this->responseexporter = $responseexporter;
-        $this->multiple = $multiple;
-        $this->method = $method;
-        $this->json = $json;
-        $this->authrequired = $authrequired;
-        $this->isuserbackpack = $isuserbackpack;
-        $this->backpackapiversion = $backpackapiversion;
-    }
-
-    private function get_token_key($type) {
-        $prefix = 'badges_';
-        if ($this->isuserbackpack) {
-            $prefix .= 'user_backpack_';
-        } else {
-            $prefix .= 'site_backpack_';
-        }
-        $prefix .= $type . '_token';
-        return $prefix;
-    }
-
-    public function is_match($action) {
-        return $this->action == $action;
-    }
-
-    private function get_url($apiurl, $param1, $param2) {
-        $urlscheme = parse_url($apiurl, PHP_URL_SCHEME);
-        $urlhost = parse_url($apiurl, PHP_URL_HOST);
-
-        $url = $this->url;
-        $url = str_replace('[SCHEME]', $urlscheme, $url);
-        $url = str_replace('[HOST]', $urlhost, $url);
-        $url = str_replace('[URL]', $apiurl, $url);
-        $url = str_replace('[PARAM1]', $param1, $url);
-        $url = str_replace('[PARAM2]', $param2, $url);
-
-        return $url;
-    }
-
-    private function get_post_params($email, $password, $param) {
-        global $PAGE;
-
-        if ($this->method == 'get') {
-            return '';
-        }
-
-        $request = $this->postparams;
-        if ($request === '[PARAM]') {
-            $value = $param;
-            foreach ($value as $key => $keyvalue) {
-                if (gettype($value[$key]) == 'array') {
-                    $newkey = 'related_' . $key;
-                    $value[$newkey] = $value[$key];
-                    unset($value[$key]);
-                }
-            }
-        } else if (is_array($request)) {
-            foreach ($request as $key => $value) {
-                if ($value == '[EMAIL]') {
-                    $value = $email;
-                    $request[$key] = $value;
-                } else if ($value == '[PASSWORD]') {
-                    $value = $password;
-                    $request[$key] = $value;
-                }
-            }
-        }
-        $context = context_system::instance();
-        $exporter = $this->requestexporter;
-        $output = $PAGE->get_renderer('core', 'badges');
-        if (!empty($exporter)) {
-            $exporterinstance = new $exporter($value, ['context' => $context]);
-            $request = $exporterinstance->export($output);
-        }
-        if ($this->json) {
-            return json_encode($request);
-        }
-        return $request;
-    }
-
-    private function convert_email_response($response, $backpackid) {
-        global $SESSION;
-
-        if (isset($response->status) && $response->status == 'okay') {
-
-            // Remember the tokens.
-            $useridkey = $this->get_token_key(BADGE_USER_ID_TOKEN);
-            $backpackidkey = $this->get_token_key(BADGE_BACKPACK_ID_TOKEN);
-
-            $SESSION->$useridkey = $response->userId;
-            $SESSION->$backpackidkey = $backpackid;
-            return $response->userId;
-        }
-    }
-
-    private function get_auth_user_id() {
-        global $USER;
-
-        if ($this->isuserbackpack) {
-            return $USER->id;
-        } else {
-            // The access tokens for the system backpack are shared.
-            return -1;
-        }
-    }
-
-    private function oauth_token_response($response, $backpackid) {
-        global $SESSION;
-
-        if (isset($response->access_token) && isset($response->refresh_token)) {
-            // Remember the tokens.
-            $accesskey = $this->get_token_key(BADGE_ACCESS_TOKEN);
-            $refreshkey = $this->get_token_key(BADGE_REFRESH_TOKEN);
-            $expireskey = $this->get_token_key(BADGE_EXPIRES_TOKEN);
-            $useridkey = $this->get_token_key(BADGE_USER_ID_TOKEN);
-            $backpackidkey = $this->get_token_key(BADGE_BACKPACK_ID_TOKEN);
-            if (isset($response->expires_in)) {
-                $timeout = $response->expires_in;
-            } else {
-                $timeout = 15 * 60; // 15 minute timeout if none set.
-            }
-            $expires = $timeout + time();
-
-            $SESSION->$expireskey = $expires;
-            $SESSION->$useridkey = $this->get_auth_user_id();
-            $SESSION->$accesskey = $response->access_token;
-            $SESSION->$refreshkey = $response->refresh_token;
-            $SESSION->$backpackidkey = $backpackid;
-            return -1;
-        }
-        return $response;
-    }
-
-    private function get_curl_options() {
-        return array(
-            'FRESH_CONNECT'     => true,
-            'RETURNTRANSFER'    => true,
-            'FORBID_REUSE'      => true,
-            'HEADER'            => 0,
-            'CONNECTTIMEOUT'    => 3,
-            'CONNECTTIMEOUT'    => 3,
-            // Follow redirects with the same type of request when sent 301, or 302 redirects.
-            'CURLOPT_POSTREDIR' => 3,
-        );
-    }
-
-    public function request($apiurl, $urlparam1, $urlparam2, $email, $password, $postparam, $backpackid) {
-        global $SESSION, $PAGE;
-
-        $curl = new curl();
-
-        $url = $this->get_url($apiurl, $urlparam1, $urlparam2);
-
-        if ($this->authrequired) {
-            $accesskey = $this->get_token_key(BADGE_ACCESS_TOKEN);
-            $token = $SESSION->$accesskey;
-            $curl->setHeader('Authorization: Bearer ' . $token);
-        }
-        if ($this->json) {
-            $curl->setHeader(array('Content-type: application/json'));
-        }
-        $curl->setHeader(array('Accept: application/json', 'Expect:'));
-        $options = $this->get_curl_options();
-
-        $post = $this->get_post_params($email, $password, $postparam);
-        if ($this->method == 'get') {
-            $response = $curl->get($url, $post, $options);
-        } else if ($this->method == 'post') {
-            $response = $curl->post($url, $post, $options);
-        }
-        $response = json_decode($response);
-
-        if (isset($response->result)) {
-            $response = $response->result;
-        }
-        $context = context_system::instance();
-        $exporter = $this->responseexporter;
-        if (class_exists($exporter)) {
-            $output = $PAGE->get_renderer('core', 'badges');
-            if (!$this->multiple) {
-                if (count($response)) {
-                    $response = $response[0];
-                }
-                $apidata = $exporter::map_external_data($response, $this->backpackapiversion);
-                $exporterinstance = new $exporter($apidata, ['context' => $context]);
-                $data = $exporterinstance->export($output);
-                return $data; 
-            } else {
-                $multiple = [];
-                foreach ($response as $data) {
-                    $apidata = $exporter::map_external_data($data, $this->backpackapiversion);
-                    $exporterinstance = new $exporter($apidata, ['context' => $context]);
-                    $multiple[] = $exporterinstance->export($output);
-                }
-                return $multiple;
-            }
-        } else if (method_exists($this, $exporter)) {
-            return $this->$exporter($response, $backpackid);
-        }
-        return $response;
-    }    
-}
-
-class OpenBadgesBackpackHandler {
-    private $backpack;
+    /** @var string The email address of the issuer or the backpack owner. */
     private $email;
+
+    /** @var string The base url used for api requests to this backpack. */
     private $backpackapiurl;
+
+    /** @var integer The backpack api version to use. */
     private $backpackapiversion;
+
+    /** @var string The password to authenticate requests. */
     private $password;
+
+    /** @var boolean User or site api requests. */
     private $isuserbackpack;
+
+    /** @var integer The id of the backpack we are talking to. */
     private $backpackid;
 
-    private $mappingsv1site = [];
-    private $mappingsv2site = [];
-    private $mappingsv1user = [];
-    private $mappingsv2user = [];
+    /** @var \backpack_api_mapping[] List of apis for the user or site using api version 1 or 2. */
+    private $mappings = [];
 
     /**
      * Create a wrapper to communicate with the backpack.
@@ -288,12 +81,12 @@ class OpenBadgesBackpackHandler {
     public function __construct($sitebackpack, $userbackpack = false) {
         global $CFG;
         $admin = get_admin();
-        
+
         $this->backpackapiurl = $sitebackpack->backpackapiurl;
         $this->backpackapiurl = $sitebackpack->backpackapiurl;
         $this->backpackapiversion = $sitebackpack->apiversion;
         $this->password = $sitebackpack->password;
-        $this->email = !empty($CFG->badges_defaultissuercontact) ? $CFG->badges_defaultissuercontact : $admin->email;               
+        $this->email = !empty($CFG->badges_defaultissuercontact) ? $CFG->badges_defaultissuercontact : $admin->email;
         $this->isuserbackpack = false;
         $this->backpackid = $sitebackpack->id;
         if (!empty($userbackpack)) {
@@ -303,11 +96,13 @@ class OpenBadgesBackpackHandler {
             $this->password = $userbackpack->password;
             $this->email = $userbackpack->email;
         }
-        // $this->backpackuid = isset($record->backpackuid) ? $record->backpackuid : 0;
 
         $this->define_mappings();
     }
 
+    /**
+     * Define the mappings supported by this usage and api version.
+     */
     private function define_mappings() {
         if ($this->backpackapiversion == OPEN_BADGES_V2) {
             if ($this->isuserbackpack) {
@@ -381,7 +176,7 @@ class OpenBadgesBackpackHandler {
                 foreach ($mapping as $map) {
                     $map[] = true; // User api function.
                     $map[] = OPEN_BADGES_V2; // V2 function.
-                    $this->mappingsv2user[] = new backpack_api_mapping(...$map);
+                    $this->mappings[] = new backpack_api_mapping(...$map);
                 }
             } else {
                 $mapping = [];
@@ -432,7 +227,7 @@ class OpenBadgesBackpackHandler {
                 foreach ($mapping as $map) {
                     $map[] = false; // Site api function.
                     $map[] = OPEN_BADGES_V2; // V2 function.
-                    $this->mappingsv2site[] = new backpack_api_mapping(...$map);
+                    $this->mappings[] = new backpack_api_mapping(...$map);
                 }
             }
         } else {
@@ -474,7 +269,7 @@ class OpenBadgesBackpackHandler {
                 foreach ($mapping as $map) {
                     $map[] = true; // User api function.
                     $map[] = OPEN_BADGES_V1; // V1 function.
-                    $this->mappingsv1user[] = new backpack_api_mapping(...$map);
+                    $this->mappings[] = new backpack_api_mapping(...$map);
                 }
             } else {
                 $mapping = [];
@@ -492,18 +287,26 @@ class OpenBadgesBackpackHandler {
                 foreach ($mapping as $map) {
                     $map[] = false; // Site api function.
                     $map[] = OPEN_BADGES_V1; // V1 function.
-                    $this->mappingsv1site[] = new backpack_api_mapping(...$map);
+                    $this->mappings[] = new backpack_api_mapping(...$map);
                 }
             }
         }
     }
 
+    /**
+     * Make an api request
+     *
+     * @param string $action The api function.
+     * @param string $collection An api parameter
+     * @param string $entityid An api parameter
+     * @param string $postdata The body of the api request.
+     * @return mixed
+     */
     private function curl_request($action, $collection = null, $entityid = null, $postdata = null) {
         global $CFG, $SESSION;
 
         $curl = new curl();
         $authrequired = false;
-        $mappings = false;
         if ($this->backpackapiversion == OPEN_BADGES_V1) {
             $useridkey = $this->get_token_key(BADGE_USER_ID_TOKEN);
             if (isset($SESSION->$useridkey)) {
@@ -513,123 +316,21 @@ class OpenBadgesBackpackHandler {
                     $entityid = $SESSION->$useridkey;
                 }
             }
-            if ($this->isuserbackpack) {
-                $mappings = $this->mappingsv1user;
-            } else {
-                $mappings = $this->mappingsv1site;
-            }
-        } else {
-            if ($this->isuserbackpack) {
-                $mappings = $this->mappingsv2user;
-            } else {
-                $mappings = $this->mappingsv2site;
-            }
         }
-        foreach ($mappings as $mapping) {
+        foreach ($this->mappings as $mapping) {
             if ($mapping->is_match($action)) {
                 return $mapping->request($this->backpackapiurl, $collection, $entityid, $this->email, $this->password, $postdata, $this->backpackid);
             }
         }
 
         throw new coding_exception('Unknown request');
-            /*
-        switch($action) {
-            case 'user':
-                // BOTH - BAD!
-                if ($this->backpackapiversion == OPEN_BADGES_V1) {
-                    $url = $this->backpackapiurl . "/displayer/convert/email";
-                    $param = array('email' => $this->email);
-                } else {
-                    $url = rtrim($this->backpackapiurl, '/v2') . "/o/token";
-                    $param = array('username' => $this->email, 'password' => $this->password);
-                }
-                break;
-            case 'issuer':
-                // V2
-                $url = $this->backpackapiurl . "/issuers/" . $entityid;
-                $authrequired = true;
-                break;
-            case 'issuers':
-                // V2
-                $url = $this->backpackapiurl . "/issuers";
-                $param = $collection;
-                $authrequired = true;
-                break;
-            case 'badgeclass':
-                // V2
-                $url = $this->backpackapiurl . "/badgeclasses/" . $entityid;
-                $authrequired = true;
-                break;
-            case 'badgeclasses':
-                // V2
-                $url = $this->backpackapiurl . "/issuers/" . $entityid . "/badgeclasses";
-                $param = $collection;
-                $authrequired = true;
-                break;
-            case 'assertions':
-                // V2
-                $url = $this->backpackapiurl . "/badgeclasses/" . $entityid . "/assertions";
-                $param = $collection;
-                $authrequired = true;
-                break;
-            case 'assertion':
-                // V2
-                $url = $this->backpackapiurl . "/backpack/assertions/" . $entityid;
-                $authrequired = true;
-                break;
-            case 'collections':
-                // V2
-                $url = $this->backpackapiurl . "/backpack/collections";
-                $param = $collection;
-                $authrequired = true;
-                break;
-            case 'groups':
-                // V1
-                $useridkey = $this->get_token_key(BADGE_USER_ID_TOKEN);
-                $userid = $SESSION->$useridkey;
-                $url = $this->backpackapiurl . '/displayer/' . $userid . '/groups.json';
-                break;
-            case 'badges':
-                $useridkey = $this->get_token_key(BADGE_USER_ID_TOKEN);
-                $userid = $SESSION->$useridkey;
-                $url = $this->backpackapiurl . '/displayer/' . $userid . '/group/' . $collection . '.json';
-                break;
-        }
-
-        if ($authrequired) {
-            $accesskey = $this->get_token_key(BADGE_ACCESS_TOKEN);
-            $token = $SESSION->$accesskey;
-            $curl->setHeader('Authorization: Bearer ' . $token);
-        }
-
-        $curl->setHeader(array('Accept: application/json', 'Expect:'));
-        $options = array(
-            'FRESH_CONNECT'     => true,
-            'RETURNTRANSFER'    => true,
-            'FORBID_REUSE'      => true,
-            'HEADER'            => 0,
-            'CONNECTTIMEOUT'    => 3,
-            'CONNECTTIMEOUT'    => 3,
-            // Follow redirects with the same type of request when sent 301, or 302 redirects.
-            'CURLOPT_POSTREDIR' => 3,
-        );
-
-        if ($action == 'user') {
-            // BOTH
-            $out = $curl->post($url, $param, $options);
-        } else if (!empty($collection) && ($action == 'badgeclasses' || $action == 'badgeclass' || $action == 'issuers' || $action == 'issuer' || $action == 'assertions' || $action == 'assertion')) {
-            // V2
-            $curl->setHeader(array('Content-type: application/json'));
-            $out = $curl->post($url, json_encode($param), $options);
-        } else {
-            // BOTH
-            $out = $curl->get($url, array(), $options);
-        }
-
-        return json_decode($out);
-            */
     }
 
+    /**
+     * Get the id to use for requests with this api.
+     *
+     * @return integer
+     */
     private function get_auth_user_id() {
         global $USER;
 
@@ -641,7 +342,12 @@ class OpenBadgesBackpackHandler {
         }
     }
 
-
+    /**
+     * Get the name of the key to store this access token type.
+     *
+     * @param string $type
+     * @return string
+     */
     private function get_token_key($type) {
         // This should be removed when everything has a mapping.
         $prefix = 'badges_';
@@ -654,9 +360,14 @@ class OpenBadgesBackpackHandler {
         return $prefix;
     }
 
-
+    /**
+     * Normalise the return from a missing user request.
+     *
+     * @param string $status
+     * @return mixed
+     */
     private function check_status($status) {
-        // V1 ONLY
+        // V1 ONLY.
         switch($status) {
             case "missing":
                 $response = array(
@@ -665,53 +376,48 @@ class OpenBadgesBackpackHandler {
                 );
                 return $response;
         }
-    }
-
-    public function get_badgeclass_assertions($entityid) {
-        die('Cya');
-        // V2 Only
-        if ($this->backpackapiversion == OPEN_BADGES_V1) {
-            throw new coding_exception('Not supported in this backpack API');
-        }
-        
-        return $this->curl_request('assertions', null, $entityid);
-    }
-
-
-    public function get_assertion($entityid) {
-        // V2 Only
-        if ($this->backpackapiversion == OPEN_BADGES_V1) {
-            throw new coding_exception('Not supported in this backpack API');
-        }
-        
-        return $this->curl_request('assertion', null, $entityid);
-    }
-
-    public function get_badgeclass($entityid) {
-        // V2 Only
-        if ($this->backpackapiversion == OPEN_BADGES_V1) {
-            throw new coding_exception('Not supported in this backpack API');
-        }
-        
-        return $this->curl_request('badgeclass', null, $entityid);
-    }
-
-    public function get_badgeclasses($entityid) {
-        die('We can go away');
-        // V2 Only
-        if ($this->backpackapiversion == OPEN_BADGES_V1) {
-            throw new coding_exception('Not supported in this backpack API');
-        }
-        
-        $result = $this->curl_request('badgeclasses', null, $entityid);
-        if ($result->result) {
-            return $result->result;
-        }
         return false;
     }
 
+    /**
+     * Make an api request to get an assertion
+     *
+     * @param string $entityid The id of the assertion.
+     * @return mixed
+     */
+    public function get_assertion($entityid) {
+        // V2 Only.
+        if ($this->backpackapiversion == OPEN_BADGES_V1) {
+            throw new coding_exception('Not supported in this backpack API');
+        }
+
+        return $this->curl_request('assertion', null, $entityid);
+    }
+
+    /**
+     * Get a badge class.
+     *
+     * @param string $entityid The id of the badge class.
+     * @return mixed
+     */
+    public function get_badgeclass($entityid) {
+        // V2 Only.
+        if ($this->backpackapiversion == OPEN_BADGES_V1) {
+            throw new coding_exception('Not supported in this backpack API');
+        }
+
+        return $this->curl_request('badgeclass', null, $entityid);
+    }
+
+    /**
+     * Create a badgeclass assertion.
+     *
+     * @param string $entityid The id of the badge class.
+     * @param string $data The structure of the badge class assertion.
+     * @return mixed
+     */
     public function put_badgeclass_assertion($entityid, $data) {
-        // V2 Only
+        // V2 Only.
         if ($this->backpackapiversion == OPEN_BADGES_V1) {
             throw new coding_exception('Not supported in this backpack API');
         }
@@ -719,6 +425,13 @@ class OpenBadgesBackpackHandler {
         return $this->curl_request('assertions', null, $entityid, $data);
     }
 
+    /**
+     * Select collections from a backpack.
+     *
+     * @param string $backpackid The id of the backpack
+     * @param stdClass[] $collections List of collections with collectionid or entityid.
+     * @return boolean
+     */
     public function set_backpack_collections($backpackid, $collections) {
         global $DB, $USER;
 
@@ -743,54 +456,60 @@ class OpenBadgesBackpackHandler {
             }
         }
         $badgescache->delete($USER->id);
+        return true;
     }
 
+    /**
+     * Create a badgeclass
+     *
+     * @param string $entityid The id of the entity.
+     * @param string $data The structure of the badge class.
+     * @return mixed
+     */
     public function put_badgeclass($entityid, $data) {
-        // V2 Only
+        // V2 Only.
         if ($this->backpackapiversion == OPEN_BADGES_V1) {
             throw new coding_exception('Not supported in this backpack API');
         }
-        
+
         return $this->curl_request('badgeclasses', null, $entityid, $data);
     }
 
-    public function get_issuers() {
-        // I think we can blow this up!
-        die('Goodbye');
-        // V2 Only
-        if ($this->backpackapiversion == OPEN_BADGES_V1) {
-            throw new coding_exception('Not supported in this backpack API');
-        }
-        
-        $result = $this->curl_request('issuers');
-        if ($result->result) {
-            return $result->result;
-        }
-        return false;
-    }
-
+    /**
+     * Create an issuer
+     *
+     * @param string $data The structure of the issuer.
+     * @return mixed
+     */
     public function put_issuer($data) {
-        // V2 Only
+        // V2 Only.
         if ($this->backpackapiversion == OPEN_BADGES_V1) {
             throw new coding_exception('Not supported in this backpack API');
         }
-        
+
         return $this->curl_request('issuers', null, null, $data);
     }
 
+    /**
+     * Get an issuer by id
+     *
+     * @param string $entityid the id of the issuer.
+     * @return mixed
+     */
     public function get_issuer($entityid) {
-        // V2 Only
+        // V2 Only.
         if ($this->backpackapiversion == OPEN_BADGES_V1) {
             throw new coding_exception('Not supported in this backpack API');
         }
-        
+
         $result = $this->curl_request('issuer', null, $entityid);
         return $result;
     }
 
     /**
      * Authenticate using the stored email and password and save the valid access tokens.
-     * @return mixed Success - 
+     *
+     * @return integer The id of the authenticated user.
      */
     public function authenticate() {
         global $SESSION;
@@ -824,6 +543,11 @@ class OpenBadgesBackpackHandler {
         return $this->curl_request('user', $this->email);
     }
 
+    /**
+     * Get all collections in this backpack.
+     *
+     * @return stdClass[] The collections.
+     */
     public function get_collections() {
         global $PAGE;
 
@@ -843,6 +567,12 @@ class OpenBadgesBackpackHandler {
         return [];
     }
 
+    /**
+     * Get one collection by id.
+     *
+     * @param integer $collectionid
+     * @return stdClass The collection.
+     */
     public function get_collection_record($collectionid) {
         global $DB;
 
@@ -853,6 +583,13 @@ class OpenBadgesBackpackHandler {
         }
     }
 
+    /**
+     * Disconnect the backpack from this user.
+     *
+     * @param integer $userid The user in Moodle
+     * @param integer $backpackid The backpack to disconnect
+     * @return boolean
+     */
     public function disconnect_backpack($userid, $backpackid) {
         global $DB, $USER;
 
@@ -869,6 +606,12 @@ class OpenBadgesBackpackHandler {
         return true;
     }
 
+    /**
+     * Handle the response from getting a collection to map to an id.
+     *
+     * @param stdClass $data The response data.
+     * @return string The collection id.
+     */
     public function get_collection_id_from_response($data) {
         if ($this->backpackapiversion == OPEN_BADGES_V1) {
             return $data->groupId;
@@ -877,6 +620,13 @@ class OpenBadgesBackpackHandler {
         }
     }
 
+    /**
+     * Get the list of badges in a collection.
+     *
+     * @param stdClass $collection The collection to deal with.
+     * @param boolean $expanded Fetch all the sub entities.
+     * @return stdClass[]
+     */
     public function get_badges($collection, $expanded = false) {
         if ($this->authenticate()) {
             if ($this->backpackapiversion == OPEN_BADGES_V1) {
@@ -900,13 +650,15 @@ class OpenBadgesBackpackHandler {
                     foreach ($badges->assertions as $assertion) {
                         $remoteassertion = $this->get_assertion($assertion);
                         $remotebadge = $this->get_badgeclass($remoteassertion->badgeclass);
+                        if (!$remotebadge) {
+                            continue;
+                        }
                         $remoteissuer = $this->get_issuer($remotebadge->issuer);
-
                         $badgeclone = clone $remotebadge;
                         $badgeclone->issuer = $remoteissuer;
                         $remoteassertion->badge = $badgeclone;
                         $remotebadge->assertion = $remoteassertion;
-                                    
+
                         $publicassertions[] = $remotebadge;
                     }
                     $badges = $publicassertions;
@@ -914,19 +666,5 @@ class OpenBadgesBackpackHandler {
                 return $badges;
             }
         }
-    }
-
-    public function get_url() {
-        debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
-        var_dump(__FILE__ . ' : ' . __LINE__);
-        var_dump('I dont think this is a value that should be retrieved from the backpack.');
-        return $this->backpackapiurl;
-    }
-
-    public function get_apiversion() {
-        debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
-        var_dump(__FILE__ . ' : ' . __LINE__);
-        var_dump('This is definitely not a value that should be retrieved from the backpack.');
-        return $this->backpackapiversion;
     }
 }

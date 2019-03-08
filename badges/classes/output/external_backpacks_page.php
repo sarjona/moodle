@@ -23,7 +23,10 @@
  */
 
 namespace core_badges\output;
+
 defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->libdir . '/badgeslib.php');
 
 use core_badges\external\backpack_exporter;
 
@@ -59,7 +62,13 @@ class external_backpacks_page implements \renderable {
         $data->sesskey = sesskey();
         foreach ($this->backpacks as $backpack) {
             $exporter = new backpack_exporter($backpack);
-            $data->backpacks[] = $exporter->export($output);
+            $backpack = $exporter->export($output);
+            if ($backpack->apiversion == OPEN_BADGES_V2) {
+                $backpack->canedit = true;
+            } else {
+                $backpack->canedit = false;
+            }
+            $data->backpacks[] = $backpack;
         }
 
         return $data;
