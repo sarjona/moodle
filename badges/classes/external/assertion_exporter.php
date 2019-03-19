@@ -127,6 +127,11 @@ class assertion_exporter extends exporter {
                 'type' => PARAM_RAW,
                 'description' => 'Date this badge was issued',
             ],
+            'expires' => [
+                'type' => PARAM_RAW,
+                'description' => 'Date this badge will expire',
+                'optional' => true,
+            ],
             '@context' => [
                 'type' => PARAM_URL,
                 'description' => 'Badge version',
