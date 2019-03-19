@@ -168,6 +168,7 @@ class core_badges_assertion {
      * @return array Badge Class information.
      */
     public function get_badge_class($issued = true) {
+        $class = [];
         if ($this->_data) {
             if (empty($this->_data->courseid)) {
                 $context = context_system::instance();
@@ -358,7 +359,7 @@ class core_badges_assertion {
                     $json['endorsement'] = $endorsementurl->out(false);
                 }
                 if ($alignments = $this->get_alignments()) {
-                    $json['alignment'] = $alignments;
+                    $json['alignments'] = $alignments;
                 }
                 if ($this->_data->imageauthorname ||
                         $this->_data->imageauthoremail ||

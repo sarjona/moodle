@@ -27,6 +27,7 @@ namespace core_badges\external;
 defined('MOODLE_INTERNAL') || die();
 
 use core\external\exporter;
+use renderer_base;
 
 /**
  * Class for displaying a badge competency.
@@ -36,6 +37,60 @@ use core\external\exporter;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class badgeclass_exporter extends exporter {
+
+    /**
+     * Constructor - saves the persistent object, and the related objects.
+     *
+     * @param mixed $data - Either an stdClass or an array of values.
+     * @param array $related - An optional list of pre-loaded objects related to this object.
+     */
+    public function __construct($data, $related = array()) {
+        $pick = $this->pick_related();
+        foreach ($pick as $one) {
+            $isarray = false;
+            // Allow [] to mean an array of values.
+            if (substr($one, -2) === '[]') {
+                $one = substr($one, 0, -2);
+                $isarray = true;
+            }
+            $prefixed = 'related_' . $one;
+            if (array_key_exists($one, $data) && !array_key_exists($one, $related)) {
+                if ($isarray) {
+                    $newrelated = [];
+                    foreach ($data[$one] as $item) {
+                        $newrelated[] = (object) $item;
+                    }
+                    $related[$one] = $newrelated;
+                } else {
+                    $related[$one] = (object) $data[$one];
+                }
+                unset($data[$one]);
+            } else if (array_key_exists($prefixed, $data) && !array_key_exists($one, $related)) {
+                if ($isarray) {
+                    $newrelated = [];
+                    foreach ($data[$prefixed] as $item) {
+                        $newrelated[] = (object) $item;
+                    }
+                    $related[$one] = $newrelated;
+                } else {
+                    $related[$one] = (object) $data[$prefixed];
+                }
+                unset($data[$prefixed]);
+            } else if (!array_key_exists($one, $related)) {
+                $related[$one] = null;
+            }
+        }
+        parent::__construct($data, $related);
+    }
+
+    /**
+     * List properties passed in $data that should be moved to $related in the constructor.
+     *
+     * @return array A list of properties to move from $data to $related.
+     */
+    public static function pick_related() {
+        return ['alignments[]'];
+    }
 
     /**
      * Map data from a request response to the internal structure.
@@ -115,6 +170,40 @@ class badgeclass_exporter extends exporter {
     protected static function define_related() {
         return array(
             'context' => 'context',
+            'alignments' => 'stdClass[]?',
         );
+    }
+
+    /**
+     * Return the list of additional properties.
+     *
+     * @return array
+     */
+    protected static function define_other_properties() {
+        return array(
+            'alignments' => array(
+                'type' => alignment_exporter::read_properties_definition(),
+                'optional' => true,
+                'multiple' => true
+            )
+        );
+    }
+
+    /**
+     * We map from related data passed as data to this exporter to clean exportable values.
+     */
+    protected function get_other_values(renderer_base $output) {
+        global $DB;
+        $result = [];
+
+        if (array_key_exists('alignments', $this->related) && $this->related['alignments'] !== null) {
+            $alignments = [];
+            foreach ($this->related['alignments'] as $alignment) {
+                $exporter = new alignment_exporter($alignment, $this->related);
+                $alignments[] = $exporter->export($output);
+            }
+            $result['alignments'] = $alignments;
+        }
+        return $result;
     }
 }
