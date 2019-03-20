@@ -81,6 +81,10 @@ class assertion_exporter extends exporter {
             'recipient' => array(
                 'type' => recipient_exporter::read_properties_definition(),
                 'optional' => true
+            ),
+            'verification' => array(
+                'type' => verification_exporter::read_properties_definition(),
+                'optional' => true
             )
         );
     }
@@ -99,6 +103,10 @@ class assertion_exporter extends exporter {
         if (array_key_exists('related_recipient', $this->data)) {
             $exporter = new recipient_exporter($this->data['related_recipient'], $this->related);
             $result['recipient'] = $exporter->export($output);
+        }
+        if (array_key_exists('related_verify', $this->data)) {
+            $exporter = new verification_exporter($this->data['related_verify'], $this->related);
+            $result['verification'] = $exporter->export($output);
         }
         return $result;
     }
