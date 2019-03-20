@@ -89,7 +89,7 @@ class badgeclass_exporter extends exporter {
      * @return array A list of properties to move from $data to $related.
      */
     public static function pick_related() {
-        return ['alignments[]'];
+        return ['alignments[]', 'criteria'];
     }
 
     /**
@@ -171,6 +171,7 @@ class badgeclass_exporter extends exporter {
         return array(
             'context' => 'context',
             'alignments' => 'stdClass[]?',
+            'criteria' => 'stdClass?',
         );
     }
 
@@ -185,6 +186,14 @@ class badgeclass_exporter extends exporter {
                 'type' => alignment_exporter::read_properties_definition(),
                 'optional' => true,
                 'multiple' => true
+            ),
+            'criteriaUrl' => array(
+                'type' => PARAM_URL,
+                'optional' => true
+            ),
+            'criteriaNarrative' => array(
+                'type' => PARAM_TEXT,
+                'optional' => true
             )
         );
     }
@@ -204,6 +213,15 @@ class badgeclass_exporter extends exporter {
             }
             $result['alignments'] = $alignments;
         }
+        if (array_key_exists('criteria', $this->related) && $this->related['criteria'] !== null) {
+            if (property_exists($this->related['criteria'], 'id') && $this->related['criteria']->id !== null) {
+                $result['criteriaUrl'] = $this->related['criteria']->id;
+            }
+            if (property_exists($this->related['criteria'], 'narrative') && $this->related['criteria']->narrative !== null) {
+                $result['criteriaNarrative'] = $this->related['criteria']->narrative;
+            }
+        }
+
         return $result;
     }
 }

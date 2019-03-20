@@ -140,10 +140,11 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
             '"criteria":{"id":"%s","narrative":"%s"},"issuer":{"name":"%s","url":"%s","email":"%s",' .
             '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"Issuer"},' .
             '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"BadgeClass","version":"%s",' .
-            '"@language":"%s","related":[{"id":"%s","version":"%s","@language":"%s"}],"endorsement":"%s",' .
-            '"alignment":[{"targetName":"%s","targetUrl":"%s","targetDescription":"%s","targetFramework":"%s",' .
+            '"@language":"en","related":[{"id":"%s","version":"%s","@language":"%s"}],"endorsement":"%s",' .
+            '"alignments":[{"targetName":"%s","targetUrl":"%s","targetDescription":"%s","targetFramework":"%s",' .
             '"targetCode":"%s"}]},"verify":{"type":"hosted","url":"%s"},"issuedOn":"%s","evidence":"%s",' .
             '"@context":"https:\/\/w3id.org\/openbadges\/v2","type":"Assertion","id":"%s"}';
+
         $this->assertion2->class = '{"name":"%s","description":"%s","image":"%s",' .
             '"criteria":{"id":"%s","narrative":"%s"},"issuer":{"name":"%s","url":"%s","email":"%s",' .
             '"@context":"https:\/\/w3id.org\/openbadges\/v2","id":"%s","type":"Issuer"},' .
