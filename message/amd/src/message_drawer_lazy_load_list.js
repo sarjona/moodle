@@ -208,6 +208,10 @@ function(
      * @return {Object} jQuery promise
      */
     var loadAndRender = function(root, loadCallback, renderCallback) {
+        if (root.attr('id')) {
+            M.util.js_pending(root.attr('id'));
+        }
+
         var userId = getUserId(root);
         startLoading(root);
 
@@ -230,12 +234,18 @@ function(
                 if (!items.length) {
                     setLoadedAll(root, true);
                 }
+                if (root.attr('id')) {
+                    M.util.js_complete(root.attr('id'));
+                }
 
                 return items;
             })
             .catch(function() {
                 stopLoading(root);
                 root.attr('data-seen', true);
+                if (root.attr('id')) {
+                    M.util.js_complete(root.attr('id'));
+                }
                 return;
             });
     };
