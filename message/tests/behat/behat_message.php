@@ -55,12 +55,10 @@ class behat_message extends behat_base {
      * @param string $tab
      */
     public function i_open_the_conversations_list($tab) {
-        $this->execute('behat_general::wait_until_the_page_is_ready');
         $this->execute('behat_general::i_click_on', [
             $this->escape($tab),
             'group_message_tab'
         ]);
-        $this->execute('behat_general::wait_until_the_page_is_ready');
     }
 
     /**
@@ -228,7 +226,6 @@ class behat_message extends behat_base {
      * @param string $listname
      */
     public function i_select_conversation_in_the_conversations_list($convname, $listname) {
-        $this->execute('behat_general::wait_until_the_page_is_ready');
         $xpath = '//*[@data-region="message-drawer"]//div[@data-region="view-overview-'.
             $this->escape($listname).
             '"]//*[@data-conversation-id]//img[contains(@alt,"'.

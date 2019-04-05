@@ -43,16 +43,16 @@ Feature: Message send messages
 
   Scenario: Send a message to a starred conversation
     Given I log in as "student1"
-    When I open messaging
-    Then "Group 1" "group_message" should exist
+    And I open messaging
+    And "Group 1" "group_message" should exist
     And I select "Group 1" conversation in the "group-messages" conversations list
     And I open contact menu
     And I click on "Star" "link" in the "//div[@data-region='header-container']" "xpath_element"
     And I go back in "view-conversation" message drawer
     And I open the "Starred" conversations list
     And I select "Group 1" conversation in the "favourites" conversations list
-    And I send "Hi!" message in the message area
-    And I should see "Hi!" in the "Group 1" "group_message_conversation"
+    When I send "Hi!" message in the message area
+    Then I should see "Hi!" in the "Group 1" "group_message_conversation"
     And I should see "##today##j F##" in the "Group 1" "group_message_conversation"
     And I go back in "view-conversation" message drawer
     And I open the "Group" conversations list
