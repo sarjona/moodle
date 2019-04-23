@@ -115,7 +115,10 @@ class backpack extends moodleform {
             $bp = new \core_badges\backpack_api($backpack, $check);
             $result = $bp->authenticate();
             if ($result === false || !empty($result->error)) {
-                $errors['email'] = get_string('backpackconnectionunexpectedresult', 'badges');
+                $errors['email'] = $bp->get_authentication_error();
+                if (empty($errors['email'])) {
+                    $errors['email'] = get_string('backpackconnectionunexpectedresult', 'badges');
+                }
             }
         }
         return $errors;

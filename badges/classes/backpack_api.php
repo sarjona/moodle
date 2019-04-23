@@ -633,6 +633,15 @@ class backpack_api {
     }
 
     /**
+     * Get the last error message returned during an authentication request.
+     *
+     * @return string
+     */
+    public function get_authentication_error() {
+        return backpack_api_mapping::get_authentication_error();
+    }
+
+    /**
      * Get the list of badges in a collection.
      *
      * @param stdClass $collection The collection to deal with.
