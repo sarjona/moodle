@@ -119,6 +119,7 @@ if ($backpack) {
         // 1. After clicking 'Connect to backpack'. We'll have $data->email.
         // 2. After clicking 'Resend verification email'. We'll have $data->email.
         // 3. After clicking 'Connect using a different email' to cancel the verification process. We'll have $data->revertbutton.
+
         if (isset($data->revertbutton)) {
             badges_disconnect_user_backpack($USER->id);
             redirect(new moodle_url('/badges/mybackpack.php'));

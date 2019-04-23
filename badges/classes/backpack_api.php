@@ -102,6 +102,8 @@ class backpack_api {
         }
 
         $this->define_mappings();
+        // Clear the last authentication error.
+        backpack_api_mapping::set_authentication_error('');
     }
 
     /**
