@@ -544,7 +544,7 @@ function get_backpack_settings($userid, $refresh = false) {
     // Get badges through curl request to the backpack.
     $record = $DB->get_record('badge_backpack', array('userid' => $userid));
     if ($record) {
-        $sitebackpack = badges_get_site_backpack(0, $record->backpackurl);
+        $sitebackpack = badges_get_site_backpack($record->externalbackpackid);
         $backpack = new \core_badges\backpack_api($sitebackpack, $record);
         $out = new stdClass();
         $out->backpackid = $sitebackpack->id;
@@ -799,25 +799,12 @@ function badges_open_badges_backpack_api() {
  * Get a site backpacks by id or url.
  *
  * @param int $id The backpack id.
- * @param string $backpackapiurl The backpack url.
- * @param string $apiversion Filter by api version - one of OPEN_BADGES_V1 or OPEN_BADGES_V2
  * @return array(stdClass)
  */
-function badges_get_site_backpack($id, $backpackapiurl = '', $apiversion = '') {
+function badges_get_site_backpack($id) {
     global $DB;
 
-    $filters = array();
-    if (!empty($id)) {
-        $filters['id'] = $id;
-    }
-    if (!empty($backpackapiurl)) {
-        $filters['backpackapiurl'] = $backpackapiurl;
-    }
-    if (!empty($apiversion)) {
-        $filters['apiversion'] = $apiversion;
-    }
-
-    return $DB->get_record('badge_external_backpack', $filters);
+    return $DB->get_record('badge_external_backpack', ['id' => $id]);
 }
 
 /**
@@ -874,6 +861,9 @@ function badges_install_default_backpacks() {
         $bpid = $bp->id;
     }
     set_config('badges_site_backpack', $bpid);
+
+    // All existing backpacks default to V1.
+    $DB->set_field('badge_backpack', 'externalbackpackid', $bpid);
 
     $record = new stdClass();
     $record->backpackapiurl = BADGRIO_BACKPACKAPIURL;

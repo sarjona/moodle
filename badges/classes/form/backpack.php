@@ -110,11 +110,10 @@ class backpack extends moodleform {
         // We don't need to verify the email address if we're clearing a pending email verification attempt.
         if (!isset($data['revertbutton'])) {
             $check = new stdClass();
-            $backpack = badges_get_site_backpack($data['backpackid'], false);
-            $check->backpackurl = $backpack->backpackapiurl;
-            $check->apiversion = $backpack->apiversion;
+            $backpack = badges_get_site_backpack($data['backpackid']);
             $check->email = $data['email'];
             $check->password = $data['backpackpassword'];
+            $check->externalbackpackid = $backpack->id;
 
             $bp = new \core_badges\backpack_api($backpack, $check);
             $result = $bp->authenticate();

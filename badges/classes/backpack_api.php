@@ -94,9 +94,12 @@ class backpack_api {
         $this->isuserbackpack = false;
         $this->backpackid = $sitebackpack->id;
         if (!empty($userbackpack)) {
+            if ($userbackpack->externalbackpackid != $sitebackpack->id) {
+                var_dump($userbackpack, $sitebackpack);
+                die();
+                throw new coding_exception('Incorrect backpack');
+            }
             $this->isuserbackpack = true;
-            $this->backpackapiurl = $userbackpack->backpackurl;
-            $this->backpackapiversion = $userbackpack->apiversion;
             $this->password = $userbackpack->password;
             $this->email = $userbackpack->email;
         }
