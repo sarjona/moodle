@@ -112,13 +112,17 @@ class main implements renderable, templatable {
      * Export this data so it can be used as the context for a mustache template.
      *
      * @param \renderer_base $output
+     *
      * @return array Context variables for the template
+     * @throws \coding_exception
      */
     public function export_for_template(renderer_base $output) {
+        global $USER;
 
         $nocoursesurl = $output->image_url('courses', 'block_myoverview')->out();
 
         $defaultvariables = [
+            'totalcoursecount' => count(enrol_get_all_users_courses($USER->id, true)),
             'nocoursesimg' => $nocoursesurl,
             'grouping' => $this->grouping,
             'sort' => $this->sort == BLOCK_MYOVERVIEW_SORTING_TITLE ? 'fullname' : 'ul.timeaccess desc',

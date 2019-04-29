@@ -67,7 +67,7 @@ function(
         NOCOURSES: 'core_course/no-courses'
     };
 
-    var NUMCOURSES_PERPAGE = [12, 24, 48];
+    var NUMCOURSES_PERPAGE = [12, 24, 48, 96, 0];
 
     var loadedPages = [];
 
@@ -436,6 +436,13 @@ function(
                 };
             });
         }
+        // Filter out all pagination options which are too large for the amount of courses user is enrolled in.
+        var totalCourseCount = parseInt(root.find(Selectors.courseView.region).attr('data-totalcoursecount'), 10);
+        if (totalCourseCount) {
+            itemsPerPage = itemsPerPage.filter(function(pagingOption) {
+                return pagingOption.value < totalCourseCount;
+            });
+        }
 
         var filters = getFilterValues(root);
         var config = $.extend({}, DEFAULT_PAGED_CONTENT_CONFIG);
@@ -448,7 +455,7 @@ function(
 
                 pagesData.forEach(function(pageData) {
                     var currentPage = pageData.pageNumber;
-                    var limit = pageData.limit;
+                    var limit = (pageData.limit > 0) ? pageData.limit : 0;
 
                     // Reset local variables if limits have changed
                     if (lastLimit != limit) {
@@ -491,7 +498,7 @@ function(
                             }
                         } else {
                             nextPageStart = pageData.limit;
-                            pageCourses = courses.slice(0, pageData.limit);
+                            pageCourses = (pageData.limit > 0) ? courses.slice(0, pageData.limit) : courses;
                         }
 
                         // Finished setting up the current page
@@ -500,7 +507,7 @@ function(
                         };
 
                         // Set up the next page
-                        var remainingCourses = courses.slice(nextPageStart, courses.length);
+                        var remainingCourses = nextPageStart ? courses.slice(nextPageStart, courses.length) : [];
                         if (remainingCourses.length) {
                             loadedPages[currentPage + 1] = {
                                 courses: remainingCourses
