@@ -1102,6 +1102,61 @@ class core_message_api_testcase extends core_message_messagelib_testcase {
     }
 
     /**
+     * Tests retrieving self-conversations created on-demand.
+     */
+    public function test_get_conversations_with_self_conversation() {
+        global $DB;
+
+        // Create some users.
+        $user1 = self::getDataGenerator()->create_user();
+        $user2 = self::getDataGenerator()->create_user();
+        $user3 = self::getDataGenerator()->create_user();
+
+        // Remove the self-conversations because they are created when the users are created but with this test we want to
+        // make sure that the get_conversations method also create them on-demand when they don't exist.
+        $DB->delete_records('message_conversations');
+        $DB->delete_records('message_conversation_members');
+
+        // Before getting the conversations, check the conversations table is empty.
+        $this->assertEquals(0, $DB->count_records('message_conversations'));
+
+        // Retrieve the non-favourite conversations for user1.
+        $conversations = \core_message\api::get_conversations($user1->id);
+
+        // There are still no conversations for that user (because favourites haven't been requested).
+        $this->assertCount(0, $conversations);
+
+        // Retrieve the favourite conversations for user1.
+        $conversations = \core_message\api::get_conversations($user1->id, 0, 20, null, true);
+
+        // The self-conversation for that user is created on-demand when favourites are requested.
+        $this->assertCount(1, $conversations);
+
+        // Send some messages back and forth, have a conversation with user1.
+        $time = 1;
+        $this->send_fake_message($user1, $user2, 'Yo!', 0, $time + 1);
+        $this->send_fake_message($user2, $user1, 'Sup mang?', 0, $time + 2);
+
+        // Retrieve the favourite conversations for user2.
+        $conversations = \core_message\api::get_conversations($user2->id, 0, 20, null, true);
+
+        // We should have only the self conversation created on-demand (the conversation with user2 is not favourited).
+        $this->assertCount(1, $conversations);
+
+        // Send some messages back and forth, have a favourite conversation with user1.
+        $this->send_fake_message($user1, $user3, 'Booyah', 0, $time + 3);
+        $this->send_fake_message($user3, $user1, 'Whaaat?', 0, $time + 4);
+        $conversationid = \core_message\api::get_conversation_between_users([$user1->id, $user3->id]);
+        $favourite = \core_message\api::set_favourite_conversation($conversationid, $user3->id);
+
+        // Retrieve the favourite conversations for user3.
+        $conversations = \core_message\api::get_conversations($user3->id, 0, 20, null, true);
+
+        // We should have both conversations (self created on-demand and the favourited conversation with user1).
+        $this->assertCount(2, $conversations);
+    }
+
+    /**
      * Test confirming that conversations can be marked as favourites.
      */
     public function test_set_favourite_conversation() {

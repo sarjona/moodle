@@ -536,7 +536,17 @@ class api {
         $favouriteconversations = $service->find_favourites_by_type('core_message', 'message_conversations');
         $favouriteconversationids = array_column($favouriteconversations, 'itemid');
         if ($favourites && empty($favouriteconversationids)) {
-            return []; // If we are aiming to return ONLY favourites, and we have none, there's nothing more to do.
+            // Check if the self-conversation for this user exists, and create if it doesn't.
+            $selfconversation = self::get_self_conversation($userid);
+            if (empty($selfconversation)) {
+                // Create the self-conversation.
+                $selfconversation = self::create_conversation(self::MESSAGE_CONVERSATION_TYPE_SELF, [$userid]);
+                // Star the self-conversation.
+                self::set_favourite_conversation($selfconversation->id, $userid);
+                $favouriteconversationids[] = $selfconversation->id;
+            } else {
+                return []; // If we are aiming to return ONLY favourites, and we have none, there's nothing more to do.
+            }
         }
 
         // CONVERSATIONS AND MOST RECENT MESSAGE.
@@ -610,14 +620,54 @@ class api {
         $individualmembers = [];
         $groupmembers = [];
         $selfmembers = [];
+        $selfconversationexists = false;
         foreach ($conversationset as $conversation) {
             $conversations[$conversation->id] = $conversation;
             $members[$conversation->id] = [];
+            // Check if the self-conversation exists, to know whether it should be created later or not.
+            if ($conversation->conversationtype == self::MESSAGE_CONVERSATION_TYPE_SELF) {
+                $selfconversationexists = true;
+            }
         }
         $conversationset->close();
 
+        // If the self-conversation for this user doesn't exist, it has to be created only when favourites have to be returned.
+        if (!$selfconversationexists && $favourites) {
+            // Check if the self-conversation for this user exists, and create if it doesn't (it may exist and not be included
+            // in the result of the previous SQL).
+            $selfconversation = self::get_self_conversation($userid);
+            if (empty($selfconversation)) {
+                // Create the self-conversation.
+                $selfconversation = self::create_conversation(self::MESSAGE_CONVERSATION_TYPE_SELF, [$userid]);
+                // Star the self-conversation.
+                self::set_favourite_conversation($selfconversation->id, $userid);
+
+                // Add the new self-conversation to the $conversations array, as if it was also returned by the previous SQL.
+                $conversation = new \stdClass();
+                $conversation->messageid = null;
+                $conversation->id = $selfconversation->id;
+                $conversation->conversationname = null;
+                $conversation->conversationtype = self::MESSAGE_CONVERSATION_TYPE_SELF;
+                $conversation->useridfrom = null;
+                $conversation->smallmessage = null;
+                $conversation->fullmessage = null;
+                $conversation->fullmessageformat = null;
+                $conversation->fullmessagetrust = null;
+                $conversation->fullmessagehtml = null;
+                $conversation->timecreated = null;
+                $conversation->component = null;
+                $conversation->itemtype = null;
+                $conversation->itemid = null;
+                $conversation->contextid = null;
+                $conversation->ismuted = null;
+                $conversations[$conversation->id] = $conversation;
+                $members[$conversation->id] = [];
+            }
+        }
+
         // If there are no conversations found, then return early.
         if (empty($conversations)) {
+
             return [];
         }
 
@@ -1664,11 +1714,16 @@ class api {
             [self::MESSAGE_CONVERSATION_TYPE_SELF, helper::get_conversation_hash([$userid])]
         );
 
+        $selfconversationexists = false;
         $countsrs = $DB->get_recordset_sql($sql, $params);
         foreach ($countsrs as $key => $val) {
-            // Empty self-conversations with deleted messages should be excluded.
-            if ($val->type == self::MESSAGE_CONVERSATION_TYPE_SELF && empty($val->maxconvidmessage) && $selfmessagestotal > 0) {
-                continue;
+            // Check if the self-conversation exists, to know whether it should be created later or not.
+            if ($val->type == self::MESSAGE_CONVERSATION_TYPE_SELF) {
+                $selfconversationexists = true;
+                // Empty self-conversations with deleted messages should be excluded.
+                if (empty($val->maxconvidmessage) && $selfmessagestotal > 0) {
+                    continue;
+                }
             }
             if (!empty($val->itemtype)) {
                 $counts['favourites'] += $val->count;
@@ -1677,6 +1732,18 @@ class api {
             $counts['types'][$val->type] = $val->count;
         }
         $countsrs->close();
+
+
+        // If the self-conversation for this user doesn't exist, it has to be created and counted.
+        if (!$selfconversationexists && false) {
+            // Create the self-conversation.
+            $selfconversation = self::create_conversation(self::MESSAGE_CONVERSATION_TYPE_SELF, [$userid]);
+            // Star the self-conversation.
+            self::set_favourite_conversation($selfconversation->id, $userid);
+
+            // Count also the new self-conversation as a favourite (because if has been starred).
+            $counts['favourites']++;
+        }
 
         return $counts;
     }
