@@ -155,6 +155,9 @@ class filter_urltolink extends moodle_text_filter {
             // to URLs which in turn change to real images
             $search = '/<a href="([^"]+\.(jpg|png|gif))" class="_blanktarget">([^>]*)<\/a>/is';
             $text = preg_replace_callback($search, 'filter_urltolink_img_callback', $text);
+
+            $search = '/<a href="([^"]+h5p\.(org|com)(\/.*)?)" class="_blanktarget">([^>]*)<\/a>/is';
+            $text = preg_replace_callback($search, 'filter_urltolink_h5p_callback', $text);
         }
     }
 }
@@ -175,3 +178,16 @@ function filter_urltolink_img_callback($link) {
     }
     return '<img class="filter_urltolink_image" alt="" src="'.$link[1].'" />';
 }
+
+function filter_urltolink_h5p_callback($link) {
+    if ($link[1] !== $link[4]) {
+        // this is not a link created by this filter, because the url does not match the text
+        return $link[0];
+    }
+    return '<iframe src="'.$link[1].'" width="1090" height="388" frameborder="0" allowfullscreen="allowfullscreen" allow="geolocation *; microphone *; camera *; midi *; encrypted-media *"></iframe><script src="https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js" charset="UTF-8"></script>';
+}
+
+//<iframe src="https://sara.h5p.com/content/1290723078593949347/embed" width="1088" height="637" frameborder="0" allowfullscreen="allowfullscreen" allow="geolocation *; microphone *; camera *; midi *; encrypted-media *"></iframe><script src="https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js" charset="UTF-8"></script>
+//
+
+//<iframe src="https://h5p.org/h5p/embed/535336" width="1918" height="388" frameborder="0" allowfullscreen="allowfullscreen"></iframe><script src="https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js" charset="UTF-8"></script>
