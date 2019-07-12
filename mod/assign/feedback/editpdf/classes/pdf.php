@@ -23,13 +23,14 @@
  */
 
 namespace assignfeedback_editpdf;
-use setasign\Fpdi\TcpdfFpdi;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot.'/mod/assign/feedback/editpdf/fpdi/autoload.php');
 require_once($CFG->libdir.'/pdflib.php');
+
+use \setasign\Fpdi\Tcpdf\Fpdi as TcpdfFpdi;
 
 /**
  * Library code for manipulating PDFs
