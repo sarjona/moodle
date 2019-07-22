@@ -1199,8 +1199,12 @@ class mod_assign_renderer extends plugin_renderer_base {
                 $icon = $this->output->pix_icon('t/preview', $previewstr);
 
                 $expandstr = get_string('viewfull', 'assign');
-                $options = array('class'=>'expandsummaryicon expand_' . $classsuffix);
-                $o .= $this->output->pix_icon('t/switch_plus', $expandstr, null, $options);
+                $expandicon = $this->output->pix_icon('t/switch_plus', $expandstr);
+                $options = array(
+                    'aria-label' => $expandstr,
+                    'class' => 'expandsummaryicon expand_' . $classsuffix
+                );
+                $o .= html_writer::link('javascript:void(0);', $expandicon, $options);
 
                 $jsparams = array($submissionplugin->plugin->get_subtype(),
                                   $submissionplugin->plugin->get_type(),
@@ -1229,10 +1233,14 @@ class mod_assign_renderer extends plugin_renderer_base {
             if ($showviewlink) {
                 $o .= $this->output->box_start('boxaligncenter hidefull full_' . $classsuffix);
                 $classes = 'expandsummaryicon contract_' . $classsuffix;
-                $o .= $this->output->pix_icon('t/switch_minus',
-                                              get_string('viewsummary', 'assign'),
-                                              null,
-                                              array('class'=>$classes));
+                $options = array(
+                    'class' => $classes,
+                    'aria-label' => get_string('viewsummary', 'assign')
+                );
+                $collapseicon = $this->output->pix_icon('t/switch_minus',
+                        get_string('viewsummary', 'assign'));
+                $o .= html_writer::link('javascript:void(0);', $collapseicon, $options);
+
                 $o .= $submissionplugin->plugin->view($submissionplugin->submission);
                 $o .= $this->output->box_end();
             }
@@ -1305,8 +1313,12 @@ class mod_assign_renderer extends plugin_renderer_base {
                 $icon = $this->output->pix_icon('t/preview', $previewstr);
 
                 $expandstr = get_string('viewfull', 'assign');
-                $options = array('class'=>'expandsummaryicon expand_' . $classsuffix);
-                $o .= $this->output->pix_icon('t/switch_plus', $expandstr, null, $options);
+                $expandicon = $this->output->pix_icon('t/switch_plus', $expandstr);
+                $options = array(
+                    'aria-label' => $expandstr,
+                    'class' => 'expandsummaryicon expand_' . $classsuffix
+                );
+                $o .= html_writer::link('javascript:void(0);', $expandicon, $options);
 
                 $jsparams = array($feedbackplugin->plugin->get_subtype(),
                                   $feedbackplugin->plugin->get_type(),
@@ -1332,10 +1344,14 @@ class mod_assign_renderer extends plugin_renderer_base {
             if ($showviewlink) {
                 $o .= $this->output->box_start('boxaligncenter hidefull full_' . $classsuffix);
                 $classes = 'expandsummaryicon contract_' . $classsuffix;
-                $o .= $this->output->pix_icon('t/switch_minus',
-                                              get_string('viewsummary', 'assign'),
-                                              null,
-                                              array('class'=>$classes));
+                $options = array(
+                    'class' => $classes,
+                    'aria-label' => get_string('viewsummary', 'assign')
+                );
+                $collapseicon = $this->output->pix_icon('t/switch_minus',
+                        get_string('viewsummary', 'assign'));
+                $o .= html_writer::link('javascript:void(0);', $collapseicon, $options);
+
                 $o .= $feedbackplugin->plugin->view($feedbackplugin->grade);
                 $o .= $this->output->box_end();
             }
