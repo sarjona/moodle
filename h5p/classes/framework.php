@@ -913,14 +913,10 @@ class framework implements \H5PFrameworkInterface {
      *
      * @param string $name Identifier for the setting
      * @param string $default Optional default value if settings is not set
-     * @return mixed Whatever has been stored as the setting
+     * @return mixed Return always CONTROLLED_BY_PERMISSIONS to base on content's settings
      */
     public function getOption($name, $default = false) {
-        $value = get_config('core_h5p', $name);
-        if ($value === false) {
-            return $default;
-        }
-        return $value;
+        return \H5PDisplayOptionBehaviour::CONTROLLED_BY_PERMISSIONS;
     }
 
     /**
@@ -1225,10 +1221,10 @@ class framework implements \H5PFrameworkInterface {
      * Implements hasPermission
      *
      * @param  \H5PPermission $permission
-     * @param  int $cmid context module id
+     * @param  int $id H5P content id
      * @return boolean
      */
-    public function hasPermission($permission, $cmid = null) {
+    public function hasPermission($permission, $id = null) {
 //        switch ($permission) {
 //            case \H5PPermission::DOWNLOAD_H5P:
 //            case \H5PPermission::COPY_H5P:
