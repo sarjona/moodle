@@ -308,4 +308,10 @@
     <license>MIT</license>
     <version>6.26.0</version>
   </library>
+  <library>
+    <location>h5p</location>
+    <name>h5p-php-library</name>
+    <license>GPL-3.0</license>
+    <version>1.23.1</version>
+  </library>
 </libraries>
