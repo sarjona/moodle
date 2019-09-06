@@ -37,9 +37,9 @@ require_once($CFG->libdir . '/h5p/h5p-file-storage.interface.php');
  */
 class file_storage implements \H5PFileStorage {
 
-    private $component   = 'h5p';
-    private $libfilearea = 'libraries';
-    private $contentfilearea = 'content';
+    private static $component   = 'core_h5p';
+    private static $libfilearea = 'libraries';
+    private static $contentfilearea = 'content';
 
     /**
      * Stores a H5P library in the Moodle filesystem.
@@ -97,7 +97,7 @@ class file_storage implements \H5PFileStorage {
     public function saveContent($source, $content) {
         // Contents are stored in a course context.
         // TODO: we are planning to use another context.
-        $context = \context_module::instance($content['coursemodule']);
+        $context = \context_system::instance();
         $options = array(
                 'contextid' => $context->id,
                 'component' => self::$component,
@@ -359,7 +359,11 @@ class file_storage implements \H5PFileStorage {
      * @param string $filepath  directory path
      */
     private static function delete_directory($options) {
-        list($contextid, $component, $filepath, $filearea, $itemid) = $options;
+        list('contextid' => $contextid,
+            'component' => $component,
+            'filepath' => $filepath,
+            'filearea' => $filearea,
+            'itemid' => $itemid) = $options;
         $fs = get_file_storage();
 
         // Look up files in the library folder and remove.
