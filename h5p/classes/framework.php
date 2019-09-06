@@ -26,8 +26,6 @@ namespace core_h5p;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../autoloader.php');
-
 /**
  * Moodle's implementation of the H5P framework interface.
  *
@@ -255,6 +253,8 @@ class framework implements \H5PFrameworkInterface {
      * @return string Translated string
      */
     public function t($message, $replacements = array()) {
+        // TODO: Review this code (A temporary return has been added until this method will be implemented properly).
+        return $message;
     }
 
     /**
@@ -587,8 +587,8 @@ class framework implements \H5PFrameworkInterface {
             'runnable' => $librarydata['runnable'],
             'fullscreen' => $librarydata['fullscreen'],
             'embedtypes' => $embedtypes,
-            'preloaded_js' => $preloadedjs,
-            'preloaded_css' => $preloadedcss,
+            'preloadedjs' => $preloadedjs,
+            'preloadedcss' => $preloadedcss,
             'droplibrarycss' => $droplibrarycss,
             'semantics' => $librarydata['semantics']
         );
@@ -883,7 +883,7 @@ class framework implements \H5PFrameworkInterface {
 
         $query = "SELECT hcl.id AS unidepid, hl.id, hl.machinename AS machine_name,
                          hl.majorversion AS major_version, hl.minorversion AS minor_version,
-                         hl.patchversion AS patch_version, hl.preloaded_css, hl.preloaded_js,
+                         hl.patchversion AS patch_version, hl.preloadedcss AS preloaded_css, hl.preloadedjs AS preloaded_js,
                          hcl.dropcss, hcl.dependencytype
                     FROM {h5p_contents_libraries} hcl
                     JOIN {h5p_libraries} hl ON hcl.libraryid = hl.id
@@ -1054,8 +1054,8 @@ class framework implements \H5PFrameworkInterface {
             'runnable' => $library->runnable,
             'fullscreen' => $library->fullscreen,
             'embedTypes' => '',
-            'preloadedJs' => $library->preloaded_js,
-            'preloadedCss' => $library->preloaded_css,
+            'preloadedJs' => $library->preloadedjs,
+            'preloadedCss' => $library->preloadedcss,
             'dropLibraryCss' => $library->droplibrarycss,
             'semantics'     => $library->semantics
         );
