@@ -66,6 +66,8 @@ validation against and defaults to null (so, no user needed) if not provided.
   and should be set to either false or true. Developers will probably want to set this to false.
 * The core_enrol_edit_user_enrolment webservice has been deprecated. Please use core_enrol_submit_user_enrolment_form instead.
 * \single_button constructor has a new attributes param to add attributes to the button HTML tag.
+* New H5P libraries have been added to Moodle core in /lib/h5p.
+* New H5P core subsystem have been added.
 
 === 3.7 ===
 
