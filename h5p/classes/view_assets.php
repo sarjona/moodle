@@ -116,7 +116,7 @@ class view_assets {
         global $USER, $CFG;
 
         $basepath = $CFG->wwwroot . '/';
-
+        $systemcontext = \context_system::instance();
         // Check permissions and generate ajax paths.
         $ajaxpaths = [];
         $ajaxpaths['setFinished'] = '';
@@ -126,7 +126,7 @@ class view_assets {
         $settings = array(
             'baseUrl' => $basepath,
             'url' => "{",
-            'urlLibraries' => "",
+            'urlLibraries' => "{$basepath}pluginfile.php/{$systemcontext->id}/core_h5p/libraries",
             'postUserStatistics' => true,
             'ajax' => $ajaxpaths,
             'saveFreq' => false,
