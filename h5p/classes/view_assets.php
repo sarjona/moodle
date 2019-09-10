@@ -50,16 +50,21 @@ class view_assets {
         $this->settings = $this->get_core_assets(\context_system::instance());
         $context        = \context_system::instance();
         $displayoptions = $this->core->getDisplayOptionsForView(0, $idnumber);
+        // TODO: Remove this hack (it has been added to display the export and embed buttons).
+        $displayoptions['export'] = true;
+        $displayoptions['embed'] = true;
+        $displayoptions['copy'] = true;
+        // END
         $this->settings['contents'][ 'cid-' . $this->idnumber ]   = array(
             'library'         => \H5PCore::libraryToString($this->content['library']),
             'jsonContent'     => $this->getfilteredparameters(),
             'fullScreen'      => $this->content['library']['fullscreen'],
-            'exportUrl'       => "",
+            'exportUrl'       => $this->getexportsettings($displayoptions[ \H5PCore::DISPLAY_OPTION_DOWNLOAD ]),
             'embedCode'       => "No Embed Code",
             'resizeCode'      => $this->getresizecode(),
             'title'           => $this->content['slug'],
             'displayOptions'  => $displayoptions,
-            'url'             => "{$CFG->wwwroot}/lib/classes/output/h5p_embed.php?id={$this->idnumber}",
+            'url'             => "{$CFG->wwwroot}/h5p/view.php?id={$this->idnumber}",
             'contentUrl'      => "{$CFG->wwwroot}/pluginfile.php/{$context->id}/core_h5p/content/{$this->idnumber}",
             'metadata'        => '',
             'contentUserData' => array()
@@ -78,6 +83,35 @@ class view_assets {
 
     public function get_cache_buster() {
         return '?ver=' . 1;
+    }
+
+    /**
+     * Export path for settings
+     *
+     * @param $downloadenabled
+     *
+     * @return string
+     */
+    private function getexportsettings($downloadenabled) {
+        global $CFG;
+
+        if ( ! $downloadenabled) {
+            return '';
+        }
+
+        $context        = \context_system::instance();
+        //TODO: Get the expected context (not the system one).
+        //$modulecontext = \context_module::instance($this->cm->id);
+        $slug          = $this->content['slug'] ? $this->content['slug'] . '-' : '';
+        $url           = \moodle_url::make_pluginfile_url($context->id,
+            'core_h5p',
+            'exports',
+            '',
+            '',
+            "{$slug}{$this->content['id']}.h5p"
+        );
+
+        return $url->out();
     }
 
     public function get_core_assets($context) {
