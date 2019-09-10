@@ -37,6 +37,7 @@ class view_assets {
     private $idnumber;
     private $files;
 
+    protected $embedtype;
     protected $settings;
 
     public function __construct($idnumber) {
@@ -55,7 +56,7 @@ class view_assets {
             'fullScreen'      => $this->content['library']['fullscreen'],
             'exportUrl'       => "",
             'embedCode'       => "No Embed Code",
-            'resizeCode'      => $this->getresizecode($this->idnumber),
+            'resizeCode'      => $this->getresizecode(),
             'title'           => $this->content['slug'],
             'displayOptions'  => $displayoptions,
             'url'             => "{$CFG->wwwroot}/lib/classes/output/h5p_embed.php?id={$this->idnumber}",
@@ -63,6 +64,8 @@ class view_assets {
             'metadata'        => '',
             'contentUserData' => array()
         );
+
+        $this->embedtype = 'iframe';
 
         $this->files = $this->getdependencyfiles();
 
@@ -159,12 +162,8 @@ class view_assets {
      *
      * @return string
      */
-    private function getresizecode($embedenabled) {
+    private function getresizecode() {
         global $CFG;
-
-        if ( ! $embedenabled) {
-            return '';
-        }
 
         $resizeurl = new \moodle_url($CFG->wwwroot . '/lib/h5p/js/h5p-resizer.js');
 
@@ -205,37 +204,62 @@ class view_assets {
 
     public function generateassets() {
         global $CFG;
-        $context = \context_system::instance();
-        $h5ppath = "/pluginfile.php/{$context->id}/core_h5p";
 
-        // Schedule JavaScripts for loading through Moodle.
-        foreach ($this->files['scripts'] as $script) {
-            $url = $script->path . $script->version;
+        if ($this->embedtype === 'div') {
+            $context = \context_system::instance();
+            $h5ppath = "/pluginfile.php/{$context->id}/core_h5p";
 
-            // Add URL prefix if not external.
-            $isexternal = strpos($script->path, '://');
-            if ($isexternal === false) {
-                $url = $h5ppath . $url;
+            // Schedule JavaScripts for loading through Moodle.
+            foreach ($this->files['scripts'] as $script) {
+                $url = $script->path . $script->version;
+
+                // Add URL prefix if not external.
+                $isexternal = strpos($script->path, '://');
+                if ($isexternal === false) {
+                    $url = $h5ppath . $url;
+                }
+                $this->settings['loadedJs'][] = $url;
+                $this->jsrequires[] = new \moodle_url($isexternal ? $url : $CFG->wwwroot . $url);
             }
-            $this->settings['loadedJs'][] = $url;
-            $this->jsrequires[] = new \moodle_url($isexternal ? $url : $CFG->wwwroot . $url);
-        }
 
-        // Schedule stylesheets for loading through Moodle.
-        foreach ($this->files['styles'] as $style) {
-            $url = $style->path . $style->version;
+            // Schedule stylesheets for loading through Moodle.
+            foreach ($this->files['styles'] as $style) {
+                $url = $style->path . $style->version;
 
-            // Add URL prefix if not external.
-            $isexternal = strpos($style->path, '://');
-            if ($isexternal === false) {
-                $url = $h5ppath . $url;
+                // Add URL prefix if not external.
+                $isexternal = strpos($style->path, '://');
+                if ($isexternal === false) {
+                    $url = $h5ppath . $url;
+                }
+                $this->settings['loadedCss'][] = $url;
+                $this->cssrequires[] = new \moodle_url($isexternal ? $url : $CFG->wwwroot . $url);
             }
-            $this->settings['loadedCss'][] = $url;
-            $this->cssrequires[] = new \moodle_url($isexternal ? $url : $CFG->wwwroot . $url);
+
+        } else {
+            // JavaScripts and stylesheets will be loaded through h5p.js.
+            $cid = 'cid-' . $this->idnumber;
+            $this->settings['contents'][ $cid ]['scripts'] = $this->core->getAssetsUrls($this->files['scripts']);
+            $this->settings['contents'][ $cid ]['styles']  = $this->core->getAssetsUrls($this->files['styles']);
         }
     }
 
+    /**
+     * Outputs h5p view
+     */
     public function outputview() {
-        return "<div class=\"h5p-content\" data-content-id=\"{$this->idnumber}\"></div>";
+        if ($this->embedtype === 'div') {
+            echo "<div class=\"h5p-content\" data-content-id=\"{$this->idnumber}\"></div>";
+        } else {
+            echo "<div class=\"h5p-iframe-wrapper\">" .
+                 "<iframe id=\"h5p-iframe-{$this->idnumber}\"" .
+                 " class=\"h5p-iframe\"" .
+                 " data-content-id=\"{$this->idnumber}\"" .
+                 " style=\"height:1px; min-width: 100%\"" .
+                 " src=\"about:blank\"" .
+                 " frameBorder=\"0\"" .
+                 " scrolling=\"no\">" .
+                 "</iframe>" .
+                 "</div>";
+        }
     }
 }
