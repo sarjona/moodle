@@ -13,29 +13,31 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * Embed H5P Content
+ * Render H5P content from an H5P id.
  *
- * @package    mod_h5p
- * @copyright  2016 Joubel AS <contact@joubel.com>
+ * @package    core_h5p
+ * @copyright  2019 Sara Arjona <sara@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once("../config.php");
-require_once($CFG->dirroot.'/h5p/classes/framework.php');
+
+require_once(__DIR__ . '/../config.php');
 
 $id = required_param('id', PARAM_INT);
 
-$disabledownload = false;
-$disablefullscreen = false;
+// TODO: Check if the user has access to the H5P content.
+require_login(null, false);
 
-// Set up view assets.
-$h5p    = new \core_h5p\view_assets($id);
-$content = $h5p->getcontent();
+// Set up the H5P player class.
+$h5pplayer = new \core_h5p\view_assets($id);
 
 // Configure page.
-require_login(0, false);
-$PAGE->set_context(context_system::instance());
+$context = context_system::instance();
+// TODO: update the correct context.
+$PAGE->set_context($context);
 $PAGE->set_url(new moodle_url ('/h5p/view.php', array('id' => $id)));
+// TODO: set the title and the heading. They should be added to the h5p lang or taken from the metadata.
 $PAGE->set_title('render h5p');
 $PAGE->set_heading('h5p rendering');
 
@@ -43,11 +45,12 @@ $PAGE->set_heading('h5p rendering');
 $PAGE->add_body_class('h5p-embed');
 $PAGE->set_pagelayout('embedded');
 
-// Add H5P assets to page.
-$h5p->addassetstopage();
+// Add H5P assets to the page.
+$h5pplayer->addassetstopage();
 
 // Print page HTML.
 echo $OUTPUT->header();
 
-echo $h5p->outputview();
+echo $h5pplayer->outputview();
+
 echo $OUTPUT->footer();
