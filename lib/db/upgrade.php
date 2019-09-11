@@ -3634,5 +3634,47 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2019090500.01);
     }
 
+    if ($oldversion < 2019090500.02) {
+        // Some extra fields have been added to the h5p table for being able to identify the H5P files uploaded.
+
+        // Define field component to be added to h5p.
+        $table = new xmldb_table('h5p');
+        $field = new xmldb_field('component', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null, 'displayoptions');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field itemtype to be added to h5p.
+        $field = new xmldb_field('itemtype', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null, 'component');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field itemid to be added to h5p.
+        $field = new xmldb_field('itemid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'itemtype');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field contextid to be added to h5p.
+        $field = new xmldb_field('contextid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'itemid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define key contextid (foreign) to be added to h5p.
+        $key = new xmldb_key('contextid', XMLDB_KEY_FOREIGN, ['contextid'], 'context', ['id']);
+        $dbman->add_key($table, $key);
+
+        // Define index uniquefileitem (unique) to be added to h5p.
+        $index = new xmldb_index('uniquefileitem', XMLDB_INDEX_UNIQUE, ['component', 'itemtype', 'itemid', 'contextid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2019090500.02);
+    }
+
     return true;
 }
