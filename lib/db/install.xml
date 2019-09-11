@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="lib/db" VERSION="20190906" COMMENT="XMLDB file for core Moodle tables"
+<XMLDB PATH="lib/db" VERSION="20190911" COMMENT="XMLDB file for core Moodle tables"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
 >
@@ -4174,6 +4174,7 @@
         <FIELD NAME="embedtype" TYPE="char" LENGTH="127" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="mainlibraryid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The library we first instanciate for this node"/>
         <FIELD NAME="displayoptions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="All different display options in JSON format"/>
+        <FIELD NAME="pathnamehash" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="Defines the complete unique hash for the file path where the H5P content was added."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -4192,9 +4193,9 @@
         <FIELD NAME="weight" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Determines the order in which the preloaded libraries will be loaded"/>
       </FIELDS>
       <KEYS>
-          <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-          <KEY NAME="h5pid" TYPE="foreign" FIELDS="h5pid" REFTABLE="h5p" REFFIELDS="id"/>
-          <KEY NAME="libraryid" TYPE="foreign" FIELDS="libraryid" REFTABLE="h5p_libraries" REFFIELDS="id"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="h5pid" TYPE="foreign" FIELDS="h5pid" REFTABLE="h5p" REFFIELDS="id"/>
+        <KEY NAME="libraryid" TYPE="foreign" FIELDS="libraryid" REFTABLE="h5p_libraries" REFFIELDS="id"/>
       </KEYS>
       <INDEXES>
         <INDEX NAME="dropcss" UNIQUE="false" FIELDS="dropcss"/>
