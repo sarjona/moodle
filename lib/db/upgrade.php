@@ -3634,5 +3634,19 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2019090500.01);
     }
 
+    if ($oldversion < 2019090500.03) {
+        // An extra field has been added to the h5p table for being able to identify the H5P files uploaded.
+
+        // Define field component to be added to h5p.
+        $table = new xmldb_table('h5p');
+        $field = new xmldb_field('pathnamehash', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, 'displayoptions');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2019090500.03);
+    }
+
     return true;
 }
