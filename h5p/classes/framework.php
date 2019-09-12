@@ -712,6 +712,7 @@ class framework implements \H5PFrameworkInterface {
             'embedtype' => 'div',
             'mainlibraryid' => $content['library']['libraryId'],
             'timemodified' => time(),
+            'pathnamehash' => $contentmainid
         );
 
         if (!isset($content['id'])) {
@@ -735,7 +736,7 @@ class framework implements \H5PFrameworkInterface {
      * @return int
      */
     public function insertContent($content, $contentmainid = null) {
-        return $this->updateContent($content);
+        return $this->updateContent($content, $contentmainid);
     }
 
     /**
