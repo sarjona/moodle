@@ -102,10 +102,11 @@ class view_assets {
         $context        = \context_system::instance();
         //TODO: Get the expected context (not the system one).
         //$modulecontext = \context_module::instance($this->cm->id);
-        $slug          = $this->content['slug'] ? $this->content['slug'] . '-' : '';
-        $url           = \moodle_url::make_pluginfile_url($context->id,
-            'core_h5p',
-            'exports',
+        $slug = $this->content['slug'] ? $this->content['slug'] . '-' : '';
+        $url  = \moodle_url::make_pluginfile_url(
+            $context->id,
+            \core_h5p\file_storage::COMPONENT,
+            \core_h5p\file_storage::EXPORT_FILEAREA,
             '',
             '',
             "{$slug}{$this->content['id']}.h5p"
