@@ -37,9 +37,16 @@ require_once($CFG->libdir . '/h5p/h5p-file-storage.interface.php');
  */
 class file_storage implements \H5PFileStorage {
 
-    private static $component   = 'core_h5p';
-    private static $libfilearea = 'libraries';
-    private static $contentfilearea = 'content';
+    /** The component for H5P. */
+    const COMPONENT   = 'core_h5p';
+    /** The library file area. */
+    const LIBRARY_FILEAREA = 'libraries';
+    /** The content file area */
+    const CONTENT_FILEAREA = 'content';
+    /** The cached assest file area. */
+    const CACHED_ASSETS_FILEAREA = 'cachedassets';
+    /** The export file area */
+    const EXPORT_FILEAREA = 'export';
 
     /**
      * Stores a H5P library in the Moodle filesystem.
@@ -50,17 +57,375 @@ class file_storage implements \H5PFileStorage {
         // Libraries are stored in a system context.
         $context = \context_system::instance();
 
-        $options = array(
+        $options = [
             'contextid' => $context->id,
-            'component' => self::$component,
-            'filearea' => self::$libfilearea,
-            'filepath' => '/' . \H5PCore::libraryToString($library, true) . '/',
+            'component' => self::COMPONENT,
+            'filearea' => self::LIBRARY_FILEAREA,
+            'filepath' => DIRECTORY_SEPARATOR . \H5PCore::libraryToString($library, true) . DIRECTORY_SEPARATOR,
             'itemid' => 0
-        );
+        ];
 
         // Easiest approach: delete the existing library version and copy the new one.
-        self::delete_directory($options);
-        self::copy_directory($library['uploadDirectory'], $options);
+        $this->delete_directory($options);
+        $this->copy_directory($library['uploadDirectory'], $options);
+    }
+
+    /**
+     * Store the content folder.
+     *
+     * @param string $source Path on file system to content directory.
+     * @param array $content Content properties
+     */
+    public function saveContent($source, $content) {
+        // Contents are stored in a course context.
+        // TODO: we are planning to use another context.
+        $context = \context_system::instance();
+        $options = [
+                'contextid' => $context->id,
+                'component' => self::COMPONENT,
+                'filearea' => self::CONTENT_FILEAREA,
+                'itemid' => $content['id'],
+                'filepath' => '/',
+        ];
+
+        $this->delete_directory($options);
+        // Copy content directory into Moodle filesystem.
+        $this->copy_directory($source, $options);
+    }
+
+    /**
+     * Remove content folder.
+     *
+     * @param array $content Content properties
+     */
+    public function deleteContent($content) {
+        // TODO: we are planning to use another context.
+        $context = \context_system::instance();
+
+        $options = [
+                'contextid' => $context->id,
+                'component' => self::COMPONENT,
+                'filearea' => self::CONTENT_FILEAREA,
+                'itemid' => $content['id'],
+                'filepath' => '/',
+        ];
+
+        $this->delete_directory($options);
+    }
+
+    /**
+     * Creates a stored copy of the content folder.
+     *
+     * @param string $id Identifier of content to clone.
+     * @param int $newid The cloned content's identifier
+     */
+    public function cloneContent($id, $newid) {
+        // Not implemented in Moodle.
+    }
+
+    /**
+     * Get path to a new unique tmp folder.
+     * Please note this needs to not be a directory.
+     *
+     * @return string Path
+     */
+    public function getTmpPath() : string {
+        global $CFG;
+        return $CFG->tempdir . DIRECTORY_SEPARATOR . uniqid('h5p-');
+    }
+
+    /**
+     * Fetch content folder and save in target directory.
+     *
+     * @param int $id Content identifier
+     * @param string $target Where the content folder will be saved
+     */
+    public function exportContent($id, $target) {
+        $context = \context_system::instance();
+        $this->export_file_tree($target, $context->id, self::CONTENT_FILEAREA, '/', $id);
+    }
+
+    /**
+     * Fetch library folder and save in target directory.
+     *
+     * @param array $library Library properties
+     * @param string $target Where the library folder will be saved
+     */
+    public function exportLibrary($library, $target) {
+        $folder = \H5PCore::libraryToString($library, true);
+        $context = \context_system::instance();
+        $this->export_file_tree($target . DIRECTORY_SEPARATOR . $folder, $context->id, self::LIBRARY_FILEAREA, DIRECTORY_SEPARATOR
+                . $folder . DIRECTORY_SEPARATOR);
+    }
+
+    /**
+     * Save export in file system
+     *
+     * @param string $source Path on file system to temporary export file.
+     * @param string $filename Name of export file.
+     */
+    public function saveExport($source, $filename) {
+        $context = \context_system::instance();
+        $filerecord = [
+            'contextid' => $context->id,
+            'component' => self::COMPONENT,
+            'filearea' => self::EXPORT_FILEAREA,
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => $filename
+        ];
+        $fs = get_file_storage();
+        $fs->create_file_from_pathname($filerecord, $source);
+    }
+
+    /**
+     * Removes given export file
+     *
+     * @param string $filename
+     */
+    public function deleteExport($filename) {
+        $file = $this->get_export_file($filename);
+        if ($file) {
+            $file->delete();
+        }
+    }
+
+    /**
+     * Check if the given export file exists
+     *
+     * @param string $filename
+     * @return boolean
+     */
+    public function hasExport($filename) {
+        return !!$this->get_export_file($filename);
+    }
+
+    /**
+     * Will concatenate all JavaScrips and Stylesheets into two files in order
+     * to improve page performance.
+     *
+     * @param array $files A set of all the assets required for content to display
+     * @param string $key Hashed key for cached asset
+     */
+    public function cacheAssets(&$files, $key) {
+
+        $context = \context_system::instance();
+        $fs = get_file_storage();
+
+        foreach ($files as $type => $assets) {
+            if (empty($assets)) {
+                continue;
+            }
+
+            $content = '';
+            $content .= $this->concatenate_files($assets, $type, $context);
+
+            // Create new file for cached assets.
+            $ext = ($type === 'scripts' ? 'js' : 'css');
+            $filename = $key . '.' . $ext;
+            $fileinfo = [
+                'contextid' => $context->id,
+                'component' => self::COMPONENT,
+                'filearea' => self::CACHED_ASSETS_FILEAREA,
+                'itemid' => 0,
+                'filepath' => '/',
+                'filename' => $filename
+            ];
+
+            // Store concatenated content.
+            $fs->create_file_from_string($fileinfo, $content);
+            $files[$type] = [
+                (object) [
+                    'path' => DIRECTORY_SEPARATOR . self::CACHED_ASSETS_FILEAREA . DIRECTORY_SEPARATOR . $filename,
+                    'version' => ''
+                ]
+            ];
+        }
+    }
+
+    /**
+     * Will check if there are cache assets available for content.
+     *
+     * @param string $key Hashed key for cached asset
+     * @return array
+     */
+    public function getCachedAssets($key) {
+        $context = \context_system::instance();
+        $fs = get_file_storage();
+
+        $files = [];
+
+        $js = $fs->get_file($context->id, self::COMPONENT, self::CACHED_ASSETS_FILEAREA, 0, '/', "{$key}.js");
+        if ($js && $js->get_filesize() > 0) {
+            $files['scripts'] = [
+                (object) [
+                    'path' => DIRECTORY_SEPARATOR . self::CACHED_ASSETS_FILEAREA . DIRECTORY_SEPARATOR . "{$key}.js",
+                    'version' => ''
+                ]
+            ];
+        }
+
+        $css = $fs->get_file($context->id, self::COMPONENT, self::CACHED_ASSETS_FILEAREA, 0, '/', "{$key}.css");
+        if ($css && $css->get_filesize() > 0) {
+            $files['styles'] = [
+                (object) [
+                    'path' => DIRECTORY_SEPARATOR . self::CACHED_ASSETS_FILEAREA . DIRECTORY_SEPARATOR . "{$key}.css",
+                    'version' => ''
+                ]
+            ];
+        }
+
+        return empty($files) ? null : $files;
+    }
+
+    /**
+     * Remove the aggregated cache files.
+     *
+     * @param array $keys The hash keys of removed files
+     */
+    public function deleteCachedAssets($keys) {
+
+        if (empty($keys)) {
+            return;
+        }
+
+        $context = \context_system::instance();
+        $fs = get_file_storage();
+
+        foreach ($keys as $hash) {
+            foreach (['js', 'css'] as $type) {
+                $cachedasset = $fs->get_file($context->id, self::COMPONENT, self::CACHED_ASSETS_FILEAREA, 0, '/',
+                        "{$hash}.{$type}");
+                if ($cachedasset) {
+                    $cachedasset->delete();
+                }
+            }
+        }
+    }
+
+    /**
+     * Read file content of given file and then return it.
+     *
+     * @param string $filepath
+     * @return string contents
+     */
+    public function getContent($filepath) {
+        // Grab context and file storage.
+        $context = \context_system::instance();
+        $fs = get_file_storage();
+
+        list('filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename) =
+                    $this->get_file_elements_from_filepath($filepath);
+
+        // Locate file.
+        $file = $fs->get_file($context->id, self::COMPONENT, $filearea, 0, $filepath, $filename);
+        if (!$file) {
+            throw new \file_serving_exception('Could not retrieve the requested file, check your file permissions.');
+        }
+
+        // Return content.
+        return $file->get_content();
+    }
+
+    /**
+     * Save files uploaded through the editor.
+     * The files must be marked as temporary until the content form is saved.
+     *
+     * @param \H5peditorFile $file
+     * @param int $contentid
+     */
+    public function saveFile($file, $contentid) {
+        // This is to be implemented when the h5p editor is introduced / created.
+    }
+
+    /**
+     * Copy a file from another content or editor tmp dir.
+     * Used when copy pasting content in H5P.
+     *
+     * @param string $file path + name
+     * @param string|int $fromid Content ID or 'editor' string
+     * @param int $toid Target Content ID
+     */
+    public function cloneContentFile($file, $fromid, $toid) {
+        // This is to be implemented when the h5p editor is introduced / created.
+    }
+
+    /**
+     * Copy content from one directory to another. Defaults to cloning
+     * content from the current temporary upload folder to the editor path.
+     *
+     * @param string $source path to source directory
+     * @param string $contentid Id of content
+     *
+     * @return object Object containing h5p json and content json data
+     */
+    public function moveContentDirectory($source, $contentid = null) {
+        // This is to be implemented when the h5p editor is introduced / created.
+    }
+
+    /**
+     * Checks to see if content has the given file.
+     * Used when saving content.
+     *
+     * @param string $file path + name
+     * @param int $contentid
+     * @return string|int File ID or NULL if not found
+     */
+    public function getContentFile($file, $contentid) {
+        // This is to be implemented when the h5p editor is introduced / created.
+    }
+
+    /**
+     * Remove content files that are no longer used.
+     * Used when saving content.
+     *
+     * @param string $file path + name
+     * @param int $contentid
+     */
+    public function removeContentFile($file, $contentid) {
+        // This is to be implemented when the h5p editor is introduced / created.
+    }
+
+    /**
+     * Check if server setup has write permission to
+     * the required folders
+     *
+     * @return bool True if server has the proper write access
+     */
+    public function hasWriteAccess() {
+        // Moodle has access to the files table which is where all of the folders are stored.
+        return true;
+    }
+
+    /**
+     * Check if the library has a presave.js in the root folder
+     *
+     * @param string $libraryname
+     * @param string $developmentpath
+     * @return bool
+     */
+    public function hasPresave($libraryname, $developmentpath = null) {
+        return false;
+    }
+
+    /**
+     * Check if upgrades script exist for library.
+     *
+     * @param string $machinename
+     * @param int $majorversion
+     * @param int $minorversion
+     * @return string Relative path
+     */
+    public function getUpgradeScript($machinename, $majorversion, $minorversion) {
+        $context = \context_system::instance();
+        $fs = get_file_storage();
+        $path = DIRECTORY_SEPARATOR . "{$machinename}-{$majorversion}.{$minorversion}" . DIRECTORY_SEPARATOR;
+        $file = 'upgrade.js';
+        if ($fs->get_file($context->id, self::COMPONENT, self::LIBRARY_FILEAREA, 0, $path, $file)) {
+            return DIRECTORY_SEPARATOR . self::LIBRARY_FILEAREA . $path . $file;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -72,293 +437,29 @@ class file_storage implements \H5PFileStorage {
      * @return bool
      */
     public function saveFileFromZip($path, $file, $stream) {
-        $filepath = $path . '/' . $file;
+        global $CFG;
 
-        // Make sure the directory exists first.
-        $matches = array();
-        preg_match('/(.+)\/[^\/]*$/', $filepath, $matches);
-        // Recursively make directories
-        if (!file_exists($matches[1])) {
-            mkdir($matches[1], 0777, true);
+        $filepath = $path . DIRECTORY_SEPARATOR . $file;
+
+        $fileitems = explode(DIRECTORY_SEPARATOR, $file);
+        array_pop($fileitems);
+        $newfilestring = implode(DIRECTORY_SEPARATOR, $fileitems);
+        $directory = $path . DIRECTORY_SEPARATOR . $newfilestring;
+
+        if (!file_exists($directory)) {
+            mkdir($directory, $CFG->directorypermissions, true);
         }
 
         // Store in local storage folder.
-        return file_put_contents($filepath, $stream);
+        return (file_put_contents($filepath, $stream));
     }
 
     /**
-     * Store the content folder.
+     * Remove an H5P directory from the filesystem.
      *
-     * @param string $source
-     *  Path on file system to content directory.
-     * @param array $content
-     *  Content properties
+     * @param array $options File system information.
      */
-    public function saveContent($source, $content) {
-        // Contents are stored in a course context.
-        // TODO: we are planning to use another context.
-        $context = \context_system::instance();
-        $options = array(
-                'contextid' => $context->id,
-                'component' => self::$component,
-                'filearea' => self::$contentfilearea,
-                'itemid' => $content['id'],
-                'filepath' => '/',
-        );
-
-        self::delete_directory($options);
-        // Copy content directory into Moodle filesystem.
-        self::copy_directory($source, $options);
-    }
-
-    /**
-     * Remove content folder.
-     *
-     * @param array $content
-     *  Content properties
-     */
-    public function deleteContent($content) {
-        // TODO: we are planning to use another context.
-        $context = \context_module::instance($content['coursemodule']);
-
-        $options = array(
-                'contextid' => $context->id,
-                'component' => self::$component,
-                'filearea' => self::$contentfilearea,
-                'itemid' => $content['id'],
-                'filepath' => '/',
-        );
-
-        self::delete_directory($options);
-    }
-
-    /**
-     * Creates a stored copy of the content folder.
-     *
-     * @param string $id
-     *  Identifier of content to clone.
-     * @param int $newId
-     *  The cloned content's identifier
-     */
-    public function cloneContent($id, $newId) {
-        // TODO: Implement cloneContent() method.
-        // Not implemented in Moodle.
-    }
-
-    /**
-     * Get path to a new unique tmp folder.
-     *
-     * @return string Path
-     */
-    public function getTmpPath() {
-        global $CFG;
-
-        return $CFG->tempdir . uniqid('/hvp-');
-    }
-
-    /**
-     * Fetch content folder and save in target directory.
-     *
-     * @param int $id
-     *  Content identifier
-     * @param string $target
-     *  Where the content folder will be saved
-     */
-    public function exportContent($id, $target) {
-        // TODO Context won't be the course module
-        $cm = \get_coursemodule_from_instance('hvp', $id);
-        $context = \context_module::instance($cm->id);
-        self::exportFileTree($target, $context->id, self::$contentfilearea, '/', $id);
-    }
-
-    /**
-     * Fetch library folder and save in target directory.
-     *
-     * @param array $library
-     *  Library properties
-     * @param string $target
-     *  Where the library folder will be saved
-     */
-    public function exportLibrary($library, $target) {
-        $folder = \H5PCore::libraryToString($library, true);
-        $context = \context_system::instance();
-        self::exportFileTree("{$target}/{$folder}", $context->id, self::libfilearea, "/{$folder}/");
-    }
-
-    /**
-     * Save export in file system
-     *
-     * @param string $source
-     *  Path on file system to temporary export file.
-     * @param string $filename
-     *  Name of export file.
-     */
-    public function saveExport($source, $filename) {
-        // TODO: Implement saveExport() method.
-    }
-
-    /**
-     * Removes given export file
-     *
-     * @param string $filename
-     */
-    public function deleteExport($filename) {
-        // TODO: Implement deleteExport() method.
-    }
-
-    /**
-     * Check if the given export file exists
-     *
-     * @param string $filename
-     * @return boolean
-     */
-    public function hasExport($filename) {
-        // TODO: Implement hasExport() method.
-    }
-
-    /**
-     * Will concatenate all JavaScrips and Stylesheets into two files in order
-     * to improve page performance.
-     *
-     * @param array $files
-     *  A set of all the assets required for content to display
-     * @param string $key
-     *  Hashed key for cached asset
-     */
-    public function cacheAssets(&$files, $key) {
-        // TODO: Implement cacheAssets() method.
-    }
-
-    /**
-     * Will check if there are cache assets available for content.
-     *
-     * @param string $key
-     *  Hashed key for cached asset
-     * @return array
-     */
-    public function getCachedAssets($key) {
-        // TODO: Implement getCachedAssets() method.
-    }
-
-    /**
-     * Remove the aggregated cache files.
-     *
-     * @param array $keys
-     *   The hash keys of removed files
-     */
-    public function deleteCachedAssets($keys) {
-        // TODO: Implement deleteCachedAssets() method.
-    }
-
-    /**
-     * Read file content of given file and then return it.
-     *
-     * @param string $file_path
-     * @return string contents
-     */
-    public function getContent($file_path) {
-        // TODO: Implement getContent() method.
-    }
-
-    /**
-     * Save files uploaded through the editor.
-     * The files must be marked as temporary until the content form is saved.
-     *
-     * @param \H5peditorFile $file
-     * @param int $contentId
-     */
-    public function saveFile($file, $contentId) {
-        // TODO: Implement saveFile() method.
-    }
-
-    /**
-     * Copy a file from another content or editor tmp dir.
-     * Used when copy pasting content in H5P.
-     *
-     * @param string $file path + name
-     * @param string|int $fromId Content ID or 'editor' string
-     * @param int $toId Target Content ID
-     */
-    public function cloneContentFile($file, $fromId, $toId) {
-        // TODO: Implement cloneContentFile() method.
-    }
-
-    /**
-     * Copy a content from one directory to another. Defaults to cloning
-     * content from the current temporary upload folder to the editor path.
-     *
-     * @param string $source path to source directory
-     * @param string $contentId Id of content
-     *
-     * @return object Object containing h5p json and content json data
-     */
-    public function moveContentDirectory($source, $contentId = null) {
-        // TODO: Implement moveContentDirectory() method.
-    }
-
-    /**
-     * Checks to see if content has the given file.
-     * Used when saving content.
-     *
-     * @param string $file path + name
-     * @param int $contentId
-     * @return string|int File ID or NULL if not found
-     */
-    public function getContentFile($file, $contentId) {
-        // TODO: Implement getContentFile() method.
-    }
-
-    /**
-     * Remove content files that are no longer used.
-     * Used when saving content.
-     *
-     * @param string $file path + name
-     * @param int $contentId
-     */
-    public function removeContentFile($file, $contentId) {
-        // TODO: Implement removeContentFile() method.
-    }
-
-    /**
-     * Check if server setup has write permission to
-     * the required folders
-     *
-     * @return bool True if server has the proper write access
-     */
-    public function hasWriteAccess() {
-        // TODO: Implement hasWriteAccess() method.
-    }
-
-    /**
-     * Check if the library has a presave.js in the root folder
-     *
-     * @param string $libraryName
-     * @param string $developmentPath
-     * @return bool
-     */
-    public function hasPresave($libraryName, $developmentPath = null) {
-        // TODO: Implement hasPresave() method.
-    }
-
-    /**
-     * Check if upgrades script exist for library.
-     *
-     * @param string $machineName
-     * @param int $majorVersion
-     * @param int $minorVersion
-     * @return string Relative path
-     */
-    public function getUpgradeScript($machineName, $majorVersion, $minorVersion) {
-        // TODO: Implement getUpgradeScript() method.
-    }
-
-    /**
-     * Remove an H5P directory from Moodle filesystem.
-     *
-     * @param int   $contextid  context ID
-     * @param string $filepath  directory path
-     */
-    private static function delete_directory($options) {
+    private function delete_directory(array $options) {
         list('contextid' => $contextid,
             'component' => $component,
             'filepath' => $filepath,
@@ -366,43 +467,32 @@ class file_storage implements \H5PFileStorage {
             'itemid' => $itemid) = $options;
         $fs = get_file_storage();
 
-        // Look up files in the library folder and remove.
-        $files = $fs->get_directory_files($contextid, $component, $filearea, $itemid, $filepath, true);
-        foreach ($files as $file) {
-            $file->delete();
-        }
-
-        // Remove library folder.
-        $file = $fs->get_file($contextid, $component, $filearea, $itemid, $filepath, '.');
-        if ($file) {
-            $file->delete();
-        }
+        $sql = '= :itemid AND filepath = :filepath';
+        $params = ['itemid' => $itemid, 'filepath' => $filepath];
+        $fs->delete_area_files_select($contextid, $component, $filearea, $sql, $params);
     }
 
     /**
-     * Copy an H5P directory from the temporary directory into the Moodle file system.
+     * Copy an H5P directory from the temporary directory into the file system.
      *
-     * @param string $libtemptpath Library path in the temp area
-     * @param $contextid The context id which the library belongs to
-     * @param $filepath Final path of the library
+     * @param  string $source  Temporary location for files.
+     * @param  array  $options File system information.
      */
-    private static function copy_directory($source, $options) {
-        $it =
-                new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($source,
-                        \RecursiveDirectoryIterator::SKIP_DOTS),
-                        \RecursiveIteratorIterator::SELF_FIRST);
+    private function copy_directory(string $source, array $options) {
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST);
 
         $fs = get_file_storage();
         $root = $options['filepath'];
 
         $it->rewind();
-        while($it->valid()) {
+        while ($it->valid()) {
             $item = $it->current();
             $subpath = $it->getSubPath();
             if (!$item->isDir()) {
                 $options['filename'] = $it->getFilename();
                 if (!$subpath == '') {
-                    $options['filepath'] = $root.$subpath.'/';
+                    $options['filepath'] = $root.$subpath . DIRECTORY_SEPARATOR;
                 } else {
                     $options['filepath'] = $root;
                 }
@@ -414,43 +504,112 @@ class file_storage implements \H5PFileStorage {
     }
 
     /**
-     * Copies files from Moodle storage to temporary folder.
+     * Copies files from storage to temporary folder.
      *
-     * @param string $target
-     *  Path to temporary folder
-     * @param int $contextid
-     *  Moodle context where the files are found
-     * @param string $filearea
-     *  Moodle file area
-     * @param string $filepath
-     *  Moodle file path
-     * @param int $itemid
-     *  Optional Moodle item ID
+     * @param string $target Path to temporary folder
+     * @param int $contextid context where the files are found
+     * @param string $filearea file area
+     * @param string $filepath file path
+     * @param int $itemid Optional item ID
      */
-    private static function exportFileTree($target, $contextid, $filearea, $filepath, $itemid = 0) {
+    private function export_file_tree(string $target, int $contextid, string $filearea, string $filepath, int $itemid = 0) {
+        global $CFG;
         // Make sure target folder exists.
         if (!file_exists($target)) {
-            mkdir($target, 0777, true);
+            mkdir($target, $CFG->directorypermissions, true);
         }
 
         // Read source files.
         $fs = get_file_storage();
-        $files = $fs->get_directory_files($contextid, self::$component, $filearea, $itemid, $filepath, true);
+        $files = $fs->get_directory_files($contextid, self::COMPONENT, $filearea, $itemid, $filepath, true);
 
         foreach ($files as $file) {
             // Correct target path for file.
-            $path = $target . str_replace($filepath, '/', $file->get_filepath());
+            $path = $target . str_replace($filepath, DIRECTORY_SEPARATOR, $file->get_filepath());
 
             if ($file->is_directory()) {
                 // Create directory.
-                $path = rtrim($path, '/');
+                $path = rtrim($path, DIRECTORY_SEPARATOR);
                 if (!file_exists($path)) {
-                    mkdir($path, 0777, true);
+                    mkdir($path, $CFG->directorypermissions, true);
                 }
             } else {
                 // Copy file.
                 $file->copy_content_to($path . $file->get_filename());
             }
         }
+    }
+
+    /**
+     * Adds all files of a type into one file.
+     *
+     * @param  array    $assets  A list of files.
+     * @param  string   $type    The type of files in assets. Either 'scripts' or 'styles'
+     * @param  \context $context Context
+     * @return string All of the file content in one string.
+     */
+    private function concatenate_files(array $assets, string $type, \context $context) :string {
+        $fs = get_file_storage();
+        $content = '';
+        foreach ($assets as $asset) {
+            // Find location of asset.
+            //
+            list('filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename) =
+                    $this->get_file_elements_from_filepath($asset->path);
+
+            // Locate file.
+            $file = $fs->get_file($context->id, self::COMPONENT, $filearea, 0, $filepath, $filename);
+            if ($file === false) {
+                continue;
+            }
+
+            // Get file content and concatenate.
+            if ($type === 'scripts') {
+                $content .= $file->get_content() . ";\n";
+            } else {
+                // Rewrite relative URLs used inside stylesheets.
+                $content .= preg_replace_callback(
+                        '/url\([\'"]?([^"\')]+)[\'"]?\)/i',
+                        function ($matches) use ($filearea, $filepath) {
+                            if (preg_match("/^(data:|([a-z0-9]+:)?\/)/i", $matches[1]) === 1) {
+                                return $matches[0]; // Not relative, skip.
+                            }
+                            return 'url("../' . $filearea . $filepath . $matches[1] . '")';
+                        },
+                        $file->get_content()) . "\n";
+            }
+        }
+        return $content;
+    }
+
+    /**
+     * Get files ready for export.
+     *
+     * @param  string $filename File name to retrieve.
+     * @return \stored_file The file for export.
+     */
+    private function get_export_file(string $filename) {
+        $context = \context_system::instance();
+        $fs = get_file_storage();
+        return $fs->get_file($context->id, self::COMPONENT, self::EXPORT_FILEAREA, 0, '/', $filename);
+    }
+
+    /**
+     * Returns necessary file information from a given filepath.
+     *
+     * @param  string $filepath The filepath to get information from.
+     * @return array File information.
+     */
+    private function get_file_elements_from_filepath(string $filepath) : array {
+        $sections = explode(DIRECTORY_SEPARATOR, $filepath);
+        $filename = array_pop($sections);
+        if (empty($sections[0])) {
+            array_shift($sections);
+        }
+        $filearea = array_shift($sections);
+        $filepath = implode(DIRECTORY_SEPARATOR, $sections);
+        $filepath = DIRECTORY_SEPARATOR . $filepath . DIRECTORY_SEPARATOR;
+
+        return ['filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename];
     }
 }
