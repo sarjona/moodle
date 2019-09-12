@@ -48,17 +48,22 @@ defined('MOODLE_INTERNAL') || die();
  */
 function core_h5p_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, $options = array()) {
 
+
     switch ($filearea) {
         default:
             return false; // Invalid file area.
 
-        case 'libraries':
+        case \core_h5p\file_storage::LIBRARY_FILEAREA:
             $itemid = 0;
             break;
-        case 'content':
+        case \core_h5p\file_storage::CONTENT_FILEAREA:
             if ($context->contextlevel != CONTEXT_SYSTEM) {
                 return false; // Invalid context.
             }
+        case \core_h5p\file_storage::CACHED_ASSETS_FILEAREA:
+        case \core_h5p\file_storage::EXPORT_FILEAREA:
+            $itemid = 0;
+            break;
 
             $itemid = array_shift($args);
             break;
@@ -68,7 +73,7 @@ function core_h5p_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
     $filepath = (!$args ? '/' : '/' .implode('/', $args) . '/');
 
     $fs = get_file_storage();
-    $file = $fs->get_file($context->id, 'core_h5p', $filearea, $itemid, $filepath, $filename);
+    $file = $fs->get_file($context->id, \core_h5p\file_storage::COMPONENT, $filearea, $itemid, $filepath, $filename);
     if (!$file) {
         return false; // No such file.
     }
