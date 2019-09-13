@@ -754,6 +754,105 @@ class framework_testcase extends advanced_testcase {
         $this->assertEquals(1, $countmainlib);
     }
 
+    /**
+     * Test that a record is stored for cached assets.
+     */
+    public function test_saveCachedAssets() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $libraries = [
+            'H5P.TestLib' => [
+                'id' => 405,
+            ],
+            'FontAwesome' => [
+                'id' => 406,
+            ],
+            'H5P.SecondLib' => [
+                'id' => 407,
+            ]
+        ];
+        $key = 'testhashkey';
+        $framework = framework::instance('interface');
+        $framework->saveCachedAssets($key, $libraries);
+
+        $records = $DB->get_records('h5p_libraries_cachedassets');
+        $this->assertCount(3, $records);
+    }
+
+    /**
+     * Test that the correct libraries are removed from the cached assets table
+     */
+    public function test_deleteCachedAssets() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+       $libraries = [
+            'H5P.TestLib' => [
+                'id' => 405,
+            ],
+            'FontAwesome' => [
+                'id' => 406,
+            ],
+            'H5P.SecondLib' => [
+                'id' => 407,
+            ]
+        ];
+        $key1 = 'testhashkey';
+        $framework = framework::instance('interface');
+        $framework->saveCachedAssets($key1, $libraries);
+
+        $libraries = [
+            'H5P.DiffLib' => [
+                'id' => 408,
+            ],
+            'FontAwesome' => [
+                'id' => 406,
+            ],
+            'H5P.ThirdLib' => [
+                'id' => 409,
+            ]
+        ];
+        $key2 = 'secondhashkey';
+        $framework = framework::instance('interface');
+        $framework->saveCachedAssets($key2, $libraries);
+
+        $libraries = [
+            'H5P.AnotherDiffLib' => [
+                'id' => 410,
+            ],
+            'NotRelated' => [
+                'id' => 411,
+            ],
+            'H5P.ForthLib' => [
+                'id' => 412,
+            ]
+        ];
+        $key3 = 'threeforthewin';
+        $framework = framework::instance('interface');
+        $framework->saveCachedAssets($key3, $libraries);
+
+        $records = $DB->get_records('h5p_libraries_cachedassets');
+        $this->assertCount(9, $records);
+
+        // Selecting one library id will result in all related library entries also being deleted.
+        // Going to use the FontAwesome library id. The first two hashes should be returned.
+        $hashes = $framework->deleteCachedAssets(406);
+        $this->assertCount(2, $hashes);
+        $index = array_search($key1, $hashes);
+        $this->assertEquals($key1, $hashes[$index]);
+        $index = array_search($key2, $hashes);
+        $this->assertEquals($key2, $hashes[$index]);
+        $index = array_search($key3, $hashes);
+        $this->assertFalse($index);
+
+        // Check that the records have been removed as well.
+        $records = $DB->get_records('h5p_libraries_cachedassets');
+        $this->assertCount(3, $records);
+    }
+
     // Test the behaviour of getLibraryContentCount().
     public function test_getLibraryContentCount() {
         $this->resetAfterTest();
