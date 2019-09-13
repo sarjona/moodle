@@ -1112,15 +1112,15 @@ class framework implements \H5PFrameworkInterface {
      * @param array $libraries List of dependencies(libraries) used to create the key
      */
     public function saveCachedAssets($key, $libraries) {
-//        global $DB;
-//
-//        foreach ($libraries as $library) {
-//            $cachedasset = new \stdClass();
-//            $cachedasset->libraryid = $library['id'];
-//            $cachedasset->hash = $key;
-//
-//            $DB->insert_record('h5p_libraries_cachedassets', $cachedasset);
-//        }
+       global $DB;
+
+       foreach ($libraries as $library) {
+           $cachedasset = new \stdClass();
+           $cachedasset->libraryid = $library['id'];
+           $cachedasset->hash = $key;
+
+           $DB->insert_record('h5p_libraries_cachedassets', $cachedasset);
+       }
     }
 
     /**
@@ -1132,24 +1132,20 @@ class framework implements \H5PFrameworkInterface {
      * @return array List of hash keys removed
      */
     public function deleteCachedAssets($libraryid) {
-//        global $DB;
-//
-//        $sql = "SELECT hash
-//                  FROM {h5p_libraries_cachedassets}
-//                 WHERE libraryid = ?";
-//
-//        // Get all the keys so we can remove the files.
-//        $results = $DB->get_records_sql($sql, array($libraryid));
-//
-//        // Remove all invalid keys.
-//        $hashes = array();
-//        foreach ($results as $key) {
-//            $hashes[] = $key->hash;
-//            $DB->delete_records('h5p_libraries_cachedassets', array('hash' => $key->hash));
-//        }
-//
-//        return $hashes;
-        return array();
+       global $DB;
+
+        // Get all the keys so we can remove the files.
+        $results = $DB->get_records('h5p_libraries_cachedassets', ['libraryid' => $libraryid]);
+
+        $hashes = array_map(function($result) {
+            return $result->hash;
+        }, $results);
+
+        list($sql, $params) = $DB->get_in_or_equal($hashes, SQL_PARAMS_NAMED);
+        // Remove all invalid keys.
+        $DB->delete_records_select('h5p_libraries_cachedassets', 'hash ' . $sql, $params);
+
+        return $hashes;
     }
 
     /**
