@@ -24,19 +24,28 @@
 
 require_once(__DIR__ . '/../config.php');
 
-$pluginfile = required_param('pluginfile', PARAM_LOCALURL);
+$url = required_param('url', PARAM_LOCALURL);
+
+// TODO: Remove the clean param (added only for making easy development).
+$clean = optional_param('clean', 0, PARAM_INT);
+if ($clean) {
+	\core_h5p\player::clean_db();
+	die();
+}
+// END.
+
 
 // TODO: Check if the user has access to the file.
 require_login(null, false);
 
 // Set up the H5P player class.
-$h5pplayer = new \core_h5p\player($pluginfile);
+$h5pplayer = new \core_h5p\player($url);
 
 // Configure page.
 $context = context_system::instance();
 // TODO: update the correct context.
 $PAGE->set_context($context);
-$PAGE->set_url(new moodle_url ('/h5p/embed.php', array('pluginfile' => $pluginfile)));
+$PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
 // TODO: set the title and the heading. They should be added to the h5p lang or taken from the metadata.
 $PAGE->set_title('render h5p');
 $PAGE->set_heading('h5p rendering');
@@ -46,11 +55,11 @@ $PAGE->add_body_class('h5p-embed');
 $PAGE->set_pagelayout('embedded');
 
 // Add H5P assets to the page.
-$h5pplayer->addassetstopage();
+$h5pplayer->add_assets_to_page();
 
 // Print page HTML.
 echo $OUTPUT->header();
 
-echo $h5pplayer->outputview();
+echo $h5pplayer->output();
 
 echo $OUTPUT->footer();
