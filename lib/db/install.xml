@@ -4200,5 +4200,15 @@
         <INDEX NAME="dropcss" UNIQUE="false" FIELDS="dropcss"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="h5p_libraries_cachedassets" COMMENT="H5P cached library assets">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="libraryid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="hash" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Cache hash key that this library is part of."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
   </TABLES>
 </XMLDB>
