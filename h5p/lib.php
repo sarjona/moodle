@@ -15,23 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Library of interface functions and constants for module hvp.
- *
- * All the core Moodle functions, neeeded to allow the module to work
- * integrated in Moodle should be placed here.
- *
- * All the hvp specific functions, needed to implement all the module
- * logic, should go to locallib.php. This will help to save some memory when
- * Moodle is performing actions across all modules.
+ * Callbacks.
  *
  * @package    core_h5p
- * @copyright  2016 Joubel AS <contact@joubel.com>
+ * @copyright  Bas Brands <bas@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
  /**
- * Serves the files from the h5p file areas
+ * Serve the files from the core_h5p file areas.
  *
  * @package core_h5p
  * @category files
@@ -44,21 +37,23 @@ defined('MOODLE_INTERNAL') || die();
  * @param bool $forcedownload whether or not force download
  * @param array $options additional options affecting the file serving
  *
- * @return true|false Success
+ * @return bool Returns false if we don't find a file.
  */
-function core_h5p_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, $options = array()) {
-
+function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $args, bool $forcedownload,
+    array $options = []) : bool {
 
     switch ($filearea) {
         default:
             return false; // Invalid file area.
 
         case \core_h5p\file_storage::LIBRARY_FILEAREA:
-            $itemid = 0;
-            break;
+            if ($context->contextlevel != CONTEXT_SYSTEM) {
+                $itemid = 0; // Invalid context because the libraries are loaded always in the context system.
+                break;
+            }
         case \core_h5p\file_storage::CONTENT_FILEAREA:
             if ($context->contextlevel != CONTEXT_SYSTEM) {
-                return false; // Invalid context.
+                return false; // Invalid context because the content files are loaded always in the context system.
             }
         case \core_h5p\file_storage::CACHED_ASSETS_FILEAREA:
         case \core_h5p\file_storage::EXPORT_FILEAREA:
@@ -78,7 +73,7 @@ function core_h5p_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
         return false; // No such file.
     }
 
-    send_stored_file($file, 86400, 0, $forcedownload, $options);
+    send_stored_file($file, null, 0, $forcedownload, $options);
 
     return true;
 }
