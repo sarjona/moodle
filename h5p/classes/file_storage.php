@@ -66,7 +66,7 @@ class file_storage implements \H5PFileStorage {
         ];
 
         // Easiest approach: delete the existing library version and copy the new one.
-        $this->delete_directory($options);
+        $this->delete_library($library);
         $this->copy_directory($library['uploadDirectory'], $options);
     }
 
@@ -107,7 +107,6 @@ class file_storage implements \H5PFileStorage {
                 'component' => self::COMPONENT,
                 'filearea' => self::CONTENT_FILEAREA,
                 'itemid' => $content['id'],
-                'filepath' => '/',
         ];
 
         $this->delete_directory($options);
@@ -457,6 +456,24 @@ class file_storage implements \H5PFileStorage {
     }
 
     /**
+     * Deletes a library from the file system.
+     *
+     * @param  array $library Library details
+     */
+    public function delete_library(array $library) {
+        $context = \context_system::instance();
+
+        $options = [
+            'contextid' => $context->id,
+            'component' => self::COMPONENT,
+            'filearea' => self::LIBRARY_FILEAREA,
+            'itemid' => $library['libraryId']
+        ];
+
+        $this->delete_directory($options);
+    }
+
+    /**
      * Remove an H5P directory from the filesystem.
      *
      * @param array $options File system information.
@@ -464,14 +481,10 @@ class file_storage implements \H5PFileStorage {
     private function delete_directory(array $options) {
         list('contextid' => $contextid,
             'component' => $component,
-            'filepath' => $filepath,
             'filearea' => $filearea,
             'itemid' => $itemid) = $options;
         $fs = get_file_storage();
-
-        $sql = '= :itemid AND filepath = :filepath';
-        $params = ['itemid' => $itemid, 'filepath' => $filepath];
-        $fs->delete_area_files_select($contextid, $component, $filearea, $sql, $params);
+        $fs->delete_area_files($contextid, $component, $filearea, $itemid);
     }
 
     /**

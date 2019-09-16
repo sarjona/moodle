@@ -581,7 +581,38 @@ class file_storage_testcase extends advanced_testcase {
         $this->directory_and_file_check($basedir . DIRECTORY_SEPARATOR . 'content', 'content.json', 1);
         $this->directory_and_file_check($basedir . DIRECTORY_SEPARATOR . 'testFont', 'testfont.min.css', 1);
         $this->directory_and_file_check($basedir . DIRECTORY_SEPARATOR . 'testJavaScript', 'testscript.min.js', 1);
+    }
 
+    /**
+     * Test that a library is fully deleted from the file system
+     */
+    public function test_delete_library() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $filestorage = new file_storage();
+        // Get a temp path.
+        $temppath = $filestorage->getTmpPath();
+        $basedirectory = $temppath . DIRECTORY_SEPARATOR . 'test-1.0';
+
+        $machinename = 'TestLib';
+        $majorversion = 1;
+        $minorversion = 0;
+        $lib = $this->create_library($basedirectory, $machinename, $majorversion, $minorversion);
+
+        // Now run the API call.
+        $filestorage->saveLibrary($lib);
+        $records = $DB->get_records('files', ['component' => file_storage::COMPONENT,
+                'filearea' => file_storage::LIBRARY_FILEAREA, 'itemid' => $lib['libraryId']]);
+        $this->assertCount(7, $records);
+
+        $filestorage->delete_library($lib);
+
+        // Let's look at the records.
+        $records = $DB->get_records('files', ['component' => file_storage::COMPONENT,
+                'filearea' => file_storage::LIBRARY_FILEAREA, 'itemid' => $lib['libraryId']]);
+        $this->assertCount(0, $records);
     }
 
     /**
