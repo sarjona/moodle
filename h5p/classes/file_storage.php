@@ -62,7 +62,7 @@ class file_storage implements \H5PFileStorage {
             'component' => self::COMPONENT,
             'filearea' => self::LIBRARY_FILEAREA,
             'filepath' => DIRECTORY_SEPARATOR . \H5PCore::libraryToString($library, true) . DIRECTORY_SEPARATOR,
-            'itemid' => 0
+            'itemid' => $library['libraryId']
         ];
 
         // Easiest approach: delete the existing library version and copy the new one.
@@ -155,7 +155,7 @@ class file_storage implements \H5PFileStorage {
         $folder = \H5PCore::libraryToString($library, true);
         $context = \context_system::instance();
         $this->export_file_tree($target . DIRECTORY_SEPARATOR . $folder, $context->id, self::LIBRARY_FILEAREA, DIRECTORY_SEPARATOR
-                . $folder . DIRECTORY_SEPARATOR);
+                . $folder . DIRECTORY_SEPARATOR, $library['libraryId']);
     }
 
     /**
@@ -317,11 +317,13 @@ class file_storage implements \H5PFileStorage {
         list('filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename) =
                     $this->get_file_elements_from_filepath($filepath);
 
-        // Locate file.
-        $file = $fs->get_file($context->id, self::COMPONENT, $filearea, 0, $filepath, $filename);
-        if (!$file) {
+        $itemid = $this->get_itemid_for_file($filearea, $filepath, $filename);
+        if (!$itemid) {
             throw new \file_serving_exception('Could not retrieve the requested file, check your file permissions.');
         }
+
+        // Locate file.
+        $file = $fs->get_file($context->id, self::COMPONENT, $filearea, $itemid, $filepath, $filename);
 
         // Return content.
         return $file->get_content();
@@ -557,11 +559,13 @@ class file_storage implements \H5PFileStorage {
             list('filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename) =
                     $this->get_file_elements_from_filepath($asset->path);
 
-            // Locate file.
-            $file = $fs->get_file($context->id, self::COMPONENT, $filearea, 0, $filepath, $filename);
-            if ($file === false) {
+            $fileid = $this->get_itemid_for_file($filearea, $filepath, $filename);
+            if ($fileid === false) {
                 continue;
             }
+
+            // Locate file.
+            $file = $fs->get_file($context->id, self::COMPONENT, $filearea, $fileid, $filepath, $filename);
 
             // Get file content and concatenate.
             if ($type === 'scripts') {
@@ -611,5 +615,19 @@ class file_storage implements \H5PFileStorage {
         $filepath = DIRECTORY_SEPARATOR . $filepath . DIRECTORY_SEPARATOR;
 
         return ['filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename];
+    }
+
+    /**
+     * Returns the item id given the other necessary variables.
+     *
+     * @param  string $filearea The file area.
+     * @param  string $filepath The file path.
+     * @param  string $filename The file name.
+     * @return mixed the specified value false if not found.
+     */
+    private function get_itemid_for_file(string $filearea, string $filepath, string $filename) {
+        global $DB;
+        return $DB->get_field('files', 'itemid', ['component' => self::COMPONENT, 'filearea' => $filearea, 'filepath' => $filepath,
+                'filename' => $filename]);
     }
 }
