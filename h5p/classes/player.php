@@ -40,19 +40,28 @@ class player {
      */
     private $core;
 
+    /**
+     * @var int H5P DB id.
+     */
     private $h5pid;
 
+    /**
+     * @var array JavaScript requirements for this H5P.
+     */
     private $jsrequires;
 
+    /**
+     * @var array CSS requirements for this H5P.
+     */
     private $cssrequires;
 
     /**
-     * @var string
+     * @var string Type of embed object, div or iframe.
      */
     private $embedtype;
 
     /**
-     * @var array
+     * @var array Main H5P configuration.
      */
     private $settings;
 
@@ -62,8 +71,6 @@ class player {
      * @param string $url Local URL of the H5P file to display.
      */
     public function __construct(string $url) {
-        global $CFG;
-
         $this->url = $url;
         $this->jsrequires  = [];
         $this->cssrequires = [];
@@ -75,22 +82,22 @@ class player {
         $this->content = $this->core->loadContent($this->h5pid);
         $this->settings = $this->get_core_assets($context);
         $displayoptions = $this->core->getDisplayOptionsForView(0, $this->h5pid);
-        // TODO: Remove this hack (it has been added to display the export and embed buttons).
-        $displayoptions['export'] = true;
         $displayoptions['embed'] = true;
-        $displayoptions['copy'] = true;
-        // END
+        $displayoptions['export'] = true;
+        $embedurl = new \moodle_url('/h5p/embed.php', ['id' => $this->h5pid]);
+        $contenturl = new \moodle_url("/pluginfile.php/{$context->id}/core_h5p/content/{$this->h5pid}");
+
         $this->settings['contents'][ 'cid-' . $this->h5pid ] = [
             'library'         => \H5PCore::libraryToString($this->content['library']),
             'jsonContent'     => $this->get_filtered_parameters(),
             'fullScreen'      => $this->content['library']['fullscreen'],
             'exportUrl'       => $this->get_export_settings($displayoptions[ \H5PCore::DISPLAY_OPTION_DOWNLOAD ]),
-            'embedCode'       => "No Embed Code",
+            'embedCode'       => $this->get_embed_code($displayoptions[ \H5PCore::DISPLAY_OPTION_EMBED ]),
             'resizeCode'      => $this->get_resize_code(),
             'title'           => $this->content['slug'],
             'displayOptions'  => $displayoptions,
-            'url'             => "{$CFG->wwwroot}/h5p/embed.php?id={$this->h5pid}",
-            'contentUrl'      => "{$CFG->wwwroot}/pluginfile.php/{$context->id}/core_h5p/content/{$this->h5pid}",
+            'url'             => $embedurl->out(),
+            'contentUrl'      => $contenturl->out(),
             'metadata'        => '',
             'contentUserData' => array()
         ];
@@ -112,6 +119,7 @@ class player {
         global $DB;
 
         $hash = $this->get_pluginfile_hash($url);
+
         // TODO: Check what happens if there is no hash.
 
         $h5p = $DB->get_record('h5p', ['pathnamehash' => $hash]);
@@ -121,7 +129,7 @@ class player {
             $file = $fs->get_file_by_hash($hash);
             if (!$file) {
                 // TODO: Throw an exception or move the string to the lang.
-                return "File not found";
+                throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
             } else {
                 return $this->save_h5p($file, $hash);
             }
@@ -129,6 +137,7 @@ class player {
             // The H5P content has been deployed previously.
 
             // TODO: Check if the file has been updated after being deployed and redeploy it if needed.
+            // also store contenthash?
 
             return $h5p->id;
         }
@@ -144,9 +153,15 @@ class player {
         global $CFG;
 
         // TODO: Validate this method with all the places where the Atto editor can be used.
-        // TODO: Take into account $CFG->slasharguments.
-
         $path = str_replace($CFG->wwwroot, '', $url);
+        if (!$CFG->slasharguments) {
+            $param = explode("=", $path);
+            if ($param[1]) {
+                $path = $param[1];
+            } else {
+                throw new \moodle_exception('invalidurl', 'core_h5p');
+            }
+        }
         $parts = array_reverse(explode('/', $path));
 
         $i = 0;
@@ -156,14 +171,16 @@ class player {
             $itemid = $parts[$i++];
         } else {
             $itemid = 0;
+            $i++;
         }
         $filearea = $parts[$i++];
         $component = $parts[$i++];
         $contextid = $parts[$i++];
 
+
         // TODO: Review how to avoid the following dirty hack for getting the correct itemid.
         // Dirty hack for the 'mod_page' because, although the itemid = 0 in DB, there is a /1/ in the URL.
-        if ($component == 'mod_page') {
+        if ($component == 'mod_page' || $component == 'mod_resource') {
             $itemid = 0;
         }
 
@@ -216,13 +233,12 @@ class player {
      * @return string
      */
     private function get_export_settings($downloadenabled) {
-        global $CFG;
 
         if ( ! $downloadenabled) {
             return '';
         }
 
-        $context        = \context_system::instance();
+        $context = \context_system::instance();
         //TODO: Get the expected context (not the system one).
         //$modulecontext = \context_module::instance($this->cm->id);
         $slug = $this->content['slug'] ? $this->content['slug'] . '-' : '';
@@ -238,14 +254,27 @@ class player {
         return $url->out();
     }
 
+    /**
+     * Get a query string with the theme revision number to include at the end
+     * of URLs. This is used to force the browser to reload the asset when the
+     * theme caches are cleared.
+     *
+     * @return string
+     */
     private function get_cache_buster() {
-        return '?ver=' . 1;
+        global $CFG;
+        return '?ver=' . $CFG->themerev;
     }
 
-    private function get_core_assets($context) {
+    /**
+     * Get the core H5p assets, including all core H5P JavaScript and CSS.
+     *
+     * @return Array core H5P assets.
+     */
+    private function get_core_assets() {
         global $CFG, $PAGE;
         // Get core settings.
-        $settings = $this->get_core_settings($context);
+        $settings = $this->get_core_settings();
         $settings['core'] = [
           'styles' => [],
           'scripts' => []
@@ -263,7 +292,7 @@ class player {
         // Add core stylesheets.
         foreach (\H5PCore::$styles as $style) {
             $settings['core']['styles'][] = $relpath . $style . $cachebuster;
-            //$this->cssrequires[] = new moodle_url($liburl . $style . $cachebuster);
+            $this->cssrequires[] = new \moodle_url($liburl . $style . $cachebuster);
         }
         // Add core JavaScript.
         foreach (\H5PCore::$scripts as $script) {
@@ -274,31 +303,30 @@ class player {
         return $settings;
     }
 
-    private function get_core_settings($context) {
+    private function get_core_settings() {
         global $USER, $CFG;
 
         $basepath = $CFG->wwwroot . '/';
         $systemcontext = \context_system::instance();
         // Check permissions and generate ajax paths.
         $ajaxpaths = [];
-        $ajaxpaths['setFinished'] = '';
         $ajaxpaths['xAPIResult'] = '';
         $ajaxpaths['contentUserData'] = '';
 
         $settings = array(
             'baseUrl' => $basepath,
-            'url' => "{",
+            'url' => "{$basepath}pluginfile.php/{$systemcontext->instanceid}/core_h5p",
             'urlLibraries' => "{$basepath}pluginfile.php/{$systemcontext->id}/core_h5p/libraries",
-            'postUserStatistics' => true,
+            'postUserStatistics' => false,
             'ajax' => $ajaxpaths,
             'saveFreq' => false,
             'siteUrl' => $CFG->wwwroot,
             'l10n' => array('H5P' => $this->core->getLocalization()),
             'user' => [],
             'hubIsEnabled' => false,
-            'reportingIsEnabled' => true,
+            'reportingIsEnabled' => false,
             'crossorigin' => null,
-            'libraryConfig' => '',
+            'libraryConfig' => null,
             'pluginCacheBuster' => $this->get_cache_buster(),
             'libraryUrl' => ''
         );
@@ -306,6 +334,10 @@ class player {
         return $settings;
     }
 
+    /**
+     * Generate the assets arrays for the H5P settings object and the JavaScript and CSS requirements.
+     *
+     */
     private function generate_assets() {
         global $CFG;
 
@@ -361,6 +393,11 @@ class player {
         return $files;
     }
 
+    /**
+     * Filtered and potentially altered parameters
+     *
+     * @return Object|string
+     */
     private function get_filtered_parameters() {
         global $PAGE;
 
@@ -380,15 +417,35 @@ class player {
      * @return string
      */
     private function get_resize_code() {
-        global $CFG;
+        global $CFG, $OUTPUT;
 
-        $resizeurl = new \moodle_url($CFG->wwwroot . '/lib/h5p/js/h5p-resizer.js');
-
-        return "<script src=\"{$resizeurl->out()}\" charset=\"UTF-8\"></script>";
+        $template = new \stdClass();
+        $template->resizeurl = new \moodle_url('/lib/h5p/js/h5p-resizer.js');
+        return $OUTPUT->render_from_template('core_h5p/h5presize', $template);
     }
 
     /**
-     * Adds js assets to the current page.
+     * Embed code for settings
+     *
+     * @param $embedenabled
+     *
+     * @return string
+     */
+    private function get_embed_code($embedenabled) {
+        global $CFG, $OUTPUT;
+
+        if ( ! $embedenabled) {
+            return '';
+        }
+
+        $template = new \stdClass();
+        $template->embedurl = new \moodle_url("/h5p/embed.php", ["url" => $this->url]);
+        return $OUTPUT->render_from_template('core_h5p/h5pembed', $template);
+    }
+
+    /**
+     * Create the H5PIntegration variable that will be included in the page. This variable is used as the
+     * main H5P config variable.
      */
     public function add_assets_to_page() {
         global $PAGE, $CFG;
@@ -406,22 +463,17 @@ class player {
     }
 
     /**
-     * Outputs an H5P content.
+     * Outputs H5P wrapper HTML.
      */
     public function output() {
+        global $OUTPUT;
+
+        $template = new \stdClass();
+        $template->h5pid = $this->h5pid;
         if ($this->embedtype === 'div') {
-            echo "<div class=\"h5p-content\" data-content-id=\"{$this->h5pid}\"></div>";
+            return $OUTPUT->render_from_template('core_h5p/h5pdiv', $template);
         } else {
-            echo "<div class=\"h5p-iframe-wrapper\">" .
-                 "<iframe id=\"h5p-iframe-{$this->h5pid}\"" .
-                 " class=\"h5p-iframe\"" .
-                 " data-content-id=\"{$this->h5pid}\"" .
-                 " style=\"height:1px; min-width: 100%\"" .
-                 " src=\"about:blank\"" .
-                 " frameBorder=\"0\"" .
-                 " scrolling=\"no\">" .
-                 "</iframe>" .
-                 "</div>";
+            return $OUTPUT->render_from_template('core_h5p/h5piframe', $template);
         }
     }
 

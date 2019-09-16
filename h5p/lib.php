@@ -55,12 +55,11 @@ function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $ar
             if ($context->contextlevel != CONTEXT_SYSTEM) {
                 return false; // Invalid context because the content files are loaded always in the context system.
             }
+            $itemid = array_shift($args);
+            break;
         case \core_h5p\file_storage::CACHED_ASSETS_FILEAREA:
         case \core_h5p\file_storage::EXPORT_FILEAREA:
             $itemid = 0;
-            break;
-
-            $itemid = array_shift($args);
             break;
     }
 
