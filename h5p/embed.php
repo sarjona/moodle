@@ -34,12 +34,8 @@ if ($clean) {
 }
 // END.
 
-
 // TODO: Check if the user has access to the file.
 require_login(null, false);
-
-// Set up the H5P player class.
-$h5pplayer = new \core_h5p\player($url);
 
 // Configure page.
 $context = context_system::instance();
@@ -53,6 +49,9 @@ $PAGE->set_heading('h5p rendering');
 // Embed specific page setup.
 $PAGE->add_body_class('h5p-embed');
 $PAGE->set_pagelayout('embedded');
+
+// Set up the H5P player class.
+$h5pplayer = new \core_h5p\player($url);
 
 // Add H5P assets to the page.
 $h5pplayer->add_assets_to_page();

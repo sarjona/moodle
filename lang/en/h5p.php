@@ -20,8 +20,5 @@
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$string['h5pfile'] = 'H5P file';
-$string['onlyupdate'] = 'Only update existing libraries';
-$string['disablefileextensioncheck'] = 'Disable file extension check';
-$string['disablefileextensioncheckwarning'] = "Warning! Disabling the file extension check may have security implications as it allows for uploading of php files. That in turn could make it possible for attackers to execute malicious code on your site. Please make sure you know exactly what you're uploading.";
-$string['upload'] = 'Upload';
+$string['privacy:metadata'] = 'H5P subsystem does not store any personal data.';
+$string['h5pfilenotfound'] = 'H5P file not found';
