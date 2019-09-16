@@ -36,6 +36,8 @@ class file_storage_testcase extends advanced_testcase {
 
     /** @var array $files an array used in the cache tests. */
     protected $files = ['scripts' => [], 'styles' => []];
+    /** @var int $libraryid an id for the library. */
+    protected $libraryid = 1;
 
     /**
      * Create the necessary files and return an array structure for a library.
@@ -76,8 +78,10 @@ class file_storage_testcase extends advanced_testcase {
                     'path' => 'styles' . DIRECTORY_SEPARATOR . 'testlib.min.css'
                 ]
             ],
-            'uploadDirectory' => $uploaddirectory
+            'uploadDirectory' => $uploaddirectory,
+            'libraryId' => $this->libraryid
         ];
+        $this->libraryid++;
 
         $version = "{$majorversion}.{$minorversion}.2";
         $libname = "{$machinename}-{$majorversion}.{$minorversion}";
