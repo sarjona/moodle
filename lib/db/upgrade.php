@@ -3674,6 +3674,14 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
+        // An extra field has been added to the h5p_libraries table for being able to store the plugin configuration data.
+        // Define field component to be added to h5p_libraries.
+        $table = new xmldb_table('h5p_libraries');
+        $field = new xmldb_field('addto', XMLDB_TYPE_TEXT, null, null, null, null, null, 'semantics');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
         // Main savepoint reached.
         upgrade_main_savepoint(true, 2019092000.02);
     }
