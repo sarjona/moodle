@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="lib/db" VERSION="20190911" COMMENT="XMLDB file for core Moodle tables"
+<XMLDB PATH="lib/db" VERSION="20190917" COMMENT="XMLDB file for core Moodle tables"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
 >
@@ -4146,6 +4146,7 @@
         <FIELD NAME="preloadedcss" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Comma separated list of stylesheets to load."/>
         <FIELD NAME="droplibrarycss" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="List of libraries that should not have CSS included if this library is used. Comma separated list."/>
         <FIELD NAME="semantics" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The semantics definition in json format"/>
+        <FIELD NAME="addto" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Plugin configuration data"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
