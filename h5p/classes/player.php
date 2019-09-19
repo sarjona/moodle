@@ -69,19 +69,23 @@ class player {
      * Inits the H5P player for rendering the content.
      *
      * @param string $url Local URL of the H5P file to display.
+     * @param object $config Configuration for H5P buttons.
      */
-    public function __construct(string $url) {
+    public function __construct(string $url, object $config) {
         $this->url = $url;
         $this->jsrequires  = [];
         $this->cssrequires = [];
         $context = \context_system::instance();
         $this->core = \core_h5p\framework::instance();
         // Get the H5P identifier linked to this URL.
-        $this->h5pid = $this->get_h5p_id($url);
+        $this->h5pid = $this->get_h5p_id($url, $config);
 
         $this->content = $this->core->loadContent($this->h5pid);
         $this->settings = $this->get_core_assets($context);
-        $displayoptions = $this->core->getDisplayOptionsForView(0, $this->h5pid);
+
+        // TODO: The display options for view will always return null for embed and export
+        // this needs to be changed in the framework
+        $displayoptions = $this->core->getDisplayOptionsForView($this->content['disable'], $this->h5pid);
         $displayoptions['embed'] = true;
         $displayoptions['export'] = true;
         $embedurl = new \moodle_url('/h5p/embed.php', ['id' => $this->h5pid]);
@@ -113,32 +117,30 @@ class player {
      * Get the H5P DB instance id for a H5P pluginfile URL.
      *
      * @param string $url H5P pluginfile URL.
+     * @param object $config Configuration for H5P buttons.
      * @return int H5P DB identifier.
      */
-    private function get_h5p_id($url) {
+    private function get_h5p_id($url, $config) {
         global $DB;
 
-        $hash = $this->get_pluginfile_hash($url);
+        $fs = get_file_storage();
 
-        // TODO: Check what happens if there is no hash.
+        $pathnamehash = $this->get_pluginfile_hash($url);
+        $file = $fs->get_file_by_hash($pathnamehash);
+        $contenthash = $file->get_contenthash();
+        $hashes = $pathnamehash . '/' . $contenthash;
 
-        $h5p = $DB->get_record('h5p', ['pathnamehash' => $hash]);
+        if (!$file) {
+            throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
+        }
+
+        $h5p = $DB->get_record('h5p', ['pathnamehash' => $pathnamehash, 'contenthash' => $contenthash]);
+
         if (!$h5p) {
             // The H5P content hasn't been deployed previously. It has to be validated and stored before displaying it.
-            $fs = get_file_storage();
-            $file = $fs->get_file_by_hash($hash);
-            if (!$file) {
-                // TODO: Throw an exception or move the string to the lang.
-                throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
-            } else {
-                return $this->save_h5p($file, $hash);
-            }
+            return $this->save_h5p($file, $hashes, $config);
         } else {
             // The H5P content has been deployed previously.
-
-            // TODO: Check if the file has been updated after being deployed and redeploy it if needed.
-            // also store contenthash?
-
             return $h5p->id;
         }
     }
@@ -177,7 +179,6 @@ class player {
         $component = $parts[$i++];
         $contextid = $parts[$i++];
 
-
         // TODO: Review how to avoid the following dirty hack for getting the correct itemid.
         // Dirty hack for the 'mod_page' because, although the itemid = 0 in DB, there is a /1/ in the URL.
         if ($component == 'mod_page' || $component == 'mod_resource') {
@@ -192,11 +193,12 @@ class player {
      * Store a H5P file
      *
      * @param Object $file Moodle file instance
-     * @param string $hash
+     * @param string $hash pathnamehash.
+     * @param Object $config Button options config.
      *
      * @return int|false The H5P identifier or false if it's not a valid H5P package.
      */
-    private function save_h5p($file, $hash) {
+    private function save_h5p($file, $hashes, $config) {
         global $CFG;
 
         $path = $this->core->fs->getTmpPath();
@@ -212,7 +214,17 @@ class player {
         $h5pvalidator = \core_h5p\framework::instance('validator');
         if ($h5pvalidator->isValidPackage(false, false)) {
             $h5pstorage = \core_h5p\framework::instance('storage');
-            $h5pstorage->savePackage(null, $hash, false);
+
+            $disableoptions = [
+                \H5PCore::DISPLAY_OPTION_FRAME     => isset($config->frame) ? $config->frame : 0,
+                \H5PCore::DISPLAY_OPTION_DOWNLOAD  => isset($config->export) ? $config->export : 0,
+                \H5PCore::DISPLAY_OPTION_EMBED     => isset($config->embed) ? $config->embed : 0,
+                \H5PCore::DISPLAY_OPTION_COPYRIGHT => isset($config->copyright) ? $config->copyright : 0,
+            ];
+
+            $options = ['disable' => $this->core->getStorableDisplayOptions($disableoptions, 0)];
+
+            $h5pstorage->savePackage(null, $hashes, false, $options);
             return $h5pstorage->contentId;
         } else {
             $messages = $this->core->h5pF->getMessages('error');

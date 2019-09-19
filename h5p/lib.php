@@ -48,9 +48,10 @@ function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $ar
 
         case \core_h5p\file_storage::LIBRARY_FILEAREA:
             if ($context->contextlevel != CONTEXT_SYSTEM) {
-                $itemid = 0; // Invalid context because the libraries are loaded always in the context system.
-                break;
+                 return false; // Invalid context because the libraries are loaded always in the context system.
             }
+            $itemid = 0;
+            break;
         case \core_h5p\file_storage::CONTENT_FILEAREA:
             if ($context->contextlevel != CONTEXT_SYSTEM) {
                 return false; // Invalid context because the content files are loaded always in the context system.
