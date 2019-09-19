@@ -3568,6 +3568,7 @@ function xmldb_main_upgrade($oldversion) {
         $table->add_field('preloadedcss', XMLDB_TYPE_TEXT, null, null, null, null, null);
         $table->add_field('droplibrarycss', XMLDB_TYPE_TEXT, null, null, null, null, null);
         $table->add_field('semantics', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('addto', XMLDB_TYPE_TEXT, null, null, null, null, null);
 
         // Adding keys to table h5p_libraries.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
@@ -3608,6 +3609,11 @@ function xmldb_main_upgrade($oldversion) {
         $table->add_field('jsoncontent', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('embedtype', XMLDB_TYPE_CHAR, '127', null, XMLDB_NOTNULL, null, null);
         $table->add_field('mainlibraryid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('displayoptions', XMLDB_TYPE_INTEGER, '4', null, null, null, null);
+        $table->add_field('pathnamehash', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('contenthash', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('filtered', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('slug', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
 
@@ -3644,22 +3650,24 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // Main savepoint reached.
-        upgrade_main_savepoint(true, 2019092000.01);
-    }
+        // Define table h5p_libraries_cachedassets to be created.
+        $table = new xmldb_table('h5p_libraries_cachedassets');
 
-    if ($oldversion < 2019092000.02) {
-        // An extra field has been added to the h5p table for being able to identify the H5P files uploaded.
+        // Adding fields to table h5p_libraries_cachedassets.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('libraryid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('hash', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
 
-        // Define field component to be added to h5p.
-        $table = new xmldb_table('h5p');
-        $field = new xmldb_field('pathnamehash', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, 'mainlibraryid');
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
+        // Adding keys to table h5p_libraries_cachedassets.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for h5p_libraries_cachedassets.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2019092000.02);
+        upgrade_main_savepoint(true, 2019092000.01);
     }
 
     return true;
