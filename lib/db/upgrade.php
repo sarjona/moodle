@@ -3686,5 +3686,37 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2019091300.02);
     }
 
+    if ($oldversion < 2019091300.03) {
+
+        // TODO: Remove this piece of code in MDL-66609.
+        // Define field displayoptions to be dropped from h5p.
+        $table = new xmldb_table('h5p');
+        $field = new xmldb_field('displayoptions');
+
+        // Conditionally launch drop field displayoptions.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+        // END.
+
+        $table = new xmldb_table('h5p');
+        $field = new xmldb_field('displayoptions', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'mainlibraryid');
+        // Conditionally launch add field displayoptions.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field contenthash to be added to h5p.
+        $field = new xmldb_field('contenthash', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, 'pathnamehash');
+
+        // Conditionally launch add field contenthash.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2019091300.03);
+    }
+
     return true;
 }
