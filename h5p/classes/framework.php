@@ -923,6 +923,7 @@ class framework implements \H5PFrameworkInterface {
             'params' => $data->jsoncontent,
             'embedType' => $data->embedtype,
             'disable' => $data->displayoptions,
+            'slug' => 'h5p-test-' . $data->id,
             'libraryId' => $data->libraryid,
             'libraryName' => $data->machinename,
             'libraryMajorVersion' => $data->majorversion,
@@ -1024,7 +1025,8 @@ class framework implements \H5PFrameworkInterface {
             $content->$name = $value;
         }
 
-        $DB->update_record('h5p', $content);
+        // TODO: To be reviewed before sending it to PR. It has been removed temporarily to avoid errors in the renderer.
+        //$DB->update_record('h5p', $content);
     }
 
     /**
@@ -1119,7 +1121,7 @@ class framework implements \H5PFrameworkInterface {
 
        foreach ($libraries as $library) {
            $cachedasset = new \stdClass();
-           $cachedasset->libraryid = $library['id'];
+           $cachedasset->libraryid = $library['libraryId'];
            $cachedasset->hash = $key;
 
            $DB->insert_record('h5p_libraries_cachedassets', $cachedasset);
@@ -1144,9 +1146,11 @@ class framework implements \H5PFrameworkInterface {
             return $result->hash;
         }, $results);
 
-        list($sql, $params) = $DB->get_in_or_equal($hashes, SQL_PARAMS_NAMED);
-        // Remove all invalid keys.
-        $DB->delete_records_select('h5p_libraries_cachedassets', 'hash ' . $sql, $params);
+        if (!empty($hashes)) {
+            list($sql, $params) = $DB->get_in_or_equal($hashes, SQL_PARAMS_NAMED);
+            // Remove all invalid keys.
+            $DB->delete_records_select('h5p_libraries_cachedassets', 'hash ' . $sql, $params);
+        }
 
         return $hashes;
     }
