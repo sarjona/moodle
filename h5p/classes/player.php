@@ -69,9 +69,9 @@ class player {
      * Inits the H5P player for rendering the content.
      *
      * @param string $url Local URL of the H5P file to display.
-     * @param object $config Configuration for H5P buttons.
+     * @param stdClass $config Configuration for H5P buttons.
      */
-    public function __construct(string $url, object $config) {
+    public function __construct(string $url, \stdClass $config) {
         $this->url = $url;
         $this->jsrequires  = [];
         $this->cssrequires = [];
@@ -85,7 +85,8 @@ class player {
 
         // TODO: The display options for view will always return null for embed and export
         // this needs to be changed in the framework
-        $displayoptions = $this->core->getDisplayOptionsForView($this->content['disable'], $this->h5pid);
+        $disable = array_key_exists('disable', $this->content)? $this->content['disable'] : 1; // TODO: set the default type. 1 should be replaced by the expected const.
+        $displayoptions = $this->core->getDisplayOptionsForView($disable, $this->h5pid);
         $displayoptions['embed'] = true;
         $displayoptions['export'] = true;
         $embedurl = new \moodle_url('/h5p/embed.php', ['id' => $this->h5pid]);
