@@ -503,7 +503,7 @@ class framework implements \H5PFrameworkInterface {
      * @return int int The ID of the newly inserted content
      */
     public function insertContent($content, $contentmainid = null) {
-        return $this->updateContent($content);
+        return $this->updateContent($content, $contentmainid);
     }
 
     /**
@@ -522,16 +522,18 @@ class framework implements \H5PFrameworkInterface {
     public function updateContent($content, $contentmainid = null) {
         global $DB;
 
-        if (!isset($content['pathnamehash'])) {
-            $content['pathnamehash'] = '';
-        }
+        $hashes = explode('/', $contentmainid);
+        $pathnamehash = $hashes[0];
+        $contenthash = $hashes[1];
 
         $data = array(
             'jsoncontent' => $content['params'],
             'embedtype' => 'div',
+            'displayoptions' => $content['disable'],
             'mainlibraryid' => $content['library']['libraryId'],
-            'pathnamehash' => $content['pathnamehash'],
             'timemodified' => time(),
+            'pathnamehash' => $pathnamehash,
+            'contenthash' => $contenthash,
         );
 
         if (!isset($content['id'])) {
@@ -895,7 +897,7 @@ class framework implements \H5PFrameworkInterface {
     public function loadContent($id) {
         global $DB;
 
-        $sql = "SELECT hc.id, hc.jsoncontent, hc.embedtype, hl.id AS libraryid,
+        $sql = "SELECT hc.id, hc.jsoncontent, hc.embedtype, hc.displayoptions, hl.id AS libraryid,
                        hl.machinename, hl.majorversion, hl.minorversion,
                        hl.fullscreen, hl.semantics
                   FROM {h5p} hc
@@ -920,6 +922,7 @@ class framework implements \H5PFrameworkInterface {
             'id' => $data->id,
             'params' => $data->jsoncontent,
             'embedType' => $data->embedtype,
+            'disable' => $data->displayoptions,
             'libraryId' => $data->libraryid,
             'libraryName' => $data->machinename,
             'libraryMajorVersion' => $data->majorversion,
