@@ -3610,10 +3610,14 @@ function xmldb_main_upgrade($oldversion) {
         $table->add_field('mainlibraryid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        // TODO review if we need this fields (filtered, slug) at last.
+        $table->add_field('filtered', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('slug', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table h5p.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('mainlibraryid', XMLDB_KEY_FOREIGN, ['mainlibraryid'], 'h5p_libraries', ['id']);
+
 
         // Conditionally launch create table for h5p.
         if (!$dbman->table_exists($table)) {

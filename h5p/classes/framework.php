@@ -532,12 +532,14 @@ class framework implements \H5PFrameworkInterface {
             'displayoptions' => $content['disable'],
             'mainlibraryid' => $content['library']['libraryId'],
             'timemodified' => time(),
+            'filtered' => '',
             'pathnamehash' => $pathnamehash,
             'contenthash' => $contenthash,
         );
 
         if (!isset($content['id'])) {
             $data['timecreated'] = $data['timemodified'];
+            $data['slug'] = '';
             $id = $DB->insert_record('h5p', $data);
         } else {
             $id = $data['id'] = $content['id'];
@@ -899,7 +901,7 @@ class framework implements \H5PFrameworkInterface {
 
         $sql = "SELECT hc.id, hc.jsoncontent, hc.embedtype, hc.displayoptions, hl.id AS libraryid,
                        hl.machinename, hl.majorversion, hl.minorversion,
-                       hl.fullscreen, hl.semantics
+                       hl.fullscreen, hl.semantics, hc.slug, hc.filtered
                   FROM {h5p} hc
                   JOIN {h5p_libraries} hl
                        ON hl.id = hc.mainlibraryid
@@ -923,7 +925,9 @@ class framework implements \H5PFrameworkInterface {
             'params' => $data->jsoncontent,
             'embedType' => $data->embedtype,
             'disable' => $data->displayoptions,
-            'slug' => 'h5p-test-' . $data->id,
+            'title' => 'h5p-test-title-' . $data->id, //TODO how to get this value, current plugin is $data->name
+            'slug' => $data->slug,
+            'filtered' => $data->filtered,
             'libraryId' => $data->libraryid,
             'libraryName' => $data->machinename,
             'libraryMajorVersion' => $data->majorversion,
@@ -1026,7 +1030,7 @@ class framework implements \H5PFrameworkInterface {
         }
 
         // TODO: To be reviewed before sending it to PR. It has been removed temporarily to avoid errors in the renderer.
-        //$DB->update_record('h5p', $content);
+        $DB->update_record('h5p', $content);
     }
 
     /**
@@ -1035,10 +1039,12 @@ class framework implements \H5PFrameworkInterface {
      * and the parameters re-filtered.
      * Implements clearFilteredParameters().
      *
-     * @param array $libraryids array of library ids
+     * @param array $libraryid array of library ids
      */
-    public function clearFilteredParameters($libraryids) {
-        // Currently, we do not store filtered parameters.
+    public function clearFilteredParameters($libraryid) {
+        global $DB;
+
+        $DB->execute("UPDATE {h5p} SET filtered = null WHERE mainlibraryid = ?", array($libraryid));
     }
 
     /**
@@ -1050,7 +1056,12 @@ class framework implements \H5PFrameworkInterface {
      *             and parameters re-filtered.
      */
     public function getNumNotFiltered() {
-        // Currently, we do not store filtered parameters.
+        global $DB;
+
+        return (int) $DB->get_field_sql(
+                "SELECT COUNT(id)
+                   FROM {h5p}
+                  WHERE " . $DB->sql_compare_text('filtered') . " = ''");
     }
 
     /**
@@ -1064,7 +1075,7 @@ class framework implements \H5PFrameworkInterface {
     public function getNumContent($libraryid, $skip = NULL) {
         global $DB;
 
-        $skipquery = empty($skip) ? '' : ' AND id NOT IN (' . implode(",", $skip) .')';
+        $skipquery = empty($skip) ? '' : ' AND id NOT IN (' . $skip .')';
         $sql = "SELECT COUNT(id) FROM {h5p} WHERE mainlibraryid = :libraryid {$skipquery}";
         $sqlparams = array(
             'libraryid' => $libraryid
@@ -1082,8 +1093,9 @@ class framework implements \H5PFrameworkInterface {
      * @return boolean Whether the content slug is used
      */
     public function isContentSlugAvailable($slug) {
-        // Content slug is not being stored.
-        return false;
+        global $DB;
+
+        return !$DB->get_records_sql("SELECT id, slug FROM {h5p} WHERE slug = ?", array($slug));
     }
 
     /**
@@ -1359,11 +1371,26 @@ class framework implements \H5PFrameworkInterface {
      * @return string Library parameter values separated by ', '
      */
     private function library_parameter_values_to_csv(array $librarydata, string $key, string $searchparam = 'path') : string {
+        /*Array
+            (
+            ...
+            [preloadedJs] => Array
+                (
+                    [0] => Array
+                        (
+                            [path] => js/drop.min.js
+                        )
+
+                )
+            ...
+        */
         if (isset($librarydata[$key])) {
             $parametervalues = array();
-            foreach ($librarydata[$key] as $key => $value) {
-                if ($key === $searchparam) {
-                    $parametervalues[] = $value;
+            foreach ($librarydata[$key] as $file) {
+                foreach ($file as $index => $value) {
+                    if ($index === $searchparam) {
+                        $parametervalues[] = $value;
+                    }
                 }
             }
             return implode(', ', $parametervalues);
