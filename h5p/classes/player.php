@@ -511,5 +511,6 @@ class player {
             $file->delete();
         }
         $DB->delete_records('files', ['component' => 'core_h5p']);
+        $DB->delete_records('h5p_libraries_cachedassets');
     }
 }
