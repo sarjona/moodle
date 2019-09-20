@@ -4175,6 +4175,8 @@
         <FIELD NAME="embedtype" TYPE="char" LENGTH="127" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="mainlibraryid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The library we first instanciate for this node"/>
         <FIELD NAME="pathnamehash" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="Defines the complete unique hash for the file path where the H5P content was added."/>
+        <FIELD NAME="filtered" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Filtered version of json_content"/>
+        <FIELD NAME="slug" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Human readable content identifier that is unique"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
