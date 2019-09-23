@@ -990,15 +990,17 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Get stored setting.
+     * Get the default behaviour for the display option defined.
      * Implements getOption
      *
      * @param string $name Identifier for the setting
      * @param string $default Optional default value if settings is not set
-     * @return mixed Return always CONTROLLED_BY_PERMISSIONS to base on content's settings
+     * @return mixed Return The default \H5PDisplayOptionBehaviour for this display option.
      */
     public function getOption($name, $default = false) {
-        return \H5PDisplayOptionBehaviour::CONTROLLED_BY_PERMISSIONS;
+        // TODO: Define the default behaviour for each display option.
+        // For now, all them are disabled by default, so only will be rendered when defined in the displayoptions DB field.
+        return \H5PDisplayOptionBehaviour::CONTROLLED_BY_AUTHOR_DEFAULT_OFF;
     }
 
     /**
@@ -1039,12 +1041,12 @@ class framework implements \H5PFrameworkInterface {
      * and the parameters re-filtered.
      * Implements clearFilteredParameters().
      *
-     * @param array $libraryid array of library ids
+     * @param array $libraryids array of library ids
      */
-    public function clearFilteredParameters($libraryid) {
+    public function clearFilteredParameters($libraryids) {
         global $DB;
 
-        $DB->execute("UPDATE {h5p} SET filtered = null WHERE mainlibraryid = ?", array($libraryid));
+        $DB->execute("UPDATE {h5p} SET filtered = null WHERE mainlibraryid = ?", $libraryids);
     }
 
     /**
@@ -1212,13 +1214,14 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Check if user has permissions to an action
+     * Check whether a user has permissions to execute an action, such as embed H5P content.
      * Implements hasPermission
      *
-     * @param  \H5PPermission $permission The action
-     * @param  int $cmid context module id
+     * @param  \H5PPermission $permission Permission type.
+     * @param  int $id Id need by platform to determine permission
+     * @return boolean true if the user can execute the action defined in $permission; false otherwise.
      */
-    public function hasPermission($permission, $cmid = null) {
+    public function hasPermission($permission, $id = null) {
         // H5P capabilities have not been introduced.
     }
 
