@@ -83,12 +83,9 @@ class player {
         $this->content = $this->core->loadContent($this->h5pid);
         $this->settings = $this->get_core_assets($context);
 
-        // TODO: The display options for view will always return null for embed and export
-        // this needs to be changed in the framework
-        $disable = array_key_exists('disable', $this->content)? $this->content['disable'] : 1; // TODO: set the default type. 1 should be replaced by the expected const.
+        $disable = array_key_exists('disable', $this->content)? $this->content['disable'] : \H5PCore::DISABLE_NONE;
         $displayoptions = $this->core->getDisplayOptionsForView($disable, $this->h5pid);
-        $displayoptions['embed'] = true;
-        $displayoptions['export'] = true;
+
         $embedurl = new \moodle_url('/h5p/embed.php', ['id' => $this->h5pid]);
         $contenturl = new \moodle_url("/pluginfile.php/{$context->id}/core_h5p/content/{$this->h5pid}");
 
