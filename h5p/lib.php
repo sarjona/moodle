@@ -41,6 +41,9 @@ defined('MOODLE_INTERNAL') || die();
  */
 function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $args, bool $forcedownload,
     array $options = []) : bool {
+    global $DB;
+
+    $tempflag = false;
 
     switch ($filearea) {
         default:
@@ -50,7 +53,30 @@ function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $ar
             if ($context->contextlevel != CONTEXT_SYSTEM) {
                  return false; // Invalid context because the libraries are loaded always in the context system.
             }
-            $itemid = 0;
+
+            $itemid = null;
+
+            // Need to check if there is really an item id present.. Could be anywhere in the array >_>
+            foreach ($args as $key => $value) {
+                if (is_numeric($value)) {
+                    $itemid = $value;
+                    unset($args[$key]);
+                    break;
+                }
+            }
+
+            if (!isset($itemid)) {
+                // Go fetch the record >_>
+                $filename = array_pop($args);
+                $filepath = '/' .implode('/', $args) . '/';
+                $itemid = $DB->get_field('files', 'itemid', [
+                    'component' => \core_h5p\file_storage::COMPONENT,
+                    'filearea' => \core_h5p\file_storage::LIBRARY_FILEAREA,
+                    'filepath' => $filepath,
+                    'filename' => $filename
+                ]);
+                $tempflag = true;
+            }
             break;
         case \core_h5p\file_storage::CONTENT_FILEAREA:
             if ($context->contextlevel != CONTEXT_SYSTEM) {
@@ -64,8 +90,10 @@ function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $ar
             break;
     }
 
-    $filename = array_pop($args);
-    $filepath = (!$args ? '/' : '/' .implode('/', $args) . '/');
+    if (!$tempflag) {
+        $filename = array_pop($args);
+        $filepath = (!$args ? '/' : '/' .implode('/', $args) . '/');
+    }
 
     $fs = get_file_storage();
     $file = $fs->get_file($context->id, \core_h5p\file_storage::COMPONENT, $filearea, $itemid, $filepath, $filename);
