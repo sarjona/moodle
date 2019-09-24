@@ -104,8 +104,7 @@ class player {
             'contentUserData' => array()
         ];
 
-        // TODO: Use determineEmbedType to update the embed type.
-        $this->embedtype = 'iframe';
+        $this->embedtype = \H5PCore::determineEmbedType($this->content['embedType'], $this->content['library']['embedTypes']);
 
         $this->files = $this->get_dependency_files();
         $this->generate_assets();
@@ -126,7 +125,6 @@ class player {
         $pathnamehash = $this->get_pluginfile_hash($url);
         $file = $fs->get_file_by_hash($pathnamehash);
         $contenthash = $file->get_contenthash();
-        $hashes = $pathnamehash . '/' . $contenthash;
 
         if (!$file) {
             throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
@@ -136,7 +134,7 @@ class player {
 
         if (!$h5p) {
             // The H5P content hasn't been deployed previously. It has to be validated and stored before displaying it.
-            return $this->save_h5p($file, $hashes, $config);
+            return $this->save_h5p($file, $pathnamehash, $contenthash, $config);
         } else {
             // The H5P content has been deployed previously.
             return $h5p->id;
@@ -191,13 +189,13 @@ class player {
      * Store a H5P file
      *
      * @param Object $file Moodle file instance
-     * @param string $hash pathnamehash.
+     * @param string $pathnamehash The pathnamehash.
+     * @param string $contenthash The contenthash.
      * @param Object $config Button options config.
      *
      * @return int|false The H5P identifier or false if it's not a valid H5P package.
      */
-    private function save_h5p($file, $hashes, $config) {
-        global $CFG;
+    private function save_h5p($file, $pathnamehash, $contenthash, $config) {
 
         $path = $this->core->fs->getTmpPath();
         $this->core->h5pF->getUploadedH5pFolderPath($path);
@@ -222,7 +220,12 @@ class player {
 
             $options = ['disable' => $this->core->getStorableDisplayOptions($disableoptions, 0)];
 
-            $h5pstorage->savePackage(null, $hashes, false, $options);
+            $content = [
+                'pathnamehash' => $pathnamehash,
+                'contenthash' => $contenthash
+            ];
+
+            $h5pstorage->savePackage($content, null, false, $options);
             return $h5pstorage->contentId;
         } else {
             $messages = $this->core->h5pF->getMessages('error');
@@ -249,8 +252,6 @@ class player {
         }
 
         $context = \context_system::instance();
-        //TODO: Get the expected context (not the system one).
-        //$modulecontext = \context_module::instance($this->cm->id);
         $slug = $this->content['slug'] ? $this->content['slug'] . '-' : '';
         $url  = \moodle_url::make_pluginfile_url(
             $context->id,
