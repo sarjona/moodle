@@ -12,6 +12,13 @@
     height: 100%;
     background: url([[pix:atto_h5p|icon]]) center center / 100px auto no-repeat #adb5bd;
 }
+.h5p-file-placeholder .attoh5poverlay + br,
 .h5p-embed-placeholder .attoh5poverlay + br {
     display: none;
+}
+.editor_atto_content_wrap .h5p-file-placeholder {
+    width: 100%;
+    height: 260px;
+    cursor: pointer;
+    background: url([[pix:atto_h5p|icon]]) center center / 100px auto no-repeat #adb5bd;
 }

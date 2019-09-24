@@ -31,5 +31,12 @@ $capabilities = [
         'archetypes' => [
             'editingteacher' => CAP_ALLOW,
         ],
+    ],
+    'atto/h5p:upload' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+        ],
     ]
 ];

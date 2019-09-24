@@ -36,14 +36,23 @@ function atto_h5p_params_for_js($elementid, $options, $fpoptions) {
     if (!$context) {
         $context = context_system::instance();
     }
+
     $addembed = has_capability('atto/h5p:addembed', $context);
+    $upload = has_capability('atto/h5p:upload', $context);
 
     $allowedmethods = 'none';
-    if ($addembed) {
+    if ($addembed && $upload) {
+        $allowedmethods = 'both';
+    } else if ($addembed) {
         $allowedmethods = 'embed';
+    } else if ($upload) {
+        $allowedmethods = 'upload';
     }
 
-    $params = ['allowedmethods' => $allowedmethods];
+    $params = [
+        'allowedmethods' => $allowedmethods,
+        'storeinrepo' => true
+    ];
     return $params;
 }
 
@@ -54,10 +63,20 @@ function atto_h5p_strings_for_js() {
     global $PAGE;
 
     $strings = array(
-        'saveh5p',
-        'h5pproperties',
+        'browserepositories',
+        'copyrightbutton',
+        'downloadbutton',
+        'embedbutton',
         'enterurl',
-        'invalidh5purl'
+        'enterurl_desc',
+        'h5pfile',
+        'h5pfile_desc',
+        'h5poptions',
+        'h5pproperties',
+        'h5purl',
+        'invalidh5purl',
+        'noh5pcontent',
+        'saveh5p'
     );
 
     $PAGE->requires->strings_for_js($strings, 'atto_h5p');
