@@ -587,11 +587,31 @@ class file_storage implements \H5PFileStorage {
                 // Rewrite relative URLs used inside stylesheets.
                 $content .= preg_replace_callback(
                         '/url\([\'"]?([^"\')]+)[\'"]?\)/i',
-                        function ($matches) use ($filearea, $filepath) {
+                        function ($matches) use ($filearea, $filepath, $fileid) {
                             if (preg_match("/^(data:|([a-z0-9]+:)?\/)/i", $matches[1]) === 1) {
                                 return $matches[0]; // Not relative, skip.
                             }
-                            return 'url("../' . $filearea . $filepath . $matches[1] . '")';
+                            // Find "../" in matches[1].
+                            // If it exists, we have to remove "../". 
+                            // And swift the last folder in the filepath for the first folder in $matches[1].
+                            // For instance:
+                            // $filepath: /H5P.Question-1.4/styles/
+                            // $matches[1]: ../images/plus-one.svg
+                            // We want to avoid this: H5P.Question-1.4/styles/FILEID/../images/minus-one.svg
+                            // We want this: H5P.Question-1.4/images/FILEID/minus-one.svg
+                            if (preg_match('/\.\.\//', $matches[1], $pathmatches)) {
+                                $path = preg_split('/\//', $filepath, -1, PREG_SPLIT_NO_EMPTY);
+                                $pathfilename = preg_split('/\//', $matches[1], -1, PREG_SPLIT_NO_EMPTY);
+                                // Quitamos el primer elemento: ../.
+                                array_shift($pathfilename);
+                                // Substituimos el pathfilename en el filepath
+                                $path[count($path)-1] = $pathfilename[0];
+                                $filepath = '/'.implode('/', $path).'/';
+                                // Quitamos el elemento que utilizamos para subsituir.
+                                array_shift($pathfilename);
+                                $matches[1] = implode('/', $pathfilename);
+                            }
+                            return 'url("../' . $filearea . $filepath . $fileid . DIRECTORY_SEPARATOR . $matches[1] . '")';
                         },
                         $file->get_content()) . "\n";
             }
