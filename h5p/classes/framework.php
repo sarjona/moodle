@@ -503,7 +503,7 @@ class framework implements \H5PFrameworkInterface {
      * @return int int The ID of the newly inserted content
      */
     public function insertContent($content, $contentmainid = null) {
-        return $this->updateContent($content, $contentmainid);
+        return $this->updateContent($content);
     }
 
     /**
@@ -515,16 +515,21 @@ class framework implements \H5PFrameworkInterface {
      *                       - params: The content in json format
      *                       - library: An associative array containing:
      *                         - libraryId: The id of the main library for this content
-     *                       - pathnamehash: The hash linking the record with the entry in the mdl_files table.
+     *                       - pathnamehash: The pathnamehash linking the record with the entry in the mdl_files table.
+     *                       - contenthash: The contenthash linking the record with the entry in the mdl_files table.
      * @param int $contentmainid Main id for the content if this is a system that supports versions
      * @return int The ID of the newly inserted or updated content
      */
     public function updateContent($content, $contentmainid = null) {
         global $DB;
 
-        $hashes = explode('/', $contentmainid);
-        $pathnamehash = $hashes[0];
-        $contenthash = $hashes[1];
+        if (!isset($content['pathnamehash'])) {
+            $content['pathnamehash'] = '';
+        }
+
+        if (!isset($content['contenthash'])) {
+            $content['contenthash'] = '';
+        }
 
         $data = array(
             'jsoncontent' => $content['params'],
@@ -533,8 +538,8 @@ class framework implements \H5PFrameworkInterface {
             'mainlibraryid' => $content['library']['libraryId'],
             'timemodified' => time(),
             'filtered' => '',
-            'pathnamehash' => $pathnamehash,
-            'contenthash' => $contenthash,
+            'pathnamehash' => $content['pathnamehash'],
+            'contenthash' => $content['contenthash'],
         );
 
         if (!isset($content['id'])) {
