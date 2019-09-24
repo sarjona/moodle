@@ -533,7 +533,9 @@ class framework implements \H5PFrameworkInterface {
 
         $data = array(
             'jsoncontent' => $content['params'],
-            'embedtype' => 'div',
+            // It has been decided that the embedtype will be always set to 'iframe' (at least for now) because the 'div'
+            // may cause conflicts with CSS and JS in some cases.
+            'embedtype' => 'iframe',
             'displayoptions' => $content['disable'],
             'mainlibraryid' => $content['library']['libraryId'],
             'timemodified' => time(),
