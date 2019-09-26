@@ -140,6 +140,8 @@ class player {
 
         $h5p = $DB->get_record('h5p', ['pathnamehash' => $pathnamehash, 'contenthash' => $contenthash]);
 
+        // TODO: If there is an entry in the DB with the same pathnamehash but a different contenthash, remove it.
+
         if (!$h5p) {
             // The H5P content hasn't been deployed previously. It has to be validated and stored before displaying it.
             return $this->save_h5p($file, $pathnamehash, $contenthash, $config);
@@ -159,30 +161,34 @@ class player {
     private function get_pluginfile_hash(string $url) : string {
         global $CFG;
 
-        // TODO: Validate this method with all the places where the Atto editor can be used.
-        $path = str_replace($CFG->wwwroot, '', $url);
-        if (!$CFG->slasharguments) {
-            $param = explode("=", $path);
-            if ($param[1]) {
-                $path = $param[1];
-            } else {
-                throw new \moodle_exception('invalidurl', 'core_h5p');
-            }
-        }
-        $parts = array_reverse(explode('/', $path));
+        $url = new \moodle_url($url);
+        // Remove params from the URL (such as the 'forcedownload=1'), to avoid errors.
+        $url->remove_params(array_keys($url->params()));
+        $path = $url->out_as_local_url();
 
-        $i = 0;
-        $filename = $parts[$i++];
-        $filepath = '/';
-        if (is_numeric($parts[$i])) {
-            $itemid = $parts[$i++];
+        $parts = explode('/', $path);
+        $filename = array_pop($parts);
+        // First is an empty row and then the pluginfile.php part. Both can be ignored.
+        array_shift($parts);
+        array_shift($parts);
+        $contextid = array_shift($parts);
+        $component = array_shift($parts);
+        $filearea = array_shift($parts);
+        if (!empty($parts) && is_numeric($parts[0])) {
+            $itemid = array_shift($parts);
         } else {
             $itemid = 0;
-            $i++;
         }
-        $filearea = $parts[$i++];
-        $component = $parts[$i++];
-        $contextid = $parts[$i++];
+        if (empty($parts)) {
+            $filepath = DIRECTORY_SEPARATOR;
+        } else {
+            $filepath = DIRECTORY_SEPARATOR . array_shift($parts) . DIRECTORY_SEPARATOR;
+        }
+
+        // Ignore draft files, because they are considered temporary files, so shouldn't be displayed.
+        if ($filearea == 'draft') {
+            return false;
+        }
 
         // TODO: Review how to avoid the following dirty hack for getting the correct itemid.
         // Dirty hack for the 'mod_page' because, although the itemid = 0 in DB, there is a /1/ in the URL.
