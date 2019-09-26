@@ -518,7 +518,7 @@ class framework_testcase extends advanced_testcase {
             'patchVersion' => $library1->patchversion,
             'runnable' => $library1->runnable,
             'fullscreen' => $library1->fullscreen,
-            'embedTypes' => '',
+            'embedTypes' => $library1->embedtypes,
             'preloadedJs' => $library1->preloadedjs,
             'preloadedCss' => $library1->preloadedcss,
             'dropLibraryCss' => $library1->droplibrarycss,
@@ -681,7 +681,7 @@ class framework_testcase extends advanced_testcase {
         $expected = array(
             'id' => $h5p->id,
             'params' => $h5p->jsoncontent,
-            'embedType' => $h5p->embedtype,
+            'embedType' => 'iframe',
             'disable' => $h5p->displayoptions,
             'title' => $mainlibrary->title,
             'slug' => \H5PCore::slugify($mainlibrary->title) . '-' . $h5p->id,
@@ -690,7 +690,7 @@ class framework_testcase extends advanced_testcase {
             'libraryName' => $mainlibrary->machinename,
             'libraryMajorVersion' => $mainlibrary->majorversion,
             'libraryMinorVersion' => $mainlibrary->minorversion,
-            'libraryEmbedTypes' => '',
+            'libraryEmbedTypes' => $mainlibrary->embedtypes,
             'libraryFullscreen' => $mainlibrary->fullscreen,
             'metadata' => ''
         );
@@ -776,7 +776,6 @@ class framework_testcase extends advanced_testcase {
 
         $updatedata = array(
             'jsoncontent' => '{"value" : "test"}',
-            'embedtype' => 'iframe',
             'mainlibraryid' => $library2->id
         );
         // Update h5p content fields.
@@ -786,7 +785,6 @@ class framework_testcase extends advanced_testcase {
         $h5p = $DB->get_record('h5p', ['id' => $h5pid]);
 
         $this->assertEquals('{"value" : "test"}', $h5p->jsoncontent);
-        $this->assertEquals('iframe', $h5p->embedtype);
         $this->assertEquals($library2->id, $h5p->mainlibraryid);
     }
 
@@ -1332,6 +1330,7 @@ class framework_testcase extends advanced_testcase {
             'patchversion' => $patchversion,
             'runnable' => 1,
             'fullscreen' => 1,
+            'embedtypes' => 'iframe',
             'preloadedjs' => 'js/example.js',
             'preloadedcss' => 'css/example.css',
             'droplibrarycss' => '',
@@ -1385,6 +1384,7 @@ class framework_testcase extends advanced_testcase {
             'minorVersion' => $minorversion,
             'patchVersion' => 2,
             'machineName' => $machinename,
+            'embedTypes' => 'iframe',
             'preloadedJs' => [
                 [
                     'path' => 'scripts' . DIRECTORY_SEPARATOR . 'testlib.min.js'
@@ -1412,7 +1412,7 @@ class framework_testcase extends advanced_testcase {
      * @param string $filtered The filtered content parameters
      * @return int The ID of the added record
      */
-    private function create_h5p_record(int $mainlibid, string $embedtype = 'iframe', string $jsoncontent = null,
+    private function create_h5p_record(int $mainlibid, string $jsoncontent = null,
             string $filtered = null) : int {
         global $DB;
 
@@ -1440,7 +1440,6 @@ class framework_testcase extends advanced_testcase {
             'h5p',
             array(
                 'jsoncontent' => $jsoncontent,
-                'embedtype' => $embedtype,
                 'displayoptions' => 8,
                 'mainlibraryid' => $mainlibid,
                 'timecreated' => time(),

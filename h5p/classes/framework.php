@@ -590,6 +590,7 @@ class framework implements \H5PFrameworkInterface {
      *                           - patchVersion: The library's patchVersion
      *                           - runnable: 1 if the library is a content type, 0 otherwise
      *                           - fullscreen(optional): 1 if the library supports fullscreen, 0 otherwise
+     *                           - embedtypes: list of supported embed types
      *                           - preloadedJs(optional): list of associative arrays containing:
      *                             - path: path to a js file relative to the library root folder
      *                           - preloadedCss(optional): list of associative arrays containing:
@@ -613,6 +614,10 @@ class framework implements \H5PFrameworkInterface {
         if (!isset($librarydata['fullscreen'])) {
             $librarydata['fullscreen'] = 0;
         }
+        $embedtypes = '';
+        if (isset($librarydata['embedTypes'])) {
+            $embedtypes = implode(', ', $librarydata['embedTypes']);
+        }
 
         $library = (object) array(
             'title' => $librarydata['title'],
@@ -622,6 +627,7 @@ class framework implements \H5PFrameworkInterface {
             'patchversion' => $librarydata['patchVersion'],
             'runnable' => $librarydata['runnable'],
             'fullscreen' => $librarydata['fullscreen'],
+            'embedtypes' => $embedtypes,
             'preloadedjs' => $preloadedjs,
             'preloadedcss' => $preloadedcss,
             'droplibrarycss' => $droplibrarycss,
@@ -690,9 +696,6 @@ class framework implements \H5PFrameworkInterface {
 
         $data = array(
             'jsoncontent' => $content['params'],
-            // It has been decided that the embedtype will be always set to 'iframe' (at least for now) because the 'div'
-            // may cause conflicts with CSS and JS in some cases.
-            'embedtype' => 'iframe',
             'displayoptions' => $content['disable'],
             'mainlibraryid' => $content['library']['libraryId'],
             'timemodified' => time(),
@@ -915,7 +918,7 @@ class framework implements \H5PFrameworkInterface {
             'patchVersion' => $library->patchversion,
             'runnable' => $library->runnable,
             'fullscreen' => $library->fullscreen,
-            'embedTypes' => '',
+            'embedTypes' => $library->embedtypes,
             'preloadedJs' => $library->preloadedjs,
             'preloadedCss' => $library->preloadedcss,
             'dropLibraryCss' => $library->droplibrarycss,
@@ -1047,7 +1050,7 @@ class framework implements \H5PFrameworkInterface {
      * @return array Associative array containing:
      *               - id: Identifier for the content
      *               - params: json content as string
-     *               - embedType: csv of embed types
+     *               - embedType: list of supported embed types
      *               - disable: H5P Button display options
      *               - title: H5P content title
      *               - slug: Human readable content identifier that is unique
@@ -1062,9 +1065,9 @@ class framework implements \H5PFrameworkInterface {
     public function loadContent($id) {
         global $DB;
 
-        $sql = "SELECT hc.id, hc.jsoncontent, hc.embedtype, hc.displayoptions, hl.id AS libraryid,
+        $sql = "SELECT hc.id, hc.jsoncontent, hc.displayoptions, hl.id AS libraryid,
                        hl.machinename, hl.title, hl.majorversion, hl.minorversion, hl.fullscreen,
-                       hl.semantics, hc.filtered
+                       hl.embedtypes, hl.semantics, hc.filtered
                   FROM {h5p} hc
                   JOIN {h5p_libraries} hl ON hl.id = hc.mainlibraryid
                  WHERE hc.id = :h5pid";
@@ -1085,7 +1088,9 @@ class framework implements \H5PFrameworkInterface {
         $content = array(
             'id' => $data->id,
             'params' => $data->jsoncontent,
-            'embedType' => $data->embedtype,
+            // It has been decided that the embedtype will be always set to 'iframe' (at least for now) because the 'div'
+            // may cause conflicts with CSS and JS in some cases.
+            'embedType' => 'iframe',
             'disable' => $data->displayoptions,
             'title' => $data->title,
             'slug' => \H5PCore::slugify($data->title) . '-' . $data->id,
@@ -1094,7 +1099,7 @@ class framework implements \H5PFrameworkInterface {
             'libraryName' => $data->machinename,
             'libraryMajorVersion' => $data->majorversion,
             'libraryMinorVersion' => $data->minorversion,
-            'libraryEmbedTypes' => '',
+            'libraryEmbedTypes' => $data->embedtypes,
             'libraryFullscreen' => $data->fullscreen,
             'metadata' => ''
         );
