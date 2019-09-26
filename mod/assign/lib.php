@@ -388,6 +388,8 @@ function assign_supports($feature) {
             return true;
         case FEATURE_COMMENT:
             return true;
+        case FEATURE_ITEMID:
+            return false;
 
         default:
             return null;

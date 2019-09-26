@@ -190,9 +190,10 @@ class player {
             return false;
         }
 
-        // TODO: Review how to avoid the following dirty hack for getting the correct itemid.
-        // Dirty hack for the 'mod_page' because, although the itemid = 0 in DB, there is a /1/ in the URL.
-        if ($component == 'mod_page' || $component == 'mod_resource') {
+        // Some components, such as mod_page or mod_resource, add the revision to the URL to prevent caching problems.
+        // So the URL contains this revision number as itemid but a 0 is always stored in the files table.
+        // In order to get the proper hash, the itemid should be set to 0 in these cases.
+        if (!component_callback($component, 'supports', [FEATURE_ITEMID], true)) {
             $itemid = 0;
         }
 
