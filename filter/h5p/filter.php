@@ -47,6 +47,7 @@ class filter_h5p extends moodle_text_filter {
      * @return string
      */
     public function filter($text, array $options = array()) {
+        global $CFG;
 
         if (!is_string($text) or empty($text)) {
             // Non string data can not be filtered anyway.
@@ -64,10 +65,11 @@ class filter_h5p extends moodle_text_filter {
         }
 
         $params = array(
-            'tagbegin' => "<iframe src=",
+            'tagbegin' => "<iframe src=\"",
             'tagend' => "</iframe>"
         );
 
+        // Check all allowed external sources.
         foreach ($allowedsources as $source) {
             // It is needed to add "/embed" at the end of URLs like https:://*.h5p.com/content/12345 (H5P.com).
             $params['urlmodifier'] = '';
@@ -89,6 +91,19 @@ class filter_h5p extends moodle_text_filter {
             $h5pcontents[] = $h5pcontenturl;
         }
 
+        // Check internal .h5p file URLs.
+        $source = $CFG->wwwroot.'/*.h5p';
+        $pattern = '#('.str_replace('.', '\.', $CFG->wwwroot).'/.*\.h5p)#';
+
+        $params['urlmodifier'] = '';
+        $params['tagbegin'] = '<iframe src="'.$CFG->wwwroot.'/h5p/embed.php?url=';
+
+        $h5pcontent = new filterobject($source, null, null, false,
+            false, null, [$this, 'filterobject_prepare_replacement_callback'], $params);
+        $h5pcontent->workregexp = $pattern;
+
+        $h5pcontents[] = $h5pcontent;
+
         return filter_phrases($text, $h5pcontents, null, null, false, true);
     }
 
@@ -102,12 +117,13 @@ class filter_h5p extends moodle_text_filter {
      */
     public function filterobject_prepare_replacement_callback($tagbegin, $tagend, $urlmodifier) {
 
+        // Encoding URL to be sure we've got the right value to parse.
         $sourceurl = "$1";
         if ($urlmodifier !== "") {
             $sourceurl .= $urlmodifier;
         }
 
-        $h5piframesrc = "\"".$sourceurl."\" width=\"100%\" height=\"637\" allowfullscreen=\"allowfullscreen\" style=\"border: 0;\">";
+        $h5piframesrc = $sourceurl."\" width=\"100%\" height=\"637\" allowfullscreen=\"allowfullscreen\" style=\"border: 0;\">";
 
         // We want to request the resizing script only once.
         if (self::$loadresizerjs) {
