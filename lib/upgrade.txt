@@ -68,6 +68,8 @@ validation against and defaults to null (so, no user needed) if not provided.
 * \single_button constructor has a new attributes param to add attributes to the button HTML tag.
 * New H5P libraries have been added to Moodle core in /lib/h5p.
 * New H5P core subsystem have been added.
+* Components forcing the 'itemid' field in the files table to 0 but using a different value when building the URL, like a
+revision number, MUST now declare it with the xxx_supports() flag FEATURE_ITEMID.
 
 === 3.7 ===
 
