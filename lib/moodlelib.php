@@ -442,6 +442,8 @@ define('FEATURE_SHOW_DESCRIPTION', 'showdescription');
 /** True if module uses the question bank */
 define('FEATURE_USES_QUESTIONS', 'usesquestions');
 
+/** True (which is default) if the module uses the itemid value stored in the files table for building the pluginfile URL. */
+define('FEATURE_ITEMID', 'itemid');
 /**
  * Maximum filename char size
  */
