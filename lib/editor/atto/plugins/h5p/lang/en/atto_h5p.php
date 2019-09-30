@@ -24,7 +24,7 @@
 
 $string['browserepositories'] = 'Add H5P file';
 $string['copyrightbutton'] = 'enable the H5P copyright button';
-$string['downloadbutton'] = 'enable the H5P embed button';
+$string['downloadbutton'] = 'enable the H5P download button';
 $string['doubleclick'] = 'Double click to edit';
 $string['embedbutton'] = 'enable the H5P embed button';
 $string['enterurl'] = 'Enter URL or Embed code';
