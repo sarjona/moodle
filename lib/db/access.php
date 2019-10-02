@@ -2433,4 +2433,13 @@ $capabilities = array(
             'user' => CAP_ALLOW
         )
     ),
+
+    // Set display option buttons to an H5P content.
+    'moodle/h5p:setdisplayoptions' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+        )
+    ),
 );
