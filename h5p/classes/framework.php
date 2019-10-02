@@ -70,9 +70,8 @@ class framework implements \H5PFrameworkInterface {
      * @return string The content (response body). NULL if something went wrong
      */
     public function fetchExternalData($url, $data = null, $blocking = true, $stream = null) {
-        global $CFG;
 
-        if ($stream !== null) {
+        if ($stream === null) {
             // Download file.
             set_time_limit(0);
 
@@ -81,7 +80,8 @@ class framework implements \H5PFrameworkInterface {
             $ext = pathinfo($parsedurl['path'], PATHINFO_EXTENSION);
 
             // Generate local tmp file path.
-            $localfolder = $CFG->tempdir . uniqid('/h5p-');
+            $fs = new \core_h5p\file_storage();
+            $localfolder = $fs->getTmpPath();
             $stream = $localfolder;
 
             // Add the remote file's extension to the temp file.
@@ -117,7 +117,7 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Show the user an error message.
+     * Set an error message.
      * Implements setErrorMessage
      *
      * @param string $message The error message
@@ -125,19 +125,19 @@ class framework implements \H5PFrameworkInterface {
      */
     public function setErrorMessage($message, $code = null) {
         if ($message !== null) {
-            self::messages('error', $message, $code);
+            $this->set_message('error', $message, $code);
         }
     }
 
     /**
-     * Show the user an information message.
+     * Set an info message.
      * Implements setInfoMessage
      *
      * @param string $message The info message
      */
     public function setInfoMessage($message) {
         if ($message !== null) {
-            self::messages('info', $message);
+            $this->set_message('info', $message);
         }
     }
 
@@ -149,7 +149,19 @@ class framework implements \H5PFrameworkInterface {
      * @return string[] Array of messages
      */
     public function getMessages($type) {
-        return self::messages($type);
+        global $SESSION;
+
+        // Return and reset messages.
+        $messages = array();
+        if (isset($SESSION->core_h5p_messages[$type])) {
+            $messages = $SESSION->core_h5p_messages[$type];
+            unset($SESSION->core_h5p_messages[$type]);
+            if (empty($SESSION->core_h5p_messages)) {
+                unset($SESSION->core_h5p_messages);
+            }
+        }
+
+        return $messages;
     }
 
     /**
@@ -335,14 +347,18 @@ class framework implements \H5PFrameworkInterface {
      * Get URL to file in the specific library.
      * Implements getLibraryFileUrl
      *
-     * @param string $libraryfoldername The name of the library's folder
+     * @param string $libraryfoldername The name or path of the library's folder
      * @param string $filename The file name
      * @return string URL to file
      */
     public function getLibraryFileUrl($libraryfoldername, $filename) {
-        global $CFG;
-        $context  = \context_system::instance();
-        return "{$CFG->wwwroot}/pluginfile.php/{$context->id}/core_h5p/libraries/{$libraryfoldername}/{$filename}";
+        global $DB, $CFG;
+
+        $context = \context_system::instance();
+        $itemid = $DB->get_field('files', 'itemid', ['component' => 'core_h5p', 'filearea' => 'libraries',
+            'filepath' => $libraryfoldername, 'filename' => $filename]);
+
+        return "{$CFG->wwwroot}/pluginfile.php/{$context->id}/core_h5p/libraries/{$itemid}/{$libraryfoldername}/{$filename}";
     }
 
     /**
@@ -526,6 +542,7 @@ class framework implements \H5PFrameworkInterface {
      *                           for the content folder we are getting
      * @param string $defaultcontentwhitelist A string of file extensions separated by whitespace
      * @param string $defaultlibrarywhitelist A string of file extensions separated by whitespace
+     * @return string A string containing the allowed file extensions separated by whitespace.
      */
     public function getWhitelist($islibrary, $defaultcontentwhitelist, $defaultlibrarywhitelist) {
         return $defaultcontentwhitelist . ($islibrary ? ' ' . $defaultlibrarywhitelist : '');
@@ -569,7 +586,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Is H5P in development mode?
-     * Implements isPatchedLibrary
+     * Implements isInDevMode
      *
      * @return boolean TRUE if H5P development mode is active FALSE otherwise
      */
@@ -585,6 +602,7 @@ class framework implements \H5PFrameworkInterface {
      *                 FALSE if the user is not allowed to update libraries
      */
     public function mayUpdateLibraries() {
+        // Currently, capabilities are not being set/used, so everyone can update libraries.
         return true;
     }
 
@@ -712,7 +730,7 @@ class framework implements \H5PFrameworkInterface {
             'displayoptions' => $content['disable'],
             'mainlibraryid' => $content['library']['libraryId'],
             'timemodified' => time(),
-            'filtered' => '',
+            'filtered' => null,
             'pathnamehash' => $content['pathnamehash'],
             'contenthash' => $content['contenthash']
         );
@@ -1253,13 +1271,9 @@ class framework implements \H5PFrameworkInterface {
 
         $sql = "SELECT COUNT(id)
                   FROM {h5p}
-                 WHERE " . $DB->sql_compare_text('filtered') . " = :filtered";
+                 WHERE " . $DB->sql_compare_text('filtered') . " IS NULL";
 
-        $sqlargs = array(
-            'filtered' => ''
-        );
-
-        return $DB->count_records_sql($sql, $sqlargs);
+        return $DB->count_records_sql($sql);
     }
 
     /**
@@ -1528,23 +1542,12 @@ class framework implements \H5PFrameworkInterface {
     /**
      * Store messages until they can be printed to the current user
      *
-     * @param string $type Type of messages, e.g. 'info' or 'error'
+     * @param string $type Type of messages, e.g. 'info', 'error', etc.
      * @param string $newmessage The message
      * @param string $code The message code
-     * @return array Array of stored messages
      */
-    public static function messages(string $type, string $newmessage = null, string $code = null) : array {
+    private function set_message(string $type, string $newmessage = null, string $code = null) {
         global $SESSION;
-
-        if ($newmessage === null) {
-            // Return and reset messages.
-            $messages = $SESSION->core_h5p_messages[$type] ?? array();
-            unset($SESSION->core_h5p_messages[$type]);
-            if (empty($SESSION->core_h5p_messages)) {
-                unset($SESSION->core_h5p_messages);
-            }
-            return $messages;
-        }
 
         // We expect to get out an array of strings when getting info
         // and an array of objects when getting errors for consistency across platforms.
@@ -1557,8 +1560,6 @@ class framework implements \H5PFrameworkInterface {
         } else {
             $SESSION->core_h5p_messages[$type][] = $newmessage;
         }
-
-        return $SESSION->core_h5p_messages[$type];
     }
 
     /**
