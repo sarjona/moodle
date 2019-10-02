@@ -35,28 +35,34 @@ $config->copyright = optional_param('copyright', 0, PARAM_INT);
 
 require_login(null, false);
 
-// Configure page.
-$context = context_system::instance();
+try {
+    // Set up the H5P player class.
+    $h5pplayer = new \core_h5p\player($url, $config);
+    // Configure page.
+    $PAGE->set_context($h5pplayer->get_context());
+    $PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
 
-$PAGE->set_context($context);
-$PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
+    $PAGE->set_title($h5pplayer->get_title());
+    $PAGE->set_heading($h5pplayer->get_title());
 
-// Set up the H5P player class.
-$h5pplayer = new \core_h5p\player($url, $config);
+    // Embed specific page setup.
+    $PAGE->add_body_class('h5p-embed');
+    $PAGE->set_pagelayout('embedded');
 
-$PAGE->set_title($h5pplayer->get_title());
-$PAGE->set_heading($h5pplayer->get_title());
+    // Load the embed.js to allow communication with the parent window.
+    $PAGE->requires->js(new moodle_url('/h5p/js/embed.js'));
 
-// Embed specific page setup.
-$PAGE->add_body_class('h5p-embed');
-$PAGE->set_pagelayout('embedded');
+    // Add H5P assets to the page.
+    $h5pplayer->add_assets_to_page();
 
-// Add H5P assets to the page.
-$h5pplayer->add_assets_to_page();
+    // Print page HTML.
+    echo $OUTPUT->header();
 
-// Print page HTML.
-echo $OUTPUT->header();
+    echo $h5pplayer->output();
 
-echo $h5pplayer->output();
-
-echo $OUTPUT->footer();
+    echo $OUTPUT->footer();
+} catch (\Exception $e) {
+    // As this page will be used for embedding content in other pages, only the exception error should be displayed.
+    // Convert \n to break lines to make it more user friendly (the H5P class will return one line for each exception).
+    echo nl2br($e->getMessage());
+}

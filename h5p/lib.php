@@ -18,7 +18,7 @@
  * Callbacks.
  *
  * @package    core_h5p
- * @copyright  Bas Brands <bas@moodle.com>
+ * @copyright  2019 Bas Brands <bas@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
