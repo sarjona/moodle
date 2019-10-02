@@ -24,8 +24,9 @@
 
 require_once(__DIR__ . '/../config.php');
 
+// The login check is done inside the player when getting the file from the url param.
+
 $url = required_param('url', PARAM_LOCALURL);
-$url = urldecode($url);
 
 $config = new stdClass();
 $config->frame = optional_param('frame', 0, PARAM_INT);
@@ -33,30 +34,55 @@ $config->export = optional_param('export', 0, PARAM_INT);
 $config->embed = optional_param('embed', 0, PARAM_INT);
 $config->copyright = optional_param('copyright', 0, PARAM_INT);
 
-require_login(null, false);
+try {
+    $h5pplayer = new \core_h5p\player($url, $config);
 
-// Configure page.
-$context = context_system::instance();
+    $messages = $h5pplayer->get_messages();
+    if (!$messages->error) {
+        // Configure page.
+        $PAGE->set_context($h5pplayer->get_context());
+        $PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
 
-$PAGE->set_context($context);
-$PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
+        $PAGE->set_title($h5pplayer->get_title());
+        $PAGE->set_heading($h5pplayer->get_title());
 
-// Set up the H5P player class.
-$h5pplayer = new \core_h5p\player($url, $config);
+        // Embed specific page setup.
+        $PAGE->add_body_class('h5p-embed');
+        $PAGE->set_pagelayout('embedded');
 
-$PAGE->set_title($h5pplayer->get_title());
-$PAGE->set_heading($h5pplayer->get_title());
+        // Load the embed.js to allow communication with the parent window.
+        $PAGE->requires->js(new moodle_url('/h5p/js/embed.js'));
 
-// Embed specific page setup.
-$PAGE->add_body_class('h5p-embed');
-$PAGE->set_pagelayout('embedded');
+        // Add H5P assets to the page.
+        $h5pplayer->add_assets_to_page();
 
-// Add H5P assets to the page.
-$h5pplayer->add_assets_to_page();
+        // Print page HTML.
+        echo $OUTPUT->header();
 
-// Print page HTML.
-echo $OUTPUT->header();
+        echo $h5pplayer->output();
 
-echo $h5pplayer->output();
+        echo $OUTPUT->footer();
+    }
+} catch (\Exception $e) {
+    $messages = new stdClass();
+    $messages->exception = $e->getMessage();
+} finally {
+    // If there is any error or exception, it should be displayed.
+    if (!empty($messages->error) || !empty($messages->exception)) {
+        $messages->h5picon = new moodle_url('/h5p/pix/icon.svg');
+        $PAGE->set_context(context_system::instance());
+        $PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
 
-echo $OUTPUT->footer();
+        $title = get_string('h5p', 'core_h5p');
+        $PAGE->set_title($title);
+        $PAGE->set_heading($title);
+
+        $PAGE->add_body_class('h5p-embed');
+        $PAGE->set_pagelayout('embedded');
+        echo $OUTPUT->header();
+
+        echo $OUTPUT->render_from_template('core_h5p/h5perror', $messages);
+
+        echo $OUTPUT->footer();
+    }
+}
