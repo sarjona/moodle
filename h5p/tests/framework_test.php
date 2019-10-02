@@ -61,28 +61,33 @@ class framework_testcase extends advanced_testcase {
     public function test_fetchExternalData() {
         global $CFG;
 
+        $this->resetAfterTest();
+
         // Provide a valid URL to an external H5P content.
         $url = "https://h5p.org/sites/default/files/h5p/exports/arithmetic-quiz-22-57860.h5p";
 
         $interface = framework::instance('interface');
         // Test fetching an external H5P content without defining a path to where the file should be stored.
         $data = $interface->fetchExternalData($url, null, true);
-        // The response should not be empty and return the file content as a string.
-        $this->assertNotEmpty($data);
-        $this->assertIsString($data);
-
-        $data = $interface->fetchExternalData($url, null, true, $CFG->tempdir . uniqid('/h5p-'));
-        // The response should not be empty and return true if the content has been successfully saved to a file.
+        // The response should not be empty and return true if the file was successfully downloaded.
         $this->assertNotEmpty($data);
         $this->assertTrue($data);
         // The uploaded file should exist on the filesystem.
         $h5pfolderpath = $interface->getUploadedH5pFolderPath();
         $this->assertTrue(file_exists($h5pfolderpath . '.h5p'));
 
+        $h5pfolderpath = $CFG->tempdir . uniqid('/h5p-');
+        $data = $interface->fetchExternalData($url, null, true, $h5pfolderpath . '.h5p');
+        // The response should not be empty and return true if the content has been successfully saved to a file.
+        $this->assertNotEmpty($data);
+        $this->assertTrue($data);
+        // The uploaded file should exist on the filesystem.
+        $this->assertTrue(file_exists($h5pfolderpath . '.h5p'));
+
         // Provide an URL to an external file that is not an H5P content file.
         $url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
 
-        $data = $interface->fetchExternalData($url, null, true, $CFG->tempdir . uniqid('/h5p-'));
+        $data = $interface->fetchExternalData($url, null, true);
         // The response should not be empty and return true if the content has been successfully saved to a file.
         $this->assertNotEmpty($data);
         $this->assertTrue($data);
@@ -94,7 +99,7 @@ class framework_testcase extends advanced_testcase {
 
         // Provide an invalid URL to an external file.
         $url = "someprotocol://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
-        $data = $interface->fetchExternalData($url, null, true, $CFG->tempdir . uniqid('/h5p-'));
+        $data = $interface->fetchExternalData($url, null, true);
         // The response should be empty.
         $this->assertEmpty($data);
     }
@@ -108,7 +113,7 @@ class framework_testcase extends advanced_testcase {
         // Set an error message.
         $interface->setErrorMessage($message, $code);
         // Get the error messages.
-        $errormessages = framework::messages('error');
+        $errormessages = $interface->getMessages('error');
         $expected = new stdClass();
         $expected->code = 404;
         $expected->message = 'Error message';
@@ -123,9 +128,124 @@ class framework_testcase extends advanced_testcase {
         // Set an info message.
         $interface->setInfoMessage($message);
         // Get the info messages.
-        $infomessages = framework::messages('info');
+        $infomessages = $interface->getMessages('info');
         $expected = 'Info message';
         $this->assertEquals($expected, $infomessages[0]);
+    }
+
+    // Test the behaviour of getMessages().
+    public function test_getMessages() {
+        $infomessage = "Info message";
+        $errormessage1 = "Error message 1";
+        $errorcode1 = 404;
+        $errormessage2 = "Error message 2";
+        $errorcode2 = 403;
+
+        $interface = framework::instance('interface');
+        // Set an info message.
+        $interface->setInfoMessage($infomessage);
+        // Set an error message.
+        $interface->setErrorMessage($errormessage1, $errorcode1);
+         // Set another error message.
+        $interface->setErrorMessage($errormessage2, $errorcode2);
+
+        // Get the info messages.
+        $infomessages = $interface->getMessages('info');
+        $expected = 'Info message';
+        $this->assertEquals($expected, $infomessages[0]);
+        // Make sure the info messages have now been removed.
+        $infomessages = $interface->getMessages('info');
+        $this->assertEmpty($infomessages);
+
+        // Get the error messages.
+        $errormessages = $interface->getMessages('error');
+        $this->assertEquals(2, count($errormessages));
+        $expected1 = new stdClass();
+        $expected1->code = 404;
+        $expected1->message = 'Error message 1';
+        $expected2 = new stdClass();
+        $expected2->code = 403;
+        $expected2->message = 'Error message 2';
+
+        $this->assertEquals($expected1, $errormessages[0]);
+        $this->assertEquals($expected2, $errormessages[1]);
+
+         // Make sure the info messages have now been removed.
+        $errormessages = $interface->getMessages('error');
+        $this->assertEmpty($errormessages);
+    }
+
+    // Test the behaviour of t().
+    public function test_t() {
+        $message1 = 'No copyright information available for this content.';
+        $message2 = 'Illegal option %option in %library';
+        $message3 = 'Random message %option';
+
+        $interface = framework::instance('interface');
+
+        // Existing language string without passed arguments.
+        $translation1 = $interface->t($message1);
+        // Existing language string with passed arguments.
+        $translation2 = $interface->t($message2, ['%option' => 'example', '%library' => 'Test library']);
+        // Non-existing lenguage string.
+        $translation3 = $interface->t($message3);
+
+        // Make sure the string translation has been returned.
+        $this->assertEquals('No copyright information available for this content.', $translation1);
+        // Make sure the string translation has been returned.
+        $this->assertEquals('Illegal option example in Test library', $translation2);
+        // As the string does not exist in the mapping array, the passed message should be returned.
+        $this->assertEquals('Random message %option', $translation3);
+    }
+
+    // Test the behaviour of loadAddons().
+    public function test_loadAddons() {
+        $this->resetAfterTest();
+
+        // Create a Library addon (1.1).
+        $this->create_library_record('Library', 'Lib', 1, 1, 2,
+            '', '/regex1/');
+        // Create a Library addon (1.3).
+        $this->create_library_record('Library', 'Lib', 1, 3, 2,
+            '', '/regex2/');
+        // Create a Library addon (1.2).
+        $this->create_library_record('Library', 'Lib', 1, 2, 2,
+            '', '/regex3/');
+
+        $interface = framework::instance('interface');
+        $addons = $interface->loadAddons();
+
+        // The addons array should return 1 result.
+        $this->assertCount(1, $addons);
+        // The library addon 1.3 should be returned as it is the latest version of the addon.
+        $this->assertEquals('Library', $addons[0]['machineName']);
+        $this->assertEquals(1, $addons[0]['majorVersion']);
+        $this->assertEquals(3, $addons[0]['minorVersion']);
+
+        // Create a Library addon (2.2)
+        $this->create_library_record('Library', 'Lib', 2, 2, 2,
+            '', '/regex4/');
+
+        $addons = $interface->loadAddons();
+
+        // Now the library addon 2.2 should be returned as it is the latest version of the addon.
+        $this->assertEquals('Library', $addons[0]['machineName']);
+        $this->assertEquals(2, $addons[0]['majorVersion']);
+        $this->assertEquals(2, $addons[0]['minorVersion']);
+
+        // Create a Library1 addon (1.2)
+        $this->create_library_record('Library1', 'Lib1', 1, 2, 2,
+            '', '/regex11/');
+
+        $addons = $interface->loadAddons();
+        // The addons array should return 2 results (Library and Library1 addon).
+        $this->assertCount(2, $addons);
+        $this->assertEquals('Library', $addons[0]['machineName']);
+        $this->assertEquals(2, $addons[0]['majorVersion']);
+        $this->assertEquals(2, $addons[0]['minorVersion']);
+        $this->assertEquals('Library1', $addons[1]['machineName']);
+        $this->assertEquals(1, $addons[1]['majorVersion']);
+        $this->assertEquals(2, $addons[1]['minorVersion']);
     }
 
     // Test the behaviour of loadLibraries().
@@ -874,8 +994,8 @@ class framework_testcase extends advanced_testcase {
         $interface->clearFilteredParameters([$library1->id, $library3->id]);
 
         // 3 contents don't have their parameters filtered.
-        $interface = framework::instance('interface');
-        $interface->getNumNotFiltered(3);
+        $countnotfiltered = $interface->getNumNotFiltered();
+        $this->assertEquals(3, $countnotfiltered);
     }
 
     // Test the behaviour of getNumContent().
@@ -1163,47 +1283,6 @@ class framework_testcase extends advanced_testcase {
         $this->assertInstanceOf('\H5PCore', $interface);
     }
 
-    // Test the behaviour of message().
-    public function test_message() {
-        // Add new error message.
-        $errormsgs = framework::messages('error', 'This is an error message', 400);
-
-        $this->assertIsArray($errormsgs);
-        $this->assertCount(1, $errormsgs);
-        $this->assertIsObject($errormsgs[0]);
-
-        $expected = (object) array(
-            'code' => 400,
-            'message' => 'This is an error message'
-        );
-        $this->assertEquals($errormsgs[0], $expected);
-
-        // Add new error message.
-        $errormsgs = framework::messages('error', 'This is an error message 2', 401);
-
-        $this->assertCount(2, $errormsgs);
-        $expected = (object) array(
-            'code' => 401,
-            'message' => 'This is an error message 2'
-        );
-        $this->assertEquals($errormsgs[1], $expected);
-
-        // Get the error messages (Should return the messages and remove them them).
-        $errormsgs = framework::messages('error');
-        $this->assertCount(2, $errormsgs);
-        // Attemt to get the error messages again, there should be no messages available.
-        $errormsgs = framework::messages('error');
-        $this->assertEmpty($errormsgs);
-
-        // Add new info message.
-        $infomsg = framework::messages('info', 'This is an info message');
-
-        $this->assertCount(1, $infomsg);
-        $this->assertIsString($infomsg[0]);
-        $expected = 'This is an info message';
-        $this->assertEquals($infomsg[0], $expected);
-    }
-
     /**
      * Populate H5P database tables with relevant data to simulate the process of adding H5P content.
      *
@@ -1319,7 +1398,7 @@ class framework_testcase extends advanced_testcase {
      * @return stdClass An object representing the added library record
      */
     private function create_library_record(string $machinename, string $title, int $majorversion = 1,
-            int $minorversion = 0, int $patchversion = 1, string $semantics = '') : stdClass {
+            int $minorversion = 0, int $patchversion = 1, string $semantics = '', string $addto = null) : stdClass {
         global $DB;
 
         $content = array(
@@ -1334,7 +1413,8 @@ class framework_testcase extends advanced_testcase {
             'preloadedjs' => 'js/example.js',
             'preloadedcss' => 'css/example.css',
             'droplibrarycss' => '',
-            'semantics' => $semantics
+            'semantics' => $semantics,
+            'addto' => $addto
         );
 
         $libraryid = $DB->insert_record('h5p_libraries', $content);
@@ -1350,7 +1430,6 @@ class framework_testcase extends advanced_testcase {
      * @param  string $machinename     Name for this library.
      * @param  int    $majorversion    Major version (any number will do).
      * @param  int    $minorversion    Minor version (any number will do).
-     * @return array A list of library data that the core API will understand.
      */
     private function create_library_files(string $uploaddirectory, int $libraryid, string $machinename,
             int $majorversion, int $minorversion) {
