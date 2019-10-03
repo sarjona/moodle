@@ -96,16 +96,31 @@ class player {
         $this->core = \core_h5p\framework::instance();
 
         // Get the H5P identifier linked to this URL.
-        $this->h5pid = $this->get_h5p_id($url, $config);
+        if ($this->h5pid = $this->get_h5p_id($url, $config)) {
+            // Load the content of the H5P content associated to this $url.
+            $this->content = $this->core->loadContent($this->h5pid);
 
-        // Load the content of the H5P content associated to this $url.
-        $this->content = $this->core->loadContent($this->h5pid);
+            // Get the embedtype to use for displaying the H5P content.
+            $this->embedtype = \H5PCore::determineEmbedType($this->content['embedType'], $this->content['library']['embedTypes']);
 
-        // Get the embedtype to use for displaying the H5P content.
-        $this->embedtype = \H5PCore::determineEmbedType($this->content['embedType'], $this->content['library']['embedTypes']);
+            // Get the core H5P assets, needed by the H5P classes to render the H5P content.
+            $this->settings = $this->get_assets();
+        }
+    }
 
-        // Get the core H5P assets, needed by the H5P classes to render the H5P content.
-        $this->settings = $this->get_assets();
+    /**
+     * Get the error messages stored in our H5P framework.
+     *
+     * @return Object with framework error messages.
+     */
+    public function getMessages() {
+        $messages = new \stdClass();
+        $messages->error = $this->core->h5pF->getMessages('error');
+
+        if (empty($messages->error)) {
+            $messages->error = false;
+        }
+        return $messages;
     }
 
     /**
@@ -202,13 +217,15 @@ class player {
         // Deconstruct the URL and get the pathname associated.
         $pathnamehash = $this->get_pluginfile_hash($url);
         if (!$pathnamehash) {
-            throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
+            $this->core->h5pF->setErrorMessage(get_string('h5pfilenotfound', 'core_h5p'));
+            return false;
         }
 
         // Get the file.
         $file = $fs->get_file_by_hash($pathnamehash);
         if (!$file) {
-            throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
+            $this->core->h5pF->setErrorMessage(get_string('h5pfilenotfound', 'core_h5p'));
+            return false;
         }
 
         $h5p = $DB->get_record('h5p', ['pathnamehash' => $pathnamehash]);
@@ -228,18 +245,8 @@ class player {
             $displayoptions = $this->get_display_options($config);
             // Check if the user can set the displayoptions.
             if ($displayoptions != $h5p->displayoptions && has_capability('moodle/h5p:setdisplayoptions', $this->context)) {
-                // Although only the 'disable' parameter should be changed (is the one for the displayoptions), all the
-                // existing information for the H5P entry should be passed because, for now, the updateContent method
-                // in the framework doesn't support partial updates.
-                $content = [
-                    'id' => $h5p->id,
-                    'params' => $h5p->jsoncontent,
-                    'disable' => $displayoptions,
-                    'pathnamehash' => $h5p->pathnamehash,
-                    'contenthash' => $h5p->contenthash,
-                ];
-                $content['library']['libraryId'] = $h5p->mainlibraryid;
-                $this->core->h5pF->updateContent($content);
+                // If the displayoptions has changed and the user has permission to modify it, update this information in the DB.
+                $this->core->h5pF->updateContentFields($h5p->id, ['displayoptions' => $displayoptions]);
             }
             return $h5p->id;
         }
@@ -269,7 +276,11 @@ class player {
 
         // Get the context.
         $contextid = array_shift($parts);
-        list($this->context, $course, $cm) = get_context_info_array($contextid);
+        try {
+            list($this->context, $course, $cm) = get_context_info_array($contextid);
+        } catch (\moodle_exception $e) {
+            throw new \moodle_exception('invalidcontextid', 'core_h5p');
+        }
 
         // For CONTEXT_USER, such as the private files, raise an exception if the owner of the file is not the current user.
         if ($this->context->contextlevel == CONTEXT_USER && $USER->id !== $this->context->instanceid) {
@@ -354,12 +365,6 @@ class player {
 
             $h5pstorage->savePackage($content, null, false, $options);
             return $h5pstorage->contentId;
-        } else {
-            $messages = $this->core->h5pF->getMessages('error');
-            $errors = array_map(function($error) {
-                return $error->message;
-            }, $messages);
-            throw new \Exception(implode("\n", $errors));
         }
 
         return false;
