@@ -96,16 +96,32 @@ class player {
         $this->core = \core_h5p\framework::instance();
 
         // Get the H5P identifier linked to this URL.
-        $this->h5pid = $this->get_h5p_id($url, $config);
+        if ($this->h5pid = $this->get_h5p_id($url, $config)) {
 
-        // Load the content of the H5P content associated to this $url.
-        $this->content = $this->core->loadContent($this->h5pid);
+            // Load the content of the H5P content associated to this $url.
+            $this->content = $this->core->loadContent($this->h5pid);
 
-        // Get the embedtype to use for displaying the H5P content.
-        $this->embedtype = \H5PCore::determineEmbedType($this->content['embedType'], $this->content['library']['embedTypes']);
+            // Get the embedtype to use for displaying the H5P content.
+            $this->embedtype = \H5PCore::determineEmbedType($this->content['embedType'], $this->content['library']['embedTypes']);
 
-        // Get the core H5P assets, needed by the H5P classes to render the H5P content.
-        $this->settings = $this->get_assets();
+            // Get the core H5P assets, needed by the H5P classes to render the H5P content.
+            $this->settings = $this->get_assets();
+        }
+    }
+
+    /**
+     * Get the error messages stored in our H5P framework.
+     *
+     * @return Object with framework error messages.
+     */
+    public function getMessages() {
+        $messages = new \stdClass();
+        $messages->error = $this->core->h5pF->getMessages('error');
+
+        if (empty($messages->error)) {
+            $messages->error = false;
+        }
+        return $messages;
     }
 
     /**
@@ -202,13 +218,15 @@ class player {
         // Deconstruct the URL and get the pathname associated.
         $pathnamehash = $this->get_pluginfile_hash($url);
         if (!$pathnamehash) {
-            throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
+            $this->core->h5pF->setErrorMessage(get_string('h5pfilenotfound', 'core_h5p'));
+            return false;
         }
 
         // Get the file.
         $file = $fs->get_file_by_hash($pathnamehash);
         if (!$file) {
-            throw new \moodle_exception('h5pfilenotfound', 'core_h5p');
+            $this->core->h5pF->setErrorMessage(get_string('h5pfilenotfound', 'core_h5p'));
+            return false;
         }
 
         $h5p = $DB->get_record('h5p', ['pathnamehash' => $pathnamehash]);
@@ -354,12 +372,6 @@ class player {
 
             $h5pstorage->savePackage($content, null, false, $options);
             return $h5pstorage->contentId;
-        } else {
-            $messages = $this->core->h5pF->getMessages('error');
-            $errors = array_map(function($error) {
-                return $error->message;
-            }, $messages);
-            throw new \Exception(implode("\n", $errors));
         }
 
         return false;
@@ -609,6 +621,24 @@ class player {
         $template = new \stdClass();
         $template->embedurl = new \moodle_url("/h5p/embed.php", ["url" => $this->url]);
         return $OUTPUT->render_from_template('core_h5p/h5pembed', $template);
+    }
+
+    /**
+     * Print framework messages.
+     *
+     * @param string $type One of error|info
+     * @param array $messages
+     */
+    public function printMessages($type, $messages) {
+        global $OUTPUT;
+        $output  = '';
+        foreach ($messages as $message) {
+            if ($type === 'error') {
+                $output .= $OUTPUT->notification($message->message, 'notifyproblem');
+            } else {
+                $output .= $OUTPUT->notification($message, 'notifymessage');
+            }
+        }
     }
 
     /**
