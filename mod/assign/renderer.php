@@ -396,6 +396,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         if (isset($status->gradefordisplay)) {
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('grade'));
+            $cell1->header = true;
             $cell2 = new html_table_cell($status->gradefordisplay);
             $row->cells = array($cell1, $cell2);
             $t->data[] = $row;
@@ -403,6 +404,7 @@ class mod_assign_renderer extends plugin_renderer_base {
             // Grade date.
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('gradedon', 'assign'));
+            $cell1->header = true;
             $cell2 = new html_table_cell(userdate($status->gradeddate));
             $row->cells = array($cell1, $cell2);
             $t->data[] = $row;
@@ -412,6 +414,7 @@ class mod_assign_renderer extends plugin_renderer_base {
             // Grader.
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('gradedby', 'assign'));
+            $cell1->header = true;
             $userdescription = $this->output->user_picture($status->grader) .
                                $this->output->spacer(array('width'=>30)) .
                                fullname($status->grader, $status->canviewfullnames);
@@ -429,6 +432,7 @@ class mod_assign_renderer extends plugin_renderer_base {
 
                 $row = new html_table_row();
                 $cell1 = new html_table_cell($plugin->get_name());
+                $cell1->header = true;
                 $displaymode = assign_feedback_plugin_feedback::SUMMARY;
                 $pluginfeedback = new assign_feedback_plugin_feedback($plugin,
                                                                       $status->grade,
@@ -664,6 +668,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         if ($status->teamsubmissionenabled) {
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('submissionteam', 'assign'));
+            $cell1->header = true;
             $group = $status->submissiongroup;
             if ($group) {
                 $cell2 = new html_table_cell(format_string($group->name, false, $status->context));
@@ -704,6 +709,7 @@ class mod_assign_renderer extends plugin_renderer_base {
 
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('attemptnumber', 'assign'));
+            $cell1->header = true;
             $maxattempts = $status->maxattempts;
             if ($maxattempts == ASSIGN_UNLIMITED_ATTEMPTS) {
                 $message = get_string('currentattempt', 'assign', $currentattempt);
@@ -718,6 +724,7 @@ class mod_assign_renderer extends plugin_renderer_base {
 
         $row = new html_table_row();
         $cell1 = new html_table_cell(get_string('submissionstatus', 'assign'));
+        $cell1->header = true;
         if (!$status->teamsubmissionenabled) {
             if ($status->submission && $status->submission->status != ASSIGN_SUBMISSION_STATUS_NEW) {
                 $statusstr = get_string('submissionstatus_' . $status->submission->status, 'assign');
@@ -735,6 +742,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         } else {
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('submissionstatus', 'assign'));
+            $cell1->header = true;
             $group = $status->submissiongroup;
             if (!$group && $status->preventsubmissionnotingroup) {
                 $cell2 = new html_table_cell(get_string('nosubmission', 'assign'));
@@ -791,6 +799,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         // Grading status.
         $row = new html_table_row();
         $cell1 = new html_table_cell(get_string('gradingstatus', 'assign'));
+        $cell1->header = true;
 
         if ($status->gradingstatus == ASSIGN_GRADING_STATUS_GRADED ||
             $status->gradingstatus == ASSIGN_GRADING_STATUS_NOT_GRADED) {
@@ -814,6 +823,7 @@ class mod_assign_renderer extends plugin_renderer_base {
             // Due date.
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('duedate', 'assign'));
+            $cell1->header = true;
             $cell2 = new html_table_cell(userdate($duedate));
             $row->cells = array($cell1, $cell2);
             $t->data[] = $row;
@@ -823,6 +833,7 @@ class mod_assign_renderer extends plugin_renderer_base {
                     // Cut off date.
                     $row = new html_table_row();
                     $cell1 = new html_table_cell(get_string('cutoffdate', 'assign'));
+                    $cell1->header = true;
                     $cell2 = new html_table_cell(userdate($status->cutoffdate));
                     $row->cells = array($cell1, $cell2);
                     $t->data[] = $row;
@@ -833,6 +844,7 @@ class mod_assign_renderer extends plugin_renderer_base {
                 // Extension date.
                 $row = new html_table_row();
                 $cell1 = new html_table_cell(get_string('extensionduedate', 'assign'));
+                $cell1->header = true;
                 $cell2 = new html_table_cell(userdate($status->extensionduedate));
                 $row->cells = array($cell1, $cell2);
                 $t->data[] = $row;
@@ -842,6 +854,7 @@ class mod_assign_renderer extends plugin_renderer_base {
             // Time remaining.
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('timeremaining', 'assign'));
+            $cell1->header = true;
             if ($duedate - $time <= 0) {
                 if (!$submission ||
                         $submission->status != ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
@@ -878,6 +891,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         if ($status->view == assign_submission_status::GRADER_VIEW) {
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('editingstatus', 'assign'));
+            $cell1->header = true;
             if ($status->canedit) {
                 $cell2 = new html_table_cell(get_string('submissioneditable', 'assign'));
                 $cell2->attributes = array('class'=>'submissioneditable');
@@ -893,6 +907,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         if (!empty($status->gradingcontrollerpreview)) {
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('gradingmethodpreview', 'assign'));
+            $cell1->header = true;
             $cell2 = new html_table_cell($status->gradingcontrollerpreview);
             $row->cells = array($cell1, $cell2);
             $t->data[] = $row;
@@ -902,6 +917,7 @@ class mod_assign_renderer extends plugin_renderer_base {
         if ($submission) {
             $row = new html_table_row();
             $cell1 = new html_table_cell(get_string('timemodified', 'assign'));
+            $cell1->header = true;
 
             if ($submission->status != ASSIGN_SUBMISSION_STATUS_NEW) {
                 $cell2 = new html_table_cell(userdate($submission->timemodified));
@@ -923,6 +939,7 @@ class mod_assign_renderer extends plugin_renderer_base {
 
                         $row = new html_table_row();
                         $cell1 = new html_table_cell($plugin->get_name());
+                        $cell1->header = true;
                         $displaymode = assign_submission_plugin_submission::SUMMARY;
                         $pluginsubmission = new assign_submission_plugin_submission($plugin,
                             $submission,
@@ -1199,8 +1216,12 @@ class mod_assign_renderer extends plugin_renderer_base {
                 $icon = $this->output->pix_icon('t/preview', $previewstr);
 
                 $expandstr = get_string('viewfull', 'assign');
-                $options = array('class'=>'expandsummaryicon expand_' . $classsuffix);
-                $o .= $this->output->pix_icon('t/switch_plus', $expandstr, null, $options);
+                $expandicon = $this->output->pix_icon('t/switch_plus', $expandstr);
+                $options = array(
+                    'aria-label' => $expandstr,
+                    'class' => 'expandsummaryicon expand_' . $classsuffix
+                );
+                $o .= html_writer::link('javascript:void(0);', $expandicon, $options);
 
                 $jsparams = array($submissionplugin->plugin->get_subtype(),
                                   $submissionplugin->plugin->get_type(),
@@ -1229,10 +1250,14 @@ class mod_assign_renderer extends plugin_renderer_base {
             if ($showviewlink) {
                 $o .= $this->output->box_start('boxaligncenter hidefull full_' . $classsuffix);
                 $classes = 'expandsummaryicon contract_' . $classsuffix;
-                $o .= $this->output->pix_icon('t/switch_minus',
-                                              get_string('viewsummary', 'assign'),
-                                              null,
-                                              array('class'=>$classes));
+                $options = array(
+                    'class' => $classes,
+                    'aria-label' => get_string('viewsummary', 'assign')
+                );
+                $collapseicon = $this->output->pix_icon('t/switch_minus',
+                        get_string('viewsummary', 'assign'));
+                $o .= html_writer::link('javascript:void(0);', $collapseicon, $options);
+
                 $o .= $submissionplugin->plugin->view($submissionplugin->submission);
                 $o .= $this->output->box_end();
             }
@@ -1305,8 +1330,12 @@ class mod_assign_renderer extends plugin_renderer_base {
                 $icon = $this->output->pix_icon('t/preview', $previewstr);
 
                 $expandstr = get_string('viewfull', 'assign');
-                $options = array('class'=>'expandsummaryicon expand_' . $classsuffix);
-                $o .= $this->output->pix_icon('t/switch_plus', $expandstr, null, $options);
+                $expandicon = $this->output->pix_icon('t/switch_plus', $expandstr);
+                $options = array(
+                    'aria-label' => $expandstr,
+                    'class' => 'expandsummaryicon expand_' . $classsuffix
+                );
+                $o .= html_writer::link('javascript:void(0);', $expandicon, $options);
 
                 $jsparams = array($feedbackplugin->plugin->get_subtype(),
                                   $feedbackplugin->plugin->get_type(),
@@ -1332,10 +1361,14 @@ class mod_assign_renderer extends plugin_renderer_base {
             if ($showviewlink) {
                 $o .= $this->output->box_start('boxaligncenter hidefull full_' . $classsuffix);
                 $classes = 'expandsummaryicon contract_' . $classsuffix;
-                $o .= $this->output->pix_icon('t/switch_minus',
-                                              get_string('viewsummary', 'assign'),
-                                              null,
-                                              array('class'=>$classes));
+                $options = array(
+                    'class' => $classes,
+                    'aria-label' => get_string('viewsummary', 'assign')
+                );
+                $collapseicon = $this->output->pix_icon('t/switch_minus',
+                        get_string('viewsummary', 'assign'));
+                $o .= html_writer::link('javascript:void(0);', $collapseicon, $options);
+
                 $o .= $feedbackplugin->plugin->view($feedbackplugin->grade);
                 $o .= $this->output->box_end();
             }
