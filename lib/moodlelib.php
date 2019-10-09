@@ -1408,7 +1408,7 @@ function set_config($name, $value, $plugin=null) {
             // When setting config during a Behat test (in the CLI script, not in the web browser
             // requests), remember which ones are set so that we can clear them later.
             if (defined('BEHAT_TEST')) {
-                if (!property_exists($CFG, 'behat_added_config')) {
+                if (!property_exists($CFG, 'behat_cli_added_config')) {
                     $CFG->behat_cli_added_config = [];
                 }
                 $CFG->behat_cli_added_config[$name] = true;
