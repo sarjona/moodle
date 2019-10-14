@@ -34,55 +34,52 @@ $config->export = optional_param('export', 0, PARAM_INT);
 $config->embed = optional_param('embed', 0, PARAM_INT);
 $config->copyright = optional_param('copyright', 0, PARAM_INT);
 
+$PAGE->set_url(new \moodle_url('/h5p/embed.php', array('url' => $url)));
 try {
     $h5pplayer = new \core_h5p\player($url, $config);
-
     $messages = $h5pplayer->get_messages();
-    if (!$messages->error) {
-        // Configure page.
-        $PAGE->set_context($h5pplayer->get_context());
-        $PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
 
-        $PAGE->set_title($h5pplayer->get_title());
-        $PAGE->set_heading($h5pplayer->get_title());
-
-        // Embed specific page setup.
-        $PAGE->add_body_class('h5p-embed');
-        $PAGE->set_pagelayout('embedded');
-
-        // Load the embed.js to allow communication with the parent window.
-        $PAGE->requires->js(new moodle_url('/h5p/js/embed.js'));
-
-        // Add H5P assets to the page.
-        $h5pplayer->add_assets_to_page();
-
-        // Print page HTML.
-        echo $OUTPUT->header();
-
-        echo $h5pplayer->output();
-
-        echo $OUTPUT->footer();
-    }
 } catch (\Exception $e) {
-    $messages = new stdClass();
-    $messages->exception = $e->getMessage();
-} finally {
+    $messages = (object) [
+        'exception' => $e->getMessage(),
+    ];
+}
+
+if (empty($messages->error) && empty($messages->exception)) {
+    // Configure page.
+    $PAGE->set_context($h5pplayer->get_context());
+    $PAGE->set_title($h5pplayer->get_title());
+    $PAGE->set_heading($h5pplayer->get_title());
+
+    // Embed specific page setup.
+    $PAGE->add_body_class('h5p-embed');
+    $PAGE->set_pagelayout('embedded');
+
+    // Load the embed.js to allow communication with the parent window.
+    $PAGE->requires->js(new moodle_url('/h5p/js/embed.js'));
+
+    // Add H5P assets to the page.
+    $h5pplayer->add_assets_to_page();
+
+    // Print page HTML.
+    echo $OUTPUT->header();
+
+    echo $h5pplayer->output();
+
+    echo $OUTPUT->footer();
+} else {
     // If there is any error or exception, it should be displayed.
-    if (!empty($messages->error) || !empty($messages->exception)) {
-        $messages->h5picon = new moodle_url('/h5p/pix/icon.svg');
-        $PAGE->set_context(context_system::instance());
-        $PAGE->set_url(new moodle_url ('/h5p/embed.php', array('url' => $url)));
+    $PAGE->set_context(context_system::instance());
+    $title = get_string('h5p', 'core_h5p');
+    $PAGE->set_title($title);
+    $PAGE->set_heading($title);
 
-        $title = get_string('h5p', 'core_h5p');
-        $PAGE->set_title($title);
-        $PAGE->set_heading($title);
+    $PAGE->add_body_class('h5p-embed');
+    $PAGE->set_pagelayout('embedded');
+    echo $OUTPUT->header();
 
-        $PAGE->add_body_class('h5p-embed');
-        $PAGE->set_pagelayout('embedded');
-        echo $OUTPUT->header();
+    $messages->h5picon = new \moodle_url('/h5p/pix/icon.svg');
+    echo $OUTPUT->render_from_template('core_h5p/h5perror', $messages);
 
-        echo $OUTPUT->render_from_template('core_h5p/h5perror', $messages);
-
-        echo $OUTPUT->footer();
-    }
+    echo $OUTPUT->footer();
 }
