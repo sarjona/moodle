@@ -71,11 +71,6 @@ class player {
     private $embedtype;
 
     /**
-     * @var array Main H5P configuration.
-     */
-    private $settings;
-
-    /**
      * @var context The context object where the .h5p belongs.
      */
     private $context;
@@ -90,7 +85,7 @@ class player {
         if (empty($url)) {
             throw new \moodle_exception('h5pinvalidurl', 'core_h5p');
         }
-        $this->url = $url;
+        $this->url = new \moodle_url($url);
 
         // Create H5PFramework instance.
         $this->core = \core_h5p\framework::instance();
@@ -102,18 +97,15 @@ class player {
 
             // Get the embedtype to use for displaying the H5P content.
             $this->embedtype = \H5PCore::determineEmbedType($this->content['embedType'], $this->content['library']['embedTypes']);
-
-            // Get the core H5P assets, needed by the H5P classes to render the H5P content.
-            $this->settings = $this->get_assets();
         }
     }
 
     /**
      * Get the error messages stored in our H5P framework.
      *
-     * @return Object with framework error messages.
+     * @return stdClass with framework error messages.
      */
-    public function get_messages() {
+    public function get_messages() : \stdClass {
         $messages = new \stdClass();
         $messages->error = $this->core->h5pF->getMessages('error');
 
@@ -137,22 +129,25 @@ class player {
         $displayoptions = $this->core->getDisplayOptionsForView($disable, $this->h5pid);
 
         $contenturl = \moodle_url::make_pluginfile_url($systemcontext->id, \core_h5p\file_storage::COMPONENT,
-            \core_h5p\file_storage::CONTENT_FILEAREA, $this->h5pid, '/', 'content.json');
+            \core_h5p\file_storage::CONTENT_FILEAREA, $this->h5pid, null, null);
 
         $contentsettings = [
             'library'         => \H5PCore::libraryToString($this->content['library']),
             'fullScreen'      => $this->content['library']['fullscreen'],
             'exportUrl'       => $this->get_export_settings($displayoptions[ \H5PCore::DISPLAY_OPTION_DOWNLOAD ]),
-            'embedCode'       => $this->get_embed_code($this->url, $displayoptions[ \H5PCore::DISPLAY_OPTION_EMBED ]),
+            'embedCode'       => $this->get_embed_code($this->url->out(),
+                $displayoptions[ \H5PCore::DISPLAY_OPTION_EMBED ]),
             'resizeCode'      => $this->get_resize_code(),
             'title'           => $this->content['slug'],
             'displayOptions'  => $displayoptions,
-            'url'             => $this->get_embed_url($this->url),
+            'url'             => self::get_embed_url($this->url->out())->out(),
             'contentUrl'      => $contenturl->out(),
             'metadata'        => $this->content['metadata'],
-            'contentUserData' => [],
+            'contentUserData' => [0 => ['state' => '{}']]
         ];
-        $this->settings['contents'][$cid] = array_merge($this->settings['contents'][$cid], $contentsettings);
+        // Get the core H5P assets, needed by the H5P classes to render the H5P content.
+        $settings = $this->get_assets();
+        $settings['contents'][$cid] = array_merge($settings['contents'][$cid], $contentsettings);
 
         foreach ($this->jsrequires as $script) {
             $PAGE->requires->js($script, true);
@@ -163,7 +158,7 @@ class player {
         }
 
         // Print JavaScript settings to page.
-        $PAGE->requires->data_for_js('H5PIntegration', $this->settings, true);
+        $PAGE->requires->data_for_js('H5PIntegration', $settings, true);
     }
 
     /**
@@ -188,7 +183,7 @@ class player {
      *
      * @return string the title
      */
-    public function get_title() {
+    public function get_title() : string {
         return $this->content['title'];
     }
 
@@ -197,7 +192,7 @@ class player {
      *
      * @return context The context.
      */
-    public function get_context() {
+    public function get_context() : \context {
         return $this->context;
     }
 
@@ -346,6 +341,8 @@ class player {
      * @return int|false The H5P identifier or false if it's not a valid H5P package.
      */
     private function save_h5p($file, \stdClass $config) : int {
+        // This may take a long time.
+        \core_php_time_limit::raise();
 
         $path = $this->core->fs->getTmpPath();
         $this->core->h5pF->getUploadedH5pFolderPath($path);
@@ -618,7 +615,7 @@ class player {
         }
 
         $template = new \stdClass();
-        $template->embedurl = $this->get_embed_url($url);
+        $template->embedurl = self::get_embed_url($url)->out();
 
         return $OUTPUT->render_from_template('core_h5p/h5pembed', $template);
     }
@@ -627,11 +624,9 @@ class player {
      * Get the encoded URL for embeding this H5P content.
      * @param  string $url The URL of the .h5p file.
      *
-     * @return string The embed URL.
+     * @return \moodle_url The embed URL.
      */
-    private function get_embed_url(string $url) : string {
-        $moodleurl = new \moodle_url('/h5p/embed.php', ['url' => $this->url]);
-
-        return $moodleurl->out();
+    public static function get_embed_url(string $url) : \moodle_url {
+        return new \moodle_url('/h5p/embed.php', ['url' => $url]);
     }
 }
