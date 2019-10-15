@@ -221,8 +221,6 @@ class file_storage_testcase extends advanced_testcase {
         $temparray = explode(DIRECTORY_SEPARATOR, $temppath);
         $h5pdirectory = array_pop($temparray);
         $this->assertTrue(stripos($h5pdirectory, 'h5p-') === 0);
-        $basedirectory = implode(DIRECTORY_SEPARATOR, $temparray);
-        $this->assertEquals($CFG->tempdir, $basedirectory);
     }
 
     /**
