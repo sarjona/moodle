@@ -26,8 +26,6 @@ namespace core_h5p;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir . '/h5p/h5p-file-storage.interface.php');
-
 /**
  * Class to handle storage and export of H5P Content.
  *
@@ -38,15 +36,15 @@ require_once($CFG->libdir . '/h5p/h5p-file-storage.interface.php');
 class file_storage implements \H5PFileStorage {
 
     /** The component for H5P. */
-    const COMPONENT   = 'core_h5p';
+    public const COMPONENT   = 'core_h5p';
     /** The library file area. */
-    const LIBRARY_FILEAREA = 'libraries';
+    public const LIBRARY_FILEAREA = 'libraries';
     /** The content file area */
-    const CONTENT_FILEAREA = 'content';
+    public const CONTENT_FILEAREA = 'content';
     /** The cached assest file area. */
-    const CACHED_ASSETS_FILEAREA = 'cachedassets';
+    public const CACHED_ASSETS_FILEAREA = 'cachedassets';
     /** The export file area */
-    const EXPORT_FILEAREA = 'export';
+    public const EXPORT_FILEAREA = 'export';
 
     /**
      * @var \context $context Currently we use the system context everywhere.
@@ -76,7 +74,7 @@ class file_storage implements \H5PFileStorage {
             'contextid' => $this->context->id,
             'component' => self::COMPONENT,
             'filearea' => self::LIBRARY_FILEAREA,
-            'filepath' => DIRECTORY_SEPARATOR . \H5PCore::libraryToString($library, true) . DIRECTORY_SEPARATOR,
+            'filepath' => '/' . \H5PCore::libraryToString($library, true) . '/',
             'itemid' => $library['libraryId']
         ];
 
@@ -100,7 +98,7 @@ class file_storage implements \H5PFileStorage {
                 'filepath' => '/',
         ];
 
-        $this->delete_directory($options);
+        $this->delete_directory($this->context->id, self::COMPONENT, self::CONTENT_FILEAREA, $content['id']);
         // Copy content directory into Moodle filesystem.
         $this->copy_directory($source, $options);
     }
@@ -111,14 +109,8 @@ class file_storage implements \H5PFileStorage {
      * @param array $content Content properties
      */
     public function deleteContent($content) {
-        $options = [
-                'contextid' => $this->context->id,
-                'component' => self::COMPONENT,
-                'filearea' => self::CONTENT_FILEAREA,
-                'itemid' => $content['id'],
-        ];
 
-        $this->delete_directory($options);
+        $this->delete_directory($this->context->id, self::COMPONENT, self::CONTENT_FILEAREA, $content['id']);
     }
 
     /**
@@ -137,9 +129,8 @@ class file_storage implements \H5PFileStorage {
      *
      * @return string Path
      */
-    public function getTmpPath() : string {
-        global $CFG;
-        return $CFG->tempdir . DIRECTORY_SEPARATOR . uniqid('h5p-');
+    public function getTmpPath(): string {
+        return make_request_directory() . '/' . uniqid('h5p-');
     }
 
     /**
@@ -160,8 +151,8 @@ class file_storage implements \H5PFileStorage {
      */
     public function exportLibrary($library, $target) {
         $folder = \H5PCore::libraryToString($library, true);
-        $this->export_file_tree($target . DIRECTORY_SEPARATOR . $folder, $this->context->id, self::LIBRARY_FILEAREA,
-                DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR, $library['libraryId']);
+        $this->export_file_tree($target . '/' . $folder, $this->context->id, self::LIBRARY_FILEAREA,
+                '/' . $folder . '/', $library['libraryId']);
     }
 
     /**
@@ -218,9 +209,6 @@ class file_storage implements \H5PFileStorage {
                 continue;
             }
 
-            $content = '';
-            $content .= $this->concatenate_files($assets, $type, $this->context);
-
             // Create new file for cached assets.
             $ext = ($type === 'scripts' ? 'js' : 'css');
             $filename = $key . '.' . $ext;
@@ -234,10 +222,10 @@ class file_storage implements \H5PFileStorage {
             ];
 
             // Store concatenated content.
-            $this->fs->create_file_from_string($fileinfo, $content);
+            $this->fs->create_file_from_string($fileinfo, $this->concatenate_files($assets, $type, $this->context));
             $files[$type] = [
                 (object) [
-                    'path' => DIRECTORY_SEPARATOR . self::CACHED_ASSETS_FILEAREA . DIRECTORY_SEPARATOR . $filename,
+                    'path' => '/' . self::CACHED_ASSETS_FILEAREA . '/' . $filename,
                     'version' => ''
                 ]
             ];
@@ -257,7 +245,7 @@ class file_storage implements \H5PFileStorage {
         if ($js && $js->get_filesize() > 0) {
             $files['scripts'] = [
                 (object) [
-                    'path' => DIRECTORY_SEPARATOR . self::CACHED_ASSETS_FILEAREA . DIRECTORY_SEPARATOR . "{$key}.js",
+                    'path' => '/' . self::CACHED_ASSETS_FILEAREA . '/' . "{$key}.js",
                     'version' => ''
                 ]
             ];
@@ -267,7 +255,7 @@ class file_storage implements \H5PFileStorage {
         if ($css && $css->get_filesize() > 0) {
             $files['styles'] = [
                 (object) [
-                    'path' => DIRECTORY_SEPARATOR . self::CACHED_ASSETS_FILEAREA . DIRECTORY_SEPARATOR . "{$key}.css",
+                    'path' => '/' . self::CACHED_ASSETS_FILEAREA . '/' . "{$key}.css",
                     'version' => ''
                 ]
             ];
@@ -305,8 +293,11 @@ class file_storage implements \H5PFileStorage {
      * @return string contents
      */
     public function getContent($filepath) {
-        list('filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename) =
-                    $this->get_file_elements_from_filepath($filepath);
+        list(
+            'filearea' => $filearea,
+            'filepath' => $filepath,
+            'filename' => $filename
+        ) = $this->get_file_elements_from_filepath($filepath);
 
         $itemid = $this->get_itemid_for_file($filearea, $filepath, $filename);
         if (!$itemid) {
@@ -410,11 +401,11 @@ class file_storage implements \H5PFileStorage {
      * @return string Relative path
      */
     public function getUpgradeScript($machinename, $majorversion, $minorversion) {
-        $path = DIRECTORY_SEPARATOR . "{$machinename}-{$majorversion}.{$minorversion}" . DIRECTORY_SEPARATOR;
+        $path = '/' . "{$machinename}-{$majorversion}.{$minorversion}" . '/';
         $file = 'upgrade.js';
         $itemid = $this->get_itemid_for_file(self::LIBRARY_FILEAREA, $path, $file);
         if ($this->fs->get_file($this->context->id, self::COMPONENT, self::LIBRARY_FILEAREA, $itemid, $path, $file)) {
-            return DIRECTORY_SEPARATOR . self::LIBRARY_FILEAREA . $path . $file;
+            return '/' . self::LIBRARY_FILEAREA . $path. $file;
         } else {
             return null;
         }
@@ -426,24 +417,12 @@ class file_storage implements \H5PFileStorage {
      * @param string $path
      * @param string $file
      * @param resource $stream
-     * @return bool
+     * @return bool|int
      */
     public function saveFileFromZip($path, $file, $stream) {
-        global $CFG;
-
-        $filepath = $path . DIRECTORY_SEPARATOR . $file;
-
-        $fileitems = explode(DIRECTORY_SEPARATOR, $file);
-        array_pop($fileitems);
-        $newfilestring = implode(DIRECTORY_SEPARATOR, $fileitems);
-        $directory = $path . DIRECTORY_SEPARATOR . $newfilestring;
-
-        if (!file_exists($directory)) {
-            mkdir($directory, $CFG->directorypermissions, true);
-        }
-
-        // Store in local storage folder.
-        return (file_put_contents($filepath, $stream));
+        $fullpath = $path . '/' . $file;
+        check_dir_exists(pathinfo($fullpath, PATHINFO_DIRNAME));
+        return file_put_contents($fullpath, $stream);
     }
 
     /**
@@ -451,33 +430,26 @@ class file_storage implements \H5PFileStorage {
      *
      * @param  array $library Library details
      */
-    public function delete_library(array $library) {
+    public function delete_library(array $library): void {
 
         // A library ID of false would result in all library files being deleted, which we don't want. Return instead.
         if ($library['libraryId'] === false) {
             return;
         }
 
-        $options = [
-            'contextid' => $this->context->id,
-            'component' => self::COMPONENT,
-            'filearea' => self::LIBRARY_FILEAREA,
-            'itemid' => $library['libraryId']
-        ];
-
-        $this->delete_directory($options);
+        $this->delete_directory($this->context->id, self::COMPONENT, self::LIBRARY_FILEAREA, $library['libraryId']);
     }
 
     /**
      * Remove an H5P directory from the filesystem.
      *
-     * @param array $options File system information.
+     * @param int $contextid context ID
+     * @param string $component component
+     * @param string $filearea file area or all areas in context if not specified
+     * @param int $itemid item ID or all files if not specified
      */
-    private function delete_directory(array $options) {
-        list('contextid' => $contextid,
-            'component' => $component,
-            'filearea' => $filearea,
-            'itemid' => $itemid) = $options;
+    private function delete_directory(int $contextid, string $component, string $filearea, int $itemid): void {
+
         $this->fs->delete_area_files($contextid, $component, $filearea, $itemid);
     }
 
@@ -487,7 +459,7 @@ class file_storage implements \H5PFileStorage {
      * @param  string $source  Temporary location for files.
      * @param  array  $options File system information.
      */
-    private function copy_directory(string $source, array $options) {
+    private function copy_directory(string $source, array $options): void {
         $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::SELF_FIRST);
 
@@ -500,7 +472,7 @@ class file_storage implements \H5PFileStorage {
             if (!$item->isDir()) {
                 $options['filename'] = $it->getFilename();
                 if (!$subpath == '') {
-                    $options['filepath'] = $root.$subpath . DIRECTORY_SEPARATOR;
+                    $options['filepath'] = $root . $subpath . '/';
                 } else {
                     $options['filepath'] = $root;
                 }
@@ -520,28 +492,18 @@ class file_storage implements \H5PFileStorage {
      * @param string $filepath file path
      * @param int $itemid Optional item ID
      */
-    private function export_file_tree(string $target, int $contextid, string $filearea, string $filepath, int $itemid = 0) {
-        global $CFG;
+    private function export_file_tree(string $target, int $contextid, string $filearea, string $filepath, int $itemid = 0): void {
         // Make sure target folder exists.
-        if (!file_exists($target)) {
-            mkdir($target, $CFG->directorypermissions, true);
-        }
+        check_dir_exists($target);
 
         // Read source files.
         $files = $this->fs->get_directory_files($contextid, self::COMPONENT, $filearea, $itemid, $filepath, true);
 
         foreach ($files as $file) {
-            // Correct target path for file.
             $path = $target . str_replace($filepath, DIRECTORY_SEPARATOR, $file->get_filepath());
-
             if ($file->is_directory()) {
-                // Create directory.
-                $path = rtrim($path, DIRECTORY_SEPARATOR);
-                if (!file_exists($path)) {
-                    mkdir($path, $CFG->directorypermissions, true);
-                }
+                check_dir_exists(rtrim($path));
             } else {
-                // Copy file.
                 $file->copy_content_to($path . $file->get_filename());
             }
         }
@@ -555,12 +517,15 @@ class file_storage implements \H5PFileStorage {
      * @param  \context $context Context
      * @return string All of the file content in one string.
      */
-    private function concatenate_files(array $assets, string $type, \context $context) :string {
+    private function concatenate_files(array $assets, string $type, \context $context): string {
         $content = '';
         foreach ($assets as $asset) {
             // Find location of asset.
-            list('filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename) =
-                    $this->get_file_elements_from_filepath($asset->path);
+            list(
+                'filearea' => $filearea,
+                'filepath' => $filepath,
+                'filename' => $filename
+            ) = $this->get_file_elements_from_filepath($asset->path);
 
             $fileid = $this->get_itemid_for_file($filearea, $filepath, $filename);
             if ($fileid === false) {
@@ -576,34 +541,34 @@ class file_storage implements \H5PFileStorage {
             } else {
                 // Rewrite relative URLs used inside stylesheets.
                 $content .= preg_replace_callback(
-                        '/url\([\'"]?([^"\')]+)[\'"]?\)/i',
-                        function ($matches) use ($filearea, $filepath, $fileid) {
-                            if (preg_match("/^(data:|([a-z0-9]+:)?\/)/i", $matches[1]) === 1) {
-                                return $matches[0]; // Not relative, skip.
-                            }
-                            // Find "../" in matches[1].
-                            // If it exists, we have to remove "../".
-                            // And switch the last folder in the filepath for the first folder in $matches[1].
-                            // For instance:
-                            // $filepath: /H5P.Question-1.4/styles/
-                            // $matches[1]: ../images/plus-one.svg
-                            // We want to avoid this: H5P.Question-1.4/styles/FILEID/../images/minus-one.svg
-                            // We want this: H5P.Question-1.4/images/FILEID/minus-one.svg.
-                            if (preg_match('/\.\.\//', $matches[1], $pathmatches)) {
-                                $path = preg_split('/\//', $filepath, -1, PREG_SPLIT_NO_EMPTY);
-                                $pathfilename = preg_split('/\//', $matches[1], -1, PREG_SPLIT_NO_EMPTY);
-                                // Remove the first element: ../.
-                                array_shift($pathfilename);
-                                // Replace pathfilename into the filepath.
-                                $path[count($path) - 1] = $pathfilename[0];
-                                $filepath = '/'.implode('/', $path).'/';
-                                // Remove the element used to replace.
-                                array_shift($pathfilename);
-                                $matches[1] = implode('/', $pathfilename);
-                            }
-                            return 'url("../' . $filearea . $filepath . $fileid . DIRECTORY_SEPARATOR . $matches[1] . '")';
-                        },
-                        $file->get_content()) . "\n";
+                    '/url\([\'"]?([^"\')]+)[\'"]?\)/i',
+                    function ($matches) use ($filearea, $filepath, $fileid) {
+                        if (preg_match("/^(data:|([a-z0-9]+:)?\/)/i", $matches[1]) === 1) {
+                            return $matches[0]; // Not relative, skip.
+                        }
+                        // Find "../" in matches[1].
+                        // If it exists, we have to remove "../".
+                        // And switch the last folder in the filepath for the first folder in $matches[1].
+                        // For instance:
+                        // $filepath: /H5P.Question-1.4/styles/
+                        // $matches[1]: ../images/plus-one.svg
+                        // We want to avoid this: H5P.Question-1.4/styles/FILEID/../images/minus-one.svg
+                        // We want this: H5P.Question-1.4/images/FILEID/minus-one.svg.
+                        if (preg_match('/\.\.\//', $matches[1], $pathmatches)) {
+                            $path = preg_split('/\//', $filepath, -1, PREG_SPLIT_NO_EMPTY);
+                            $pathfilename = preg_split('/\//', $matches[1], -1, PREG_SPLIT_NO_EMPTY);
+                            // Remove the first element: ../.
+                            array_shift($pathfilename);
+                            // Replace pathfilename into the filepath.
+                            $path[count($path) - 1] = $pathfilename[0];
+                            $filepath = '/' . implode('/', $path) . '/';
+                            // Remove the element used to replace.
+                            array_shift($pathfilename);
+                            $matches[1] = implode('/', $pathfilename);
+                        }
+                        return 'url("../' . $filearea . $filepath . $fileid . '/' . $matches[1] . '")';
+                    },
+                    $file->get_content()) . "\n";
             }
         }
         return $content;
@@ -613,27 +578,31 @@ class file_storage implements \H5PFileStorage {
      * Get files ready for export.
      *
      * @param  string $filename File name to retrieve.
-     * @return \stored_file The file for export.
+     * @return bool|\stored_file Stored file instance if exists, false if not
      */
     private function get_export_file(string $filename) {
         return $this->fs->get_file($this->context->id, self::COMPONENT, self::EXPORT_FILEAREA, 0, '/', $filename);
     }
 
     /**
-     * Returns necessary file information from a given filepath.
+     * Converts a relative system file path into Moodle File API elements.
      *
-     * @param  string $filepath The filepath to get information from.
+     * @param  string $filepath The system filepath to get information from.
      * @return array File information.
      */
-    private function get_file_elements_from_filepath(string $filepath) : array {
-        $sections = explode(DIRECTORY_SEPARATOR, $filepath);
+    private function get_file_elements_from_filepath(string $filepath): array {
+        $sections = explode('/', $filepath);
+        // Get the filename.
         $filename = array_pop($sections);
+        // Discard first element.
         if (empty($sections[0])) {
             array_shift($sections);
         }
+        // Get the filearea.
         $filearea = array_shift($sections);
-        $filepath = implode(DIRECTORY_SEPARATOR, $sections);
-        $filepath = DIRECTORY_SEPARATOR . $filepath . DIRECTORY_SEPARATOR;
+        // Get the filepath.
+        $filepath = implode('/', $sections);
+        $filepath = '/' . $filepath . '/';
 
         return ['filearea' => $filearea, 'filepath' => $filepath, 'filename' => $filename];
     }
