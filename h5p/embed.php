@@ -34,6 +34,14 @@ $config->export = optional_param('export', 0, PARAM_INT);
 $config->embed = optional_param('embed', 0, PARAM_INT);
 $config->copyright = optional_param('copyright', 0, PARAM_INT);
 
+// TODO: Remove the clean param (added only for making easy development).
+$clean = optional_param('clean', 0, PARAM_INT);
+if ($clean) {
+    \core_h5p\player::clean_db();
+    die();
+}
+// END.
+
 $PAGE->set_url(new \moodle_url('/h5p/embed.php', array('url' => $url)));
 try {
     $h5pplayer = new \core_h5p\player($url, $config);
