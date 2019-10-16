@@ -644,4 +644,28 @@ class player {
     public static function get_embed_url(string $url) : \moodle_url {
         return new \moodle_url('/h5p/embed.php', ['url' => $url]);
     }
+
+    /**
+     * FOR DEBUGGING PURPOSES ONLY
+     *
+     * TODO: Remove before sending to PR.
+     *
+     * Delete all H5P related DB records and files.
+     */
+    public static function clean_db() {
+        global $DB;
+
+        $DB->delete_records('h5p');
+        $DB->delete_records('h5p_contents_libraries');
+        $DB->delete_records('h5p_libraries');
+        $DB->delete_records('h5p_library_dependencies');
+        $fs = get_file_storage();
+        $h5pfilerecords = $DB->get_records('files', ['component' => 'core_h5p']);
+        foreach ($h5pfilerecords as $h5pfilerecord) {
+            $file = $fs->get_file_by_hash($h5pfilerecord->pathnamehash);
+            $file->delete();
+        }
+        $DB->delete_records('files', ['component' => 'core_h5p']);
+        $DB->delete_records('h5p_libraries_cachedassets');
+    }
 }
