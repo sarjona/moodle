@@ -309,23 +309,33 @@ class player {
             }
         }
 
-        // Get itemid and filepath.
-        if (!empty($parts) && is_numeric($parts[0])) {
-            $itemid = array_shift($parts);
-        } else {
-            $itemid = 0;
-        }
-        if (empty($parts)) {
-            $filepath = DIRECTORY_SEPARATOR;
-        } else {
-            $filepath = DIRECTORY_SEPARATOR . array_shift($parts) . DIRECTORY_SEPARATOR;
-        }
-
         // Some components, such as mod_page or mod_resource, add the revision to the URL to prevent caching problems.
         // So the URL contains this revision number as itemid but a 0 is always stored in the files table.
-        // In order to get the proper hash, the itemid should be set to 0 in these cases.
-        if (!component_callback($component, 'supports', [FEATURE_ITEMID], true)) {
-            $itemid = 0;
+        // In order to get the proper hash, a callback should be done (looking for those exceptions).
+        $pathdata = component_callback($component, 'get_path_from_pluginfile', [$filearea, $parts], null);
+        if (null === $pathdata) {
+            // Look for the components and fileareas which have empty itemid defined in xxx_pluginfile.
+            if (($component === 'user' && ($filearea === 'private' || $filearea === 'profile')) ||
+                    $filearea === 'intro' ||
+                    ($component === 'course' && ($filearea === 'summary' || $filearea === 'overviewfiles')) ||
+                    ($component === 'coursecat' && $filearea === 'description') ||
+                    ($component === 'backup' &&
+                    ($filearea === 'course' || $filearea === 'activity' || $filearea === 'automated')) ) {
+                $itemid = 0;
+            } else {
+                $itemid = array_shift($parts);
+            }
+            if (empty($parts)) {
+                $filepath = '/';
+            } else {
+                $filepath = '/' . implode('/', $parts) . '/';
+            }
+        } else {
+            // The itemid and filepath have been returned by the component callback.
+            [
+                'itemid' => $itemid,
+                'filepath' => $filepath,
+            ] = $pathdata;
         }
 
         $fs = get_file_storage();
