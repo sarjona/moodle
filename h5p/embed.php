@@ -23,6 +23,7 @@
  */
 
 require_once(__DIR__ . '/../config.php');
+require_once(__DIR__ . '/lib.php');
 
 // The login check is done inside the player when getting the file from the url param.
 

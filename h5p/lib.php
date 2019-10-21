@@ -110,3 +110,15 @@ function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $ar
 
     return true;
 }
+
+// Polyfill for mbstring in H5P if the extension is not loaded. 
+if (!function_exists('mb_substr')) {
+    function mb_substr($str, $start, $lenght, $encoding = 'utf-8') {
+        return \core_h5p\mbstring_polyfill::mb_substr($str, $start, $lenght, $encoding);
+    }
+}
+if (!function_exists('mb_strtolower')) {
+    function mb_strtolower($str, $encoding = 'utf-8') {
+        return \core_h5p\mbstring_polyfill::mb_strtolower($str, $encoding);
+    }
+}
