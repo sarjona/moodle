@@ -44,15 +44,7 @@ class mbstring_polyfill extends \core_text {
      * @return string get part of string
      */
     public static function mb_substr(string $str, int $start, int $length = null, string $encoding = 'utf-8') : string {
-        if ($length === 0 || $str === '') {
-            return '';
-        }
-
-        if ($length === null) {
-            $length = iconv_strlen($str, $encoding);
-        }
-
-        return iconv_substr($str, $start, $length, $encoding);
+        return self::substr($str, $start, $length, $encoding);
     }
 
     /**
@@ -63,18 +55,6 @@ class mbstring_polyfill extends \core_text {
      * @return string Returns str with all alphabetic characters converted to lowercase.
      */
     public static function mb_strtolower(string $str, string $encoding = 'utf-8') : string {
-        // Avoid some notices from Typo3 code.
-        $oldlevel = error_reporting(E_PARSE);
-        if ($encoding == 'utf-8') {
-            $str = self::typo3()->utf8_char_mapping($str, 'case', 'toLower');
-        } else if (isset(self::typo3()->eucBasedSets[$encoding])) {
-            $str = self::typo3()->euc_char_mapping($str, $encoding, 'case', 'toLower');
-        } else {
-            // Treat everything else as single-byte encoding.
-            $str = self::typo3()->sb_char_mapping($str, $encoding, 'case', 'toLower');
-        }
-        error_reporting($oldlevel);
-
-        return $str;
+        return self::strtolower($str, $encoding);
     }
 }
