@@ -296,10 +296,10 @@ class file_storage implements \H5PFileStorage {
         list(
             'filearea' => $filearea,
             'filepath' => $filepath,
-            'filename' => $filename
+            'filename' => $filename,
+            'itemid' => $itemid
         ) = $this->get_file_elements_from_filepath($filepath);
 
-        $itemid = $this->get_itemid_for_file($filearea, $filepath, $filename);
         if (!$itemid) {
             throw new \file_serving_exception('Could not retrieve the requested file, check your file permissions.');
         }
@@ -524,16 +524,16 @@ class file_storage implements \H5PFileStorage {
             list(
                 'filearea' => $filearea,
                 'filepath' => $filepath,
-                'filename' => $filename
+                'filename' => $filename,
+                'itemid' => $itemid
             ) = $this->get_file_elements_from_filepath($asset->path);
 
-            $fileid = $this->get_itemid_for_file($filearea, $filepath, $filename);
-            if ($fileid === false) {
+            if ($itemid === false) {
                 continue;
             }
 
             // Locate file.
-            $file = $this->fs->get_file($context->id, self::COMPONENT, $filearea, $fileid, $filepath, $filename);
+            $file = $this->fs->get_file($context->id, self::COMPONENT, $filearea, $itemid, $filepath, $filename);
 
             // Get file content and concatenate.
             if ($type === 'scripts') {
@@ -542,7 +542,7 @@ class file_storage implements \H5PFileStorage {
                 // Rewrite relative URLs used inside stylesheets.
                 $content .= preg_replace_callback(
                     '/url\([\'"]?([^"\')]+)[\'"]?\)/i',
-                    function ($matches) use ($filearea, $filepath, $fileid) {
+                    function ($matches) use ($filearea, $filepath, $itemid) {
                         if (preg_match("/^(data:|([a-z0-9]+:)?\/)/i", $matches[1]) === 1) {
                             return $matches[0]; // Not relative, skip.
                         }
@@ -552,8 +552,8 @@ class file_storage implements \H5PFileStorage {
                         // For instance:
                         // $filepath: /H5P.Question-1.4/styles/
                         // $matches[1]: ../images/plus-one.svg
-                        // We want to avoid this: H5P.Question-1.4/styles/FILEID/../images/minus-one.svg
-                        // We want this: H5P.Question-1.4/images/FILEID/minus-one.svg.
+                        // We want to avoid this: H5P.Question-1.4/styles/ITEMID/../images/minus-one.svg
+                        // We want this: H5P.Question-1.4/images/ITEMID/minus-one.svg.
                         if (preg_match('/\.\.\//', $matches[1], $pathmatches)) {
                             $path = preg_split('/\//', $filepath, -1, PREG_SPLIT_NO_EMPTY);
                             $pathfilename = preg_split('/\//', $matches[1], -1, PREG_SPLIT_NO_EMPTY);
@@ -566,7 +566,7 @@ class file_storage implements \H5PFileStorage {
                             array_shift($pathfilename);
                             $matches[1] = implode('/', $pathfilename);
                         }
-                        return 'url("../' . $filearea . $filepath . $fileid . '/' . $matches[1] . '")';
+                        return 'url("../' . $filearea . $filepath . $itemid . '/' . $matches[1] . '")';
                     },
                     $file->get_content()) . "\n";
             }
