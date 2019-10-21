@@ -29,3 +29,11 @@ h5p.classes.php file:
 A PR has been sent to the H5P library with these changes:
 https://github.com/h5p/h5p-php-library/compare/master...andrewnicols:libraryPathSubclass
 Hopefully, when upgrading, these patch won't be needed because it will be included in the H5P library by default.
+
+* Commented extension_loaded('mbstring').
+  In Moodle the extension mbstring is optional, so in order to not force install the extension on php
+  we have to commented the setErrorMessage regarding extension_loaded('mbstring')in the next functions in h5p.classes.php file:
+    * isValidPackage
+    * checkSetupErrorMessage
+    * validateText
+    * validateContentFiles
