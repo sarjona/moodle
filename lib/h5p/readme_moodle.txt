@@ -14,7 +14,7 @@ Removed:
 Added:
  * readme_moodle.txt
 
-Downloaded version: 1.23.1 release
+Downloaded version: 1.24 release
 
 === 3.8 ===
 * In order to allow the dependency path to be overridden by child H5PCore classes, a couple of minor changes have been added to the
