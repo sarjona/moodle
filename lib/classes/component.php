@@ -90,14 +90,14 @@ class core_component {
         'RedeyeVentures\\GeoPattern' => 'lib/geopattern-php/GeoPattern',
         'MongoDB' => 'cache/stores/mongodb/MongoDB',
         'Firebase\\JWT' => 'lib/php-jwt/src',
-        'H5PCore' => '/lib/h5p/h5p.classes',
-        'H5PFrameworkInterface' => '/lib/h5p/h5p.classes',
-        'H5PContentValidator' => 'lib/h5p/h5p.classes',
-        'H5PValidator' => '/lib/h5p/h5p.classes',
-        'H5PStorage' => '/lib/h5p/h5p.classes',
-        'H5PDevelopment' => '/lib/h5p/h5p-development.class',
-        'H5PFileStorage' => '/lib/h5p/h5p-file-storage.interface',
-        'H5PMetadata' => '/lib/h5p/h5p-metadata.class',
+        'H5PCore' => '/lib/h5p/h5p.moodle',
+        'H5PFrameworkInterface' => '/lib/h5p/h5p.moodle',
+        'H5PContentValidator' => 'lib/h5p/h5p.moodle',
+        'H5PValidator' => '/lib/h5p/h5p.moodle',
+        'H5PStorage' => '/lib/h5p/h5p.moodle',
+        'H5PDevelopment' => '/lib/h5p/h5p.moodle',
+        'H5PFileStorage' => '/lib/h5p/h5p.moodle',
+        'H5PMetadata' => '/lib/h5p/h5p.moodle',
     );
 
     /**
@@ -140,7 +140,7 @@ class core_component {
         $file = self::psr_classloader($classname);
         // If the file is found, require it.
         if (!empty($file)) {
-            require($file);
+            require_once($file);
             return;
         }
     }
