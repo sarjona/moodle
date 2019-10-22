@@ -26,11 +26,6 @@ namespace core_h5p;
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
-
-require_once($CFG->libdir . '/filelib.php');
-require_once($CFG->libdir . '/adminlib.php');
-
 /**
  * Moodle's implementation of the H5P framework interface.
  *
@@ -40,9 +35,15 @@ require_once($CFG->libdir . '/adminlib.php');
  */
 class framework implements \H5PFrameworkInterface {
 
+    /** @var string The path to the last uploaded h5p */
+    private $lastuploadedfolder;
+
+    /** @var string The path to the last uploaded h5p file */
+    private $lastuploadedfile;
+
     /**
-     * Returns info for the current platform
-     * Implements getPlatformInfo
+     * Returns info for the current platform.
+     * Implements getPlatformInfo.
      *
      * @return array An associative array containing:
      *               - name: The name of the platform, for instance "Moodle"
@@ -55,18 +56,18 @@ class framework implements \H5PFrameworkInterface {
         return array(
             'name' => 'Moodle',
             'version' => $CFG->version,
-            'h5pVersion' => get_component_version('core_h5p'),
+            'h5pVersion' => $CFG->version,
         );
     }
 
     /**
-     * Fetches a file from a remote server using HTTP GET
-     * Implements fetchExternalData
+     * Fetches a file from a remote server using HTTP GET.
+     * Implements fetchExternalData.
      *
-     * @param string $url Where you want to get or send data.
-     * @param array $data Data to post to the URL.
-     * @param bool $blocking Set to 'FALSE' to instantly time out (fire and forget).
-     * @param string $stream Path to where the file should be saved.
+     * @param string $url Where you want to get or send data
+     * @param array $data Data to post to the URL
+     * @param bool $blocking Set to 'FALSE' to instantly time out (fire and forget)
+     * @param string $stream Path to where the file should be saved
      * @return string The content (response body). NULL if something went wrong
      */
     public function fetchExternalData($url, $data = null, $blocking = true, $stream = null) {
@@ -89,10 +90,8 @@ class framework implements \H5PFrameworkInterface {
                 $stream .= '.' . $ext;
             }
 
-            // Add folder and file paths to H5P Core.
-            $interface = self::instance('interface');
-            $interface->getUploadedH5pFolderPath($localfolder);
-            $interface->getUploadedH5pPath($stream);
+            $this->getUploadedH5pFolderPath($localfolder);
+            $this->getUploadedH5pPath($stream);
         }
 
         $response = download_file_content($url, null, $data, true, 300, 20,
@@ -107,7 +106,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Set the tutorial URL for a library. All versions of the library is set.
-     * Implements setLibraryTutorialUrl
+     * Implements setLibraryTutorialUrl.
      *
      * @param string $libraryname
      * @param string $url
@@ -118,7 +117,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Set an error message.
-     * Implements setErrorMessage
+     * Implements setErrorMessage.
      *
      * @param string $message The error message
      * @param string $code An optional code
@@ -131,7 +130,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Set an info message.
-     * Implements setInfoMessage
+     * Implements setInfoMessage.
      *
      * @param string $message The info message
      */
@@ -143,7 +142,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Return messages.
-     * Implements getMessages
+     * Implements getMessages.
      *
      * @param string $type The message type, e.g. 'info' or 'error'
      * @return string[] Array of messages
@@ -166,246 +165,253 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Translation function.
-     * Implements t
+     * The purpose of this function is to map the strings used in the core h5p methods
+     * and replace them with the translated ones. If a translation for a particular string
+     * is not available, the default message (key) will be returned.
+     * Implements t.
      *
-     * @param string $message The english string to be translated.
-     * @param array $replacements An associative array of replacements to make after translation.
-     * @return string Translated string or the english string if a translation is not available.
+     * @param string $message The english string to be translated
+     * @param array $replacements An associative array of replacements to make after translation
+     * @return string Translated string or the english string if a translation is not available
      */
     public function t($message, $replacements = array()) {
-        static $translationsmap;
 
-        if (empty($translationsmap)) {
-            // Create mapping.
-            $translationsmap = [
-                'The file you uploaded is not a valid HTML5 Package (It does not have the .h5p file extension)' => 'noextension',
-                'The file you uploaded is not a valid HTML5 Package (We are unable to unzip it)' => 'nounzip',
-                'The main h5p.json file is not valid' => 'nojson',
-                'Library directory name must match machineName or machineName-majorVersion.minorVersion (from library.json).' .
-                    ' (Directory: %directoryName , machineName: %machineName, majorVersion: %majorVersion, minorVersion:' .
-                    ' %minorVersion)'
-                    => 'librarydirectoryerror',
-                'A valid content folder is missing' => 'missingcontentfolder',
-                'A valid main h5p.json file is missing' => 'invalidmainjson',
-                'Missing required library @library' => 'missinglibrary',
-                "Note that the libraries may exist in the file you uploaded, but you're not allowed to upload new libraries." .
-                    ' Contact the site administrator about this.' => 'missinguploadpermissions',
-                'Invalid library name: %name' => 'invalidlibraryname',
-                'Could not find library.json file with valid json format for library %name' => 'missinglibraryjson',
-                'Invalid semantics.json file has been included in the library %name' => 'invalidsemanticsjson',
-                'Invalid language file %file in library %library' => 'invalidlanguagefile',
-                'Invalid language file %languageFile has been included in the library %name' => 'invalidlanguagefile2',
-                'The file "%file" is missing from library: "%name"' => 'missinglibraryfile',
-                'The system was unable to install the <em>%component</em> component from the package, it requires a newer' .
-                    ' version of the H5P plugin. This site is currently running version %current, whereas the required version' .
-                    ' is %required or higher. You should consider upgrading and then try again.' => 'missingcoreversion',
-                "Invalid data provided for %property in %library. Boolean expected." => 'invalidlibrarydataboolean',
-                "Invalid data provided for %property in %library" => 'invalidlibrarydata',
-                "Can't read the property %property in %library" => 'invalidlibraryproperty',
-                'The required property %property is missing from %library' => 'missinglibraryproperty',
-                'Illegal option %option in %library' => 'invalidlibraryoption',
-                'Added %new new H5P library and updated %old old one.' => 'addedandupdatedss',
-                'Added %new new H5P library and updated %old old ones.' => 'addedandupdatedsp',
-                'Added %new new H5P libraries and updated %old old one.' => 'addedandupdatedps',
-                'Added %new new H5P libraries and updated %old old ones.' => 'addedandupdatedpp',
-                'Added %new new H5P library.' => 'addednewlibrary',
-                'Added %new new H5P libraries.' => 'addednewlibraries',
-                'Updated %old H5P library.' => 'updatedlibrary',
-                'Updated %old H5P libraries.' => 'updatedlibraries',
-                'Missing dependency @dep required by @lib.' => 'missingdependency',
-                'Provided string is not valid according to regexp in semantics. (value: "%value", regexp: "%regexp")'
-                    => 'invalidstring',
-                'File "%filename" not allowed. Only files with the following extensions are allowed: %files-allowed.'
-                    => 'invalidfile',
-                'Invalid selected option in multi-select.' => 'invalidmultiselectoption',
-                'Invalid selected option in select.' => 'invalidselectoption',
-                'H5P internal error: unknown content type "@type" in semantics. Removing content!' => 'invalidsemanticstype',
-                'Copyright information' => 'copyrightinfo',
-                'Title' => 'title',
-                'Author' => 'author',
-                'Year(s)' => 'years',
-                'Year' => 'year',
-                'Source' => 'source',
-                'License' => 'license',
-                'Undisclosed' => 'undisclosed',
-                'Attribution' => 'noversionattribution',
-                'Attribution-ShareAlike' => 'noversionattributionsa',
-                'Attribution-NoDerivs' => 'noversionattributionnd',
-                'Attribution-NonCommercial' => 'noversionattributionnc',
-                'Attribution-NonCommercial-ShareAlike' => 'noversionattributionncsa',
-                'Attribution-NonCommercial-NoDerivs' => 'noversionattributionncnd',
-                'General Public License v3' => 'gpl',
-                'Public Domain' => 'pd',
-                'Public Domain Dedication and Licence' => 'pddl',
-                'Public Domain Mark' => 'pdm',
-                'Public Domain Mark (PDM)' => 'pdm',
-                'Copyright' => 'copyrightstring',
-                'The mbstring PHP extension is not loaded. H5P need this to function properly' => 'missingmbstring',
-                'The version of the H5P library %machineName used in this content is not valid. Content contains' .
-                    '%contentLibrary, but it should be %semanticsLibrary.' => 'wrongversion',
-                'The H5P library %library used in the content is not valid' => 'invalidlibrarynamed',
-                'Fullscreen' => 'fullscreen',
-                'Disable fullscreen' => 'disablefullscreen',
-                'Download' => 'download',
-                'Rights of use' => 'copyright',
-                'Embed' => 'embed',
-                'Size' => 'size',
-                'Show advanced' => 'showadvanced',
-                'Hide advanced' => 'hideadvanced',
-                'Include this script on your website if you want dynamic sizing of the embedded content:' => 'resizescript',
-                'Close' => 'close',
-                'Thumbnail' => 'thumbnail',
-                'No copyright information available for this content.' => 'nocopyright',
-                'Download this content as a H5P file.' => 'downloadtitle',
-                'View copyright information for this content.' => 'copyrighttitle',
-                'View the embed code for this content.' => 'embedtitle',
-                'Visit H5P.org to check out more cool content.' => 'h5ptitle',
-                'This content has changed since you last used it.' => 'contentchanged',
-                "You'll be starting over." => 'startingover',
-                'by' => 'by',
-                'Show more' => 'showmore',
-                'Show less' => 'showless',
-                'Sublevel' => 'sublevel',
-                'Confirm action' => 'confirmdialogheader',
-                'Please confirm that you wish to proceed. This action is not reversible.' => 'confirmdialogbody',
-                'Cancel' => 'cancellabel',
-                'Confirm' => 'confirmlabel',
-                '4.0 International' => 'licenseCC40',
-                '3.0 Unported' => 'licenseCC30',
-                '2.5 Generic' => 'licenseCC25',
-                '2.0 Generic' => 'licenseCC20',
-                '1.0 Generic' => 'licenseCC10',
-                'General Public License' => 'licenseGPL',
-                'Version 3' => 'licenseV3',
-                'Version 2' => 'licenseV2',
-                'Version 1' => 'licenseV1',
-                'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication' => 'licenseCC010',
-                'CC0 1.0 Universal' => 'licenseCC010U',
-                'License Version' => 'licenseversion',
-                'Creative Commons' => 'creativecommons',
-                'Attribution' => 'ccattribution',
-                'Attribution (CC BY)' => 'ccattribution',
-                'Attribution-ShareAlike' => 'ccattributionsa',
-                'Attribution-ShareAlike (CC BY-SA)' => 'ccattributionsa',
-                'Attribution-NoDerivs' => 'ccattributionnd',
-                'Attribution-NoDerivs (CC BY-ND)' => 'ccattributionnd',
-                'Attribution-NonCommercial' => 'ccattributionnc',
-                'Attribution-NonCommercial (CC BY-NC)' => 'ccattributionnc',
-                'Attribution-NonCommercial-ShareAlike' => 'ccattributionncsa',
-                'Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)' => 'ccattributionncsa',
-                'Attribution-NonCommercial-NoDerivs' => 'ccattributionncnd',
-                'Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)' => 'ccattributionncnd',
-                'Public Domain Dedication (CC0)' => 'ccpdd',
-                'Years (from)' => 'yearsfrom',
-                'Years (to)' => 'yearsto',
-                "Author's name" => 'authorname',
-                "Author's role" => 'authorrole',
-                'Editor' => 'editor',
-                'Licensee' => 'licensee',
-                'Originator' => 'originator',
-                'Any additional information about the license' => 'additionallicenseinfo',
-                'License Extras' => 'licenseextras',
-                'Changelog' => 'changelog',
-                'Content Type' => 'contenttype',
-                'Date' => 'date',
-                'Changed by' => 'changedby',
-                'Description of change' => 'changedescription',
-                'Photo cropped, text changed, etc.' => 'changeplaceholder',
-                'Author comments' => 'authorcomments',
-                'Comments for the editor of the content (This text will not be published as a part of copyright info)'
-                    => 'authorcommentsdescription',
-                'Reuse' => 'reuse',
-                'Reuse Content' => 'reuseContent',
-                'Reuse this content.' => 'reuseDescription',
-                'Content is copied to the clipboard' => 'contentCopied',
-                'Connection lost. Results will be stored and sent when you regain connection.' => 'connectionLost',
-                'Connection reestablished.' => 'connectionReestablished',
-                'Attempting to submit stored results.' => 'resubmitScores',
-                'Your connection to the server was lost' => 'offlineDialogHeader',
-                'We were unable to send information about your completion of this task. Please check your internet connection.'
-                    => 'offlineDialogBody',
-                'Retrying in :num....' => 'offlineDialogRetryMessage',
-                'Retry now' => 'offlineDialogRetryButtonLabel',
-                'Successfully submitted results.' => 'offlineSuccessfulSubmit',
-                'One of the files inside the package exceeds the maximum file size allowed. (%file %used > %max)'
-                    => 'fileExceedsMaxSize',
-                'The total size of the unpacked files exceeds the maximum size allowed. (%used > %max)'
-                    => 'unpackedFilesExceedsMaxSize',
-                'Unable to read file from the package: %fileName' => 'couldNotReadFileFromZip',
-                'Unable to parse JSON from the package: %fileName' => 'couldNotParseJSONFromZip',
-            ];
-        }
+        // Create mapping.
+        $translationsmap = [
+            'The file you uploaded is not a valid HTML5 Package (It does not have the .h5p file extension)' => 'noextension',
+            'The file you uploaded is not a valid HTML5 Package (We are unable to unzip it)' => 'nounzip',
+            'The main h5p.json file is not valid' => 'nojson',
+            'Library directory name must match machineName or machineName-majorVersion.minorVersion (from library.json).' .
+                ' (Directory: %directoryName , machineName: %machineName, majorVersion: %majorVersion, minorVersion:' .
+                ' %minorVersion)'
+                => 'librarydirectoryerror',
+            'A valid content folder is missing' => 'missingcontentfolder',
+            'A valid main h5p.json file is missing' => 'invalidmainjson',
+            'Missing required library @library' => 'missinglibrary',
+            "Note that the libraries may exist in the file you uploaded, but you're not allowed to upload new libraries." .
+                ' Contact the site administrator about this.' => 'missinguploadpermissions',
+            'Invalid library name: %name' => 'invalidlibraryname',
+            'Could not find library.json file with valid json format for library %name' => 'missinglibraryjson',
+            'Invalid semantics.json file has been included in the library %name' => 'invalidsemanticsjson',
+            'Invalid language file %file in library %library' => 'invalidlanguagefile',
+            'Invalid language file %languageFile has been included in the library %name' => 'invalidlanguagefile2',
+            'The file "%file" is missing from library: "%name"' => 'missinglibraryfile',
+            'The system was unable to install the <em>%component</em> component from the package, it requires a newer' .
+                ' version of the H5P plugin. This site is currently running version %current, whereas the required version' .
+                ' is %required or higher. You should consider upgrading and then try again.' => 'missingcoreversion',
+            "Invalid data provided for %property in %library. Boolean expected." => 'invalidlibrarydataboolean',
+            "Invalid data provided for %property in %library" => 'invalidlibrarydata',
+            "Can't read the property %property in %library" => 'invalidlibraryproperty',
+            'The required property %property is missing from %library' => 'missinglibraryproperty',
+            'Illegal option %option in %library' => 'invalidlibraryoption',
+            'Added %new new H5P library and updated %old old one.' => 'addedandupdatedss',
+            'Added %new new H5P library and updated %old old ones.' => 'addedandupdatedsp',
+            'Added %new new H5P libraries and updated %old old one.' => 'addedandupdatedps',
+            'Added %new new H5P libraries and updated %old old ones.' => 'addedandupdatedpp',
+            'Added %new new H5P library.' => 'addednewlibrary',
+            'Added %new new H5P libraries.' => 'addednewlibraries',
+            'Updated %old H5P library.' => 'updatedlibrary',
+            'Updated %old H5P libraries.' => 'updatedlibraries',
+            'Missing dependency @dep required by @lib.' => 'missingdependency',
+            'Provided string is not valid according to regexp in semantics. (value: "%value", regexp: "%regexp")'
+                => 'invalidstring',
+            'File "%filename" not allowed. Only files with the following extensions are allowed: %files-allowed.'
+                => 'invalidfile',
+            'Invalid selected option in multi-select.' => 'invalidmultiselectoption',
+            'Invalid selected option in select.' => 'invalidselectoption',
+            'H5P internal error: unknown content type "@type" in semantics. Removing content!' => 'invalidsemanticstype',
+            'Copyright information' => 'copyrightinfo',
+            'Title' => 'title',
+            'Author' => 'author',
+            'Year(s)' => 'years',
+            'Year' => 'year',
+            'Source' => 'source',
+            'License' => 'license',
+            'Undisclosed' => 'undisclosed',
+            'General Public License v3' => 'gpl',
+            'Public Domain' => 'pd',
+            'Public Domain Dedication and Licence' => 'pddl',
+            'Public Domain Mark' => 'pdm',
+            'Public Domain Mark (PDM)' => 'pdm',
+            'Copyright' => 'copyrightstring',
+            'The mbstring PHP extension is not loaded. H5P need this to function properly' => 'missingmbstring',
+            'The version of the H5P library %machineName used in this content is not valid. Content contains' .
+                '%contentLibrary, but it should be %semanticsLibrary.' => 'wrongversion',
+            'The H5P library %library used in the content is not valid' => 'invalidlibrarynamed',
+            'Fullscreen' => 'fullscreen',
+            'Disable fullscreen' => 'disablefullscreen',
+            'Download' => 'download',
+            'Rights of use' => 'copyright',
+            'Embed' => 'embed',
+            'Size' => 'size',
+            'Show advanced' => 'showadvanced',
+            'Hide advanced' => 'hideadvanced',
+            'Include this script on your website if you want dynamic sizing of the embedded content:' => 'resizescript',
+            'Close' => 'close',
+            'Thumbnail' => 'thumbnail',
+            'No copyright information available for this content.' => 'nocopyright',
+            'Download this content as a H5P file.' => 'downloadtitle',
+            'View copyright information for this content.' => 'copyrighttitle',
+            'View the embed code for this content.' => 'embedtitle',
+            'Visit H5P.org to check out more cool content.' => 'h5ptitle',
+            'This content has changed since you last used it.' => 'contentchanged',
+            "You'll be starting over." => 'startingover',
+            'by' => 'by',
+            'Show more' => 'showmore',
+            'Show less' => 'showless',
+            'Sublevel' => 'sublevel',
+            'Confirm action' => 'confirmdialogheader',
+            'Please confirm that you wish to proceed. This action is not reversible.' => 'confirmdialogbody',
+            'Cancel' => 'cancellabel',
+            'Confirm' => 'confirmlabel',
+            '4.0 International' => 'licenseCC40',
+            '3.0 Unported' => 'licenseCC30',
+            '2.5 Generic' => 'licenseCC25',
+            '2.0 Generic' => 'licenseCC20',
+            '1.0 Generic' => 'licenseCC10',
+            'General Public License' => 'licenseGPL',
+            'Version 3' => 'licenseV3',
+            'Version 2' => 'licenseV2',
+            'Version 1' => 'licenseV1',
+            'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication' => 'licenseCC010',
+            'CC0 1.0 Universal' => 'licenseCC010U',
+            'License Version' => 'licenseversion',
+            'Creative Commons' => 'creativecommons',
+            'Attribution' => 'ccattribution',
+            'Attribution (CC BY)' => 'ccattribution',
+            'Attribution-ShareAlike' => 'ccattributionsa',
+            'Attribution-ShareAlike (CC BY-SA)' => 'ccattributionsa',
+            'Attribution-NoDerivs' => 'ccattributionnd',
+            'Attribution-NoDerivs (CC BY-ND)' => 'ccattributionnd',
+            'Attribution-NonCommercial' => 'ccattributionnc',
+            'Attribution-NonCommercial (CC BY-NC)' => 'ccattributionnc',
+            'Attribution-NonCommercial-ShareAlike' => 'ccattributionncsa',
+            'Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)' => 'ccattributionncsa',
+            'Attribution-NonCommercial-NoDerivs' => 'ccattributionncnd',
+            'Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)' => 'ccattributionncnd',
+            'Public Domain Dedication (CC0)' => 'ccpdd',
+            'Years (from)' => 'yearsfrom',
+            'Years (to)' => 'yearsto',
+            "Author's name" => 'authorname',
+            "Author's role" => 'authorrole',
+            'Editor' => 'editor',
+            'Licensee' => 'licensee',
+            'Originator' => 'originator',
+            'Any additional information about the license' => 'additionallicenseinfo',
+            'License Extras' => 'licenseextras',
+            'Changelog' => 'changelog',
+            'Content Type' => 'contenttype',
+            'Date' => 'date',
+            'Changed by' => 'changedby',
+            'Description of change' => 'changedescription',
+            'Photo cropped, text changed, etc.' => 'changeplaceholder',
+            'Author comments' => 'authorcomments',
+            'Comments for the editor of the content (This text will not be published as a part of copyright info)'
+                => 'authorcommentsdescription',
+            'Reuse' => 'reuse',
+            'Reuse Content' => 'reuseContent',
+            'Reuse this content.' => 'reuseDescription',
+            'Content is copied to the clipboard' => 'contentCopied',
+            'Connection lost. Results will be stored and sent when you regain connection.' => 'connectionLost',
+            'Connection reestablished.' => 'connectionReestablished',
+            'Attempting to submit stored results.' => 'resubmitScores',
+            'Your connection to the server was lost' => 'offlineDialogHeader',
+            'We were unable to send information about your completion of this task. Please check your internet connection.'
+                => 'offlineDialogBody',
+            'Retrying in :num....' => 'offlineDialogRetryMessage',
+            'Retry now' => 'offlineDialogRetryButtonLabel',
+            'Successfully submitted results.' => 'offlineSuccessfulSubmit',
+            'One of the files inside the package exceeds the maximum file size allowed. (%file %used > %max)'
+                => 'fileExceedsMaxSize',
+            'The total size of the unpacked files exceeds the maximum size allowed. (%used > %max)'
+                => 'unpackedFilesExceedsMaxSize',
+            'Unable to read file from the package: %fileName' => 'couldNotReadFileFromZip',
+            'Unable to parse JSON from the package: %fileName' => 'couldNotParseJSONFromZip',
+            'A problem with the server write access was detected. Please make sure that your server can write to your data folder.' => 'nowriteaccess',
+            'H5P hub communication has been disabled because one or more H5P requirements failed.' => 'hubcommunicationdisabled',
+            'Site could not be registered with the hub. Please contact your site administrator.' => 'sitecouldnotberegistered',
+            'The H5P Hub has been disabled until this problem can be resolved. You may still upload libraries through the "H5P Libraries" page.' => 'hubisdisableduploadlibraries',
+            'When you have revised your server setup you may re-enable H5P hub communication in H5P Settings.' => 'reviseserversetupandretry',
+            'You have been provided a unique key that identifies you with the Hub when receiving new updates. The key is available for viewing in the "H5P Settings" page.' => 'sitekeyregistered',
+            'Your PHP max post size is quite small. With your current setup, you may not upload files larger than {$a->%number} MB. This might be a problem when trying to upload H5Ps, images and videos. Please consider to increase it to more than 5MB' => 'maxpostsizetoosmall',
+            'Your PHP max upload size is bigger than your max post size. This is known to cause issues in some installations.' => 'uploadsizelargerthanpostsize',
+            'Your PHP max upload size is quite small. With your current setup, you may not upload files larger than {$a->%number} MB. This might be a problem when trying to upload H5Ps, images and videos. Please consider to increase it to more than 5MB.' => 'maxuploadsizetoosmall',
+            'Your PHP version does not support ZipArchive.' => 'noziparchive',
+            'Your PHP version is outdated. H5P requires version 5.2 to function properly. Version 5.6 or later is recommended.' => 'oldphpversion',
+            'Your server does not have SSL enabled. SSL should be enabled to ensure a secure connection with the H5P hub.' => 'sslnotenabled',
+            'Your site was successfully registered with the H5P Hub.' => 'successfullyregisteredwithhub'
+        ];
 
         if (isset($translationsmap[$message])) {
-            return get_string($translationsmap[$message], 'h5p', $replacements);
+            return get_string($translationsmap[$message], 'core_h5p', $replacements);
         }
+
+        debugging("String translation cannot be found. Please add a string definition for '" .
+            $message . "' in the core_h5p component.", DEBUG_DEVELOPER);
 
         return $message;
     }
 
     /**
-     * Get URL to file in the specific library.
-     * Implements getLibraryFileUrl
+     * Get URL to file in the specifimake_pluginfile_urlc library.
+     * Implements getLibraryFileUrl.
      *
      * @param string $libraryfoldername The name or path of the library's folder
      * @param string $filename The file name
      * @return string URL to file
      */
     public function getLibraryFileUrl($libraryfoldername, $filename) {
-        global $DB, $CFG;
+        global $DB;
 
         $context = \context_system::instance();
         $itemid = $DB->get_field('files', 'itemid', ['component' => 'core_h5p', 'filearea' => 'libraries',
             'filepath' => $libraryfoldername, 'filename' => $filename]);
 
-        return "{$CFG->wwwroot}/pluginfile.php/{$context->id}/core_h5p/libraries/{$itemid}/{$libraryfoldername}/{$filename}";
+        return \moodle_url::make_pluginfile_url($context->id, 'core_h5p', 'libraries', $itemid,
+            $libraryfoldername . '/', $filename)->out();
     }
 
     /**
      * Get the Path to the last uploaded h5p.
-     * Implements getUploadedH5PFolderPath
+     * Implements getUploadedH5PFolderPath.
      *
      * @param string $setpath The path to the folder of the last uploaded h5p
      * @return string Path to the folder where the last uploaded h5p for this session is located
      */
     public function getUploadedH5pFolderPath($setpath = null) {
-        static $path;
-
         if ($setpath !== null) {
-            $path = $setpath;
+            $this->lastuploadedfolder = $setpath;
         }
 
-        if (!isset($path)) {
+        if (!isset($this->lastuploadedfolder)) {
             throw new \coding_exception('Using getUploadedH5pFolderPath() before path is set');
         }
 
-        return $path;
+        return $this->lastuploadedfolder;
     }
 
     /**
      * Get the path to the last uploaded h5p file.
-     * Implements getUploadedH5PPath
+     * Implements getUploadedH5PPath.
      *
      * @param string $setpath The path to the last uploaded h5p
      * @return string Path to the last uploaded h5p
      */
     public function getUploadedH5pPath($setpath = null) {
-        static $path;
-
         if ($setpath !== null) {
-            $path = $setpath;
+            $this->lastuploadedfile = $setpath;
         }
 
-        if (!isset($path)) {
+        if (!isset($this->lastuploadedfile)) {
             throw new \coding_exception('Using getUploadedH5pPath() before path is set');
         }
 
-        return $path;
+        return $this->lastuploadedfile;
     }
 
     /**
-     * Load addon libraries
-     * Implements loadAddons
+     * Load addon libraries.
+     * Implements loadAddons.
      *
      * @return array The array containing the addon libraries
      */
@@ -444,11 +450,11 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Load config for libraries
-     * Implements getLibraryConfig
+     * Load config for libraries.
+     * Implements getLibraryConfig.
      *
      * @param array|null $libraries List of libraries
-     * @return array|null The library config if it exists, null otherwise.
+     * @return array|null The library config if it exists, null otherwise
      */
     public function getLibraryConfig($libraries = null) {
         global $CFG;
@@ -457,9 +463,10 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Get a list of the current installed libraries.
-     * Implements loadLibraries
+     * Implements loadLibraries.
      *
      * @return array Associative array containing one entry per machine name.
+     *               For each machineName there is a list of libraries(with different versions).
      */
     public function loadLibraries() {
         global $DB;
@@ -478,7 +485,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Returns the URL to the library admin page.
-     * Implements getAdminUrl
+     * Implements getAdminUrl.
      *
      * @return string URL to admin page
      */
@@ -488,7 +495,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Return the library's ID.
-     * Implements getLibraryId
+     * Implements getLibraryId.
      *
      * @param string $machinename The librarys machine name
      * @param string $majorversion Major version number for library (optional)
@@ -498,32 +505,22 @@ class framework implements \H5PFrameworkInterface {
     public function getLibraryId($machinename, $majorversion = null, $minorversion = null) {
         global $DB;
 
-        // Look for specific library.
-        $sqlwhere = 'WHERE machinename = :machinename';
-        $sqlargs = array(
+        $params = array(
             'machinename' => $machinename
         );
 
         if ($majorversion !== null) {
-            // Look for major version.
-            $sqlwhere .= ' AND majorversion = :majorversion';
-            $sqlargs['majorversion'] = $majorversion;
-            if ($minorversion !== null) {
-                // Look for minor version.
-                $sqlwhere .= ' AND minorversion = :minorversion';
-                $sqlargs['minorversion'] = $minorversion;
-            }
+            $params['majorversion'] = $majorversion;
         }
 
-        $sql = "SELECT id
-                  FROM {h5p_libraries}
-                       {$sqlwhere}
-              ORDER BY majorversion DESC,
-                       minorversion DESC,
-                       patchversion DESC";
+        if ($minorversion !== null) {
+            $params['minorversion'] = $minorversion;
+        }
+
+        $libraries = $DB->get_records('h5p_libraries', $params,
+            'majorversion DESC, minorversion DESC, patchversion DESC', 'id', 0, 1);
 
         // Get the latest version which matches the input parameters.
-        $libraries = $DB->get_records_sql($sql, $sqlargs, 0, 1);
         if ($libraries) {
             $library = reset($libraries);
             return $library->id ?? false;
@@ -534,14 +531,14 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Get file extension whitelist.
-     * Implements getWhitelist
+     * Implements getWhitelist.
      *
-     * The default extension list is part of h5p, but admins should be allowed to modify it
+     * The default extension list is part of h5p, but admins should be allowed to modify it.
      *
      * @param boolean $islibrary TRUE if this is the whitelist for a library. FALSE if it is the whitelist
-     *                           for the content folder we are getting
-     * @param string $defaultcontentwhitelist A string of file extensions separated by whitespace
-     * @param string $defaultlibrarywhitelist A string of file extensions separated by whitespace
+     *                           for the content folder we are getting.
+     * @param string $defaultcontentwhitelist A string of file extensions separated by whitespace.
+     * @param string $defaultlibrarywhitelist A string of file extensions separated by whitespace.
      * @return string A string containing the allowed file extensions separated by whitespace.
      */
     public function getWhitelist($islibrary, $defaultcontentwhitelist, $defaultlibrarywhitelist) {
@@ -550,7 +547,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Is the library a patched version of an existing library?
-     * Implements isPatchedLibrary
+     * Implements isPatchedLibrary.
      *
      * @param array $library An associative array containing:
      *                       - machineName: The library machine name
@@ -586,7 +583,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Is H5P in development mode?
-     * Implements isInDevMode
+     * Implements isInDevMode.
      *
      * @return boolean TRUE if H5P development mode is active FALSE otherwise
      */
@@ -596,10 +593,10 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Is the current user allowed to update libraries?
-     * Implements mayUpdateLibraries
+     * Implements mayUpdateLibraries.
      *
-     * @return boolean TRUE if the user is allowed to update libraries
-     *                 FALSE if the user is not allowed to update libraries
+     * @return boolean TRUE if the user is allowed to update libraries,
+     *                 FALSE if the user is not allowed to update libraries.
      */
     public function mayUpdateLibraries() {
         // Currently, capabilities are not being set/used, so everyone can update libraries.
@@ -607,13 +604,13 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Store data about a library
-     * Implements saveLibraryData
+     * Store data about a library.
+     * Implements saveLibraryData.
      *
-     * Also fills in the libraryId in the libraryData object if the object is new
+     * Also fills in the libraryId in the libraryData object if the object is new.
      *
      * @param array $librarydata Associative array containing:
-     *                           - libraryId: The id of the library if it is an existing library.
+     *                           - libraryId: The id of the library if it is an existing library
      *                           - title: The library's name
      *                           - machineName: The library machineName
      *                           - majorVersion: The library's majorVersion
@@ -682,7 +679,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Insert new content.
-     * Implements insertContent
+     * Implements insertContent.
      *
      * @param array $content An associative array containing:
      *                       - id: The content id
@@ -701,7 +698,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Update old content or insert new content.
-     * Implements updateContent
+     * Implements updateContent.
      *
      * @param array $content An associative array containing:
      *                       - id: The content id
@@ -748,7 +745,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Resets marked user data for the given content.
-     * Implements resetContentUserData
+     * Implements resetContentUserData.
      *
      * @param int $contentid The h5p content id
      */
@@ -757,8 +754,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Save what libraries a library is depending on
-     * Implements saveLibraryDependencies
+     * Save what libraries a library is depending on.
+     * Implements saveLibraryDependencies.
      *
      * @param int $libraryid Library Id for the library we're saving dependencies for
      * @param array $dependencies List of dependencies as associative arrays containing:
@@ -791,7 +788,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Give an H5P the same library dependencies as a given H5P.
-     * Implements copyLibraryUsage
+     * Implements copyLibraryUsage.
      *
      * @param int $contentid Id identifying the content
      * @param int $copyfromid Id identifying the content to be copied
@@ -802,8 +799,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Deletes content data
-     * Implements deleteContentData
+     * Deletes content data.
+     * Implements deleteContentData.
      *
      * @param int $contentid Id identifying the content
      */
@@ -818,8 +815,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Delete what libraries a content item is using
-     * Implements deleteLibraryUsage
+     * Delete what libraries a content item is using.
+     * Implements deleteLibraryUsage.
      *
      * @param int $contentid Content Id of the content we'll be deleting library usage for
      */
@@ -830,11 +827,11 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Saves what libraries the content uses
-     * Implements saveLibraryUsage
+     * Saves what libraries the content uses.
+     * Implements saveLibraryUsage.
      *
      * @param int $contentid Id identifying the content
-     * @param array $librariesinuse List of libraries the content uses.
+     * @param array $librariesinuse List of libraries the content uses
      */
     public function saveLibraryUsage($contentid, $librariesinuse) {
         global $DB;
@@ -861,12 +858,12 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Get number of content/nodes using a library, and the number of dependencies to other libraries.
-     * Implements getLibraryUsage
+     * Implements getLibraryUsage.
      *
-     * @param int $id Library identifier.
-     * @param boolean $skipcontent Optional. Set as true to get number of content instances for library.
+     * @param int $id Library identifier
+     * @param boolean $skipcontent Optional. Set as true to get number of content instances for library
      * @return array The array contains two elements, keyed by 'content' and 'libraries'.
-     *               Each element contains a number.
+     *               Each element contains a number
      */
     public function getLibraryUsage($id, $skipcontent = false) {
         global $DB;
@@ -897,15 +894,15 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Loads a library.
-     * Implements loadLibrary
+     * Implements loadLibrary.
      *
      * @param string $machinename The library's machine name
      * @param int $majorversion The library's major version
      * @param int $minorversion The library's minor version
-     * @return array|bool Returns FALSE if the library does not exist.
+     * @return array|bool Returns FALSE if the library does not exist
      *                     Otherwise an associative array containing:
-     *                     - libraryId: The id of the library if it is an existing library.
-     *                     - title: The library's name
+     *                     - libraryId: The id of the library if it is an existing library,
+     *                     - title: The library's name,
      *                     - machineName: The library machineName
      *                     - majorVersion: The library's majorVersion
      *                     - minorVersion: The library's minorVersion
@@ -981,7 +978,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Loads library semantics.
-     * Implements loadLibrarySemantics
+     * Implements loadLibrarySemantics.
      *
      * @param string $name Machine name for the library
      * @param int $majorversion The library's major version
@@ -1004,7 +1001,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Makes it possible to alter the semantics, adding custom fields, etc.
-     * Implements alterLibrarySemantics
+     * Implements alterLibrarySemantics.
      *
      * @param array $semantics Associative array representing the semantics
      * @param string $name The library's machine name
@@ -1029,8 +1026,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Delete all dependencies belonging to given library
-     * Implements deleteLibraryDependencies
+     * Delete all dependencies belonging to given library.
+     * Implements deleteLibraryDependencies.
      *
      * @param int $libraryid Library identifier
      */
@@ -1041,26 +1038,26 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Start an atomic operation against the dependency storage
-     * Implements lockDependencyStorage
+     * Start an atomic operation against the dependency storage.
+     * Implements lockDependencyStorage.
      */
     public function lockDependencyStorage() {
         // Library development mode not supported.
     }
 
     /**
-     * Start an atomic operation against the dependency storage
-     * Implements unlockDependencyStorage
+     * Start an atomic operation against the dependency storage.
+     * Implements unlockDependencyStorage.
      */
     public function unlockDependencyStorage() {
         // Library development mode not supported.
     }
 
     /**
-     * Delete a library from database and file system
-     * Implements deleteLibrary
+     * Delete a library from database and file system.
+     * Implements deleteLibrary.
      *
-     * @param stdClass $library Library object with id, name, major version and minor version.
+     * @param stdClass $library Library object with id, name, major version and minor version
      */
     public function deleteLibrary($library) {
         global $DB;
@@ -1076,7 +1073,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Load content.
-     * Implements loadContent
+     * Implements loadContent.
      *
      * @param int $id Content identifier
      * @return array Associative array containing:
@@ -1091,8 +1088,8 @@ class framework implements \H5PFrameworkInterface {
      *               - libraryMajorVersion: The library's majorVersion
      *               - libraryMinorVersion: The library's minorVersion
      *               - libraryEmbedTypes: CSV of the main library's embed types
-     *               - libraryFullscreen: 1 if fullscreen is supported. 0 otherwise.
-     *               - metadata: The content's metadata.
+     *               - libraryFullscreen: 1 if fullscreen is supported. 0 otherwise
+     *               - metadata: The content's metadata
      */
     public function loadContent($id) {
         global $DB;
@@ -1141,12 +1138,12 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Load dependencies for the given content of the given type.
-     * Implements loadContentDependencies
+     * Implements loadContentDependencies.
      *
      * @param int $id Content identifier
      * @param int $type The dependency type
      * @return array List of associative arrays containing:
-     *               - libraryId: The id of the library if it is an existing library.
+     *               - libraryId: The id of the library if it is an existing library
      *               - machineName: The library machineName
      *               - majorVersion: The library's majorVersion
      *               - minorVersion: The library's minorVersion
@@ -1190,11 +1187,11 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Get the default behaviour for the display option defined.
-     * Implements getOption
+     * Implements getOption.
      *
      * @param string $name Identifier for the setting
      * @param string $default Optional default value if settings is not set
-     * @return mixed Return The default \H5PDisplayOptionBehaviour for this display option.
+     * @return mixed Return The default \H5PDisplayOptionBehaviour for this display option
      */
     public function getOption($name, $default = false) {
         // TODO: Define the default behaviour for each display option.
@@ -1204,7 +1201,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Stores the given setting.
-     * Implements setOption
+     * Implements setOption.
      *
      * @param string $name Identifier for the setting
      * @param mixed $value Data Whatever we want to store as the setting
@@ -1218,7 +1215,7 @@ class framework implements \H5PFrameworkInterface {
      * Implements updateContentFields().
      *
      * @param int $id Content identifier
-     * @param array $fields Content fields, e.g. filtered.
+     * @param array $fields Content fields, e.g. filtered
      */
     public function updateContentFields($id, $fields) {
         global $DB;
@@ -1239,9 +1236,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Will clear filtered params for all the content that uses the specified
-     * libraries. This means that the content dependencies will have to be rebuilt,
-     * and the parameters re-filtered.
+     * Will clear filtered params for all the content that uses the specified.
+     * libraries. This means that the content dependencies will have to be rebuilt and the parameters re-filtered.
      * Implements clearFilteredParameters().
      *
      * @param array $libraryids Array of library ids
@@ -1260,12 +1256,12 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Get number of contents that has to get their content dependencies rebuilt
+     * Get number of contents that has to get their content dependencies rebuilt.
      * and parameters re-filtered.
      * Implements getNumNotFiltered().
      *
      * @return int The number of contents that has to get their content dependencies rebuilt
-     *             and parameters re-filtered.
+     *             and parameters re-filtered
      */
     public function getNumNotFiltered() {
         global $DB;
@@ -1288,19 +1284,26 @@ class framework implements \H5PFrameworkInterface {
     public function getNumContent($libraryid, $skip = null) {
         global $DB;
 
-        $skipquery = empty($skip) ? '' : ' AND id NOT IN (' . implode(",", $skip) . ')';
-        $sql = "SELECT COUNT(id) FROM {h5p} WHERE mainlibraryid = :libraryid {$skipquery}";
-        $sqlparams = array(
-            'libraryid' => $libraryid
-        );
-        $contentcount = $DB->count_records_sql($sql, $sqlparams);
+        $notinsql = '';
+        $params = array();
 
-        return $contentcount;
+        if (!empty($skip)) {
+            list($sql, $params) = $DB->get_in_or_equal($skip, SQL_PARAMS_NAMED, 'param', false);
+            $notinsql = " AND id {$sql}";
+        }
+
+        $sql = "SELECT COUNT(id)
+                  FROM {h5p}
+                 WHERE mainlibraryid = :libraryid {$notinsql}";
+
+        $params['libraryid'] = $libraryid;
+
+        return $DB->count_records_sql($sql, $params);
     }
 
     /**
      * Determines if content slug is used.
-     * Implements isContentSlugAvailable
+     * Implements isContentSlugAvailable.
      *
      * @param string $slug The content slug
      * @return boolean Whether the content slug is used
@@ -1312,8 +1315,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Generates statistics from the event log per library
-     * Implements getLibraryStats
+     * Generates statistics from the event log per library.
+     * Implements getLibraryStats.
      *
      * @param string $type Type of event to generate stats for
      * @return array Number values indexed by library name and version
@@ -1323,8 +1326,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Aggregate the current number of H5P authors
-     * Implements getNumAuthors
+     * Aggregate the current number of H5P authors.
+     * Implements getNumAuthors.
      *
      * @return int The current number of H5P authors
      */
@@ -1336,7 +1339,7 @@ class framework implements \H5PFrameworkInterface {
      * Stores hash keys for cached assets, aggregated JavaScripts and
      * stylesheets, and connects it to libraries so that we know which cache file
      * to delete when a library is updated.
-     * Implements saveCachedAssets
+     * Implements saveCachedAssets.
      *
      * @param string $key Hash key for the given libraries
      * @param array $libraries List of dependencies(libraries) used to create the key
@@ -1356,7 +1359,7 @@ class framework implements \H5PFrameworkInterface {
     /**
      * Locate hash keys for given library and delete them.
      * Used when cache file are deleted.
-     * Implements deleteCachedAssets
+     * Implements deleteCachedAssets.
      *
      * @param int $libraryid Library identifier
      * @return array List of hash keys removed
@@ -1381,8 +1384,8 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Get the amount of content items associated to a library
-     * Implements getLibraryContentCount
+     * Get the amount of content items associated to a library.
+     * Implements getLibraryContentCount.
      *
      * return array The number of content items associated to a library
      */
@@ -1391,16 +1394,15 @@ class framework implements \H5PFrameworkInterface {
 
         $contentcount = array();
 
-        $sql = "SELECT c.mainlibraryid,
+        $sql = "SELECT h.mainlibraryid,
                        l.machinename,
                        l.majorversion,
                        l.minorversion,
-                       c.count
-                  FROM (SELECT mainlibraryid,
-                               count(id) AS count
-                          FROM {h5p}
-                      GROUP BY mainlibraryid) c, {h5p_libraries} l
-                  WHERE c.mainlibraryid = l.id";
+                       COUNT(h.id) AS count
+                  FROM {h5p} h
+             LEFT JOIN {h5p_libraries} l
+                    ON h.mainlibraryid = l.id
+              GROUP BY h.mainlibraryid, l.machinename, l.majorversion, l.minorversion";
 
         // Count content using the same content type.
         $res = $DB->get_records_sql($sql);
@@ -1415,7 +1417,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Will trigger after the export file is created.
-     * Implements afterExportCreated
+     * Implements afterExportCreated.
      *
      * @param array $content The content
      * @param string $filename The file name
@@ -1426,22 +1428,22 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Check whether a user has permissions to execute an action, such as embed H5P content.
-     * Implements hasPermission
+     * Implements hasPermission.
      *
-     * @param  \H5PPermission $permission Permission type.
+     * @param  \H5PPermission $permission Permission type
      * @param  int $id Id need by platform to determine permission
-     * @return boolean true if the user can execute the action defined in $permission; false otherwise.
+     * @return boolean true if the user can execute the action defined in $permission; false otherwise
      */
     public function hasPermission($permission, $id = null) {
         // H5P capabilities have not been introduced.
     }
 
     /**
-     * Replaces existing content type cache with the one passed in
-     * Implements replaceContentTypeCache
+     * Replaces existing content type cache with the one passed in.
+     * Implements replaceContentTypeCache.
      *
-     * @param object $contenttypecache Json with an array called 'libraries'
-     * containing the new content type cache that should replace the old one.
+     * @param object $contenttypecache Json with an array called 'libraries' containing the new content type cache
+     *                                 that should replace the old one
      */
     public function replaceContentTypeCache($contenttypecache) {
         // Currently, content type caches are not being stored.
@@ -1449,7 +1451,7 @@ class framework implements \H5PFrameworkInterface {
 
     /**
      * Checks if the given library has a higher version.
-     * Implements libraryHasUpgrade
+     * Implements libraryHasUpgrade.
      *
      * @param array $library An associative array containing:
      *                       - machineName: The library machineName
@@ -1482,44 +1484,6 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Get type of h5p instance
-     *
-     * @param string|null $type Type of h5p instance to get
-     * @return \H5PContentValidator|\H5PCore|\H5PStorage|\H5PValidator|\core_h5p\framework|\H5peditor
-     */
-    public static function instance($type = null) {
-        global $CFG;
-        static $interface, $core;
-
-        if (!isset($interface)) {
-            $interface = new \core_h5p\framework();
-            $fs = new \core_h5p\file_storage();
-            $language = self::get_language();
-
-            $context = \context_system::instance();
-            $url = "{$CFG->wwwroot}/pluginfile.php/{$context->id}/core_h5p";
-
-            require_once("{$CFG->libdir}/h5p/h5p.classes.php");
-            $core = new core($interface, $fs, $url, $language, true);
-            $core->aggregateAssets = !(isset($CFG->core_h5p_aggregate_assets) && $CFG->core_h5p_aggregate_assets === '0');
-        }
-
-        switch ($type) {
-            case 'validator':
-                return new \H5PValidator($interface, $core);
-            case 'storage':
-                return new \H5PStorage($interface, $core);
-            case 'contentvalidator':
-                return new \H5PContentValidator($interface, $core);
-            case 'interface':
-                return $interface;
-            case 'core':
-            default:
-                return $core;
-        }
-    }
-
-    /**
      * Get current H5P language code.
      *
      * @return string Language Code
@@ -1542,9 +1506,9 @@ class framework implements \H5PFrameworkInterface {
     }
 
     /**
-     * Store messages until they can be printed to the current user
+     * Store messages until they can be printed to the current user.
      *
-     * @param string $type Type of messages, e.g. 'info', 'error', etc.
+     * @param string $type Type of messages, e.g. 'info', 'error', etc
      * @param string $newmessage The message
      * @param string $code The message code
      */
