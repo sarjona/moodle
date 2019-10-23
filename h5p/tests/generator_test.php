@@ -23,7 +23,7 @@
 * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
 */
 
-namespace core_h5p\local\tests;
+namespace core_h5p;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -193,7 +193,7 @@ class generator_testcase extends \advanced_testcase {
      *
      * @return array
      */
-    public function test_generate_h5p_data_files_creation_provider() : array {
+    public function test_generate_h5p_data_files_creation_provider(): array {
         return [
             'Do not create library related files on the filesystem' => [
                 false,
@@ -267,7 +267,7 @@ class generator_testcase extends \advanced_testcase {
      *
      * @return array
      */
-    public function test_create_h5p_record_provider() : array {
+    public function test_create_h5p_record_provider(): array {
         $createdjsoncontent = json_encode(
             array(
                 'text' => '<p>Created dummy text<\/p>\n',
@@ -388,7 +388,7 @@ class generator_testcase extends \advanced_testcase {
      *
      * @return array
      */
-    public function test_create_contents_libraries_record_provider() : array {
+    public function test_create_contents_libraries_record_provider(): array {
         return [
             'Create h5p content library with set dependency type' => [
                 [
@@ -448,7 +448,7 @@ class generator_testcase extends \advanced_testcase {
      *
      * @return array
      */
-    public function test_create_library_dependency_record_provider() : array {
+    public function test_create_library_dependency_record_provider(): array {
         return [
             'Create h5p library dependency with set dependency type' => [
                 [

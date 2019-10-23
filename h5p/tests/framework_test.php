@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core_h5p\local\tests;
+namespace core_h5p;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -279,6 +279,140 @@ class framework_testcase extends \advanced_testcase {
             $message . "' in the core_h5p component.");
         // As the string does not exist in the mapping array, make sure the passed message is returned.
         $this->assertEquals($message, $translation);
+    }
+
+    /**
+     * Test the behaviour of getLibraryFileUrl() when requesting a file URL from an existing library and
+     * the folder name is parsable.
+     **/
+    public function test_getLibraryFileUrl() {
+        global $CFG;
+
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_h5p');
+        // Create a library record.
+        $lib = $generator->create_library_record('Library', 'Lib', 1, 1);
+
+        $expected = "{$CFG->wwwroot}/pluginfile.php/1/core_h5p/libraries/{$lib->id}/Library-1.1/library.json";
+
+        // Get the URL of a file from an existing library. The provided folder name is parsable.
+        $actual = $this->framework->getLibraryFileUrl('Library-1.1', 'library.json');
+
+        // Make sure the expected URL is returned.
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test the behaviour of getLibraryFileUrl() when requesting a file URL from a non-existent library and
+     * the folder name is parsable.
+     **/
+    public function test_getLibraryFileUrl_non_existent_library() {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_h5p');
+        // Create a library record.
+        $generator->create_library_record('Library', 'Lib', 1, 1);
+
+        // Get the URL of a file from a non-existent library. The provided folder name is parsable.
+        $actual = $this->framework->getLibraryFileUrl('Library2-1.1', 'library.json');
+
+        // Make sure a debugging message is triggered.
+        $this->assertDebuggingCalled('The library "Library2-1.1" does not exist.');
+
+        // Make sure that an URL is not returned.
+        $this->assertEquals(null, $actual);
+    }
+
+    /**
+     * Test the behaviour of getLibraryFileUrl() when requesting a file URL from an existing library and
+     * the folder name is not parsable.
+     **/
+    public function test_getLibraryFileUrl_not_parsable_folder_name() {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_h5p');
+        // Create a library record.
+        $generator->create_library_record('Library', 'Lib', 1, 1);
+
+        // Get the URL of a file from an existing library. The provided folder name is not parsable.
+        $actual = $this->framework->getLibraryFileUrl('Library1.1', 'library.json');
+
+        // Make sure a debugging message is triggered.
+        $this->assertDebuggingCalled(
+            'The provided string value "Library1.1" is not a valid name for a library folder.');
+
+        // Make sure that an URL is not returned.
+        $this->assertEquals(null, $actual);
+    }
+
+    /**
+     * Test the behaviour of getLibraryFileUrl() when requesting a file URL from a library that has multiple
+     * versions and the folder name is parsable.
+     **/
+    public function test_getLibraryFileUrl_library_has_multiple_versions() {
+        global $CFG;
+
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_h5p');
+        // Create library records with a different minor version.
+        $lib1 = $generator->create_library_record('Library', 'Lib', 1, 1);
+        $lib2 = $generator->create_library_record('Library', 'Lib', 1, 3);
+
+        $expected = "{$CFG->wwwroot}/pluginfile.php/1/core_h5p/libraries/{$lib2->id}/Library-1.3/library.json";
+
+        // Get the URL of a file from an existing library (Library 1.3). The provided folder name is parsable.
+        $actual = $this->framework->getLibraryFileUrl('Library-1.3', 'library.json');
+
+        // Make sure the proper URL (from the requested library version) is returned.
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test the behaviour of getLibraryFileUrl() when requesting a file URL from a library that has multiple
+     * patch versions and the folder name is parsable.
+     **/
+    public function test_getLibraryFileUrl_library_has_multiple_patch_versions() {
+        global $CFG;
+
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_h5p');
+        // Create library records with a different patch version.
+        $lib1 = $generator->create_library_record('Library', 'Lib', 1, 1, 2);
+        $lib2 = $generator->create_library_record('Library', 'Lib', 1, 1, 4);
+        $lib3 = $generator->create_library_record('Library', 'Lib', 1, 1, 3);
+
+        $expected = "{$CFG->wwwroot}/pluginfile.php/1/core_h5p/libraries/{$lib2->id}/Library-1.1/library.json";
+
+        // Get the URL of a file from an existing library. The provided folder name is parsable.
+        $actual = $this->framework->getLibraryFileUrl('Library-1.1', 'library.json');
+
+        // Make sure the proper URL (from the latest library patch) is returned.
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Test the behaviour of getLibraryFileUrl() when requesting a file URL from a sub-folder
+     * of an existing library and the folder name is parsable.
+     **/
+    public function test_getLibraryFileUrl_library_subfolder() {
+        global $CFG;
+
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_h5p');
+        // Create a library record.
+        $lib = $generator->create_library_record('Library', 'Lib', 1, 1);
+
+        $expected = "{$CFG->wwwroot}/pluginfile.php/1/core_h5p/libraries/{$lib->id}/Library-1.1/css/example.css";
+
+        // Get the URL of a file from a sub-folder from an existing library. The provided folder name is parsable.
+        $actual = $this->framework->getLibraryFileUrl('Library-1.1/css', 'example.css');
+
+        // Make sure the proper URL is returned.
+        $this->assertEquals($expected, $actual);
     }
 
     /**
