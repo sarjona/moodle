@@ -63,7 +63,7 @@ class factory {
      *
      * @return \core_h5p\framework
      */
-    public function get_framework() : framework {
+    public function get_framework(): framework {
         if (null === $this->framework) {
             $this->framework = new framework();
         }
@@ -76,7 +76,7 @@ class factory {
      *
      * @return \core_h5p\core
      */
-    public function get_core() : core {
+    public function get_core(): core {
         if (null === $this->core) {
           $fs = new \core_h5p\file_storage();
           $language = \core_h5p\framework::get_language();
@@ -96,7 +96,7 @@ class factory {
      *
      * @return \H5PStorage
      */
-    public function get_storage() : storage {
+    public function get_storage(): storage {
         if (null === $this->storage) {
             $this->storage = new storage($this->get_framework(), $this->get_core());
         }
@@ -109,7 +109,7 @@ class factory {
      *
      * @return \H5PValidator
      */
-    public function get_validator() : validator {
+    public function get_validator(): validator {
         if (null === $this->validator) {
             $this->validator = new validator($this->get_framework(), $this->get_core());
         }
@@ -122,7 +122,7 @@ class factory {
      *
      * @return \H5PContentValidator
      */
-    public function get_content_validator() : content_validator {
+    public function get_content_validator(): content_validator {
         if (null === $this->content_validator) {
             $this->content_validator = new content_validator($this->get_framework(), $this->get_core());
         }

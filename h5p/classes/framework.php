@@ -363,12 +363,47 @@ class framework implements \H5PFrameworkInterface {
     public function getLibraryFileUrl($libraryfoldername, $filename) {
         global $DB;
 
-        $context = \context_system::instance();
-        $itemid = $DB->get_field('files', 'itemid', ['component' => 'core_h5p', 'filearea' => 'libraries',
-            'filepath' => $libraryfoldername, 'filename' => $filename]);
+        // Remove unnecessary slashes (first and last, if present) from the path to the folder
+        // of the library file.
+        $libraryfilepath = trim($libraryfoldername, '/');
 
-        return \moodle_url::make_pluginfile_url($context->id, 'core_h5p', 'libraries', $itemid,
-            $libraryfoldername . '/', $filename)->out();
+        // Get the folder name of the library from the path.
+        // The first element should represent the folder name of the library.
+        $libfoldername = explode('/', $libraryfilepath)[0];
+
+        $factory = new \core_h5p\factory();
+        $core = $factory->get_core();
+
+        // The provided folder name of the library must have a valid format (can be parsed).
+        // The folder name is parsed with a purpose of getting the library related information
+        // such as 'machineName', 'majorVersion' and 'minorVersion'.
+        // This information is later used to retrieve the library ID.
+        if (!$libdata = $core->libraryFromString($libfoldername, true)) {
+            debugging('The provided string value "' . $libfoldername .
+                '" is not a valid name for a library folder.', DEBUG_DEVELOPER);
+
+            return;
+        }
+
+        $params = array(
+            'machinename' => $libdata['machineName'],
+            'majorversion' => $libdata['majorVersion'],
+            'minorversion' => $libdata['minorVersion']
+        );
+
+        $libraries = $DB->get_records('h5p_libraries', $params, 'patchversion DESC', 'id',
+            0, 1);
+
+        if (!$library = reset($libraries)) {
+            debugging('The library "' . $libfoldername . '" does not exist.', DEBUG_DEVELOPER);
+
+            return;
+        }
+
+        $context = \context_system::instance();
+
+        return \moodle_url::make_pluginfile_url($context->id, 'core_h5p', 'libraries',
+            $library->id, '/' . $libraryfilepath . '/', $filename)->out();
     }
 
     /**
@@ -1536,7 +1571,7 @@ class framework implements \H5PFrameworkInterface {
      * @param string $searchparam The library parameter (Default: 'path')
      * @return string Library parameter values separated by ', '
      */
-    private function library_parameter_values_to_csv(array $librarydata, string $key, string $searchparam = 'path') : string {
+    private function library_parameter_values_to_csv(array $librarydata, string $key, string $searchparam = 'path'): string {
         if (isset($librarydata[$key])) {
             $parametervalues = array();
             foreach ($librarydata[$key] as $file) {
