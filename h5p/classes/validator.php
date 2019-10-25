@@ -106,10 +106,13 @@ class validator extends H5PValidator {
             }
 
             // Update the framework to point ot this file and then call the parent isValidPackage to unpack and validate that package.
+            $zip = new ZipArchive();
+            $zip->open($h5ppath);
+            $mainJsonData = $this->getJson($h5ppath, $zip, 'h5p.json', TRUE);
+            $zip->close();
+
             $this->h5pF->getUploadedH5pPath($h5ppath);
             $valid = parent::isValidPackage($skipContent, $upgradeOnly);
-
-            $mainH5pData = json_decode(file_get_contents("{$tmpdir}/h5p.json"), true);
         }
 
         foreach ($mainJsonData['preloadedDependencies'] as $idx => $dependency) {
