@@ -154,7 +154,6 @@ class validator extends H5PValidator {
     protected function extract_content_files(string $h5pfile): ?array {
         $skipContent = false;
         $targetdir = make_request_directory();
-        $targetdir = make_temp_directory('h5p');
 
         // Extract and then remove the package file.
         $zip = new ZipArchive();

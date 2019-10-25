@@ -366,12 +366,13 @@ class player {
         \core_php_time_limit::raise();
 
         // Copy the .h5p file to the temporary folder.
-        $path = $this->core->fs->getTmpPath() . ".zip";
+        $dir = $this->core->fs->getTmpPath();
+        $path =  "{$dir}.zip";
         $file->copy_content_to($path);
 
         // Add manually the extension to the file to avoid the validation fails.
         $this->core->h5pF->getUploadedH5pPath($path);
-        $this->core->h5pF->getUploadedH5pFolderPath(dirname($path));
+        $this->core->h5pF->getUploadedH5pFolderPath($dir);
 
         // Check if the h5p file is valid before saving it.
         $h5pvalidator = $this->factory->get_validator();
