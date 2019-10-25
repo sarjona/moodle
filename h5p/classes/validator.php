@@ -70,11 +70,12 @@ class validator extends H5PValidator {
         $this->h5pC->librariesJsonData = [];
         $mainlibraryname = $mainJsonData['mainLibrary'];
         foreach ($mainJsonData['preloadedDependencies'] as $idx => $dependency) {
-            $latestlibrary = $this->h5pF->get_latest_library_version($dependency['machineName']);
-            if ($dependency['majorVersion'] < $latestlibrary->minorversion || $dependency['minorVersion'] < $latestlibrary->minorversion) {
-                $dependency['majorVersion'] = $latestlibrary->majorversion;
-                $dependency['minorVersion'] = $latestlibrary->minorversion;
-                $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+            if ($latestlibrary = $this->h5pF->get_latest_library_version($dependency['machineName'])) {
+                if ($dependency['majorVersion'] < $latestlibrary->minorversion || $dependency['minorVersion'] < $latestlibrary->minorversion) {
+                    $dependency['majorVersion'] = $latestlibrary->majorversion;
+                    $dependency['minorVersion'] = $latestlibrary->minorversion;
+                    $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+                }
             }
 
             if ($dependency['machineName'] == $mainlibraryname) {
@@ -114,11 +115,12 @@ class validator extends H5PValidator {
         }
 
         foreach ($mainJsonData['preloadedDependencies'] as $idx => $dependency) {
-            $latestlibrary = $this->h5pF->get_latest_library_version($dependency['machineName']);
-            if ($dependency['majorVersion'] < $latestlibrary->minorversion || $dependency['minorVersion'] < $latestlibrary->minorversion) {
-                $dependency['majorVersion'] = $latestlibrary->majorversion;
-                $dependency['minorVersion'] = $latestlibrary->minorversion;
-                $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+            if ($latestlibrary = $this->h5pF->get_latest_library_version($dependency['machineName'])) {
+                if ($dependency['majorVersion'] < $latestlibrary->minorversion || $dependency['minorVersion'] < $latestlibrary->minorversion) {
+                    $dependency['majorVersion'] = $latestlibrary->majorversion;
+                    $dependency['minorVersion'] = $latestlibrary->minorversion;
+                    $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+                }
             }
         }
 
