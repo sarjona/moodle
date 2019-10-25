@@ -237,8 +237,8 @@ class framework implements \H5PFrameworkInterface {
             'Public Domain Mark (PDM)' => 'pdm',
             'Copyright' => 'copyrightstring',
             'The mbstring PHP extension is not loaded. H5P need this to function properly' => 'missingmbstring',
-            'The version of the H5P library %machineName used in this content is not valid. Content contains' .
-                '%contentLibrary, but it should be %semanticsLibrary.' => 'wrongversion',
+            'The version of the H5P library %machineName used in this content is not valid. Content contains %contentLibrary, ' .
+                'but it should be %semanticsLibrary.' => 'wrongversion',
             'The H5P library %library used in the content is not valid' => 'invalidlibrarynamed',
             'Fullscreen' => 'fullscreen',
             'Disable fullscreen' => 'disablefullscreen',
