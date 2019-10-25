@@ -365,14 +365,13 @@ class player {
         // This may take a long time.
         \core_php_time_limit::raise();
 
-        $path = $this->core->fs->getTmpPath();
-        $this->core->h5pF->getUploadedH5pFolderPath($path);
-        // Add manually the extension to the file to avoid the validation fails.
-        $path .= '.h5p';
-        $this->core->h5pF->getUploadedH5pPath($path);
-
         // Copy the .h5p file to the temporary folder.
+        $path = $this->core->fs->getTmpPath() . ".zip";
         $file->copy_content_to($path);
+
+        // Add manually the extension to the file to avoid the validation fails.
+        $this->core->h5pF->getUploadedH5pPath($path);
+        $this->core->h5pF->getUploadedH5pFolderPath(dirname($path));
 
         // Check if the h5p file is valid before saving it.
         $h5pvalidator = $this->factory->get_validator();

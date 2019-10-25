@@ -30,7 +30,6 @@ defined('MOODLE_INTERNAL') || die();
 use \core_h5p\framework as framework;
 use \core_h5p\core as core;
 use \H5PStorage as storage;
-use \H5PValidator as validator;
 use \H5PContentValidator as content_validator;
 
 /**

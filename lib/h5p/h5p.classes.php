@@ -633,7 +633,7 @@ class H5PValidator {
   public $h5pC;
 
   // Schemas used to validate the h5p files
-  private $h5pRequired = array(
+  protected $h5pRequired = array(
     'title' => '/^.{1,255}$/',
     'language' => '/^[-a-zA-Z]{1,10}$/',
     'preloadedDependencies' => array(
@@ -645,7 +645,7 @@ class H5PValidator {
     'embedTypes' => array('iframe', 'div'),
   );
 
-  private $h5pOptional = array(
+  protected $h5pOptional = array(
     'contentType' => '/^.{1,255}$/',
     'dynamicDependencies' => array(
       'machineName' => '/^[\w0-9\-\.]{1,255}$/i',
@@ -1047,7 +1047,7 @@ class H5PValidator {
    * @param string $file
    * @return mixed JSON content if valid, FALSE for invalid, NULL for breaking error.
    */
-  private function getJson($path, $zip, $file, $assoc = FALSE) {
+  protected function getJson($path, $zip, $file, $assoc = FALSE) {
     // Get stream
     $stream = $zip->getStream($file);
     if (!$stream) {
@@ -1082,7 +1082,7 @@ class H5PValidator {
    * @param bool $isLibrary Separate list with more allowed file types
    * @return string RegExp
    */
-  private function getWhitelistRegExp($isLibrary) {
+  protected function getWhitelistRegExp($isLibrary) {
     $whitelist = $this->h5pF->getWhitelist($isLibrary, H5PCore::$defaultContentWhitelist, H5PCore::$defaultLibraryWhitelistExtras);
     return array($whitelist, '/\.(' . preg_replace('/ +/i', '|', preg_quote($whitelist)) . ')$/i');
   }
@@ -1176,7 +1176,7 @@ class H5PValidator {
    *  A list of libraries that are missing keyed with machineName and holds objects with
    *  machineName, majorVersion and minorVersion properties
    */
-  private function getMissingLibraries($libraries) {
+  protected function getMissingLibraries($libraries) {
     $missing = array();
     foreach ($libraries as $library) {
       if (isset($library['preloadedDependencies'])) {
@@ -1256,7 +1256,7 @@ class H5PValidator {
    * @return boolean
    *  TRUE if the $h5pData is valid
    */
-  private function isValidH5pData($h5pData, $library_name, $required, $optional) {
+  protected function isValidH5pData($h5pData, $library_name, $required, $optional) {
     $valid = $this->isValidRequiredH5pData($h5pData, $required, $library_name);
     $valid = $this->isValidOptionalH5pData($h5pData, $optional, $library_name) && $valid;
 
