@@ -203,7 +203,7 @@ class validator extends H5PValidator {
             }
 
             $fileStream = $zip->getStream($fileStat['name']);
-            $this->h5pC->fs->saveFileFromZip($targetdir, $filename, $fileStream);
+            $this->h5pC->fs->saveFileFromZip($targetdir, $fileStat['name'], $fileStream);
 
             if (!empty($this->h5pC->maxFileSize) && $fileStat['size'] > $this->h5pC->maxFileSize) {
                 // Error file is too large
