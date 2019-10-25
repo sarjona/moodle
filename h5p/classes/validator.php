@@ -71,9 +71,11 @@ class validator extends H5PValidator {
         $mainlibraryname = $mainJsonData['mainLibrary'];
         foreach ($mainJsonData['preloadedDependencies'] as $idx => $dependency) {
             $latestlibrary = $this->h5pF->get_latest_library_version($dependency['machineName']);
-            $dependency['majorVersion'] = $latestlibrary->majorversion;
-            $dependency['minorVersion'] = $latestlibrary->minorversion;
-            $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+            if ($dependency['majorVersion'] < $latestlibrary->minorversion || $dependency['minorVersion'] < $latestlibrary->minorversion) {
+                $dependency['majorVersion'] = $latestlibrary->majorversion;
+                $dependency['minorVersion'] = $latestlibrary->minorversion;
+                $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+            }
 
             if ($dependency['machineName'] == $mainlibraryname) {
                 $maindependency = $dependency;
@@ -104,8 +106,20 @@ class validator extends H5PValidator {
 
             // Update the framework to point ot this file and then call the parent isValidPackage to unpack and validate that package.
             $this->h5pF->getUploadedH5pPath($h5ppath);
-            $valid = parent::isValidPackage($skipContent, $upgradeOnly);
+            error_log("Validating package...");
             $starttime = microtime();
+            $valid = parent::isValidPackage($skipContent, $upgradeOnly);
+            error_log("Validated package in " . microtime_diff($starttime, microtime()));
+            $starttime = microtime();
+        }
+
+        foreach ($mainJsonData['preloadedDependencies'] as $idx => $dependency) {
+            $latestlibrary = $this->h5pF->get_latest_library_version($dependency['machineName']);
+            if ($dependency['majorVersion'] < $latestlibrary->minorversion || $dependency['minorVersion'] < $latestlibrary->minorversion) {
+                $dependency['majorVersion'] = $latestlibrary->majorversion;
+                $dependency['minorVersion'] = $latestlibrary->minorversion;
+                $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+            }
         }
 
         if (!$skipContent) {
@@ -188,7 +202,7 @@ class validator extends H5PValidator {
                 continue;
             }
 
-            $fileStream = $zip->getStream($filename);
+            $fileStream = $zip->getStream($fileStat['name']);
             $this->h5pC->fs->saveFileFromZip($targetdir, $filename, $fileStream);
 
             if (!empty($this->h5pC->maxFileSize) && $fileStat['size'] > $this->h5pC->maxFileSize) {
