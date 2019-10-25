@@ -1,7 +1,7 @@
 <?php
 
 define('CLI_SCRIPT', true);
-require_once('../../config.php');
+require_once(__DIR__ . '/../../config.php');
 require_once("{$CFG->libdir}/filelib.php");
 
 //use moodle_url;
