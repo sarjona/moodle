@@ -69,7 +69,12 @@ class validator extends H5PValidator {
 
         $this->h5pC->librariesJsonData = [];
         $mainlibraryname = $mainJsonData['mainLibrary'];
-        foreach ($mainJsonData['preloadedDependencies'] as $dependency) {
+        foreach ($mainJsonData['preloadedDependencies'] as $idx => $dependency) {
+            $latestlibrary = $this->h5pF->get_latest_library_version($dependency['machineName']);
+            $dependency['majorVersion'] = $latestlibrary->majorversion;
+            $dependency['minorVersion'] = $latestlibrary->minorversion;
+            $mainJsonData['preloadedDependencies'][$idx] = $dependency;
+
             if ($dependency['machineName'] == $mainlibraryname) {
                 $maindependency = $dependency;
                 break;
@@ -79,6 +84,7 @@ class validator extends H5PValidator {
             throw new \moodle_exception('Nope');
         }
         if (!$this->h5pF->getLibraryId($maindependency['machineName'], $maindependency['majorVersion'], $maindependency['minorVersion'])) {
+            error_log("Could not find a library with that id for {$maindependency['machineName']} version {$maindependency['majorVersion']}.{$maindependency['minorVersion']}");
             // Download the official source of the main library for the uploaded h5p file.
             $h5ppath = make_request_directory() . "/library.h5p";
             $result = download_file_content(
@@ -106,10 +112,10 @@ class validator extends H5PValidator {
             // Replace any content of the downloaded official H5P file with our own.
             core::deleteFileTree("{$tmpdir}/content");
             rename("{$contentfilelocation}/content", "{$tmpdir}/content");
+            $this->h5pC->contentJsonData = $contentJsonData;
 
             // Set the details of the actually uploaded file.
             $this->h5pC->mainJsonData = $mainJsonData;
-            $this->h5pC->contentJsonData = $contentJsonData;
         }
 
         return $valid;

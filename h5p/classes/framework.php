@@ -26,6 +26,8 @@ namespace core_h5p;
 
 defined('MOODLE_INTERNAL') || die();
 
+use stdClass;
+
 /**
  * Moodle's implementation of the H5P framework interface.
  *
@@ -1584,5 +1586,21 @@ class framework implements \H5PFrameworkInterface {
             return implode(', ', $parametervalues);
         }
         return '';
+    }
+
+    public function get_latest_library_version(string $machinename): ?stdClass {
+        global $DB;
+
+        $sql = "SELECT * FROM {h5p_libraries} WHERE machinename = :machinename
+                   AND patchversion < :patchversion";
+
+        $libraries = $DB->get_records('h5p_libraries', ['machinename' => $machinename], 'majorversion DESC, minorversion DESC, patchversion DESC', '*', 0, 1);
+
+        if ($libraries) {
+            return reset($libraries);
+        }
+
+        return null;
+
     }
 }
