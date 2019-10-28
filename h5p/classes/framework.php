@@ -41,6 +41,12 @@ class framework implements \H5PFrameworkInterface {
     /** @var string The path to the last uploaded h5p file */
     private $lastuploadedfile;
 
+    /** @var int The userid of the last uploaded h5p file */
+    private $fileuserid;
+
+    /** @var context The context object where the .h5p belongs */
+    private $filecontext;
+
     /**
      * Returns info for the current platform.
      * Implements getPlatformInfo.
@@ -634,8 +640,49 @@ class framework implements \H5PFrameworkInterface {
      *                 FALSE if the user is not allowed to update libraries.
      */
     public function mayUpdateLibraries() {
-        // Currently, capabilities are not being set/used, so everyone can update libraries.
-        return true;
+        // Only users with the capability will be able to upgrade libraries.
+        $context = $this->get_file_context();
+        $canupdatelibs = has_capability('moodle/h5p:updatelibraries', $context);
+        $canupdatelibs = $canupdatelibs || has_capability('moodle/h5p:updatelibraries', $context, $this->get_file_userid());
+
+        return $canupdatelibs;
+    }
+
+    /**
+     * Get (or set if defined) the author of the .h5p file.
+     *
+     * @param  int $userid The author of the .h5p file.
+     * @return int Author of the .h5p file.
+     */
+    public function get_file_userid(int $userid = 0) {
+        if ($userid) {
+            $this->fileuserid = $userid;
+        }
+
+        if (!isset($this->fileuserid)) {
+            throw new \coding_exception('Using get_file_userid() before file userid is set');
+        }
+
+        return $this->fileuserid;
+    }
+
+    /**
+     * Get (or set if defined) the context where the .h5p file belongs.
+     *
+     * @param  context $context The context where the .h5p file belongs
+     * @return context Context where the .h5p file belongs.
+     */
+    public function get_file_context(\context $context = null) {
+        if ($context !== null) {
+            $this->filecontext = $context;
+        }
+
+        if (!isset($this->filecontext)) {
+            // If no context is defined, the system context is returned.
+            return \context_system::instance();
+        }
+
+        return $this->filecontext;
     }
 
     /**
@@ -755,6 +802,18 @@ class framework implements \H5PFrameworkInterface {
 
         if (!isset($content['contenthash'])) {
             $content['contenthash'] = '';
+        }
+
+        // If the libraryid declared in the package is empty, get the latest version.
+        if ($content['library']['libraryId'] === false) {
+            $mainlibrary = $this->get_latest_library_version($content['library']['machineName']);
+            if (empty($mainlibrary)) {
+                // Raise an error if the main library is not defined and the latest version doesn't exist.
+                $message = $this->t('Missing required library @library', ['@library' => $content['library']['machineName']]);
+                $this->setErrorMessage($message, 'missing-required-library');
+                return false;
+            }
+            $content['library']['libraryId'] = $mainlibrary->id;
         }
 
         $data = array(
@@ -1584,5 +1643,23 @@ class framework implements \H5PFrameworkInterface {
             return implode(', ', $parametervalues);
         }
         return '';
+    }
+
+    /**
+     * Get the latest library version.
+     *
+     * @param  string $machinename The library's machine name
+     * @return stdClass|null An object with the latest library version
+     */
+    public function get_latest_library_version(string $machinename): ?\stdClass {
+        global $DB;
+        $sql = "SELECT * FROM {h5p_libraries} WHERE machinename = :machinename
+                   AND patchversion < :patchversion";
+        $libraries = $DB->get_records('h5p_libraries', ['machinename' => $machinename],
+            'majorversion DESC, minorversion DESC, patchversion DESC', '*', 0, 1);
+        if ($libraries) {
+            return reset($libraries);
+        }
+        return null;
     }
 }

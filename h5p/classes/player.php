@@ -76,9 +76,14 @@ class player {
     private $context;
 
     /**
-     * @var context The \core_h5p\factory object.
+     * @var factory The \core_h5p\factory object.
      */
     private $factory;
+
+    /**
+     * @var stdClass The error, exception and info messages, raised while preparing and running the player.
+     */
+    private $messages;
 
     /**
      * Inits the H5P player for rendering the content.
@@ -93,6 +98,8 @@ class player {
         $this->url = new \moodle_url($url);
 
         $this->factory = new \core_h5p\factory();
+
+        $this->messages = new \stdClass();
 
         // Create \core_h5p\core instance.
         $this->core = $this->factory->get_core();
@@ -113,13 +120,27 @@ class player {
      * @return stdClass with framework error messages.
      */
     public function get_messages() : \stdClass {
-        $messages = new \stdClass();
-        $messages->error = $this->core->h5pF->getMessages('error');
-
-        if (empty($messages->error)) {
-            $messages->error = false;
+        // Check if there are some errors and store them in $this->messages.
+        if (empty($this->messages->error)) {
+            $this->messages->error = $this->core->h5pF->getMessages('error');
+        } else {
+            $this->messages->error = array_merge($this->messages->error, $this->core->h5pF->getMessages('error'));
         }
-        return $messages;
+
+        if (empty($this->messages->info)) {
+            $this->messages->info = $this->core->h5pF->getMessages('info');
+        } else {
+            $this->messages->info = array_merge($this->messages->info, $this->core->h5pF->getMessages('info'));
+        }
+
+        if (empty($this->messages->error)) {
+            $this->messages->error = false;
+        }
+        if (empty($this->messages->info)) {
+            $this->messages->info = false;
+        }
+
+        return $this->messages;
     }
 
     /**
@@ -214,7 +235,7 @@ class player {
      * @return int|false H5P DB identifier.
      */
     private function get_h5p_id(string $url, \stdClass $config) {
-        global $DB;
+        global $DB, $USER;
 
         $fs = get_file_storage();
 
@@ -260,8 +281,38 @@ class player {
                 return false;
             }
 
+            // The H5P content can be only deployed if the author of the .h5p file can update libraries or if all the
+            // content-type libraries exist, to avoid users without the h5p:updatelibraries capability upload malicious content.
+            $onlyupdatelibs = !has_capability('moodle/h5p:updatelibraries', $this->context, $file->get_userid());
+
+            // Set the .h5p file author and the context, in order to check later the permissions to update libraries.
+            $this->core->h5pF->get_file_userid($file->get_userid());
+            $this->core->h5pF->get_file_context($this->context);
+
             // Validate and store the H5P content before displaying it.
-            return $this->save_h5p($file, $config);
+            $h5pid = $this->save_h5p($file, $config, $onlyupdatelibs);
+            if (!$h5pid && $file->get_userid() != $USER->id) {
+                // Check if there is some missing required library error.
+                $missingliberror = false;
+                $messages = $this->get_messages();
+                if (!empty($messages->error)) {
+                    foreach ($messages->error as $error) {
+                        if ($error->code == 'missing-required-library') {
+                            $missingliberror = true;
+                            break;
+                        }
+                    }
+                }
+                if ($missingliberror) {
+                    // If the user has permission to update libraries but the package has been uploaded by another
+                    // user without this permission, no library will be installed and an error will be displayed,
+                    // because this content is not trustable.
+                    $this->core->h5pF->setInfoMessage(get_string('notrustablefile', 'core_h5p'));
+                }
+                return false;
+
+            }
+            return $h5pid;
         }
     }
 
@@ -367,10 +418,12 @@ class player {
      *
      * @param stored_file $file Moodle file instance
      * @param stdClass $config Button options config.
+     * @param bool $onlyupdatelibs Whether new libraries can be installed or only the existing ones can be updated.
+     * @param bool $skipcontent Should the content be skipped (so only the libraries will be saved)?
      *
      * @return int|false The H5P identifier or false if it's not a valid H5P package.
      */
-    private function save_h5p($file, \stdClass $config) : int {
+    private function save_h5p($file, \stdClass $config, bool $onlyupdatelibs = false, bool $skipcontent = false) : int {
         // This may take a long time.
         \core_php_time_limit::raise();
 
@@ -385,7 +438,7 @@ class player {
 
         // Check if the h5p file is valid before saving it.
         $h5pvalidator = $this->factory->get_validator();
-        if ($h5pvalidator->isValidPackage(false, false)) {
+        if ($h5pvalidator->isValidPackage($skipcontent, $onlyupdatelibs)) {
             $h5pstorage = $this->factory->get_storage();
 
             $options = ['disable' => $this->get_display_options($config)];
@@ -394,7 +447,7 @@ class player {
                 'contenthash' => $file->get_contenthash(),
             ];
 
-            $h5pstorage->savePackage($content, null, false, $options);
+            $h5pstorage->savePackage($content, null, $skipcontent, $options);
             return $h5pstorage->contentId;
         }
 

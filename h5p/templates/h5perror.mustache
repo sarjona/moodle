@@ -42,9 +42,14 @@
          {{{ exception }}}
       </div>
       {{/exception}}
+      {{#info}}
+      <div class="alert alert-block fade in alert-info my-2" role="alert">
+         {{{ . }}}
+      </div>
+      {{/info}}
       {{#error}}
       <div class="alert alert-block fade in alert-warning my-2" role="alert">
-         {{{code}}} : {{{ message }}}
+         {{#code}}{{{code}}} : {{/code}}{{{ message }}}
       </div>
       {{/error}}
    </div>
