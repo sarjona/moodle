@@ -703,9 +703,101 @@ class framework_testcase extends \advanced_testcase {
      * Test the behaviour of mayUpdateLibraries().
      */
     public function test_mayUpdateLibraries() {
-        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        global $DB;
 
+        $this->resetAfterTest();
+
+        // Create some users.
+        $contextsys = \context_system::instance();
+        $user = $this->getDataGenerator()->create_user();
+        $admin = get_admin();
+        $managerrole = $DB->get_record('role', ['shortname' => 'manager'], '*', MUST_EXIST);
+        $studentrole = $DB->get_record('role', ['shortname' => 'student'], '*', MUST_EXIST);
+        $manager = $this->getDataGenerator()->create_user();
+        role_assign($managerrole->id, $manager->id, $contextsys);
+
+        // Create a course with a label and enrol the user.
+        $course = $this->getDataGenerator()->create_course();
+        $label = $this->getDataGenerator()->create_module('label', ['course' => $course->id]);
+        list(, $labelcm) = get_course_and_cm_from_instance($label->id, 'label');
+        $contextlabel = \context_module::instance($labelcm->id);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, 'student');
+
+        // Admin and manager should have permission to update libraries.
+        $this->framework->get_file_userid($admin->id);
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertTrue($mayupdatelib);
+        $this->framework->get_file_userid($manager->id);
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        $this->assertTrue($mayupdatelib);
+
+        // By default, normal user hasn't permission to update libraries (in both contexts, system and module label).
+        $this->framework->get_file_userid($user->id);
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        $this->assertFalse($mayupdatelib);
+        $this->framework->get_file_context($contextlabel);
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        $this->assertFalse($mayupdatelib);
+
+        // If the current user (admin) can update libraries, the method should return true (even if the file userid hasn't the
+        // required capabilility in the file context).
+        $this->setAdminUser();
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        $this->assertTrue($mayupdatelib);
+
+        // If the update capability is assigned to the user, they should be able to update the libraries (only in the context
+        // where the capability has been assigned).
+        $this->setUser($user);
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        $this->assertFalse($mayupdatelib);
+        assign_capability('moodle/h5p:updatelibraries', CAP_ALLOW, $studentrole->id, $contextlabel);
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        $this->assertTrue($mayupdatelib);
+        $this->framework->get_file_context($contextsys);
+        $mayupdatelib = $this->framework->mayUpdateLibraries();
+        $this->assertFalse($mayupdatelib);
+    }
+
+    /**
+     * Test the behaviour of get_file_userid().
+     */
+    public function test_get_file_userid() {
+        $this->resetAfterTest();
+
+        // Create some users.
+        $user = $this->getDataGenerator()->create_user();
+
+        // An error should be raised when it's called before initialitzing it.
+        $this->expectException('coding_exception');
+        $this->expectExceptionMessage('Using get_file_userid() before file userid is set');
+        $this->framework->get_file_userid();
+
+        // Check the value when the file userid is set.
+        $this->framework->get_file_userid($user->id);
+        $fileuserid = $this->framework->get_file_userid();
+        $this->assertEquals($user->id, $fileuserid);
+    }
+
+    /**
+     * Test the behaviour of get_file_context().
+     */
+    public function test_get_file_context() {
+        $this->resetAfterTest();
+
+        // Create some users.
+        $contextsys = \context_system::instance();
+        $user = $this->getDataGenerator()->create_user();
+
+        // The system context should be returned when it's called before initialitzing it.
+        $filecontext = $this->framework->get_file_context();
+        $this->assertEquals($contextsys->id, $filecontext->id);
+
+        // Check the value when the file context is set.
+        $course = $this->getDataGenerator()->create_course();
+        $coursecontext = \context_course::instance($course->id);
+        $this->framework->get_file_context($coursecontext);
+        $filecontext = $this->framework->get_file_context();
+        $this->assertEquals($coursecontext->id, $filecontext->id);
     }
 
     /**
