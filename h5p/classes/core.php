@@ -47,7 +47,7 @@ class core extends \H5PCore {
      * Constructor for core_h5p/core.
      *
      * @param H5PFrameworkInterface $framework The frameworks implementation of the H5PFrameworkInterface
-     * @param string|\H5PFileStorage $path The H5P file storage directory or class
+     * @param string|H5PFileStorage $path The H5P file storage directory or class
      * @param string $url The URL to the file storage directory
      * @param string $language The language code. Defaults to english
      * @param boolean $export Whether export is enabled
