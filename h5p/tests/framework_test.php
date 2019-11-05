@@ -702,7 +702,7 @@ class framework_testcase extends \advanced_testcase {
     /**
      * Test the behaviour of mayUpdateLibraries().
      */
-    public function test_mayUpdateLibraries() {
+    public function test_mayUpdateLibraries(): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -723,81 +723,86 @@ class framework_testcase extends \advanced_testcase {
         $contextlabel = \context_module::instance($labelcm->id);
         $this->getDataGenerator()->enrol_user($user->id, $course->id, 'student');
 
+        // Create the .h5p file.
+        $path = __DIR__ . '/fixtures/h5ptest.zip';
+
         // Admin and manager should have permission to update libraries.
-        $this->framework->set_file_userid($admin->id);
+        $file = helper::create_fake_stored_file_from_path($path, $admin->id, $contextsys);
+        $this->framework->set_file($file);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertTrue($mayupdatelib);
-        $this->framework->set_file_userid($manager->id);
+
+        $file = helper::create_fake_stored_file_from_path($path, $manager->id, $contextsys);
+        $this->framework->set_file($file);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertTrue($mayupdatelib);
 
         // By default, normal user hasn't permission to update libraries (in both contexts, system and module label).
-        $this->framework->set_file_userid($user->id);
+        $file = helper::create_fake_stored_file_from_path($path, $user->id, $contextsys);
+        $this->framework->set_file($file);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertFalse($mayupdatelib);
-        $this->framework->set_file_context($contextlabel);
+
+        $file = helper::create_fake_stored_file_from_path($path, $user->id, $contextlabel);
+        $this->framework->set_file($file);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertFalse($mayupdatelib);
 
         // If the current user (admin) can update libraries, the method should return true (even if the file userid hasn't the
         // required capabilility in the file context).
-        $this->setAdminUser();
+        $file = helper::create_fake_stored_file_from_path($path, $admin->id, $contextlabel);
+        $this->framework->set_file($file);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertTrue($mayupdatelib);
 
         // If the update capability is assigned to the user, they should be able to update the libraries (only in the context
         // where the capability has been assigned).
-        $this->setUser($user);
+        $file = helper::create_fake_stored_file_from_path($path, $user->id, $contextlabel);
+        $this->framework->set_file($file);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertFalse($mayupdatelib);
         assign_capability('moodle/h5p:updatelibraries', CAP_ALLOW, $studentrole->id, $contextlabel);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertTrue($mayupdatelib);
-        $this->framework->set_file_context($contextsys);
+        $file = helper::create_fake_stored_file_from_path($path, $user->id, $contextsys);
+        $this->framework->set_file($file);
         $mayupdatelib = $this->framework->mayUpdateLibraries();
         $this->assertFalse($mayupdatelib);
     }
 
     /**
-     * Test the behaviour of get_file_userid() and set_file_userid().
+     * Test the behaviour of get_file() and set_file().
      */
-    public function test_get_file_userid() {
-        $this->resetAfterTest();
-
-        // Create some users.
-        $user = $this->getDataGenerator()->create_user();
-
-        // An error should be raised when it's called before initialitzing it.
-        $this->expectException('coding_exception');
-        $this->expectExceptionMessage('Using get_file_userid() before file userid is set');
-        $this->framework->get_file_userid();
-
-        // Check the value when the file userid is set.
-        $this->framework->set_file_userid($user->id);
-        $fileuserid = $this->framework->get_file_userid();
-        $this->assertEquals($user->id, $fileuserid);
-    }
-
-    /**
-     * Test the behaviour of get_file_context() and set_file_context().
-     */
-    public function test_get_file_context() {
+    public function test_get_file(): void {
         $this->resetAfterTest();
 
         // Create some users.
         $contextsys = \context_system::instance();
         $user = $this->getDataGenerator()->create_user();
 
-        // The system context should be returned when it's called before initialitzing it.
-        $filecontext = $this->framework->get_file_context();
-        $this->assertEquals($contextsys->id, $filecontext->id);
+        // The H5P file.
+        $path = __DIR__ . '/fixtures/h5ptest.zip';
 
-        // Check the value when the file context is set.
+        // An error should be raised when it's called before initialitzing it.
+        $this->expectException('coding_exception');
+        $this->expectExceptionMessage('Using get_file() before file is set');
+        $this->framework->get_file();
+
+        // Check the value when only path and user are set.
+        $file = helper::create_fake_stored_file_from_path($path, $user->id);
+        $this->framework->set_file($file);
+        $file = $this->framework->get_file();
+        $this->assertEquals($user->id, $$file->get_userid());
+        $this->assertEquals($contextsys->id, $file->get_contextid());
+
+        // Check the value when also the context is set.
         $course = $this->getDataGenerator()->create_course();
-        $coursecontext = \context_course::instance($course->id);
-        $this->framework->set_file_context($coursecontext);
-        $filecontext = $this->framework->get_file_context();
-        $this->assertEquals($coursecontext->id, $filecontext->id);
+        $contextcourse = \context_course::instance($course->id);
+        $file = helper::create_fake_stored_file_from_path($path, $user->id, $contextcourse);
+        $this->framework->set_file($file);
+        $file = $this->framework->get_file();
+        $this->assertEquals($user->id, $$file->get_userid());
+        $this->assertEquals($contextcourse->id, $file->get_contextid());
     }
 
     /**

@@ -269,18 +269,17 @@ class player {
 
             // Check if the user uploading the H5P content is "trustable". If the file hasn't been uploaded by a user with this
             // capability, the content won't be deployed and an error message will be displayed.
-            if (!has_capability('moodle/h5p:deploy', $this->context, $file->get_userid())) {
+            if (!helper::can_deploy_package($file)) {
                 $this->core->h5pF->setErrorMessage(get_string('nopermissiontodeploy', 'core_h5p'));
                 return false;
             }
 
             // The H5P content can be only deployed if the author of the .h5p file can update libraries or if all the
             // content-type libraries exist, to avoid users without the h5p:updatelibraries capability upload malicious content.
-            $onlyupdatelibs = !has_capability('moodle/h5p:updatelibraries', $this->context, $file->get_userid());
+            $onlyupdatelibs = !helper::can_update_library($file);
 
-            // Set the .h5p file author and the context, in order to check later the permissions to update libraries.
-            $this->core->h5pF->set_file_userid($file->get_userid());
-            $this->core->h5pF->set_file_context($this->context);
+            // Set the .h5p file, in order to check later the permissions to update libraries.
+            $this->core->h5pF->set_file($file);
 
             // Validate and store the H5P content before displaying it.
             $h5pid = helper::save_h5p($this->factory, $file, $config, $onlyupdatelibs, false);

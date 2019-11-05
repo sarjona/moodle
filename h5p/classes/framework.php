@@ -41,11 +41,8 @@ class framework implements \H5PFrameworkInterface {
     /** @var string The path to the last uploaded h5p file */
     private $lastuploadedfile;
 
-    /** @var int The userid of the last uploaded h5p file */
-    private $fileuserid;
-
-    /** @var context The context object where the .h5p belongs */
-    private $filecontext;
+    /** @var stored_file The .h5p file */
+    private $file;
 
     /**
      * Returns info for the current platform.
@@ -640,59 +637,29 @@ class framework implements \H5PFrameworkInterface {
      *                 FALSE if the user is not allowed to update libraries.
      */
     public function mayUpdateLibraries() {
-        // Only users with the capability will be able to upgrade libraries.
-        $context = $this->get_file_context();
-        $canupdatelibs = has_capability('moodle/h5p:updatelibraries', $context);
-        $canupdatelibs = $canupdatelibs || has_capability('moodle/h5p:updatelibraries', $context, $this->get_file_userid());
-
-        return $canupdatelibs;
+        return helper::can_update_library($this->get_file(), true);
     }
 
     /**
-     * Get the author of the .h5p file.
+     * Get the .h5p file.
      *
-     * @return int Author of the .h5p file.
+     * @return stored_file The .h5p file.
      */
-    public function get_file_userid() : int {
-        if (!isset($this->fileuserid)) {
-            throw new \coding_exception('Using get_file_userid() before file userid is set');
+    public function get_file(): \stored_file {
+        if (!isset($this->file)) {
+            throw new \coding_exception('Using get_file() before file is set');
         }
 
-        return $this->fileuserid;
+        return $this->file;
     }
 
     /**
-     * Set the author of the .h5p file.
+     * Set the .h5p file.
      *
-     * @param  int $userid The author of the .h5p file.
+     * @param  stored_file $file The .h5p file.
      */
-    public function set_file_userid(int $userid) {
-        $this->fileuserid = $userid;
-    }
-
-    /**
-     * Get the context where the .h5p file belongs.
-     *
-     * @return context Context where the .h5p file belongs (or context system if it hasn't been defined).
-     */
-    public function get_file_context() : \context {
-        if (!isset($this->filecontext)) {
-            // If no context is defined, the system context is returned.
-            return \context_system::instance();
-        }
-
-        return $this->filecontext;
-    }
-
-    /**
-     * Set the context where the .h5p file belongs.
-     *
-     * @param context $context The context where the .h5p file belongs
-     */
-    public function set_file_context(\context $context = null) {
-        if ($context !== null) {
-            $this->filecontext = $context;
-        }
+    public function set_file(\stored_file $file): void {
+        $this->file = $file;
     }
 
     /**
