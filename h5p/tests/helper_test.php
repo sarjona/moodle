@@ -23,9 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types = 1);
+
 namespace core_h5p;
 
-defined('MOODLE_INTERNAL') || die();
+use advanced_testcase;
 
 /**
  * Test class covering the H5P helper.
@@ -116,12 +118,10 @@ class helper_testcase extends \advanced_testcase {
     }
 
     /**
-     * Test the behaviour of save_h5p().
+     * Test the behaviour of save_h5p() when there are some missing libraries in the system.
+     * @runInSeparateProcess
      */
-    public function test_save_h5p(): void {
-        global $DB;
-
-        $this->setRunTestInSeparateProcess(true);
+    public function test_save_h5p_missing_libraries(): void {
         $this->resetAfterTest();
         $factory = new \core_h5p\factory();
 
@@ -131,10 +131,8 @@ class helper_testcase extends \advanced_testcase {
 
         // This is a valid .H5P file.
         $path = __DIR__ . '/fixtures/greeting-card-887.h5p';
-        $file = $this->create_stored_file_from_path($path);
-
-        $factory = new \core_h5p\factory();
-        $factory->get_framework()->set_file_userid($user->id);
+        $file = helper::create_fake_stored_file_from_path($path, (int)$user->id);
+        $factory->get_framework()->set_file($file);
 
         $config = (object)[
             'frame' => 1,
@@ -142,7 +140,8 @@ class helper_testcase extends \advanced_testcase {
             'embed' => 0,
             'copyright' => 0,
         ];
-        // TESTING SCENARIO 1. There are some missing libraries in the system, so an error should be returned.
+
+        // There are some missing libraries in the system, so an error should be returned.
         $h5pid = helper::save_h5p($factory, $file, $config);
         $this->assertFalse($h5pid);
         $errors = $factory->get_framework()->getMessages('error');
@@ -150,8 +149,34 @@ class helper_testcase extends \advanced_testcase {
         $error = reset($errors);
         $this->assertEquals('missing-required-library', $error->code);
         $this->assertEquals('Missing required library H5P.GreetingCard 1.0', $error->message);
+    }
 
-        // TESTING SCENARIO 2. Add the required libraries for the .h5p file and save again it.
+    /**
+     * Test the behaviour of save_h5p() when the libraries exist in the system.
+     * @runInSeparateProcess
+     */
+    public function test_save_h5p_existing_libraries(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $factory = new \core_h5p\factory();
+
+        // Create a user.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        // This is a valid .H5P file.
+        $path = __DIR__ . '/fixtures/greeting-card-887.h5p';
+        $file = helper::create_fake_stored_file_from_path($path, (int)$user->id);
+        $factory->get_framework()->set_file($file);
+
+        $config = (object)[
+            'frame' => 1,
+            'export' => 1,
+            'embed' => 0,
+            'copyright' => 0,
+        ];
+        // The required libraries exist in the system before saving the .h5p file.
         $generator = $this->getDataGenerator()->get_plugin_generator('core_h5p');
         $lib = $generator->create_library_record('H5P.GreetingCard', 'GreetingCard', 1, 0);
         $h5pid = helper::save_h5p($factory, $file, $config);
@@ -166,10 +191,32 @@ class helper_testcase extends \advanced_testcase {
         $this->assertEquals($lib->id, $h5p->mainlibraryid);
         $this->assertEquals(helper::get_display_options($factory->get_core(), $config), $h5p->displayoptions);
         $this->assertContains('Hello world!', $h5p->jsoncontent);
+    }
 
-        // TESTING SCENARIO 3. When saving an invalid .h5p file, an error should be raised.
+    /**
+     * Test the behaviour of save_h5p() when the .h5p file is invalid.
+     * @runInSeparateProcess
+     */
+    public function test_save_h5p_invalid_file(): void {
+        $this->resetAfterTest();
+        $factory = new \core_h5p\factory();
+
+        // Create a user.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        // Prepare an invalid .H5P file.
         $path = __DIR__ . '/fixtures/h5ptest.zip';
-        $file = $this->create_stored_file_from_path($path);
+        $file = helper::create_fake_stored_file_from_path($path, (int)$user->id);
+        $factory->get_framework()->set_file($file);
+        $config = (object)[
+            'frame' => 1,
+            'export' => 1,
+            'embed' => 0,
+            'copyright' => 0,
+        ];
+
+        // When saving an invalid .h5p file, an error should be raised.
         $h5pid = helper::save_h5p($factory, $file, $config);
         $this->assertFalse($h5pid);
         $errors = $factory->get_framework()->getMessages('error');
@@ -182,24 +229,63 @@ class helper_testcase extends \advanced_testcase {
     }
 
     /**
-     * Convenience to take a fixture test file and create a stored_file.
-     *
-     * @param string $filepath
-     * @return stored_file
+     * Test the behaviour of can_deploy_package().
      */
-    protected function create_stored_file_from_path($filepath) {
-        $syscontext = \context_system::instance();
-        $filerecord = [
-            'contextid' => $syscontext->id,
-            'component' => 'core_h5p',
-            'filearea'  => 'unittest',
-            'itemid'    => 0,
-            'filepath'  => '/',
-            'filename'  => basename($filepath),
-        ];
+    public function test_can_deploy_package(): void {
+        $this->resetAfterTest();
+        $factory = new \core_h5p\factory();
 
-        $fs = get_file_storage();
-        return $fs->create_file_from_pathname($filerecord, $filepath);
+        // Create a user.
+        $user = $this->getDataGenerator()->create_user();
+        $admin = get_admin();
+
+        // Prepare a valid .H5P file.
+        $path = __DIR__ . '/fixtures/greeting-card-887.h5p';
+
+        // Files created by users can't be deployed.
+        $file = helper::create_fake_stored_file_from_path($path, (int)$user->id);
+        $factory->get_framework()->set_file($file);
+        $candeploy = helper::can_deploy_package($file);
+        $this->assertFalse($candeploy);
+
+        // Files created by admins can be deployed, even when the current user is not the admin.
+        $this->setUser($user);
+        $file = helper::create_fake_stored_file_from_path($path, (int)$admin->id);
+        $factory->get_framework()->set_file($file);
+        $candeploy = helper::can_deploy_package($file);
+        $this->assertTrue($candeploy);
     }
 
+    /**
+     * Test the behaviour of can_update_library().
+     */
+    public function can_update_library(): void {
+        $this->resetAfterTest();
+        $factory = new \core_h5p\factory();
+
+        // Create a user.
+        $user = $this->getDataGenerator()->create_user();
+        $admin = get_admin();
+
+        // Prepare a valid .H5P file.
+        $path = __DIR__ . '/fixtures/greeting-card-887.h5p';
+
+        // Libraries can't be updated when the file has been created by users.
+        $file = helper::create_fake_stored_file_from_path($path, (int)$user->id);
+        $factory->get_framework()->set_file($file);
+        $candeploy = helper::can_update_library($file);
+        $this->assertFalse($candeploy);
+
+        // However, when $alsouser is set to true and current user has the capability, the method should return true.
+        $this->setAdminUser();
+        $candeploy = helper::can_update_library($file, true);
+        $this->assertTrue($candeploy);
+
+        // Libraries can be updated when the file has been created by admin, even when the current user is not the admin.
+        $this->setUser($user);
+        $file = helper::create_fake_stored_file_from_path($path, (int)$admin->id);
+        $factory->get_framework()->set_file($file);
+        $candeploy = helper::can_update_library($file);
+        $this->assertTrue($candeploy);
+    }
 }
