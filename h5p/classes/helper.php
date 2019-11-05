@@ -88,7 +88,7 @@ class helper {
      *
      * @return int The representation of display options as int
      */
-    public static function get_display_options(core $core, \stdClass $config) : int {
+    public static function get_display_options(core $core, \stdClass $config): int {
         $export = isset($config->export) ? $config->export : 0;
         $embed = isset($config->embed) ? $config->embed : 0;
         $copyright = isset($config->copyright) ? $config->copyright : 0;
@@ -105,6 +105,81 @@ class helper {
         ];
 
         return $core->getStorableDisplayOptions($disableoptions, 0);
+    }
+
+    /**
+     * Checks if the author of the .h5p file is "trustable". If the file hasn't been uploaded by a user with the
+     * required capability, the content won't be deployed.
+     *
+     * @param  stored_file $file The .h5p file to be deployed
+     * @return bool Returns true if the file can be deployed, false otherwise.
+     */
+    public static function can_deploy_package(\stored_file $file): bool {
+        if (is_null($file)) {
+            debugging('\core_h5p\h5p::can_deploy_package() now expects a \'file\' to be passed.',
+                DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $context = \context::instance_by_id($file->get_contextid());
+        if (has_capability('moodle/h5p:deploy', $context, $file->get_userid())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the content-type libraries can be upgraded.
+     * The H5P content-type libraries can only be upgraded if the author of the .h5p file can manage content-types or if all the
+     * content-types exist, to avoid users without the required capability to upload malicious content.
+     *
+     * @param  stored_file $file The .h5p file to be deployed
+     * @return bool Returns true if the content-type libraries can be created/updated, false otherwise.
+     */
+    public static function can_update_library(\stored_file $file): bool {
+        if (is_null($file)) {
+            debugging('\core_h5p\h5p::can_update_library() now expects a \'file\' to be passed.',
+                DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $context = \context::instance_by_id($file->get_contextid());
+        // Check if the owner of the .h5p file has the capability to manage content-types.
+        if (has_capability('moodle/h5p:updatelibraries', $context, $file->get_userid())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Convenience to take a fixture test file and create a stored_file.
+     *
+     * @param string $filepath The filepath of the file
+     * @param  int   $userid  The author of the file
+     * @param  \context $context The context where the file will be created
+     * @return stored_file The file created
+     */
+    public static function create_fake_stored_file_from_path(string $filepath, int $userid = 0,
+            \context $context = null): \stored_file {
+        if (is_null($context)) {
+            $context = \context_system::instance();
+        }
+        $filerecord = [
+            'contextid' => $context->id,
+            'component' => 'core_h5p',
+            'filearea'  => 'unittest',
+            'itemid'    => rand(),
+            'filepath'  => '/',
+            'filename'  => basename($filepath),
+        ];
+        if (!is_null($userid)) {
+            $filerecord['userid'] = $userid;
+        }
+
+        $fs = get_file_storage();
+        return $fs->create_file_from_pathname($filerecord, $filepath);
     }
 
 }
