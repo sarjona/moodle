@@ -13,14 +13,16 @@ Feature: The my overview block allows users to group courses by custom fields
       | Checkbox field | Course fields | checkbox | checkboxfield |                                                      |
       | Date field     | Course fields | date     | datefield     | {"mindate":0, "maxdate":0}                           |
       | Select field   | Course fields | select   | selectfield   | {"options":"Option 1\nOption 2\nOption 3\nOption 4"} |
-      | Text field     | Course fields | text     | textfield     |                                                      |
+      | Text field     | Course fields | text     | textfield     | {"visibility":"1"}                                   |
+      | Password field | Course fields | text     | pwdfield      | {"ispassword":"1"}                                   |
+      | Hidden field   | Course fields | text     | hiddenfield   | {"visibility":"0"}                                   |
     And the following "courses" exist:
-      | fullname | shortname | category | customfield_checkboxfield | customfield_datefield | customfield_selectfield | customfield_textfield |
-      | Course 1 | C1        | 0        | 1                         | 981028800             | 1                       | fish                  |
-      | Course 2 | C2        | 0        | 0                         | 334324800             |                         |                       |
-      | Course 3 | C3        | 0        | 0                         | 981028800             | 2                       | dog                   |
-      | Course 4 | C4        | 0        | 1                         |                       | 3                       | cat                   |
-      | Course 5 | C5        | 0        |                           | 334411200             | 2                       | fish                  |
+      | fullname | shortname | category | customfield_checkboxfield | customfield_datefield | customfield_selectfield | customfield_textfield | customfield_pwdfield |
+      | Course 1 | C1        | 0        | 1                         | 981028800             | 1                       | fish                  | pwd1                 |
+      | Course 2 | C2        | 0        | 0                         | 334324800             |                         |                       | pwd2                 |
+      | Course 3 | C3        | 0        | 0                         | 981028800             | 2                       | dog                   |                      |
+      | Course 4 | C4        | 0        | 1                         |                       | 3                       | cat                   |                      |
+      | Course 5 | C5        | 0        |                           | 334411200             | 2                       | fish                  |                      |
     And the following "course enrolments" exist:
       | user     | course | role    |
       | student1 | C1     | student |
@@ -172,3 +174,10 @@ Feature: The my overview block allows users to group courses by custom fields
     And I should not see "Course 3" in the "Course overview" "block"
     And I should not see "Course 4" in the "Course overview" "block"
     And I should not see "Course 5" in the "Course overview" "block"
+
+  Scenario: Password and hidden fields not displayed
+    Given I log in as "admin"
+    When I navigate to "Plugins > Blocks > Course overview" in site administration
+    And I set the field "Custom field" to "1"
+    Then the "Field to use" select box should not contain "Password field"
+    And the "Field to use" select box should not contain "Hidden field"
