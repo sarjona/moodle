@@ -127,7 +127,8 @@ class field_controller extends \core_customfield\field_controller {
      * @return bool
      */
     public function supports_course_grouping(): bool {
-        return true;
+        // Only supported when the field doesn't contain a password, in order to hide them.
+        return !$this->get_configdata_property('ispassword');
     }
 
     /**
