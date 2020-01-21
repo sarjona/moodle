@@ -515,7 +515,7 @@ class core_moodlelib_testcase extends advanced_testcase {
         $this->assertSame('feedback360', clean_param('feedback360', PARAM_COMPONENT));
         $this->assertSame('mod_feedback360', clean_param('mod_feedback360', PARAM_COMPONENT));
         $this->assertSame('', clean_param('mod_2something', PARAM_COMPONENT));
-        $this->assertSame('', clean_param('2mod_something', PARAM_COMPONENT));
+        $this->assertSame('2mod_something', clean_param('2mod_something', PARAM_COMPONENT));
         $this->assertSame('', clean_param('mod_something_xx', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_something__xx', PARAM_COMPONENT));
         $this->assertSame('', clean_param('mod_Something', PARAM_COMPONENT));
@@ -523,11 +523,11 @@ class core_moodlelib_testcase extends advanced_testcase {
         $this->assertSame('', clean_param('mod__something', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx-yy', PARAM_COMPONENT));
         $this->assertSame('', clean_param('_auth_xx', PARAM_COMPONENT));
-        $this->assertSame('', clean_param('a2uth_xx', PARAM_COMPONENT));
+        $this->assertSame('a2uth_xx', clean_param('a2uth_xx', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx_', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx.old', PARAM_COMPONENT));
         $this->assertSame('', clean_param('_user', PARAM_COMPONENT));
-        $this->assertSame('', clean_param('2rating', PARAM_COMPONENT));
+        $this->assertSame('2rating', clean_param('2rating', PARAM_COMPONENT));
         $this->assertSame('', clean_param('user_', PARAM_COMPONENT));
     }
 
