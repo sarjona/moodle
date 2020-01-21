@@ -20,6 +20,7 @@ information provided here is intended especially for developers.
     incompatible takes a single int corresponding to the first incompatible branch. Any Moodle versions including and
     above this will be prevented from installing the plugin, and a message will be given when attempting installation.
 * lib/outputrequirementslib::get_jsrev now is public, it can be called from other classes.
+* H5P libraries have been moved from /lib/h5p to h5p/h5plib as an h5plib plugintype.
 
 === 3.8 ===
 * Add CLI option to notify all cron tasks to stop: admin/cli/cron.php --stop

@@ -44,7 +44,8 @@ function core_h5p_pluginfile($course, $cm, $context, string $filearea, array $ar
     global $DB;
 
     // Require classes from H5P third party library
-    \core_h5p\autoloader::register();
+    $autoloader = new \core_h5p\local\library\autoloader();
+    $autoloader::register();
 
     $filesettingsset = false;
 
