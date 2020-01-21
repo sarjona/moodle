@@ -523,12 +523,13 @@ class core_moodlelib_testcase extends advanced_testcase {
         $this->assertSame('', clean_param('mod__something', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx-yy', PARAM_COMPONENT));
         $this->assertSame('', clean_param('_auth_xx', PARAM_COMPONENT));
-        $this->assertSame('', clean_param('a2uth_xx', PARAM_COMPONENT));
+        $this->assertSame('a2uth_xx', clean_param('a2uth_xx', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx_', PARAM_COMPONENT));
         $this->assertSame('', clean_param('auth_xx.old', PARAM_COMPONENT));
         $this->assertSame('', clean_param('_user', PARAM_COMPONENT));
         $this->assertSame('', clean_param('2rating', PARAM_COMPONENT));
         $this->assertSame('', clean_param('user_', PARAM_COMPONENT));
+        $this->assertSame('my', clean_param('my', PARAM_COMPONENT));
     }
 
     public function test_clean_param_localisedfloat() {
