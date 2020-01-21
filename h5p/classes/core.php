@@ -137,20 +137,22 @@ class core extends \H5PCore {
     }
 
     /**
-     * Get core JavaScript files.
-     *
-     * @return array The array containg urls of the core JavaScript files
+     * Get the list of JS scripts to include on the page.
      */
     public static function get_scripts(): array {
-        global $CFG;
-        $cachebuster = '?ver='.$CFG->jsrev;
-        $liburl = $CFG->wwwroot . '/lib/h5p/';
-        $urls = [];
+        global $PAGE;
 
+        $factory = new \core_h5p\factory();
+        $jsrev = $PAGE->requires->get_jsrev();
+        $urls = [];
         foreach (self::$scripts as $script) {
-            $urls[] = new moodle_url($liburl . $script . $cachebuster);
+            $urls[] = $factory->get_autoloader()::get_h5p_core_library_url($script, [
+                'ver' => $jsrev,
+            ]);
         }
-        $urls[] = new moodle_url("/h5p/js/h5p_overrides.js");
+        $urls[] = new moodle_url("/h5p/js/h5p_overrides.js", [
+            'ver' => $jsrev,
+        ]);
 
         return $urls;
     }

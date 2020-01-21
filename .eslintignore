@@ -63,7 +63,7 @@ lib/php-jwt/
 lib/babel-polyfill/
 lib/mdn-polyfills/
 lib/emoji-data/
-lib/h5p/
+lib/h5p/v124/joubel/core/
 media/player/videojs/amd/src/video-lazy.js
 media/player/videojs/amd/src/Youtube-lazy.js
 media/player/videojs/videojs/

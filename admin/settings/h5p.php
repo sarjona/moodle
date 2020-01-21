@@ -24,6 +24,22 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Settings page.
-$ADMIN->add('h5p', new admin_externalpage('h5psettings', get_string('h5pmanage', 'core_h5p'),
-    new moodle_url('/h5p/libraries.php'), ['moodle/site:config', 'moodle/h5p:updatelibraries']));
+// Manage H5P libraries page.
+$managecontenttype = new admin_externalpage('managecontentype', get_string('h5pmanage', 'core_h5p'),
+    new moodle_url('/h5p/libraries.php'), ['moodle/site:config', 'moodle/h5p:updatelibraries']);
+$ADMIN->add('h5p', $managecontenttype);
+
+
+// H5P settings.
+$settings = new admin_settingpage('h5psettings', new lang_string('h5psettings', 'core_h5p'));
+$ADMIN->add('h5p', $settings);
+
+// H5P libraries handler.
+$h5plibhandlers = \core_h5p\local\library\autoloader::get_all_handlers();
+foreach ($h5plibhandlers as $name => $class) {
+    $h5plibhandlers[$name] = get_string('pluginname', $name);
+}
+$defaulth5lib = \core_h5p\local\library\autoloader::get_default_handler();
+$settings->add(new admin_setting_configselect('h5plibraryhandler',
+    new lang_string('h5plibraryhandler', 'core_h5p'), new lang_string('h5plibraryhandler_help', 'core_h5p'),
+    $defaulth5lib, $h5plibhandlers));

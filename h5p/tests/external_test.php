@@ -33,7 +33,7 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 
 use core_h5p\external;
 use core_h5p\file_storage;
-use core_h5p\autoloader;
+use core_h5p\local\library\autoloader as autoloader;
 
 /**
  * Core h5p external functions tests
@@ -48,7 +48,8 @@ class core_h5p_external_testcase extends externallib_advanced_testcase {
 
     protected function setUp() {
         parent::setUp();
-        autoloader::register();
+        $autoloader = new autoloader();
+        $autoloader::register();
     }
 
     /**

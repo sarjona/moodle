@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-use core_h5p\autoloader;
+use core_h5p\local\library\autoloader as autoloader;
 
 /**
  * Tests for h5p deleted event.
@@ -44,7 +44,8 @@ class core_h5p_event_h5p_deleted_testcase extends advanced_testcase {
      */
     protected function setUp() {
         parent::setUp();
-        autoloader::register();
+        $autoloader = new autoloader();
+        $autoloader::register();
     }
 
     /**
