@@ -36,7 +36,8 @@
         "cachelock": "cache\/locks",
         "fileconverter": "files\/converter",
         "theme": "theme",
-        "local": "local"
+        "local": "local",
+        "h5plib": "lib\/h5p"
     },
     "subsystems": {
         "access": null,

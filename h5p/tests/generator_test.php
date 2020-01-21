@@ -25,7 +25,7 @@
 
 namespace core_h5p;
 
-use core_h5p\autoloader;
+use core_h5p\local\library\autoloader as autoloader;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -46,7 +46,8 @@ class generator_testcase extends \advanced_testcase {
     protected function setUp() {
         parent::setUp();
 
-        autoloader::register();
+        $autoloader = new autoloader();
+        $autoloader::register();
     }
 
     /**
