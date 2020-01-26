@@ -120,17 +120,32 @@ class PNG_MetaDataHandler
             debugging('Key is too big');
         }
 
-        // tEXt Textual data.
-        // Keyword:        1-79 bytes (character string)
-        // Null separator: 1 byte
-        // Text:           n bytes (character string)
-        $data = $key . "\0" . $value;
+        if ($type == 'iTXt') {
+            // International textual data (iTXt).
+            // Keyword:             1-79 bytes (character string)
+            // Null separator:      1 byte
+            // Compression flag:    1 byte
+            // Compression method:  1 byte
+            // Language tag:        0 or more bytes (character string)
+            // Null separator:      1 byte
+            // Translated keyword:  0 or more bytes
+            // Null separator:      1 byte
+            // Text:                0 or more bytes.
+            $data = $key . "\x00\x00\x00\x00\x00" . $value;
+        } else {
+            // Textual data (tEXt).
+            // Keyword:        1-79 bytes (character string)
+            // Null separator: 1 byte
+            // Text:           n bytes (character string).
+            $data = $key . "\0" . $value;
+        }
         $crc = pack("N", crc32($type . $data));
         $len = pack("N", strlen($data));
 
         // Chunk format: length + type + data + CRC.
         // CRC is a CRC-32 computed over the chunk type and chunk data.
         $newchunk = $len . $type . $data . $crc;
+        $this->_chunks[$type] = $data;
 
         $result = substr($this->_contents, 0, $this->_size - 12)
                 . $newchunk
