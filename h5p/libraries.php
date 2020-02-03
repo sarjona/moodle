@@ -26,6 +26,9 @@ require_once(__DIR__ . '/../config.php');
 
 require_login(null, false);
 
+$deletelibrary = optional_param('deletelibrary', null, PARAM_INT);
+$confirm = optional_param('confirm', false, PARAM_BOOL);
+
 $context = context_system::instance();
 require_capability('moodle/h5p:updatelibraries', $context);
 
@@ -38,12 +41,34 @@ $PAGE->set_title($pagetitle);
 $PAGE->set_pagelayout('admin');
 $PAGE->set_heading($pagetitle);
 
+$h5pfactory = new \core_h5p\factory();
+if ($deletelibrary) {
+    $library = \core_h5p\api::get_library($deletelibrary);
+    if ($confirm) {
+        require_sesskey();
+        \core_h5p\api::delete_library($h5pfactory, $library);
+        redirect(new moodle_url('/h5p/libraries.php'));
+    }
+
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading(get_string('deleting', 'core_h5p'));
+    echo $OUTPUT->confirm(
+        get_string('deletelibraryconfirm', 'core_h5p', [
+            'name' => format_string($library->title),
+            'version' => format_string($library->majorversion . '.' . $library->minorversion . '.' . $library->patchversion),
+        ]),
+        new moodle_url($PAGE->url, ['deletelibrary' => $deletelibrary, 'confirm' => 1]),
+        new moodle_url('/h5p/libraries.php')
+    );
+    echo $OUTPUT->footer();
+    die();
+}
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading($pagetitle);
 echo $OUTPUT->box(get_string('librariesmanagerdescription', 'core_h5p'));
 
 $form = new \core_h5p\form\uploadlibraries_form();
-$h5pfactory = new \core_h5p\factory();
 if ($data = $form->get_data()) {
     require_sesskey();
 
@@ -71,6 +96,17 @@ $libraries = $framework->loadLibraries();
 $installed = [];
 foreach ($libraries as $libraryname => $versions) {
     foreach ($versions as $version) {
+        $actionmenu = new action_menu();
+        $actionmenu->set_menu_trigger(get_string('actions', 'core_h5p'));
+        $actionmenu->set_alignment(action_menu::TL, action_menu::BL);
+        $actionmenu->prioritise = true;
+        $actionmenu->add(new action_menu_link(
+            new moodle_url('/h5p/libraries.php', ['deletelibrary' => $version->id]),
+            null,
+            get_string('deletelibraryversion', 'core_h5p'),
+            false
+        ));
+        $version->actionmenu = $actionmenu->export_for_template($OUTPUT);
         $installed[] = $version;
     }
 }
