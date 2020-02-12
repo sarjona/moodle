@@ -53,7 +53,7 @@ Feature: Render H5P content using filters
     And I add a "File" to section "1"
     And I set the following fields to these values:
       | Name                      | ipsumFile     |
-    And I upload "filter/displayh5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
+    And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
     And I press "Save and return to course"
     And I follow "PageName1"
     And I navigate to "Edit settings" in current page administration
@@ -90,7 +90,7 @@ Feature: Render H5P content using filters
     And I add a "File" to section "1"
     And I set the following fields to these values:
       | Name                      | ipsumFile     |
-    And I upload "filter/displayh5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
+    And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
     And I press "Save and return to course"
     And I follow "PageName1"
     And I navigate to "Edit settings" in current page administration
@@ -115,7 +115,7 @@ Feature: Render H5P content using filters
     And I add a "File" to section "1"
     And I set the following fields to these values:
       | Name                      | ipsumFileTeacher     |
-    And I upload "filter/displayh5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
+    And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
     And I press "Save and return to course"
     And I follow "PageName1"
     And I navigate to "Edit settings" in current page administration
@@ -139,7 +139,7 @@ Feature: Render H5P content using filters
     And I add a "File" to section "1"
     And I set the following fields to these values:
       | Name                      | ipsumFile     |
-    And I upload "filter/displayh5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
+    And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Select files" filemanager
     And I press "Save and return to course"
     And I follow "PageName2"
     And I navigate to "Edit settings" in current page administration
