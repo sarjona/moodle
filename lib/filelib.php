@@ -4907,8 +4907,27 @@ function file_pluginfile($relativepath, $forcedownload, $preview = null, $offlin
             \core\session\manager::write_close(); // Unlock session during file serving.
             send_stored_file($file, 60*60, 0, $forcedownload, $sendfileoptions);
         }
+    } else if ($component === 'contentbank') {
+        if ($filearea === 'public') {
+            require_login();
 
-        // ========================================================================================================================
+            if (isguestuser()) {
+                send_file_not_found();
+            }
+
+            $itemid = (int)array_shift($args);
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, $component, $filearea, $itemid, $filepath, $filename) ||
+                $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            \core\session\manager::write_close(); // Unlock session during file serving.
+            send_stored_file($file, 0, 0, true, $sendfileoptions); // must force download - security!
+        } else {
+            send_file_not_found();
+        }
     } else if (strpos($component, 'mod_') === 0) {
         $modname = substr($component, 4);
         if (!file_exists("$CFG->dirroot/mod/$modname/lib.php")) {

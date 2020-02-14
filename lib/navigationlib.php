@@ -2910,6 +2910,15 @@ class global_navigation extends navigation_node {
             }
         }
 
+        if (isloggedin()) {
+            if (has_capability('moodle/contentbank:view', $sitecontext)) {
+                $url = new moodle_url('/contentbank/index.php');
+                $node = $coursenode->add(get_string('contentbank'), $url,
+                    self::TYPE_CUSTOM, null, 'contentbank', new pix_icon('i/contentbank', ''));
+                $node->showinflatnavigation = true;
+            }
+        }
+
         return true;
     }
 

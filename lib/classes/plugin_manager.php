@@ -1816,6 +1816,10 @@ class core_plugin_manager {
                 'gregorian'
             ),
 
+            'contentbank' => array(
+                'h5p'
+            ),
+
             'customfield' => array(
                 'checkbox', 'date', 'select', 'text', 'textarea'
             ),
