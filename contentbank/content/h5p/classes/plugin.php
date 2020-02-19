@@ -52,6 +52,20 @@ class plugin extends base {
     }
 
     /**
+     * Delete $this->content from the content_bank.
+     *
+     * @return boolean true
+     * @throws \coding_exception if not loaded.
+     */
+    public function delete_content(): bool {
+        // Delete the H5P content.
+        \core_h5p\api::delete_content_from_pluginfile_url($this->get_file_url(), $this->get_factory());
+
+        // Delete the content from the content bank.
+        return parent::delete_content();
+    }
+
+    /**
      * Returns the HTML content to add to view.php visualizer.
      *
      * @return string            HTML code to include in view.php.
