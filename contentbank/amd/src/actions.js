@@ -39,6 +39,7 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
      */
     var ACTIONS = {
         RENAME_CONTENT: '[data-action="renamecontent"]',
+        DELETE_CONTENT: '[data-action="deletecontent"]',
     };
 
     /**
@@ -99,6 +100,62 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
                 return;
             }).catch(Notification.exception);
         });
+
+        $(ACTIONS.DELETE_CONTENT).click(function(e) {
+            e.preventDefault();
+
+            var contentname = $(this).data('contentname');
+            var contentid = $(this).data('contentid');
+
+            var strings = [
+                {
+                    key: 'deletecontent',
+                    component: 'core_contentbank'
+                },
+                {
+                    key: 'deletecontentconfirm',
+                    component: 'core_contentbank',
+                    param: {
+                        name: contentname,
+                    }
+                },
+                {
+                    key: 'delete',
+                    component: 'core'
+                },
+            ];
+
+            var deleteButtonText = '';
+            Str.get_strings(strings).then(function(langStrings) {
+                var modalTitle = langStrings[0];
+                var modalContent = langStrings[1];
+                deleteButtonText = langStrings[2];
+
+                return ModalFactory.create({
+                    title: modalTitle,
+                    body: modalContent,
+                    type: ModalFactory.types.SAVE_CANCEL,
+                    large: true
+                });
+            }).done(function(modal) {
+                modal.setSaveButtonText(deleteButtonText);
+                modal.getRoot().on(ModalEvents.save, function() {
+                    // The action is now confirmed, sending an action for it.
+                    return deleteContent(contentid);
+                });
+
+                // Handle hidden event.
+                modal.getRoot().on(ModalEvents.hidden, function() {
+                    // Destroy when hidden.
+                    modal.destroy();
+                });
+
+                // Show the modal.
+                modal.show();
+
+                return;
+            }).catch(Notification.exception);
+        });
     };
 
     /**
@@ -141,6 +198,43 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
             window.location.href = Url.relativeUrl('contentbank/view.php', params, false);
             return;
         }).catch(Notification.exception);
+    }
+
+    /**
+     * Delete content from the content bank.
+     *
+     * @param {int} contentid The content to delete.
+     */
+    function deleteContent(contentid) {
+        var request = {
+            methodname: 'core_contentbank_delete_content',
+            args: {
+                contentid: contentid
+            }
+        };
+
+        var requestType = 'success';
+        Ajax.call([request])[0].then(function(data) {
+            if (data) {
+                return Str.get_string('contentdeleted', 'core_contentbank');
+            }
+            requestType = 'error';
+            return Str.get_string('contentnotdeleted', 'core_contentbank');
+
+        }).done(function(message) {
+            var params = null;
+            if (requestType == 'success') {
+                params = {
+                    statusmsg: message
+                };
+            } else {
+                params = {
+                    errormsg: message
+                };
+            }
+            // Redirect to the main content bank page and display the message as a notification.
+            window.location.href = Url.relativeUrl('contentbank/index.php', params, false);
+        }).fail(Notification.exception);
     }
 
     return /** @alias module:core_contentbank/actions */ {

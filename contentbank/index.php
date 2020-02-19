@@ -31,6 +31,9 @@ $context = context::instance_by_id($contextid, MUST_EXIST);
 
 require_capability('moodle/contentbank:access', $context);
 
+$statusmsg = optional_param('statusmsg', '', PARAM_RAW);
+$errormsg = optional_param('errormsg', '', PARAM_RAW);
+
 $title = get_string('contentbank');
 \core_contentbank\helper::get_page_ready($context, $title);
 if ($PAGE->course) {
@@ -73,6 +76,14 @@ echo $OUTPUT->header();
 echo $OUTPUT->box_start('generalbox');
 
 $folder = new \core_contentbank\output\bankcontent($foldercontents, $toolbar, $context);
+
+// If needed, display notifications.
+if ($errormsg !== '') {
+    echo $OUTPUT->notification($errormsg);
+} else if ($statusmsg !== '') {
+    echo $OUTPUT->notification($statusmsg, 'notifysuccess');
+}
+
 echo $OUTPUT->render($folder);
 
 echo $OUTPUT->box_end();

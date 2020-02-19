@@ -27,12 +27,15 @@ require('../config.php');
 require_login();
 
 $id = required_param('id', PARAM_INT);
+
 $record = $DB->get_record('contentbank_content', ['id' => $id], '*', MUST_EXIST);
 $context = context::instance_by_id($record->contextid, MUST_EXIST);
 require_capability('moodle/contentbank:access', $context);
 
 $statusmsg = optional_param('statusmsg', '', PARAM_RAW);
 $errormsg = optional_param('errormsg', '', PARAM_RAW);
+
+$deletecontent = optional_param('deletecontent', null, PARAM_INT);
 
 $PAGE->requires->js_call_amd('core_contentbank/actions', 'init');
 
@@ -54,10 +57,6 @@ $returnurl = new \moodle_url('/contentbank/index.php', ['contextid' => $context-
 $PAGE->set_url(new \moodle_url('/contentbank/view.php', ['id' => $id]));
 $PAGE->set_context($context);
 $PAGE->navbar->add($record->name);
-$PAGE->set_heading($title);
-$title .= ": ".$record->name;
-$PAGE->set_title($title);
-$PAGE->set_pagetype('contenbank');
 
 $manager = null;
 $managerlass = "\\$record->contenttype\\contenttype";
@@ -77,19 +76,36 @@ $pluginclass = "\\$record->contenttype\\content";
 if (class_exists($pluginclass)) {
     $plugin = new $pluginclass($record);
 
-    // Add the rename content item to the menu.
-    $attributes = [
-        'data-action' => 'renamecontent',
-        'data-contentname' => $content->name,
-        'data-contentid' => $content->id,
-    ];
-    $actionmenu->add_secondary_action(new action_menu_link(
-        new moodle_url('#'),
-        new pix_icon('e/styleparagraph', get_string('rename')),
-        get_string('rename'),
-        false,
-        $attributes
-    ));
+    if ($plugin->can_manage()) {
+        // Add the rename content item to the menu.
+        $attributes = [
+            'data-action' => 'renamecontent',
+            'data-contentname' => $content->name,
+            'data-contentid' => $content->id,
+        ];
+        $actionmenu->add_secondary_action(new action_menu_link(
+            new moodle_url('#'),
+            new pix_icon('e/styleparagraph', get_string('rename')),
+            get_string('rename'),
+            false,
+            $attributes
+        ));
+    }
+
+    if ($plugin->can_delete()) {
+        $attributes = [
+            'data-action' => 'deletecontent',
+            'data-contentname' => $content->name,
+            'data-contentid' => $content->id,
+        ];
+        $actionmenu->add_secondary_action(new action_menu_link(
+            new moodle_url('#'),
+            new pix_icon('t/delete', get_string('delete')),
+            get_string('delete'),
+            false,
+            $attributes
+        ));
+    }
 }
 
 // Add the cog menu to the header.
