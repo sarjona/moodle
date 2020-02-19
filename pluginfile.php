@@ -35,6 +35,7 @@ require_once('lib/filelib.php');
 if (empty($relativepath)) {
     $relativepath = get_file_argument();
 }
+
 $forcedownload = optional_param('forcedownload', 0, PARAM_BOOL);
 $preview = optional_param('preview', null, PARAM_ALPHANUM);
 // Offline means download the file from the repository and serve it, even if it was an external link.
