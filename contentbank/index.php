@@ -29,6 +29,9 @@ require_login();
 $context = context_system::instance();
 require_capability('moodle/contentbank:view', $context);
 
+$statusmsg = optional_param('statusmsg', '', PARAM_RAW);
+$errormsg = optional_param('errormsg', '', PARAM_RAW);
+
 $title = get_string('contentbank');
 $PAGE->set_url('/contentbank/index.php');
 $PAGE->set_context($context);
@@ -67,6 +70,14 @@ if (has_capability('moodle/contentbank:upload', $context)) {
 echo $OUTPUT->header();
 echo $OUTPUT->box_start('generalbox');
 
+// If needed, display notifications.
+if ($errormsg !== '') {
+    echo $OUTPUT->notification($errormsg);
+} else if ($statusmsg !== '') {
+    echo $OUTPUT->notification($statusmsg, 'notifysuccess');
+}
+
+// Render the content bank files.
 $folder = new \core_contentbank\output\bankcontent($foldercontents, $toolbar);
 echo $OUTPUT->render($folder);
 

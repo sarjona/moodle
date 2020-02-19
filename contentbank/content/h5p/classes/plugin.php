@@ -52,6 +52,14 @@ class plugin extends base {
     }
 
     /**
+     * Delete information related to this content.
+     */
+    public function clean_content(): void {
+        // Delete the H5P content.
+        \core_h5p\api::delete_content_from_pluginfile_url($this->get_file_url(), $this->get_factory());
+    }
+
+    /**
      * Returns the HTML content to add to view.php visualizer.
      *
      * @return string            HTML code to include in view.php.

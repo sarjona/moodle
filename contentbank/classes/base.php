@@ -103,6 +103,42 @@ class base {
         throw new coding_exception('create_content() in \'base\' is not allowed. Please use plugin\'s create_content() instead.');
     }
 
+
+    /**
+     * Delete this content from the content_bank.
+     *
+     * @param stdClass $record  Content record compatible object to delete.
+     * @return boolean true if the content has been deleted; false otherwise.
+     */
+    public static function delete_content(stdClass $record): bool {
+        global $DB;
+
+        $classname = "\\$record->contenttype\\plugin";
+        if (class_exists($classname)) {
+            $content = new $classname($record);
+            // Call the clean method in order to give the chance to the plugins to clean related information.
+            $content->clean_content();
+
+            // Delete the file if it exists.
+            if ($file = $content->get_file()) {
+                $file->delete();
+            }
+        }
+
+        // Delete the contentbank DB entry.
+        $DB->delete_records('contentbank_content', ['id' => $record->id]);
+
+        return true;
+    }
+
+    /**
+     * Clean the information related to this content.
+     * This method will be called from delete_content and should be implemented by the plugins for deleting the information
+     * related to this content when it is removed.
+     */
+    protected function clean_content(): void {
+    }
+
     /**
      * Updates content_bank table with information in $this->content.
      *
@@ -116,6 +152,23 @@ class base {
         $content->usermodified = $USER->id;
         $content->timemodified = time();
         return $DB->update_record('contentbank_content', $content);
+    }
+
+    /**
+     * Check if the user can delete this content.
+     *
+     * @return bool     True if content could be uploaded. False otherwise.
+     */
+    public function can_delete(): bool {
+        global $USER;
+
+        $hascapability = has_capability('moodle/contentbank:deleteanycontent', $this->context);
+        if ($this->content->usercreated == $USER->id) {
+            // This content has been created by the current user; check if she can delete her content.
+            $hascapability = $hascapability || has_capability('moodle/contentbank:deleteowncontent', $this->context);
+        }
+
+        return $hascapability;
     }
 
     /**

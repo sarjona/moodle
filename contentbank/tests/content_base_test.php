@@ -156,4 +156,72 @@ class core_contentbank_content_base_testcase extends \advanced_testcase {
         $this->assertInstanceOf(\stored_file::class, $file);
         $this->assertEquals($filename, $file->get_filename());
     }
+
+
+    /**
+     * Test the behaviour of can_delete().
+     */
+    public function test_can_delete() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        // Create users.
+        $roleid = $DB->get_field('role', 'id', array('shortname' => 'manager'));
+        $manager = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->role_assign($roleid, $manager->id);
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
+        // Add some content to the content bank as manager.
+        $recordsbymanager = $generator->generate_contentbank_data(null, 3, $manager->id);
+        $recordbymanager = array_shift($recordsbymanager);
+        // Add some content to the content bank as user.
+        $recordsbyuser = $generator->generate_contentbank_data(null, 1, $user->id);
+        $recordbyuser = array_shift($recordsbyuser);
+        // Check the content has been created as expected.
+        $records = $DB->count_records('contentbank_content');
+        $this->assertEquals(4, $records);
+
+        // Check user can only delete records created by her.
+        $this->setUser($user);
+        $this->assertFalse($recordbymanager->can_delete());
+        $this->assertTrue($recordbyuser->can_delete());
+        // Check manager can delete records all the records created.
+        $this->setUser($manager);
+        $this->assertTrue($recordbymanager->can_delete());
+        $this->assertTrue($recordbyuser->can_delete());
+        // Unassign capability to manager role and check not can only delete their own records.
+        unassign_capability('moodle/contentbank:deleteanycontent', $roleid);
+        $this->assertTrue($recordbymanager->can_delete());
+        $this->assertFalse($recordbyuser->can_delete());
+    }
+
+    /**
+     * Test the behaviour of delete_content().
+     */
+    public function test_delete_content() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        // Create users.
+        $roleid = $DB->get_field('role', 'id', array('shortname' => 'manager'));
+        $manager = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->role_assign($roleid, $manager->id);
+        $this->setUser($manager);
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
+        // Add some content to the content bank as manager.
+        $records = $generator->generate_contentbank_data(\contentbank_testable\plugin::COMPONENT, 2, $manager->id, false);
+        $record = array_shift($records);
+
+        // Check the content has been created as expected.
+        $this->assertEquals(2, $DB->count_records('contentbank_content'));
+
+        // Check the content is deleted as expected.
+        $deleted = \contentbank_testable\plugin::delete_content($record);
+        $this->assertTrue($deleted);
+        $this->assertEquals(1, $DB->count_records('contentbank_content'));
+    }
 }
