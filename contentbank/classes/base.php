@@ -145,6 +145,37 @@ class base {
     }
 
     /**
+     * Delete $this->content from the content_bank.
+     *
+     * @return boolean true
+     * @throws \coding_exception if not loaded.
+     * @throws \moodle_exception if user can't delete the content.
+     */
+    public function delete_content(): bool {
+        global $DB;
+
+        $this->require_loaded();
+
+        if (!$this->can_delete()) {
+            throw new \moodle_exception('accessdenied', 'admin');
+        }
+
+        // Delete the file if it exists.
+        if ($file = $this->get_file()) {
+            $file->delete();
+        }
+
+        // Delete the contentbank DB entry.
+        if ($DB->delete_records('contentbank_content', ['id' => $this->get_id()])) {
+            // Set the content to null in order to destroy it.
+            $this->content = null;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Returns the name of the content.
      *
      * @return string   The name of the content.
@@ -282,6 +313,23 @@ class base {
     public function can_upload(\context $context = null): bool {
         $context = $context ?? $this->context;
         return has_capability('moodle/contentbank:upload', $context);
+    }
+
+    /**
+     * Check if the user can delete this content.
+     *
+     * @return bool     True if content could be uploaded. False otherwise.
+     */
+    public function can_delete(): bool {
+        global $USER;
+
+        $hascapability = has_capability('moodle/contentbank:deleteanycontent', $this->context);
+        if ($this->content->usercreated == $USER->id) {
+            // This content has been created by the current user; check if she can delete her content.
+            $hascapability = $hascapability || has_capability('moodle/contentbank:deleteowncontent', $this->context);
+        }
+
+        return $hascapability;
     }
 
     /**

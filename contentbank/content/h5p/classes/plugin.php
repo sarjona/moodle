@@ -27,6 +27,8 @@ namespace contentbank_h5p;
 use core_contentbank\base;
 use stdClass;
 use html_writer;
+use core_h5p\factory;
+use core_h5p\helper;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -55,6 +57,26 @@ class plugin extends base {
         }
         $content->contenttype = self::COMPONENT;
         return parent::create_content($content);
+    }
+
+    /**
+     * Delete $this->content from the content_bank.
+     *
+     * @return boolean true
+     * @throws \coding_exception if not loaded.
+     */
+    public function delete_content(): bool {
+        global $DB;
+
+        $this->require_loaded();
+
+        // Delete the H5P content.
+        $h5p = helper::get_h5p($this->get_file_url());
+        $factory = new factory();
+        $factory->get_framework()->deleteContentData($h5p->id);
+
+        // Delete the content from the content bank.
+        return parent::delete_content();
     }
 
     /**
