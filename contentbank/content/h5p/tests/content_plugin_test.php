@@ -53,4 +53,29 @@ class contentbank_h5p_content_plugin_testcase extends advanced_testcase {
         unassign_capability('contentbank/h5p:additem', $roleid);
         $this->assertFalse(contentbank_h5p\plugin::can_upload());
     }
+
+    /**
+     * Test the behaviour of clean_content().
+     */
+    public function test_clean_content() {
+        global $CFG, $USER, $DB;
+
+        $this->resetAfterTest();
+
+        // Add an H5P file to the content bank.
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
+        $records = $generator->generate_contentbank_data(\contentbank_h5p\plugin::COMPONENT, 1, $USER->id, true, $filepath);
+        $record = array_shift($records);
+        $record->get_view_content();
+
+        // Check the H5P content has been created.
+        $this->assertEquals(1, $DB->count_records('h5p'));
+        $this->assertEquals(1, $DB->count_records('contentbank_content'));
+
+        // Check only the H5P content is removed after calling the clean_content method.
+        $record->clean_content();
+        $this->assertEquals(0, $DB->count_records('h5p'));
+        $this->assertEquals(1, $DB->count_records('contentbank_content'));
+    }
 }
