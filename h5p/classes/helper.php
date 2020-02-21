@@ -79,6 +79,177 @@ class helper {
         return false;
     }
 
+    /**
+     * Get the H5P DB instance id for a H5P pluginfile URL.
+     *
+     * @param string $url H5P pluginfile URL.
+     *
+     * @return stdClass|false H5P object or false if there isn't any H5P with this URL.
+     */
+    public static function get_h5p(string $url) {
+        global $DB;
+
+        $fs = get_file_storage();
+
+        // Deconstruct the URL and get the pathname associated.
+        $pathnamehash = self::get_pluginfile_hash($url);
+        if (!$pathnamehash) {
+            return false;
+        }
+
+        // Get the file.
+        $file = $fs->get_file_by_hash($pathnamehash);
+        if (!$file) {
+            return false;
+        }
+
+        $h5p = $DB->get_record('h5p', ['pathnamehash' => $pathnamehash]);
+        $contenthash = $file->get_contenthash();
+        if (!$h5p || $h5p->contenthash != $contenthash) {
+            // The content exists and it is different from the one deployed previously.
+            // TODO: decide whether this check should be done here or not.
+            return false;
+        }
+
+        return $h5p;
+    }
+
+    /**
+     * Get the pathnamehash from an H5P internal URL.
+     *
+     * @param  string $url H5P pluginfile URL poiting to an H5P file.
+     *
+     * @return string|false pathnamehash for the file in the internal URL.
+     */
+    public static function get_pluginfile_hash(string $url) {
+        global $USER, $CFG;
+
+        // Decode the URL before start processing it.
+        $url = new \moodle_url(urldecode($url));
+
+        // Remove params from the URL (such as the 'forcedownload=1'), to avoid errors.
+        $url->remove_params(array_keys($url->params()));
+        $path = $url->out_as_local_url();
+
+        $parts = explode('/', $path);
+        $filename = array_pop($parts);
+        // First is an empty row and then the pluginfile.php part. Both can be ignored.
+        array_shift($parts);
+        array_shift($parts);
+
+        // Get the contextid, component and filearea.
+        $contextid = array_shift($parts);
+        $component = array_shift($parts);
+        $filearea = array_shift($parts);
+
+        // Ignore draft files, because they are considered temporary files, so shouldn't be displayed.
+        if ($filearea == 'draft') {
+            return false;
+        }
+
+        // Get the context.
+        try {
+            list($context, $course, $cm) = get_context_info_array($contextid);
+        } catch (\moodle_exception $e) {
+            throw new \moodle_exception('invalidcontextid', 'core_h5p');
+        }
+
+        // For CONTEXT_USER, such as the private files, raise an exception if the owner of the file is not the current user.
+        if ($context->contextlevel == CONTEXT_USER && $USER->id !== $context->instanceid) {
+            throw new \moodle_exception('h5pprivatefile', 'core_h5p');
+        }
+
+        // For CONTEXT_COURSECAT No login necessary - unless login forced everywhere.
+        if ($context->contextlevel == CONTEXT_COURSECAT) {
+            if ($CFG->forcelogin) {
+                require_login(null, true, null, false, true);
+            }
+        }
+
+        // For CONTEXT_BLOCK.
+        if ($context->contextlevel == CONTEXT_BLOCK) {
+            if ($context->get_course_context(false)) {
+                // If block is in course context, then check if user has capability to access course.
+                require_course_login($course, true, null, false, true);
+            } else if ($CFG->forcelogin) {
+                // No login necessary - unless login forced everywhere.
+                require_login(null, true, null, false, true);
+            } else {
+                // Get parent context and see if user have proper permission.
+                $parentcontext = $context->get_parent_context();
+                if ($parentcontext->contextlevel === CONTEXT_COURSECAT) {
+                    // Check if category is visible and user can view this category.
+                    if (!core_course_category::get($parentcontext->instanceid, IGNORE_MISSING)) {
+                        send_file_not_found();
+                    }
+                } else if ($parentcontext->contextlevel === CONTEXT_USER && $parentcontext->instanceid != $USER->id) {
+                    // The block is in the context of a user, it is only visible to the user who it belongs to.
+                    send_file_not_found();
+                }
+                if ($filearea !== 'content') {
+                    send_file_not_found();
+                }
+            }
+        }
+
+        // For CONTEXT_MODULE and CONTEXT_COURSE check if the user is enrolled in the course.
+        // And for CONTEXT_MODULE has permissions view this .h5p file.
+        if ($context->contextlevel == CONTEXT_MODULE ||
+                $context->contextlevel == CONTEXT_COURSE) {
+            // Require login to the course first (without login to the module).
+            require_course_login($course, true, null, !$preventredirect, $preventredirect);
+
+            // Now check if module is available OR it is restricted but the intro is shown on the course page.
+            if ($context->contextlevel == CONTEXT_MODULE) {
+                $cminfo = \cm_info::create($cm);
+                if (!$cminfo->uservisible) {
+                    if (!$cm->showdescription || !$cminfo->is_visible_on_course_page()) {
+                        // Module intro is not visible on the course page and module is not available, show access error.
+                        require_course_login($course, true, $cminfo, !$preventredirect, $preventredirect);
+                    }
+                }
+            }
+        }
+
+        // Some components, such as mod_page or mod_resource, add the revision to the URL to prevent caching problems.
+        // So the URL contains this revision number as itemid but a 0 is always stored in the files table.
+        // In order to get the proper hash, a callback should be done (looking for those exceptions).
+        $pathdata = null;
+        if ($context->contextlevel == CONTEXT_MODULE || $context->contextlevel == CONTEXT_BLOCK) {
+            $pathdata = component_callback($component, 'get_path_from_pluginfile', [$filearea, $parts], null);
+        }
+        if (null === $pathdata) {
+            // Look for the components and fileareas which have empty itemid defined in xxx_pluginfile.
+            $hasnullitemid = false;
+            $hasnullitemid = $hasnullitemid || ($component === 'user' && ($filearea === 'private' || $filearea === 'profile'));
+            $hasnullitemid = $hasnullitemid || (substr($component, 0, 4) === 'mod_' && $filearea === 'intro');
+            $hasnullitemid = $hasnullitemid || ($component === 'course' &&
+                    ($filearea === 'summary' || $filearea === 'overviewfiles'));
+            $hasnullitemid = $hasnullitemid || ($component === 'coursecat' && $filearea === 'description');
+            $hasnullitemid = $hasnullitemid || ($component === 'backup' &&
+                    ($filearea === 'course' || $filearea === 'activity' || $filearea === 'automated'));
+            if ($hasnullitemid) {
+                $itemid = 0;
+            } else {
+                $itemid = array_shift($parts);
+            }
+
+            if (empty($parts)) {
+                $filepath = '/';
+            } else {
+                $filepath = '/' . implode('/', $parts) . '/';
+            }
+        } else {
+            // The itemid and filepath have been returned by the component callback.
+            [
+                'itemid' => $itemid,
+                'filepath' => $filepath,
+            ] = $pathdata;
+        }
+
+        $fs = get_file_storage();
+        return $fs->get_pathname_hash($contextid, $component, $filearea, $itemid, $filepath, $filename);
+    }
 
     /**
      * Get the representation of display options as int.
