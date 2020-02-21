@@ -73,7 +73,7 @@ class external extends external_api {
 
         $name = clean_param($params['name'], PARAM_TEXT);
         $record = $DB->get_record('contentbank_content', ['id' => $params['contentid']], '*', MUST_EXIST);
-        $classname = $record->contenttype.'\\content';
+        $classname = $record->contenttype.'\\contenttype';
         $content = new $classname($record);
         return $content->set_name($name);
     }
@@ -85,6 +85,49 @@ class external extends external_api {
      * @return external_value
      */
     public static function rename_content_returns(): \external_value {
+        return new external_value(PARAM_BOOL, 'The success');
+    }
+
+    /**
+     * delete_content parameters.
+     *
+     * @since  Moodle 3.9
+     * @return external_function_parameters
+     */
+    public static function delete_content_parameters(): \external_function_parameters {
+        return new external_function_parameters(
+            [
+                'contentid' => new external_value(PARAM_INT, 'The content id to delete', VALUE_REQUIRED),
+            ]
+        );
+    }
+
+    /**
+     * Delete content from the contentbank.
+     *
+     * @since  Moodle 3.9
+     * @param  int $contentid The content id to delete.
+     * @return boolean
+     * @throws \dml_missing_record_exception if there isn't any content with this identifier.
+     */
+    public static function delete_content(int $contentid): bool {
+        global $DB;
+
+        $params = external_api::validate_parameters(self::delete_content_parameters(), [
+            'contentid' => $contentid
+        ]);
+
+        $content = $DB->get_record('contentbank_content', ['id' => $contentid], '*', MUST_EXIST);
+        return content::delete_content($content);
+    }
+
+    /**
+     * delete_content return
+     *
+     * @since  Moodle 3.9
+     * @return external_value
+     */
+    public static function delete_content_returns(): \external_value {
         return new external_value(PARAM_BOOL, 'The success');
     }
 }

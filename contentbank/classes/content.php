@@ -122,7 +122,7 @@ abstract class content {
     public static function delete_content(stdClass $record): bool {
         global $DB;
 
-        $classname = "\\$record->contenttype\\plugin";
+        $classname = "\\$record->contenttype\\content";
         if (class_exists($classname)) {
             $content = new $classname($record);
             // Call the clean method in order to give the chance to the plugins to clean related information.
