@@ -35,6 +35,7 @@
         "cachestore": "cache\/stores",
         "cachelock": "cache\/locks",
         "fileconverter": "files\/converter",
+        "contentbank": "contentbank\/content",
         "theme": "theme",
         "local": "local"
     },
@@ -56,6 +57,7 @@
         "comment": "comment",
         "competency": "competency",
         "completion": "completion",
+        "contentbank": "contentbank",
         "countries": null,
         "course": "course",
         "currencies": null,
