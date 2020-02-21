@@ -43,6 +43,11 @@ class plugin extends base {
     public const COMPONENT   = 'contentbank_h5p';
 
     /**
+     * @var \core_h5p\factory The \core_h5p\factory object.
+     */
+    private $factory;
+
+    /**
      * Fill content type.
      *
      * @param stdClass $content Content object to fill and validate
@@ -60,6 +65,19 @@ class plugin extends base {
     }
 
     /**
+     * Get the core_h5p factory.
+     *
+     * @return factory
+     */
+    protected function get_factory(): \core_h5p\factory {
+        if (empty($this->factory)) {
+            $this->factory = new \core_h5p\factory();
+        }
+
+        return $this->factory;
+    }
+
+    /**
      * Returns the HTML content to add to view.php visualizer.
      *
      * @return string            HTML code to include in view.php.
@@ -67,7 +85,7 @@ class plugin extends base {
      */
     public function get_view_content(): string {
         $fileurl = $this->get_file_url();
-        $player = new \core_h5p\player($fileurl, new \stdClass());
+        $player = new \core_h5p\player($fileurl, new \stdClass(), true, $this->get_factory());
         $html = html_writer::tag('h2', $this->get_name());
         $html .= $player->get_embed_code($fileurl, true);
         $html .= $player->get_resize_code();
