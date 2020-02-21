@@ -283,4 +283,34 @@ class helper_testcase extends \advanced_testcase {
         $candeploy = helper::can_update_library($file);
         $this->assertTrue($candeploy);
     }
+
+    /**
+     * Test the behaviour of get_messages().
+     */
+    public function test_get_messages(): void {
+        $this->resetAfterTest();
+
+        $factory = new \core_h5p\factory();
+        $messages = new \stdClass();
+
+        helper::get_messages($messages, $factory);
+        $this->assertTrue(empty($messages->error));
+        $this->assertTrue(empty($messages->info));
+
+        // When saving an invalid .h5p file, an error should be raised.
+        $path = __DIR__ . '/fixtures/h5ptest.zip';
+        $file = helper::create_fake_stored_file_from_path($path);
+        $factory->get_framework()->set_file($file);
+        $config = (object)[
+            'frame' => 1,
+            'export' => 1,
+            'embed' => 0,
+            'copyright' => 0,
+        ];
+        $h5pid = helper::save_h5p($factory, $file, $config);
+        $this->assertFalse($h5pid);
+        helper::get_messages($messages, $factory);
+        $this->assertCount(6, $messages->error);
+        $this->assertTrue(empty($messages->info));
+    }
 }
