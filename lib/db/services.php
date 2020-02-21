@@ -2736,6 +2736,15 @@ $functions = array(
         'capabilities'  => '',
         'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'core_contentbank_delete_content' => [
+        'classname'     => 'core_contentbank\external',
+        'methodname'    => 'delete_content',
+        'classpath'     => '',
+        'description'   => 'Delete a content from the content bank.',
+        'type'          => 'write',
+        'ajax'          => 'true',
+        'capabilities'  => 'moodle/contentbank:deleteanycontent',
+    ],
 );
 
 $services = array(
