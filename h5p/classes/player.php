@@ -98,15 +98,20 @@ class player {
      * @param string $url Local URL of the H5P file to display.
      * @param stdClass $config Configuration for H5P buttons.
      * @param bool $preventredirect Set to true in scripts that can not redirect (CLI, RSS feeds, etc.), throws exceptions
+     * @param factory $factory The \core_h5p\factory object (if none is defined, it will be initialised here).
      */
-    public function __construct(string $url, \stdClass $config, bool $preventredirect = true) {
+    public function __construct(string $url, \stdClass $config, bool $preventredirect = true, factory $factory = null) {
         if (empty($url)) {
             throw new \moodle_exception('h5pinvalidurl', 'core_h5p');
         }
         $this->url = new \moodle_url($url);
         $this->preventredirect = $preventredirect;
 
-        $this->factory = new \core_h5p\factory();
+        if ($factory) {
+            $this->factory = $factory;
+        } else {
+            $this->factory = new \core_h5p\factory();
+        }
 
         $this->messages = new \stdClass();
 

@@ -40,6 +40,11 @@ class contenttype extends \core_contentbank\contenttype {
     public const COMPONENT   = 'contenttype_h5p';
 
     /**
+     * @var \core_h5p\factory The \core_h5p\factory object.
+     */
+    private $factory;
+
+    /**
      * Fill content type.
      *
      * @param stdClass $content Content object to fill and validate
@@ -57,17 +62,31 @@ class contenttype extends \core_contentbank\contenttype {
     }
 
     /**
+     * Get the core_h5p factory.
+     *
+     * @return factory
+     */
+    protected function get_factory(): \core_h5p\factory {
+        if (empty($this->factory)) {
+            $this->factory = new \core_h5p\factory();
+        }
+
+        return $this->factory;
+    }
+
+    /**
      * Returns the HTML content to add to view.php visualizer.
      *
      * @param stdClass $record  Th content to be displayed.
      * @return string            HTML code to include in view.php.
      * @throws \coding_exception if content is not loaded previously.
      */
-    public function get_view_content(\stdClass $record): string {
-        $content = new content($record);
-        $fileurl = $content->get_file_url();
-        $html = html_writer::tag('h2', $content->get_name());
-        $html .= \core_h5p\player::display($fileurl, new \stdClass(), true);
+    public function get_view_content(): string {
+        $fileurl = $this->get_file_url();
+        $player = new \core_h5p\player($fileurl, new \stdClass(), true, $this->get_factory());
+        $html = html_writer::tag('h2', $this->get_name());
+        $html .= $player->get_embed_code($fileurl, true);
+        $html .= $player->get_resize_code();
         return $html;
     }
 
