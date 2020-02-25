@@ -23,8 +23,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace core_contentbank;
+
 defined('MOODLE_INTERNAL') || die();
 
+use stdClass;
+use core_contentbank\base;
+use contentbank_h5p\plugin as h5pplugin;
 /**
  * Test for Content bank base class.
  *
@@ -33,7 +38,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_contentbank_content_base_testcase extends advanced_testcase {
+class core_contentbank_content_base_testcase extends \advanced_testcase {
 
     /**
      * Test create_content() with empty data.
@@ -44,8 +49,8 @@ class core_contentbank_content_base_testcase extends advanced_testcase {
         // Create empty content.
         $record = new stdClass();
 
-        $content = contentbank_h5p\plugin::create_content($record);
-        $this->assertEquals(contentbank_h5p\plugin::COMPONENT, $content->get_content_type());
+        $content = h5pplugin::create_content($record);
+        $this->assertEquals(h5pplugin::COMPONENT, $content->get_content_type());
         $this->assertInstanceOf('\\contentbank_h5p\\plugin', $content);
     }
 
@@ -60,7 +65,7 @@ class core_contentbank_content_base_testcase extends advanced_testcase {
 
         // This should throw an exception. create_content() should be called using plugins, no using 'base' class.
         $this->expectException('coding_exception');
-        $content = core_contentbank\base::create_content($record);
+        $content = base::create_content($record);
     }
 
     /**
@@ -72,11 +77,11 @@ class core_contentbank_content_base_testcase extends advanced_testcase {
         // Create content.
         $record = new stdClass();
         $record->name = 'Test content';
-        $record->contenttype = contentbank_h5p\plugin::COMPONENT;
+        $record->contenttype = h5pplugin::COMPONENT;
         $record->contextid = \context_system::instance()->id;
         $record->configdata = '';
 
-        $content = contentbank_h5p\plugin::create_content($record);
+        $content = h5pplugin::create_content($record);
         $this->assertEquals($record->name, $content->get_name());
         $this->assertEquals($record->contenttype, $content->get_content_type());
         $this->assertEquals($record->configdata, $content->get_configdata());
@@ -94,7 +99,7 @@ class core_contentbank_content_base_testcase extends advanced_testcase {
         $record = new stdClass();
         $record->configdata = $configdata;
 
-        $content = contentbank_h5p\plugin::create_content($record);
+        $content = h5pplugin::create_content($record);
         $this->assertEquals($configdata, $content->get_configdata());
 
         $configdata = "{alt: 'Name'}";
@@ -114,10 +119,10 @@ class core_contentbank_content_base_testcase extends advanced_testcase {
         $manager = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->role_assign($roleid, $manager->id);
         $this->setUser($manager);
-        $this->assertTrue(\core_contentbank\base::can_upload());
+        $this->assertTrue(base::can_upload());
 
         unassign_capability('moodle/contentbank:upload', $roleid);
-        $this->assertFalse(\core_contentbank\base::can_upload());
+        $this->assertFalse(base::can_upload());
     }
 
     /**
@@ -129,15 +134,15 @@ class core_contentbank_content_base_testcase extends advanced_testcase {
         // Create content.
         $record = new stdClass();
         $record->name = 'Test content';
-        $record->contenttype = contentbank_h5p\plugin::COMPONENT;
+        $record->contenttype = h5pplugin::COMPONENT;
         $record->contextid = \context_system::instance()->id;
         $record->configdata = '';
-        $content = contentbank_h5p\plugin::create_content($record);
+        $content = h5pplugin::create_content($record);
 
         // Create a dummy file.
         $filename = 'content.h5p';
         $dummy = array(
-            'contextid' => context_system::instance()->id,
+            'contextid' => \context_system::instance()->id,
             'component' => 'contentbank',
             'filearea' => 'public',
             'itemid' => $content->get_id(),
@@ -148,7 +153,7 @@ class core_contentbank_content_base_testcase extends advanced_testcase {
         $fs->create_file_from_string($dummy, 'dummy content');
 
         $file = $content->get_file();
-        $this->assertInstanceOf(stored_file::class, $file);
+        $this->assertInstanceOf(\stored_file::class, $file);
         $this->assertEquals($filename, $file->get_filename());
     }
 }
