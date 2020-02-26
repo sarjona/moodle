@@ -168,10 +168,8 @@ class contentbank extends base {
 
         $contents = $DB->get_records('contentbank_content', ['contenttype' => 'contentbank_'.$this->name]);
         foreach ($contents as $content) {
-            $fs = get_file_storage();
-            $fs->delete_area_files($content->contextid, 'contentbank', false, $content->id);
+            \core_contentbank\base::delete_content($content);
         }
-        $DB->delete_records('contentbank_content', ['contenttype' => 'contentbank_'.$this->name]);
 
         parent::uninstall_cleanup();
     }
