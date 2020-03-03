@@ -180,11 +180,24 @@ function hvp_add_editor_assets($id = null, $mformid = null) {
 
     // Add translations.
     $language = \mod_hvp\framework::get_language();
-    $languagescript = "editor/language/{$language}.js";
+/*    $languagescript = "editor/language/{$language}.js";
     if (!file_exists("{$CFG->dirroot}/mod/hvp/{$languagescript}")) {
         $languagescript = 'editor/language/en.js';
     }
     $PAGE->requires->js(new moodle_url('/mod/hvp/' . $languagescript . $cachebuster), true);
+*/
+    // Create a $langs array with all the keys to translate.
+    // TODO: Create a more generic way to get those translations. Something like having a static method for getting all the keys from
+    // the language/en.js file and then get the string using $key => get_string(strtolower($key)).
+    $langs = [
+        'missingTranslation' => get_string('missingtranslation'),
+        'metadata' => get_string('lastaccess'),
+        'usedForSearchingReportsAndCopyrightInformation' => get_string('privacy:metadata:log:action'),
+        'commonFields' => get_string('editorcommonsettings'),
+    ];
+    $PAGE->requires->data_for_js('H5PEditor.language.core', $langs, false);
+    // TODO: Another approach, if the previous one is not possible would be to check if both translations (JS + Moodle)
+    // could be merged.
 
     // Add JavaScript settings.
     $root = \mod_hvp\view_assets::getsiteroot();
