@@ -27,6 +27,7 @@ namespace core_h5p;
 defined('MOODLE_INTERNAL') || die();
 
 use core_h5p\local\library\autoloader;
+use core_xapi\local\statement\item_activity;
 
 /**
  * H5P player class, for displaying any local H5P content.
@@ -68,6 +69,11 @@ class player {
     private $content;
 
     /**
+     * @var string optional component name to send xAPI statements.
+     */
+    private $component;
+
+    /**
      * @var string Type of embed object, div or iframe.
      */
     private $embedtype;
@@ -98,8 +104,9 @@ class player {
      * @param string $url Local URL of the H5P file to display.
      * @param stdClass $config Configuration for H5P buttons.
      * @param bool $preventredirect Set to true in scripts that can not redirect (CLI, RSS feeds, etc.), throws exceptions
+     * @param string $component optional moodle component to sent xAPI tracking
      */
-    public function __construct(string $url, \stdClass $config, bool $preventredirect = true) {
+    public function __construct(string $url, \stdClass $config, bool $preventredirect = true, string $component = '') {
         if (empty($url)) {
             throw new \moodle_exception('h5pinvalidurl', 'core_h5p');
         }
@@ -109,6 +116,8 @@ class player {
         $this->factory = new \core_h5p\factory();
 
         $this->messages = new \stdClass();
+
+        $this->component = $component;
 
         // Create \core_h5p\core instance.
         $this->core = $this->factory->get_core();
@@ -129,14 +138,17 @@ class player {
      * @param string $url Local URL of the H5P file to display.
      * @param stdClass $config Configuration for H5P buttons.
      * @param bool $preventredirect Set to true in scripts that can not redirect (CLI, RSS feeds, etc.), throws exceptions
+     * @param string $component optional moodle component to sent xAPI tracking
      *
      * @return string The embedable code to display a H5P file.
      */
-    public static function display(string $url, \stdClass $config, bool $preventredirect = true): string {
+    public static function display(string $url, \stdClass $config, bool $preventredirect = true,
+            string $component = ''): string {
         global $OUTPUT;
         $params = [
                 'url' => $url,
                 'preventredirect' => $preventredirect,
+                'component' => $component,
             ];
 
         $optparams = ['frame', 'export', 'embed', 'copyright'];
@@ -193,6 +205,7 @@ class player {
         $contenturl = \moodle_url::make_pluginfile_url($systemcontext->id, \core_h5p\file_storage::COMPONENT,
             \core_h5p\file_storage::CONTENT_FILEAREA, $this->h5pid, null, null);
         $exporturl = $this->get_export_settings($displayoptions[ core::DISPLAY_OPTION_DOWNLOAD ]);
+        $xapiobject = item_activity::create_from_id($this->context->id);
         $contentsettings = [
             'library'         => core::libraryToString($this->content['library']),
             'fullScreen'      => $this->content['library']['fullscreen'],
@@ -202,7 +215,7 @@ class player {
             'resizeCode'      => self::get_resize_code(),
             'title'           => $this->content['slug'],
             'displayOptions'  => $displayoptions,
-            'url'             => self::get_embed_url($this->url->out())->out(),
+            'url'             => $xapiobject->get_data()->id,
             'contentUrl'      => $contenturl->out(),
             'metadata'        => $this->content['metadata'],
             'contentUserData' => [0 => ['state' => '{}']]
@@ -601,6 +614,8 @@ class player {
         $settings = helper::get_core_assets();
         // Added here because in the helper we don't have the h5p content id.
         $settings['moodleLibraryPaths'] = $this->core->get_dependency_roots($this->h5pid);
+        // Add also the Moodle component where the results will be tracked.
+        $settings['moodleComponent'] = $this->component;
 
         $cid = $this->get_cid();
         // The filterParameters function should be called before getting the dependencyfiles because it rebuild content
