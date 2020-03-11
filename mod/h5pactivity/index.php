@@ -23,23 +23,20 @@
  */
 
 require(__DIR__.'/../../config.php');
-
 require_once(__DIR__.'/lib.php');
 
 $id = required_param('id', PARAM_INT);
 
-$course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 require_course_login($course);
 
 $coursecontext = context_course::instance($course->id);
 
-$event = \mod_h5pactivity\event\course_module_instance_list_viewed::create(array(
-    'context' => $coursecontext
-));
+$event = \mod_h5pactivity\event\course_module_instance_list_viewed::create(['context' => $coursecontext]);
 $event->add_record_snapshot('course', $course);
 $event->trigger();
 
-$PAGE->set_url('/mod/h5pactivity/index.php', array('id' => $id));
+$PAGE->set_url('/mod/h5pactivity/index.php', ['id' => $id]);
 $PAGE->set_title(format_string($course->fullname));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($coursecontext);
@@ -49,42 +46,42 @@ echo $OUTPUT->header();
 $modulenameplural = get_string('modulenameplural', 'mod_h5pactivity');
 echo $OUTPUT->heading($modulenameplural);
 
-$h5pactivitys = get_all_instances_in_course('h5pactivity', $course);
+$h5pactivities = get_all_instances_in_course('h5pactivity', $course);
 
-if (empty($h5pactivitys)) {
-    notice(get_string('nonewmodules', 'mod_h5pactivity'), new moodle_url('/course/view.php', array('id' => $course->id)));
+if (empty($h5pactivities)) {
+    notice(get_string('thereareno', 'moodle'), new moodle_url('/course/view.php', ['id' => $course->id]));
+    exit;
 }
 
 $table = new html_table();
 $table->attributes['class'] = 'generaltable mod_index';
 
+$align = ['center', 'left'];
 if ($course->format == 'weeks') {
-    $table->head  = array(get_string('week'), get_string('name'));
-    $table->align = array('center', 'left');
+    $table->head  = [get_string('week'), get_string('name')];
+    $table->align = ['center', 'left'];
 } else if ($course->format == 'topics') {
-    $table->head  = array(get_string('topic'), get_string('name'));
-    $table->align = array('center', 'left', 'left', 'left');
+    $table->head  = [get_string('topic'), get_string('name')];
+    $table->align = ['center', 'left'];
 } else {
-    $table->head  = array(get_string('name'));
-    $table->align = array('left', 'left', 'left');
+    $table->head  = [get_string('name')];
+    $table->align = ['left'];
 }
 
-foreach ($h5pactivitys as $h5pactivity) {
+foreach ($h5pactivities as $h5pactivity) {
+    $attributes = [];
     if (!$h5pactivity->visible) {
-        $link = html_writer::link(
-            new moodle_url('/mod/h5pactivity/view.php', array('id' => $h5pactivity->coursemodule)),
-            format_string($h5pactivity->name, true),
-            array('class' => 'dimmed'));
-    } else {
-        $link = html_writer::link(
-            new moodle_url('/mod/h5pactivity/view.php', array('id' => $h5pactivity->coursemodule)),
-            format_string($h5pactivity->name, true));
+        $attributes['class'] = 'dimmed';
     }
+    $link = html_writer::link(
+        new moodle_url('/mod/h5pactivity/view.php', ['id' => $h5pactivity->coursemodule]),
+        format_string($h5pactivity->name, true),
+        $attributes);
 
     if ($course->format == 'weeks' or $course->format == 'topics') {
-        $table->data[] = array($h5pactivity->section, $link);
+        $table->data[] = [$h5pactivity->section, $link];
     } else {
-        $table->data[] = array($link);
+        $table->data[] = [$link];
     }
 }
 

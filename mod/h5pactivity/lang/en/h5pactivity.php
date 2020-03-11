@@ -40,7 +40,6 @@ $string['modulename'] = 'H5P activity';
 $string['modulename_help'] = 'Use this module to use a H5P compatible content as a course activity.';
 $string['modulename_link'] = 'mod/h5pactivity/view';
 $string['modulenameplural'] = 'H5P activities';
-$string['nonewmodules'] = 'No H5P';
 $string['package'] = 'Package file';
 $string['package_help'] = 'The package file is a h5pfile containing H5P dynamic content.';
 $string['pluginadministration'] = 'H5P administration';
