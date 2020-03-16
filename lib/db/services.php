@@ -2762,6 +2762,15 @@ $functions = array(
         'capabilities'  => '',
         'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'core_contentbank_rename_content' => [
+        'classname'     => 'core_contentbank\external',
+        'methodname'    => 'rename_content',
+        'classpath'     => '',
+        'description'   => 'Rename a content in the content bank.',
+        'type'          => 'write',
+        'ajax'          => 'true',
+        'capabilities'  => 'moodle/contentbank:editanycontent',
+    ],
 );
 
 $services = array(

@@ -128,6 +128,34 @@ abstract class content {
     }
 
     /**
+     * Set a new name to the content.
+     *
+     * @param string $name The name of the content.
+     * @return bool  True if the content has been succesfully updated. False otherwise.
+     * @throws \dml_exception
+     * @throws coding_exception if not loaded.
+     */
+    public function set_name(string $name): bool {
+        if (empty($name)) {
+            return false;
+        }
+
+        // Clean name.
+        $name = clean_param($name, PARAM_TEXT);
+        if (\core_text::strlen($name) > 255) {
+            $name = \core_text::substr($name, 0, 255);
+        }
+
+        $oldcontent = $this->content;
+        $this->content->name = $name;
+        $updated = $this->update_content();
+        if (!$updated) {
+            $this->content = $oldcontent;
+        }
+        return $updated;
+    }
+
+    /**
      * Returns the name of the content.
      *
      * @return string   The name of the content.
@@ -250,5 +278,23 @@ abstract class content {
         // There's no capability at content level to check,
         // but plugins can overwrite this method in case they want to check something related to content properties.
         return true;
+    }
+
+    /**
+     * Check if the user can edit this content.
+     *
+     * @return bool     True if content could be edited. False otherwise.
+     */
+    public final function can_manage(): bool {
+        global $USER;
+
+        $context = \context::instance_by_id($this->content->contextid, MUST_EXIST);
+        // Check main contentbank management permission.
+        $hascapability = has_capability('moodle/contentbank:manageanycontent', $context);
+        if ($this->content->usercreated == $USER->id) {
+            // This content has been created by the current user; check if they can manage their content.
+            $hascapability = $hascapability || has_capability('moodle/contentbank:manageowncontent', $context);
+        }
+        return $hascapability;
     }
 }

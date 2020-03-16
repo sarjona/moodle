@@ -530,7 +530,6 @@ define('EMAIL_VIA_ALWAYS', 1);
  */
 define('EMAIL_VIA_NO_REPLY_ONLY', 2);
 
-// PARAMETER HANDLING.
 
 /**
  * Returns a particular value for the named variable, taken from
