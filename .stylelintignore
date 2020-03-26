@@ -66,6 +66,7 @@ lib/php-jwt/
 lib/babel-polyfill/
 lib/mdn-polyfills/
 lib/emoji-data/
+lib/yii/
 media/player/videojs/amd/src/video-lazy.js
 media/player/videojs/amd/src/Youtube-lazy.js
 media/player/videojs/videojs/
