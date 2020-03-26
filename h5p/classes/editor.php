@@ -385,8 +385,30 @@ class editor {
         if (!file_exists("{$CFG->dirroot}" . autoloader::get_h5p_editor_library_base($languagescript))) {
             $languagescript = 'language/en.js';
         }
-        $PAGE->requires->js(autoloader::get_h5p_editor_library_url($languagescript . $cachebuster),
-            true);
+
+        // Check if the editor strings have been translated in Moodle.
+        // If the strings exist, they will override the existing ones in the JS file.
+        require_once("$CFG->libdir/yii/framework/web/helpers/CJSON.php");
+
+        // Get existing strings from current JS language file.
+        $langcontent = file_get_contents(autoloader::get_h5p_editor_library_url($languagescript . $cachebuster));
+
+        // Get only the content between { } (for instance, ; at the end of the file has to be removed).
+        $langcontent = substr($langcontent, 0, strpos($langcontent, '}', -0) + 1);
+        $langcontent = substr($langcontent, strpos($langcontent, '{'));
+
+        // Parse the JS language content and get a PHP array.
+        $json = new \CJSON();
+        $editorstrings = $json->decode($langcontent);
+        foreach ($editorstrings as $key => $value) {
+            $stringkey = 'editor:'.strtolower(trim($key));
+            $value = helper::get_h5p_string($stringkey, $language);
+            if (!empty($value)) {
+                $editorstrings[$key] = $value;
+            }
+        }
+        // Load JS language strings.
+        $PAGE->requires->data_for_js('H5PEditor.language.core', $editorstrings, false);
 
         // Add JavaScript settings.
         $root = $CFG->wwwroot;
