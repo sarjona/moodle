@@ -328,4 +328,49 @@ class helper_testcase extends \advanced_testcase {
         $this->assertCount(7, $messages->error);
         $this->assertCount(2, $messages->info);
     }
+
+    /**
+     * Test the behaviour of get_h5p_string().
+     *
+     * @dataProvider get_h5p_string_provider
+     * @param  string $identifier      The key identifier for the localized string.
+     * @param  string $expectedresult  Expected result.
+     * @param  string $lang            Language to get the localized string.
+     */
+    public function test_get_h5p_string(string $identifier, ?string $expectedresult, ?string $lang = 'en'): void {
+        $result = helper::get_h5p_string($identifier, $lang);
+        $this->assertEquals($expectedresult, $result);
+    }
+
+    /**
+     * Data provider for test_get_h5p_string().
+     *
+     * @return array
+     */
+    public function get_h5p_string_provider(): array {
+        return [
+            'Existing string in h5plib plugin' => [
+                'pluginname',
+                'H5P framework v1.24',
+            ],
+            'Existing string in h5p but not in h5plib plugin' => [
+                'actions',
+                'Actions',
+            ],
+            'Unxisting string in h5plib plugin or h5p' => [
+                'unexistingstring',
+                null,
+            ],
+            'Unxisting translation in h5plib plugin (es)' => [
+                'pluginname',
+                null,
+                'es',
+            ],
+            'Unxisting translation in h5plib plugin or h5p (es)' => [
+                'unexistingstring',
+                null,
+                'es',
+            ],
+        ];
+    }
 }
