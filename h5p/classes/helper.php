@@ -82,7 +82,6 @@ class helper {
         return false;
     }
 
-
     /**
      * Get the representation of display options as int.
      *
@@ -371,5 +370,31 @@ class helper {
         }
 
         return $settings;
+    }
+
+    /**
+     * Returns a localized string:
+     * - If it exists in the h5plib plugin, it's returned its value.
+     * - Otherwise, it's returned the value in core_h5p.
+     *
+     * @param string $identifier The key identifier for the localized string
+     * @param string $language Language to get the localized string.
+     * @return string|null The localized string or null if it doesn't exist or the language is different from English but the
+     * string is identical.
+     */
+    public static function get_h5p_string(string $identifier, string $language): ?string {
+        $value = autoloader::get_h5p_string($identifier, $language);
+        if (empty($value)) {
+            if (get_string_manager()->string_exists($identifier, 'h5p')) {
+                $defaultmoodlelang = 'en';
+                // Only replace existing key if the value is different from the English version and current language is not English.
+                $string = new \lang_string($identifier, 'h5p');
+                if ($language === $defaultmoodlelang || $string->out($language) !== $string->out($defaultmoodlelang)) {
+                    $value = $string->out($language);
+                }
+            }
+        }
+
+        return $value;
     }
 }
