@@ -39,6 +39,9 @@ use stdClass;
  */
 class editor_framework implements H5peditorStorage {
 
+    /** The cache key for the available languages. */
+    public const AVAILABLE_LANGS   = 'availablelangs';
+
     /**
      * Load language file(JSON).
      * Used to translate the editor fields(title, description etc.)
@@ -51,8 +54,54 @@ class editor_framework implements H5peditorStorage {
      * @return string|boolean Translation in JSON format if available, false otherwise
      */
     public function getLanguage($name, $major, $minor, $lang) {
-        // To be implemented when translations are introduced.
-        return false;
+        global $DB;
+
+        $translation = false;
+
+        // Check if this information has been saved previously into the cache.
+        $langcache = \cache::make('core', 'h5p_content_type_translations');
+        $libraryarray = [
+            'machineName' => $name,
+            'majorVersion' => $major,
+            'minorVersion' => $minor,
+        ];
+        $librarykey = helper::get_cache_librarykey(\H5PCore::libraryToString($libraryarray));
+        $libcachedata = $langcache->get($librarykey);
+        if ($libcachedata !== false && array_key_exists($lang, $libcachedata)) {
+            return $libcachedata[$lang];
+        }
+
+        // Get the language file for this library.
+        $component = file_storage::COMPONENT;
+        $filearea = file_storage::LIBRARY_FILEAREA;
+        $sql = "SELECT hl.id, f.pathnamehash
+                  FROM {h5p_libraries} hl
+             LEFT JOIN {files} f
+                    ON hl.id = f.itemid AND f.component = '$component' AND f.filearea = '$filearea' AND f.filepath like '%language%'
+                 WHERE ((hl.machinename = :machinename AND hl.majorversion = :majorversion AND hl.minorversion = :minorversion)
+                   AND f.filename = :filename)
+              ORDER BY hl.patchversion DESC";
+        $params = [
+            'machinename' => $name,
+            'majorversion' => $major,
+            'minorversion' => $minor,
+            'filename' => $lang.'.json'
+        ];
+
+        $result = $DB->get_record_sql($sql, $params);
+
+        if (!empty($result)) {
+            // If the JS language file exists, its content should be returned.
+            $fs = get_file_storage();
+            $file = $fs->get_file_by_hash($result->pathnamehash);
+            $translation = $file->get_content();
+        }
+
+        // Save translation into the cache (even if there is no translation for this language).
+        $libcachedata[$lang] = $translation;
+        $langcache->set($librarykey, $libcachedata);
+
+        return $translation;
     }
 
     /**
@@ -67,11 +116,67 @@ class editor_framework implements H5peditorStorage {
      * @return array List of possible language codes
      */
     public function getAvailableLanguages($machinename, $major, $minor): array {
+        global $DB;
+
         $defaultcode = 'en';
         $codes = [];
 
-        // Semantics is 'en' by default.
-        array_unshift($codes, $defaultcode);
+        // Check if this information has been saved previously into the cache.
+        $langcache = \cache::make('core', 'h5p_content_type_translations');
+        $libraryarray = [
+            'machineName' => $machinename,
+            'majorVersion' => $major,
+            'minorVersion' => $minor,
+        ];
+        $librarykey = helper::get_cache_librarykey(\H5PCore::libraryToString($libraryarray));
+        $libcachedata = $langcache->get($librarykey);
+        if ($libcachedata !== false && array_key_exists(self::AVAILABLE_LANGS, $libcachedata)) {
+            return $libcachedata[self::AVAILABLE_LANGS];
+        }
+
+        // Get the language files for this library.
+        $component = file_storage::COMPONENT;
+        $filearea = file_storage::LIBRARY_FILEAREA;
+        $sql = "SELECT DISTINCT f.filename
+                           FROM {h5p_libraries} hl
+                      LEFT JOIN {files} f
+                             ON hl.id = f.itemid AND f.component = '$component' AND f.filearea = '$filearea'
+                            AND f.filepath like '%language%' AND f.filename like '%.json'
+                          WHERE hl.machinename = :machinename AND hl.majorversion = :majorversion
+                            AND hl.minorversion = :minorversion";
+        $params = [
+            'machinename' => $machinename,
+            'majorversion' => $major,
+            'minorversion' => $minor,
+        ];
+        $results = $DB->get_records_sql($sql, $params);
+
+        if ($results) {
+            // Extract the code language from the JS language files.
+            foreach ($results as $result) {
+                if (!empty($result->filename)) {
+                    $lang = substr($result->filename, 0, -5);
+                    $codes[$lang] = $lang;
+                }
+            }
+            // Semantics is 'en' by default. It has to be added always.
+            if (!array_key_exists($defaultcode, $codes)) {
+                $codes = array_keys($codes);
+                array_unshift($codes, $defaultcode);
+            }
+        } else {
+            if ($DB->record_exists('h5p_libraries', $params)) {
+                // If the library exists (but it doesn't contain any language file), at least defaultcode should be returned.
+                $codes[] = $defaultcode;
+            }
+        }
+
+        // Save available languages into the cache.
+        if (empty($libcachedata)) {
+            $libcachedata = [];
+        }
+        $libcachedata[self::AVAILABLE_LANGS] = $codes;
+        $langcache->set($librarykey, $libcachedata);
 
         return $codes;
     }
