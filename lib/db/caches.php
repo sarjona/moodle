@@ -432,4 +432,12 @@ $definitions = array(
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => true,
     ],
+
+    // Language strings for H5P content-type libraries.
+    'h5p_content_type_translations' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'staticacceleration' => true
+    ],
 );

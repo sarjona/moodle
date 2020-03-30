@@ -117,7 +117,64 @@ class editor_ajax implements H5PEditorAjaxInterface {
      * @return array Translations in $languagecode available for libraries $libraries
      */
     public function getTranslations($libraries, $languagecode) {
-        // To be implemented when translations are introduced.
-        return [];
+        global $DB;
+
+        $translations = [];
+        $langcache = \cache::make('core', 'h5p_content_type_translations');
+
+        // Get the SQL query for the libraries.
+        $librariessql = '';
+        $params = [];
+        $libstrings = [];
+        foreach ($libraries as $libstring) {
+            // Check if this library has been saved previously into the cache.
+            $librarykey = helper::get_cache_librarykey($libstring);
+            $libtranslation = $langcache->get($librarykey);
+            if ($libtranslation !== false && array_key_exists($languagecode, $libtranslation)) {
+                // The library has this language stored into the cache.
+                $translations[$libstring] = $libtranslation[$languagecode];
+            } else {
+                // This language for the library hasn't been stored previously into the cache, so we need to get it from DB.
+                if (!empty($librariessql)) {
+                    $librariessql .= ' OR ';
+                }
+                $librariessql .= '(hl.machinename = ? AND hl.majorversion = ? AND hl.minorversion = ?)';
+                $library = \H5PCore::libraryFromString($libstring);
+                $machinename = $library['machineName'];
+                $majorversion = $library['majorVersion'];
+                $minorversion = $library['minorVersion'];
+                array_push($params, $machinename, $majorversion, $minorversion);
+                // Store the $libstring because it will be used as a key to return the result.
+                $libstrings[$machinename][$majorversion][$minorversion] = $libstring;
+            }
+        }
+
+        if (!empty($librariessql)) {
+            // Get all language files for libraries which aren't stored into the cache.
+            $component = file_storage::COMPONENT;
+            $filearea = file_storage::LIBRARY_FILEAREA;
+            $sql = "SELECT hl.id, hl.machinename, hl.majorversion, hl.minorversion, f.contenthash, f.pathnamehash
+                      FROM {h5p_libraries} hl
+                 LEFT JOIN {files} f
+                        ON hl.id = f.itemid AND f.component = '$component' AND f.filearea = '$filearea' AND f.filepath like '%language%'
+                     WHERE ($librariessql) AND f.filename = ?";
+            $params[] = $languagecode.'.json';
+            $results = $DB->get_records_sql($sql, $params);
+
+            // Get the content of all these language files and put them into the translations array.
+            $fs = get_file_storage();
+            foreach ($results as $result) {
+                $libstring = $libstrings[$result->machinename][$result->majorversion][$result->minorversion];
+                $file = $fs->get_file_by_hash($result->pathnamehash);
+                $translations[$libstring] = $file->get_content();
+                // Save translation into the cache for this library.
+                $librarykey = helper::get_cache_librarykey($libstring);
+                $libtranslation = $langcache->get($librarykey);
+                $libtranslation[$languagecode] = $translations[$libstring];
+                $langcache->set($librarykey, $libtranslation);
+            }
+        }
+
+        return $translations;
     }
 }
