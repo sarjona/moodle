@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * Content manager class
  *
@@ -21,14 +20,11 @@
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 namespace core_contentbank;
-
 use stored_file;
 use stdClass;
 use coding_exception;
 use moodle_url;
-
 /**
  * Content manager class
  *
@@ -37,10 +33,8 @@ use moodle_url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class content {
-
     /** @var stdClass $content The content of the current instance. **/
     protected $content  = null;
-
     /**
      * Content bank constructor
      *
@@ -59,7 +53,6 @@ abstract class content {
         }
         $this->content = $content;
     }
-
     /**
      * Fills content_bank table with appropiate information.
      *
@@ -86,14 +79,12 @@ abstract class content {
         }
         return null;
     }
-
     /**
      * Plugins need to implement this function at least to fill the contenttype field.
      *
      * @param stdClass $content Content object to fill and validate
      */
     abstract protected static function validate_content(stdClass &$content);
-
     /**
      * Returns $this->content.
      *
@@ -102,7 +93,6 @@ abstract class content {
     public function get_content(): stdClass {
         return $this->content;
     }
-
     /**
      * Returns $this->content->contenttype.
      *
@@ -111,7 +101,6 @@ abstract class content {
     public function get_content_type(): string {
         return $this->content->contenttype;
     }
-
     /**
      * Updates content_bank table with information in $this->content.
      *
@@ -121,12 +110,10 @@ abstract class content {
      */
     public function update_content(): bool {
         global $USER, $DB;
-
         $this->content->usermodified = $USER->id;
         $this->content->timemodified = time();
         return $DB->update_record('contentbank_content', $this->content);
     }
-
     /**
      * Returns the name of the content.
      *
@@ -136,7 +123,6 @@ abstract class content {
     public function get_name(): string {
         return $this->content->name;
     }
-
     /**
      * Returns the content ID.
      *
@@ -146,7 +132,6 @@ abstract class content {
     public function get_id(): int {
         return $this->content->id;
     }
-
     /**
      * Change the content instanceid value.
      *
@@ -159,7 +144,6 @@ abstract class content {
         $this->content->instanceid = $instanceid;
         return $this->update_content();
     }
-
     /**
      * Returns the $instanceid of this content.
      *
@@ -169,7 +153,6 @@ abstract class content {
     public function get_instanceid(): int {
         return $this->content->instanceid;
     }
-
     /**
      * Change the content config values.
      *
@@ -182,7 +165,6 @@ abstract class content {
         $this->content->configdata = $configdata;
         return $this->update_content();
     }
-
     /**
      * Return the content config values.
      *
@@ -192,7 +174,6 @@ abstract class content {
     public function get_configdata() {
         return $this->content->configdata;
     }
-
     /**
      * Returns the $file related to this content.
      *
@@ -218,7 +199,6 @@ abstract class content {
         }
         return null;
     }
-
     /**
      * Returns the file url related to this content.
      *
@@ -237,10 +217,8 @@ abstract class content {
             $file->get_filepath(),
             $file->get_filename()
         );
-
         return $fileurl;
     }
-
     /**
      * Returns user has access permission for the content itself (based on what plugin needs).
      *
