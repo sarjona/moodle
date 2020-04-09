@@ -56,6 +56,7 @@ class contentbank {
      * Obtains an array of supported extensions by active plugins.
      *
      * @return array The array with all the extensions supported and the supporting plugin names.
+     * @throws \coding_exception
      */
     public function load_all_supported_extensions(): array {
         $extensionscache = \cache::make('core', 'contentbank_enabled_extensions');
@@ -65,14 +66,16 @@ class contentbank {
             $supportedextensions = [];
             foreach ($this->get_enabled_content_types() as $type) {
                 $classname = "\\contenttype_$type\\contenttype";
-                if (class_exists($classname) &&
-                    $classname::is_feature_supported($classname::CAN_UPLOAD)) {
-                    $extensions = $classname::get_manageable_extensions();
-                    foreach ($extensions as $extension) {
-                        if (array_key_exists($extension, $supportedextensions)) {
-                            $supportedextensions[$extension][] = $type;
-                        } else {
-                            $supportedextensions[$extension] = [$type];
+                if (class_exists($classname)) {
+                    $manager = new $classname;
+                    if ($manager->is_feature_supported($manager::CAN_UPLOAD)) {
+                        $extensions = $manager->get_manageable_extensions();
+                        foreach ($extensions as $extension) {
+                            if (array_key_exists($extension, $supportedextensions)) {
+                                $supportedextensions[$extension][] = $type;
+                            } else {
+                                $supportedextensions[$extension] = [$type];
+                            }
                         }
                     }
                 }
@@ -85,8 +88,9 @@ class contentbank {
     /**
      * Obtains an array of supported extensions in the given context.
      *
-     * @param \context $context   Optional context to check (default null)
+     * @param \context $context Optional context to check (default null)
      * @return array The array with all the extensions supported and the supporting plugin names.
+     * @throws \coding_exception
      */
     public function load_context_supported_extensions(\context $context = null): array {
         $extensionscache = \cache::make('core', 'contentbank_context_extensions');
@@ -99,7 +103,8 @@ class contentbank {
                 foreach ($types as $type) {
                     $classname = "\\contenttype_$type\\contenttype";
                     if (class_exists($classname)) {
-                        if ($classname::can_upload($context)) {
+                        $manager = new $classname($context);
+                        if ($manager->can_upload()) {
                             $contextextensions[$extension] = $type;
                             break;
                         }
@@ -141,9 +146,10 @@ class contentbank {
     /**
      * Get the first content bank plugin supports a file extension.
      *
-     * @param string $extension     Content file extension
-     * @param context $context     Optional context to check (default null)
+     * @param string $extension Content file extension
+     * @param \context $context $context     Optional context to check (default null)
      * @return string contenttype name supports the file extension or null if the extension is not supported by any allowed plugin.
+     * @throws \coding_exception
      */
     public function get_extension_supporter(string $extension, \context $context = null): ?string {
         $supporters = $this->load_context_supported_extensions($context);

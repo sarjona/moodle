@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Manage content in content bank.
+ * List content in content bank.
  *
  * @package    core_contentbank
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
@@ -50,7 +50,7 @@ foreach ($contents as $content) {
     if (!$plugin || !$plugin->is_enabled()) {
         continue;
     }
-    $managerclass = "\\$content->contenttype\\contenttype";
+    $managerclass = "\\$content->contenttype\\content";
     if (class_exists($managerclass)) {
         $manager = new $managerclass($content);
         $foldercontents[] = $manager;

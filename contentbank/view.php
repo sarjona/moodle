@@ -27,12 +27,12 @@ require('../config.php');
 require_login();
 
 $id = required_param('id', PARAM_INT);
-$content = $DB->get_record('contentbank_content', ['id' => $id], '*', MUST_EXIST);
-$context = context::instance_by_id($content->contextid, MUST_EXIST);
+$record = $DB->get_record('contentbank_content', ['id' => $id], '*', MUST_EXIST);
+$context = context::instance_by_id($record->contextid, MUST_EXIST);
 require_capability('moodle/contentbank:access', $context);
 
 $returnurl = new \moodle_url('/contentbank/index.php');
-$plugin = core_plugin_manager::instance()->get_plugin_info($content->contenttype);
+$plugin = core_plugin_manager::instance()->get_plugin_info($record->contenttype);
 if (!$plugin || !$plugin->is_enabled()) {
     print_error('unsupported', 'core_contentbank', $returnurl);
 }
@@ -46,20 +46,20 @@ $returnurl = new \moodle_url('/contentbank/index.php', ['contextid' => $context-
 
 $PAGE->set_url(new \moodle_url('/contentbank/view.php', ['id' => $id]));
 $PAGE->set_context($context);
-$PAGE->navbar->add($content->name);
+$PAGE->navbar->add($record->name);
 $PAGE->set_heading($title);
-$title .= ": ".$content->name;
+$title .= ": ".$record->name;
 $PAGE->set_title($title);
 $PAGE->set_pagetype('contenbank');
 
 echo $OUTPUT->header();
 echo $OUTPUT->box_start('generalbox');
 
-$managerclass = "\\$content->contenttype\\contenttype";
-if (class_exists($managerclass)) {
-    $manager = new $managerclass($content);
+$managerlass = "\\$record->contenttype\\contenttype";
+if (class_exists($managerlass)) {
+    $manager = new $managerlass($context);
     if ($manager->can_access()) {
-        echo $manager->get_view_content();
+        echo $manager->get_view_content($record);
     }
 }
 
