@@ -83,14 +83,14 @@ if ($mform->is_cancelled()) {
         $filename = $file->get_filename();
         $extension = $cb->get_extension($filename);
         $plugin = $cb->get_extension_supporter($extension, $context);
-        $content = new stdClass();
-        $content->name = $filename;
-        $content->contextid = $contextid;
-        $content->contenttype = "contenttype_$plugin";
-        $classname = '\\'.$content->contenttype.'\\contenttype';
+        $record = new stdClass();
+        $record->name = $filename;
+        $record->contextid = $contextid;
+        $record->contenttype = "contenttype_$plugin";
+        $classname = '\\'.$record->contenttype.'\\content';
         if (class_exists($classname)) {
-            $manager = $classname::create_content($content);
-            file_save_draft_area_files($formdata->file, $contextid, 'contentbank', 'public', $manager->get_id());
+            $content = $classname::create_content($record);
+            file_save_draft_area_files($formdata->file, $contextid, 'contentbank', 'public', $content->get_id());
         }
     }
     redirect($returnurl);

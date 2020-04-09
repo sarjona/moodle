@@ -38,7 +38,7 @@ use stdClass;
 class bankcontent implements renderable, templatable {
 
     /**
-     * @var \core_contentbank\contenttype[]    Array of content bank contents.
+     * @var \core_contentbank\content[]    Array of content bank contents.
      */
     private $contents;
 
@@ -48,14 +48,21 @@ class bankcontent implements renderable, templatable {
     private $toolbar;
 
     /**
+     * @var \context    Given context. Null by default.
+     */
+    private $context;
+
+    /**
      * Construct this renderable.
      *
-     * @param \core_contentbank\contenttype[] $contents   Array of content bank contents.
+     * @param \core_contentbank\content[] $contents   Array of content bank contents.
      * @param array $toolbar     List of content bank toolbar options.
+     * @param \context $context Optional context to check (default null)
      */
-    public function __construct(array $contents, array $toolbar) {
+    public function __construct(array $contents, array $toolbar, \context $context = null) {
         $this->contents = $contents;
         $this->toolbar = $toolbar;
+        $this->context = $context;
     }
 
     /**
@@ -67,13 +74,19 @@ class bankcontent implements renderable, templatable {
     public function export_for_template(renderer_base $output): stdClass {
         $data = new stdClass();
         $contentdata = array();
-        foreach ($this->contents as $manager) {
-            if ($manager->can_access()) {
-                $contentdata[] = array(
-                    'name' => $manager->get_name(),
-                    'link' => $manager->get_view_url(),
-                    'icon' => $manager->get_icon()
-                );
+        foreach ($this->contents as $content) {
+            $record = $content->get_content();
+            $managerclass = $content->get_content_type().'\\contenttype';
+            if (class_exists($managerclass)) {
+                $manager = new $managerclass($this->context);
+                if ($manager->can_access()) {
+                    $name = $content->get_name();
+                    $contentdata[] = array(
+                        'name' => $name,
+                        'link' => $manager->get_view_url($record),
+                        'icon' => $manager->get_icon($name)
+                    );
+                }
             }
         }
         $data->contents = $contentdata;
