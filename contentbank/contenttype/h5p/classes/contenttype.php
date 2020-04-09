@@ -51,12 +51,14 @@ class contenttype extends \core_contentbank\contenttype {
     /**
      * Returns the HTML content to add to view.php visualizer.
      *
+     * @param stdClass $record  Th content to be displayed.
      * @return string            HTML code to include in view.php.
      * @throws \coding_exception if content is not loaded previously.
      */
-    public function get_view_content(): string {
-        $fileurl = $this->get_file_url();
-        $html = html_writer::tag('h2', $this->get_name());
+    public function get_view_content(\stdClass $record): string {
+        $content = new content($record);
+        $fileurl = $content->get_file_url();
+        $html = html_writer::tag('h2', $content->get_name());
         $html .= \core_h5p\player::display($fileurl, new \stdClass(), true);
         return $html;
     }
@@ -64,12 +66,13 @@ class contenttype extends \core_contentbank\contenttype {
     /**
      * Returns the HTML code to render the icon for H5P content types.
      *
+     * @param string $contentname   The contentname to add as alt value to the icon.
      * @return string            HTML code to render the icon
      * @throws \coding_exception if not loaded.
      */
-    public function get_icon(): string {
+    public function get_icon(string $contentname): string {
         global $OUTPUT;
-        return $OUTPUT->pix_icon('f/h5p-64', $this->get_name(), 'moodle', ['class' => 'iconsize-big']);
+        return $OUTPUT->pix_icon('f/h5p-64', $contentname, 'moodle', ['class' => 'iconsize-big']);
     }
 
     /**
@@ -77,7 +80,7 @@ class contenttype extends \core_contentbank\contenttype {
      *
      * @return array
      */
-    public static function get_implemented_features(): array {
+    public function get_implemented_features(): array {
         return [self::CAN_UPLOAD];
     }
 
@@ -86,8 +89,8 @@ class contenttype extends \core_contentbank\contenttype {
      *
      * @return array
      */
-    public static function get_manageable_extensions(): array {
-        return array('.h5p');
+    public function get_manageable_extensions(): array {
+        return ['.h5p'];
     }
 
     /**
