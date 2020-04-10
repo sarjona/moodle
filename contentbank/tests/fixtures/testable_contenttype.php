@@ -37,38 +37,32 @@ class contenttype extends \core_contentbank\contenttype {
     /** The component for testing. */
     public const COMPONENT   = 'contenttype_testable';
 
-    /**
-     * Fill content type.
-     *
-     * @param \stdClass $content Content object to fill and validate
-     */
-    protected static function validate_content(\stdClass &$content) {
-        $content->contenttype = self::COMPONENT;
-    }
 
     /**
      * Returns the URL where the content will be visualized.
      *
+     * @param stdClass $record  Th content to be displayed.
      * @return string            URL where to visualize the given content.
      * @throws \coding_exception if not loaded.
      */
-    public function get_view_url(): string {
-        $fileurl = $this->get_file_url($this->get_id());
+    public function get_view_url(\stdClass $record): string {
+        $fileurl = $this->get_file_url($record->id);
         $url = $fileurl."?forcedownload=1";
 
         return $url;
     }
 
     /**
-     * Returns the HTML code to render the icon for the testable content types.
+     * Returns the HTML code to render the icon for content bank contents.
      *
-     * @return string            HTML code to render the icon
-     * @throws \coding_exception if not loaded.
+     * @param string $contentname   The contentname to add as alt value to the icon.
+     * @return string               HTML code to render the icon
+     * @throws \coding_exception    if not loaded.
      */
-    public function get_icon(): string {
+    public function get_icon(string $contentname): string {
         global $OUTPUT;
 
-        return $OUTPUT->pix_icon('f/archive-64', $this->get_name(), 'moodle', ['class' => 'iconsize-big']);
+        return $OUTPUT->pix_icon('f/archive-64', $contentname, 'moodle', ['class' => 'iconsize-big']);
     }
 
     /**
@@ -85,7 +79,7 @@ class contenttype extends \core_contentbank\contenttype {
      *
      * @return array
      */
-    public static function get_implemented_features(): array {
+    public function get_implemented_features(): array {
         return [];
     }
 
@@ -94,7 +88,7 @@ class contenttype extends \core_contentbank\contenttype {
      *
      * @return array
      */
-    public static function get_manageable_extensions(): array {
+    public function get_manageable_extensions(): array {
         return  ['.txt', '.png', '.h5p'];
     }
 }
