@@ -30,38 +30,41 @@
  * @category   test
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \contenttype_h5p\contenttype
+ * @coversDefaultClass \contenttype_h5p\content
  */
-class contenttype_h5p_contenttype_plugin_testcase extends advanced_testcase {
+class contenttype_h5p_content_plugin_testcase extends advanced_testcase {
 
     /**
-     * Tests can_upload behavior.
+     * Tests for uploaded file.
      *
-     * @covers ::can_upload
+     * @covers ::get_file
      */
-    public function test_can_upload() {
+    public function test_upload_file() {
         $this->resetAfterTest();
 
-        $systemcontext = \context_system::instance();
-        $systemtype = new \contenttype_h5p\contenttype($systemcontext);
+        // Create content.
+        $record = new stdClass();
+        $record->name = 'Test content';
+        $record->contenttype = contenttype_h5p\contenttype::COMPONENT;
+        $record->contextid = \context_system::instance()->id;
+        $record->configdata = '';
+        $content = contenttype_h5p\content::create_content($record);
 
-        // Admins can upload.
-        $this->setAdminUser();
-        $this->assertTrue($systemtype->can_upload());
+        // Create a dummy file.
+        $filename = 'content.h5p';
+        $dummy = array(
+            'contextid' => \context_system::instance()->id,
+            'component' => 'contentbank',
+            'filearea' => 'public',
+            'itemid' => $content->get_id(),
+            'filepath' => '/',
+            'filename' => $filename
+        );
+        $fs = get_file_storage();
+        $fs->create_file_from_string($dummy, 'dummy content');
 
-        // Teacher can upload in the course but not at system level.
-        $course = $this->getDataGenerator()->create_course();
-        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
-        $coursecontext = \context_course::instance($course->id);
-        $coursetype = new \contenttype_h5p\contenttype($coursecontext);
-        $this->setUser($teacher);
-        $this->assertTrue($coursetype->can_upload());
-        $this->assertFalse($systemtype->can_upload());
-
-        // Users can't upload.
-        $user = $this->getDataGenerator()->create_user();
-        $this->setUser($user);
-        $this->assertFalse($coursetype->can_upload());
-        $this->assertFalse($systemtype->can_upload());
+        $file = $content->get_file();
+        $this->assertInstanceOf(\stored_file::class, $file);
+        $this->assertEquals($filename, $file->get_filename());
     }
 }

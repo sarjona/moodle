@@ -1,5 +1,5 @@
 @core @core_contentbank @contenttype_h5p @_file_upload @_switch_iframe @javascript
-Feature: H5P file upload to content bank
+Feature: H5P file upload to content bank for admins
   In order import new H5P content to content bank
   As an admin
   I need to be able to upload a new .h5p file to content bank
