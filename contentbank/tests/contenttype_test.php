@@ -30,8 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_contenttype.php');
 
-use stdClass;
-use contenttype_testable\contenttype as testable;
+use contenttype_testable\contenttype as contenttype;
 /**
  * Test for Content bank contenttype class.
  *
@@ -45,78 +44,45 @@ use contenttype_testable\contenttype as testable;
 class core_contenttype_contenttype_testcase extends \advanced_testcase {
 
     /**
-     * Test create_content() with empty data.
+     * Tests get_contenttype_name result.
      *
-     * @covers ::create_content
+     * @covers ::get_contenttype_name
      */
-    public function test_create_empty_content() {
+    public function test_get_contenttype_name() {
         $this->resetAfterTest();
 
-        // Create empty content.
-        $record = new stdClass();
+        $systemcontext = \context_system::instance();
+        $testable = new contenttype($systemcontext);
 
-        $content = testable::create_content($record);
-        $this->assertEquals(testable::COMPONENT, $content->get_content_type());
-        $this->assertInstanceOf('\\contenttype_testable\\contenttype', $content);
+        $this->assertEquals('contenttype_testable', $testable->get_contenttype_name());
     }
 
     /**
-     * Test create_content() from 'contenttype' class.
+     * Tests get_plugin_name result.
      *
-     * @covers ::create_content
+     * @covers ::get_plugin_name
      */
-    public function test_create_content_using_contenttype() {
+    public function test_get_plugin_name() {
         $this->resetAfterTest();
 
-        // Create empty content.
-        $record = new stdClass();
+        $systemcontext = \context_system::instance();
+        $testable = new contenttype($systemcontext);
 
-        // This should throw an exception. create_content() should be called using plugins, no using 'base' class.
-        $this->expectExceptionMessage("Cannot call abstract method");
-        $content = contenttype::create_content($record);
+        $this->assertEquals('testable', $testable->get_plugin_name());
     }
 
     /**
-     * Tests for behaviour of create_content() and getter functions.
+     * Tests get_icon result.
      *
-     * @covers ::create_content
+     * @covers ::get_icon
      */
-    public function test_create_content() {
+    public function test_get_icon() {
         $this->resetAfterTest();
 
-        // Create content.
-        $record = new stdClass();
-        $record->name = 'Test content';
-        $record->contenttype = testable::COMPONENT;
-        $record->contextid = \context_system::instance()->id;
-        $record->configdata = '';
-
-        $content = testable::create_content($record);
-        $this->assertEquals($record->name, $content->get_name());
-        $this->assertEquals($record->contenttype, $content->get_content_type());
-        $this->assertEquals($record->configdata, $content->get_configdata());
-    }
-
-    /**
-     * Tests for 'configdata' behaviour.
-     *
-     * @covers ::set_configdata
-     */
-    public function test_configdata_changes() {
-        $this->resetAfterTest();
-
-        $configdata = "{img: 'icon.svg'}";
-
-        // Create content.
-        $record = new stdClass();
-        $record->configdata = $configdata;
-
-        $content = testable::create_content($record);
-        $this->assertEquals($configdata, $content->get_configdata());
-
-        $configdata = "{alt: 'Name'}";
-        $content->set_configdata($configdata);
-        $this->assertEquals($configdata, $content->get_configdata());
+        $systemcontext = \context_system::instance();
+        $testable = new contenttype($systemcontext);
+        $icon = $testable->get_icon('new content');
+        $this->assertContains('archive', $icon);
     }
 
     /**
@@ -128,11 +94,11 @@ class core_contenttype_contenttype_testcase extends \advanced_testcase {
         $this->resetAfterTest();
 
         $systemcontext = \context_system::instance();
-
+        $testable = new contenttype($systemcontext);
         // Admins can upload.
         $this->setAdminUser();
-        $this->assertEmpty(testable::get_implemented_features());
-        $this->assertFalse(testable::is_feature_supported(testable::CAN_UPLOAD));
-        $this->assertFalse(testable::can_upload($systemcontext));
+        $this->assertEmpty($testable->get_implemented_features());
+        $this->assertFalse($testable->is_feature_supported(contenttype::CAN_UPLOAD));
+        $this->assertFalse($testable->can_upload());
     }
 }
