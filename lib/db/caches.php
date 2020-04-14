@@ -440,4 +440,18 @@ $definitions = array(
         'simpledata' => true,
         'staticacceleration' => true
     ],
+
+    // Caches contentbank extensions management.
+    'contentbank_enabled_extensions' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'staticacceleration' => true,
+    ],
+    'contentbank_context_extensions' => [
+        'mode' => cache_store::MODE_REQUEST,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'staticacceleration' => true,
+    ],
 );

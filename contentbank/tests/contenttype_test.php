@@ -1,0 +1,104 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Test for Content bank contenttype class.
+ *
+ * @package    core_contentbank
+ * @category   test
+ * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace core_contentbank;
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_contenttype.php');
+
+use contenttype_testable\contenttype as contenttype;
+/**
+ * Test for Content bank contenttype class.
+ *
+ * @package    core_contentbank
+ * @category   test
+ * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \core_contentbank\contenttype
+ *
+ */
+class core_contenttype_contenttype_testcase extends \advanced_testcase {
+
+    /**
+     * Tests get_contenttype_name result.
+     *
+     * @covers ::get_contenttype_name
+     */
+    public function test_get_contenttype_name() {
+        $this->resetAfterTest();
+
+        $systemcontext = \context_system::instance();
+        $testable = new contenttype($systemcontext);
+
+        $this->assertEquals('contenttype_testable', $testable->get_contenttype_name());
+    }
+
+    /**
+     * Tests get_plugin_name result.
+     *
+     * @covers ::get_plugin_name
+     */
+    public function test_get_plugin_name() {
+        $this->resetAfterTest();
+
+        $systemcontext = \context_system::instance();
+        $testable = new contenttype($systemcontext);
+
+        $this->assertEquals('testable', $testable->get_plugin_name());
+    }
+
+    /**
+     * Tests get_icon result.
+     *
+     * @covers ::get_icon
+     */
+    public function test_get_icon() {
+        $this->resetAfterTest();
+
+        $systemcontext = \context_system::instance();
+        $testable = new contenttype($systemcontext);
+        $icon = $testable->get_icon('new content');
+        $this->assertContains('archive', $icon);
+    }
+
+    /**
+     * Tests can_upload behavior with no implemented upload feature.
+     *
+     * @covers ::can_upload
+     */
+    public function test_no_implemented_feature() {
+        $this->resetAfterTest();
+
+        $systemcontext = \context_system::instance();
+        $testable = new contenttype($systemcontext);
+        // Admins can upload.
+        $this->setAdminUser();
+        $this->assertEmpty($testable->get_implemented_features());
+        $this->assertFalse($testable->is_feature_supported(contenttype::CAN_UPLOAD));
+        $this->assertFalse($testable->can_upload());
+    }
+}

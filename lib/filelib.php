@@ -4147,7 +4147,7 @@ class curl_cache {
  * @param bool $embed Whether this file will be served embed into an iframe.
  * @todo MDL-31088 file serving improments
  */
-function file_pluginfile($relativepath, $forcedownload, $preview = null, $offline = false, $embed = false) {
+function    file_pluginfile($relativepath, $forcedownload, $preview = null, $offline = false, $embed = false) {
     global $DB, $CFG, $USER;
     // relative path must start with '/'
     if (!$relativepath) {
@@ -4907,8 +4907,29 @@ function file_pluginfile($relativepath, $forcedownload, $preview = null, $offlin
             \core\session\manager::write_close(); // Unlock session during file serving.
             send_stored_file($file, 60*60, 0, $forcedownload, $sendfileoptions);
         }
+    } else if ($component === 'contentbank') {
+        if ($filearea != 'public' || isguestuser()) {
+            send_file_not_found();
+        }
 
-        // ========================================================================================================================
+        if ($context->contextlevel == CONTEXT_SYSTEM || $context->contextlevel == CONTEXT_COURSECAT) {
+            require_login();
+        } else if ($context->contextlevel == CONTEXT_COURSE) {
+            require_login($course);
+        } else {
+            send_file_not_found();
+        }
+
+        $itemid = (int)array_shift($args);
+        $filename = array_pop($args);
+        $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+        if (!$file = $fs->get_file($context->id, $component, $filearea, $itemid, $filepath, $filename) or
+            $file->is_directory()) {
+            send_file_not_found();
+        }
+
+        \core\session\manager::write_close(); // Unlock session during file serving.
+        send_stored_file($file, 0, 0, true, $sendfileoptions); // must force download - security!
     } else if (strpos($component, 'mod_') === 0) {
         $modname = substr($component, 4);
         if (!file_exists("$CFG->dirroot/mod/$modname/lib.php")) {
