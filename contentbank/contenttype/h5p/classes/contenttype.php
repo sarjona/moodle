@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * H5P Content bank manager class
+ * H5P content bank manager class
  *
  * @package    contenttype_h5p
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
@@ -28,25 +28,13 @@ use stdClass;
 use html_writer;
 
 /**
- * H5P Content bank manager class
+ * H5P content bank manager class
  *
  * @package    contenttype_h5p
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class contenttype extends \core_contentbank\contenttype {
-
-    /** The component for H5P. */
-    public const COMPONENT   = 'contenttype_h5p';
-
-    /**
-     * Fill content type.
-     *
-     * @param stdClass $content Content object to fill and validate
-     */
-    protected static function validate_content(stdClass &$content) {
-        $content->contenttype = self::COMPONENT;
-    }
 
     /**
      * Returns the HTML content to add to view.php visualizer.

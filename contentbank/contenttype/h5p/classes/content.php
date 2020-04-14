@@ -35,13 +35,4 @@ use html_writer;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class content extends \core_contentbank\content {
-
-    /**
-     * Plugins need to implement this function at least to fill the contenttype field.
-     *
-     * @param stdClass $content Content object to fill and validate
-     */
-    protected static function validate_content(stdClass &$content) {
-        $content->contenttype = contenttype::COMPONENT;
-    }
 }
