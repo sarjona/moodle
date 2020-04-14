@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Test for Content bank contenttype class.
+ * Test for content bank contenttype class.
  *
  * @package    core_contentbank
  * @category   test
@@ -32,10 +32,10 @@ require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_contenttype.p
 require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_content.php');
 
 use stdClass;
+use context_system;
 use contenttype_testable\contenttype as contenttype;
-use contenttype_testable\content as content;
 /**
- * Test for Content bank contenttype class.
+ * Test for content bank contenttype class.
  *
  * @package    core_contentbank
  * @category   test
@@ -47,56 +47,39 @@ use contenttype_testable\content as content;
 class core_contenttype_content_testcase extends \advanced_testcase {
 
     /**
-     * Test create_content() with empty data.
+     * Tests for behaviour of get_name().
      *
-     * @covers ::create_content
+     * @covers ::get_name
      */
-    public function test_create_empty_content() {
-        $this->resetAfterTest();
-
-        // Create empty content.
-        $record = new stdClass();
-
-        $content = content::create_content($record);
-        $this->assertEquals(contenttype::COMPONENT, $content->get_content_type());
-        $this->assertInstanceOf('\\contenttype_testable\\content', $content);
-    }
-
-    /**
-     * Test create_content() from 'content' abstract class.
-     *
-     * @covers ::create_content
-     */
-    public function test_create_content_not_using_plugins() {
-        $this->resetAfterTest();
-
-        // Create empty content.
-        $record = new stdClass();
-
-        // This should throw an exception. create_content() should be called using plugins, no using 'base' class.
-        $this->expectExceptionMessage("Cannot call abstract method");
-        $content = \core_contentbank\content::create_content($record);
-    }
-
-    /**
-     * Tests for behaviour of create_content() and getter functions.
-     *
-     * @covers ::create_content
-     */
-    public function test_create_content() {
+    public function test_get_name() {
         $this->resetAfterTest();
 
         // Create content.
         $record = new stdClass();
         $record->name = 'Test content';
-        $record->contenttype = contenttype::COMPONENT;
-        $record->contextid = \context_system::instance()->id;
         $record->configdata = '';
 
-        $content = content::create_content($record);
+        $contenttype = new contenttype(context_system::instance());
+        $content = $contenttype->create_content($record);
         $this->assertEquals($record->name, $content->get_name());
-        $this->assertEquals($record->contenttype, $content->get_content_type());
-        $this->assertEquals($record->configdata, $content->get_configdata());
+    }
+
+    /**
+     * Tests for behaviour of get_content_type().
+     *
+     * @covers ::get_content_type
+     */
+    public function test_get_content_type() {
+        $this->resetAfterTest();
+
+        // Create content.
+        $record = new stdClass();
+        $record->name = 'Test content';
+        $record->configdata = '';
+
+        $contenttype = new contenttype(context_system::instance());
+        $content = $contenttype->create_content($record);
+        $this->assertEquals('contenttype_testable', $content->get_content_type());
     }
 
     /**
@@ -113,7 +96,8 @@ class core_contenttype_content_testcase extends \advanced_testcase {
         $record = new stdClass();
         $record->configdata = $configdata;
 
-        $content = content::create_content($record);
+        $contenttype = new contenttype(context_system::instance());
+        $content = $contenttype->create_content($record);
         $this->assertEquals($configdata, $content->get_configdata());
 
         $configdata = "{alt: 'Name'}";

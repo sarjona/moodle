@@ -1,6 +1,6 @@
 @core @core_contentbank
-Feature: Access permission to Content Bank
-  In order to control access to Content bank
+Feature: Access permission to content Bank
+  In order to control access to content bank
   As an admin
   I need to be able to configure users' permissions
 
@@ -17,21 +17,13 @@ Feature: Access permission to Content Bank
 
   Scenario: Admins access content bank
     Given I log in as "admin"
-    When I press "Customise this page"
-    And I add the "Navigation" block if not present
-    And I expand "Site pages" node
     Then "Content bank" "link" should exist
 
   Scenario: Editing teachers can access content bank at course level
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
-    When I add the "Navigation" block if not present
-    And I expand "Site pages" node
     Then "Content bank" "link" should exist
 
   Scenario: Editing teachers can't access content bank at system level
     Given I log in as "teacher1"
-    When I press "Customise this page"
-    And I add the "Navigation" block if not present
-    And I expand "Site pages" node
     Then "Content bank" "link" should not exist

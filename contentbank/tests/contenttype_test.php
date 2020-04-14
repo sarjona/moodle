@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Test for Content bank contenttype class.
+ * Test for content bank contenttype class.
  *
  * @package    core_contentbank
  * @category   test
@@ -29,10 +29,13 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_contenttype.php');
+require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_content.php');
 
+use stdClass;
+use context_system;
 use contenttype_testable\contenttype as contenttype;
 /**
- * Test for Content bank contenttype class.
+ * Test for content bank contenttype class.
  *
  * @package    core_contentbank
  * @category   test
@@ -100,5 +103,45 @@ class core_contenttype_contenttype_testcase extends \advanced_testcase {
         $this->assertEmpty($testable->get_implemented_features());
         $this->assertFalse($testable->is_feature_supported(contenttype::CAN_UPLOAD));
         $this->assertFalse($testable->can_upload());
+    }
+
+
+    /**
+     * Test create_content() with empty data.
+     *
+     * @covers ::create_content
+     */
+    public function test_create_empty_content() {
+        $this->resetAfterTest();
+
+        // Create empty content.
+        $record = new stdClass();
+
+        $contenttype = new contenttype(context_system::instance());
+        $content = $contenttype->create_content($record);
+
+        $this->assertEquals('contenttype_testable', $content->get_content_type());
+        $this->assertInstanceOf('\\contenttype_testable\\content', $content);
+    }
+
+    /**
+     * Tests for behaviour of create_content() with data.
+     *
+     * @covers ::create_content
+     */
+    public function test_create_content() {
+        $this->resetAfterTest();
+
+        // Create content.
+        $record = new stdClass();
+        $record->name = 'Test content';
+        $record->configdata = '';
+        $record->contenttype = '';
+
+        $contenttype = new contenttype(context_system::instance());
+        $content = $contenttype->create_content($record);
+
+        $this->assertEquals('contenttype_testable', $content->get_content_type());
+        $this->assertInstanceOf('\\contenttype_testable\\content', $content);
     }
 }

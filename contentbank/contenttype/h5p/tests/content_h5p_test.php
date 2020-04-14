@@ -45,10 +45,9 @@ class contenttype_h5p_content_plugin_testcase extends advanced_testcase {
         // Create content.
         $record = new stdClass();
         $record->name = 'Test content';
-        $record->contenttype = contenttype_h5p\contenttype::COMPONENT;
-        $record->contextid = \context_system::instance()->id;
         $record->configdata = '';
-        $content = contenttype_h5p\content::create_content($record);
+        $contenttype = new \contenttype_h5p\contenttype(context_system::instance());
+        $content = $contenttype->create_content($record);
 
         // Create a dummy file.
         $filename = 'content.h5p';
