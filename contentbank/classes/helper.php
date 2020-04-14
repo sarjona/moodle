@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains helper class for the Content bank.
+ * Contains helper class for the content bank.
  *
  * @package    core_contentbank
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
@@ -28,7 +28,7 @@ use phpDocumentor\Reflection\Types\String_;
 use phpDocumentor\Reflection\Types\Void_;
 
 /**
- * Helper class for the Content bank.
+ * Helper class for the content bank.
  *
  * @package    core_contentbank
  * @copyright  2020 Amaia Anabitarte <amaia@moodle.com>
@@ -37,7 +37,7 @@ use phpDocumentor\Reflection\Types\Void_;
 class helper {
 
     /**
-     * Getting ready Content bank page for the breadcrumbs.
+     * Getting content bank page ready for the breadcrumbs.
      *
      * @param \context $context     Context of the current page.
      * @param string $title         Title of the current page.

@@ -60,6 +60,33 @@ abstract class contenttype {
     }
 
     /**
+     * Fills content_bank table with appropiate information.
+     *
+     * @param stdClass $content  An optional content record compatible object (default null)
+     * @return content       Object with content bank information.
+     * @throws \coding_exception    If content type is not right.
+     */
+    public function create_content(\stdClass $content = null): ?content {
+        global $USER, $DB;
+
+        $record = new \stdClass();
+        $record->contenttype = $this->get_contenttype_name();
+        $record->contextid = $this->context->id;
+        $record->name = $content->name ?? '';
+        $record->usercreated = $content->usercreated ?? $USER->id;
+        $record->timecreated = time();
+        $record->usermodified = $record->usercreated;
+        $record->timemodified = $record->timecreated;
+        $record->configdata = $content->configdata ?? '';
+        $record->id = $DB->insert_record('contentbank_content', $record);
+        if ($record->id) {
+            $classname = '\\'.$record->contenttype.'\\content';
+            return new $classname($record);
+        }
+        return null;
+    }
+
+    /**
      * Returns the contenttype name of this content.
      *
      * @return string   Content type of the current instance
@@ -102,7 +129,7 @@ abstract class contenttype {
      * @throws \coding_exception if not loaded.
      */
     public function get_view_content(\stdClass $record): string {
-        // Plugins would manage visualization. Content bank does visualize any content by itself.
+        // Main contenttype class can visualize the content, but plugins could overwrite visualization.
         return '';
     }
 

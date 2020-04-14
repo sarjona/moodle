@@ -33,13 +33,16 @@ use moodle_url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class content {
+
     /** @var stdClass $content The content of the current instance. **/
     protected $content  = null;
+
     /**
      * Content bank constructor
      *
-     * @param stdClass $content     A contentbanck_content record.
-     * @throws \coding_exception    If content type is not right.
+     * @param stdClass $content A contentbanck_content record.
+     * @throws \dml_missing_record_exception If empty or not valid id in the content.
+     * @throws coding_exception If content type is not right.
      */
     public function __construct(stdClass $content) {
         // Content type should exist and be linked to plugin classname.
@@ -51,40 +54,14 @@ abstract class content {
         if (!class_exists($typeclass)) {
             throw new coding_exception(get_string('contentbanktypenotfound', 'error', $content->contenttype));
         }
+        // A record with the id must exist in 'contenbank_content' table.
+        // To improve performance, we are only checking the id is set, but no querying the database.
+        if (!isset($content->id)) {
+            throw new coding_exception(get_string('invalidcontentid', 'error'));
+        }
         $this->content = $content;
     }
-    /**
-     * Fills content_bank table with appropiate information.
-     *
-     * @param stdClass $content  An optional content record compatible object (default null)
-     * @return content       Object with content bank information.
-     * @throws \coding_exception    If content type is not right.
-     */
-    final public static function create_content(stdClass $content = null): ?content {
-        global $USER, $DB;
-        $record = new stdClass();
-        $record->name = $content->name ?? '';
-        $record->contenttype = $content->contenttype ?? '';
-        $record->contextid = $content->contextid ?? \context_system::instance()->id;
-        $record->usercreated = $content->usercreated ?? $USER->id;
-        $record->timecreated = time();
-        $record->usermodified = $record->usercreated;
-        $record->timemodified = $record->timecreated;
-        $record->configdata = $content->configdata ?? '';
-        static::validate_content($record);
-        $record->id = $DB->insert_record('contentbank_content', $record);
-        if ($record->id) {
-            $classname = '\\'.$record->contenttype.'\\content';
-            return new $classname($record);
-        }
-        return null;
-    }
-    /**
-     * Plugins need to implement this function at least to fill the contenttype field.
-     *
-     * @param stdClass $content Content object to fill and validate
-     */
-    abstract protected static function validate_content(stdClass &$content);
+
     /**
      * Returns $this->content.
      *
@@ -93,6 +70,7 @@ abstract class content {
     public function get_content(): stdClass {
         return $this->content;
     }
+
     /**
      * Returns $this->content->contenttype.
      *
@@ -101,6 +79,7 @@ abstract class content {
     public function get_content_type(): string {
         return $this->content->contenttype;
     }
+
     /**
      * Updates content_bank table with information in $this->content.
      *
@@ -110,10 +89,17 @@ abstract class content {
      */
     public function update_content(): bool {
         global $USER, $DB;
+
+        // A record with the id must exist in 'contenbank_content' table.
+        // To improve performance, we are only checking the id is set, but no querying the database.
+        if (!isset($this->content->id)) {
+            throw new coding_exception(get_string('invalidcontentid', 'error'));
+        }
         $this->content->usermodified = $USER->id;
         $this->content->timemodified = time();
         return $DB->update_record('contentbank_content', $this->content);
     }
+
     /**
      * Returns the name of the content.
      *
@@ -123,6 +109,7 @@ abstract class content {
     public function get_name(): string {
         return $this->content->name;
     }
+
     /**
      * Returns the content ID.
      *
@@ -132,6 +119,7 @@ abstract class content {
     public function get_id(): int {
         return $this->content->id;
     }
+
     /**
      * Change the content instanceid value.
      *
@@ -144,6 +132,7 @@ abstract class content {
         $this->content->instanceid = $instanceid;
         return $this->update_content();
     }
+
     /**
      * Returns the $instanceid of this content.
      *
@@ -153,6 +142,7 @@ abstract class content {
     public function get_instanceid(): int {
         return $this->content->instanceid;
     }
+
     /**
      * Change the content config values.
      *
@@ -165,6 +155,7 @@ abstract class content {
         $this->content->configdata = $configdata;
         return $this->update_content();
     }
+
     /**
      * Return the content config values.
      *
@@ -174,6 +165,7 @@ abstract class content {
     public function get_configdata() {
         return $this->content->configdata;
     }
+
     /**
      * Returns the $file related to this content.
      *
@@ -188,9 +180,7 @@ abstract class content {
             'contentbank',
             'public',
             $itemid,
-            'itemid, 
-            filepath, 
-            filename',
+            'itemid, filepath, filename',
             false
         );
         if (!empty($files)) {
@@ -199,6 +189,7 @@ abstract class content {
         }
         return null;
     }
+
     /**
      * Returns the file url related to this content.
      *
@@ -219,6 +210,7 @@ abstract class content {
         );
         return $fileurl;
     }
+
     /**
      * Returns user has access permission for the content itself (based on what plugin needs).
      *

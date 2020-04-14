@@ -313,6 +313,7 @@ $string['invalidcommentarea'] = 'Invalid comment area';
 $string['invalidcommentparam'] = 'Invalid comment parameters';
 $string['invalidcomponent'] = 'Invalid component name';
 $string['invalidconfirmdata'] = 'Invalid confirmation data';
+$string['invalidcontentid'] = 'Invalid content ID';
 $string['invalidcontext'] = 'Invalid context';
 $string['invalidcourse'] = 'Invalid course';
 $string['invalidcourseid'] = 'You are trying to use an invalid course ID';

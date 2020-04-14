@@ -53,8 +53,8 @@ class provider implements
         // A right privacy provider will be implemented in MDL-67798.
 
         $collection->add_database_table('contentbank_content', [
-            'usercreated' => 'privacy:metadata:contentbank:usercreated',
-            'usermodified' => 'privacy:metadata:contentbank:usermodified',
+            'usercreated' => 'privacy:metadata:content:usercreated',
+            'usermodified' => 'privacy:metadata:content:usermodified',
         ], 'privacy:metadata:userid');
 
         return $collection;
