@@ -106,6 +106,7 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
 
             var contentname = $(this).data('contentname');
             var contentid = $(this).data('contentid');
+            var contextid = $(this).data('contextid');
 
             var strings = [
                 {
@@ -141,7 +142,7 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
                 modal.setSaveButtonText(deleteButtonText);
                 modal.getRoot().on(ModalEvents.save, function() {
                     // The action is now confirmed, sending an action for it.
-                    return deleteContent(contentid);
+                    return deleteContent(contentid, contextid);
                 });
 
                 // Handle hidden event.
@@ -205,7 +206,7 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
      *
      * @param {int} contentid The content to delete.
      */
-    function deleteContent(contentid) {
+    function deleteContent(contentid, contextid) {
         var request = {
             methodname: 'core_contentbank_delete_content',
             args: {
@@ -222,15 +223,13 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
             return Str.get_string('contentnotdeleted', 'core_contentbank');
 
         }).done(function(message) {
-            var params = null;
+            var params = {
+                contextid: contextid
+            };
             if (requestType == 'success') {
-                params = {
-                    statusmsg: message
-                };
+                params.statusmsg = message;
             } else {
-                params = {
-                    errormsg: message
-                };
+                params.errormsg = message;
             }
             // Redirect to the main content bank page and display the message as a notification.
             window.location.href = Url.relativeUrl('contentbank/index.php', params, false);

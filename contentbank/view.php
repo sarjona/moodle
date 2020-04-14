@@ -65,7 +65,7 @@ if (class_exists($managerlass)) {
 }
 
 if (empty($manager) || !$manager->can_access()) {
-    throw new moodle_exception('nopermissions', '', '','access this content');
+    throw new moodle_exception('nopermissions', '', '', 'access this content');
 }
 
 // Create the cog menu with all the secondary actions, such as delete, rename...
@@ -97,6 +97,7 @@ if (class_exists($pluginclass)) {
             'data-action' => 'deletecontent',
             'data-contentname' => $content->name,
             'data-contentid' => $content->id,
+            'data-contextid' => $context->id,
         ];
         $actionmenu->add_secondary_action(new action_menu_link(
             new moodle_url('#'),
