@@ -34,10 +34,6 @@ namespace contenttype_testable;
  */
 class contenttype extends \core_contentbank\contenttype {
 
-    /** The component for testing. */
-    public const COMPONENT   = 'contenttype_testable';
-
-
     /**
      * Returns the URL where the content will be visualized.
      *

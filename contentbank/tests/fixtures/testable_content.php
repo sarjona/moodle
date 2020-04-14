@@ -33,13 +33,4 @@ namespace contenttype_testable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class content extends \core_contentbank\content {
-
-    /**
-     * Fill content type.
-     *
-     * @param \stdClass $content Content object to fill and validate
-     */
-    protected static function validate_content(\stdClass &$content) {
-        $content->contenttype = contenttype::COMPONENT;
-    }
 }
