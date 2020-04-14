@@ -73,7 +73,7 @@ class external extends external_api {
 
         $name = clean_param($params['name'], PARAM_TEXT);
         $record = $DB->get_record('contentbank_content', ['id' => $params['contentid']], '*', MUST_EXIST);
-        $classname = $record->contenttype.'\\contenttype';
+        $classname = $record->contenttype.'\\content';
         $content = new $classname($record);
         return $content->set_name($name);
     }

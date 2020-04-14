@@ -2525,7 +2525,7 @@ $capabilities = array(
             'coursecreator' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
-        ]
+        )
     ],
 
     // Delete any content from the content bank.

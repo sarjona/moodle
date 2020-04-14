@@ -81,12 +81,11 @@ class contenttype extends \core_contentbank\contenttype {
      * @return string            HTML code to include in view.php.
      * @throws \coding_exception if content is not loaded previously.
      */
-    public function get_view_content(): string {
-        $fileurl = $this->get_file_url();
-        $player = new \core_h5p\player($fileurl, new \stdClass(), true, $this->get_factory());
-        $html = html_writer::tag('h2', $this->get_name());
-        $html .= $player->get_embed_code($fileurl, true);
-        $html .= $player->get_resize_code();
+    public function get_view_content(\stdClass $record): string {
+        $content = new content($record);
+        $fileurl = $content->get_file_url();
+        $html = html_writer::tag('h2', $content->get_name());
+        $html .= \core_h5p\player::display($fileurl, new \stdClass(), true);
         return $html;
     }
 
