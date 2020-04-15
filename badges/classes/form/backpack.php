@@ -54,7 +54,6 @@ class backpack extends moodleform {
         $mform->addElement('hidden', 'userid', $USER->id);
         $mform->setType('userid', PARAM_INT);
         $sitebackpack = badges_get_site_backpack($CFG->badges_site_backpack);
-
         if (isset($this->_customdata['email'])) {
             // Email will be passed in when we're in the process of verifying the user's email address,
             // so set the connection status, lock the email field, and provide options to resend the verification
@@ -88,16 +87,18 @@ class backpack extends moodleform {
             $status = html_writer::tag('span', get_string('notconnected', 'badges'),
                 array('class' => 'notconnected', 'id' => 'connection-status'));
             $mform->addElement('static', 'status', get_string('status'), $status);
-            $mform->addElement('text', 'email', get_string('email'), 'maxlength="100" size="30"');
-            $mform->addHelpButton('email', 'backpackemail', 'badges');
-            $mform->addRule('email', get_string('required'), 'required', null, 'client');
-            $mform->setType('email', PARAM_EMAIL);
-            if (badges_open_badges_backpack_api() == OPEN_BADGES_V2) {
-                $mform->addElement('passwordunmask', 'backpackpassword', get_string('password'));
-                $mform->setType('backpackpassword', PARAM_RAW);
-            } else {
-                $mform->addElement('hidden', 'backpackpassword', '');
-                $mform->setType('backpackpassword', PARAM_RAW);
+            if (badges_open_badges_backpack_api() != OPEN_BADGES_V2P1) {
+                $mform->addElement('text', 'email', get_string('email'), 'maxlength="100" size="30"');
+                $mform->addHelpButton('email', 'backpackemail', 'badges');
+                $mform->addRule('email', get_string('required'), 'required', null, 'client');
+                $mform->setType('email', PARAM_EMAIL);
+                if (badges_open_badges_backpack_api() == OPEN_BADGES_V2) {
+                    $mform->addElement('passwordunmask', 'backpackpassword', get_string('password'));
+                    $mform->setType('backpackpassword', PARAM_RAW);
+                } else {
+                    $mform->addElement('hidden', 'backpackpassword', '');
+                    $mform->setType('backpackpassword', PARAM_RAW);
+                }
             }
             $this->add_action_buttons(false, get_string('backpackconnectionconnect', 'badges'));
         }
@@ -107,7 +108,12 @@ class backpack extends moodleform {
      * Validates form data
      */
     public function validation($data, $files) {
+        global $CFG;
+
         $errors = parent::validation($data, $files);
+        if (badges_open_badges_backpack_api() == OPEN_BADGES_V2P1) {
+            return $errors;
+        }
         // We don't need to verify the email address if we're clearing a pending email verification attempt.
         if (!isset($data['revertbutton'])) {
             $check = new stdClass();

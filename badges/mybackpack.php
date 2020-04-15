@@ -56,10 +56,17 @@ $badgescache = cache::make('core', 'externalbadges');
 if ($disconnect && $backpack) {
     require_sesskey();
     $sitebackpack = badges_get_site_backpack($backpack->externalbackpackid);
-    // If backpack is connected, need to select collections.
-    $bp = new \core_badges\backpack_api($sitebackpack, $backpack);
-    $bp->disconnect_backpack($USER->id, $backpack->id);
-    redirect(new moodle_url('/badges/mybackpack.php'));
+    if ($sitebackpack->apiversion == OPEN_BADGES_V2P1) {
+        $bp = new \core_badges\backpack_api2p1($sitebackpack);
+        $bp->disconnect_backpack($backpack);
+        redirect(new moodle_url('/badges/mybackpack.php'), get_string('backpackdisconnected', 'badges'), null,
+            \core\output\notification::NOTIFY_SUCCESS);
+    } else {
+        // If backpack is connected, need to select collections.
+        $bp = new \core_badges\backpack_api($sitebackpack, $backpack);
+        $bp->disconnect_backpack($USER->id, $backpack->id);
+        redirect(new moodle_url('/badges/mybackpack.php'));
+    }
 }
 $warning = '';
 if ($backpack) {
@@ -100,6 +107,16 @@ if ($backpack) {
         $bp->set_backpack_collections($backpack->id, $groups);
         redirect(new moodle_url('/badges/mybadges.php'));
     }
+} else if (badges_open_badges_backpack_api() == OPEN_BADGES_V2P1) {
+    // If backpack is version 2.1 to redirect on the backpack site to login.
+    // User input username/email/password on the backpack site
+    // After confirm the scopes.
+    $form = new \core_badges\form\backpack(new moodle_url('/badges/mybackpack.php'));
+    if ($form->is_cancelled()) {
+        redirect(new moodle_url('/badges/mybadges.php'));
+    } else if ($data = $form->get_submitted_data()) {
+        redirect(new moodle_url('/badges/backpack-connect.php'));
+    }
 } else {
     // If backpack is not connected, need to connect first.
     // To create a new connection to the backpack, first we need to verify the user's email address:
@@ -112,6 +129,7 @@ if ($backpack) {
     // verification email, and to cancel the current verification attempt and start over.
 
     // To pass through the current state of the verification attempt to the form.
+
     $params['email'] = get_user_preferences('badges_email_verify_address');
     $params['backpackpassword'] = get_user_preferences('badges_email_verify_password');
     $params['backpackid'] = get_user_preferences('badges_email_verify_backpackid');
