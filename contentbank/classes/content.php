@@ -216,4 +216,31 @@ abstract class content {
         // but plugins can overwrite this method in case they want to check something related to content properties.
         return true;
     }
+
+
+    /**
+     * Check if the user can delete this content.
+     *
+     * @return bool True if content could be uploaded. False otherwise.
+     */
+    public function can_delete(): bool {
+        global $USER;
+
+        $context = \context::instance_by_id($this->content->contextid, MUST_EXIST);
+        $hascapability = has_capability('moodle/contentbank:deleteanycontent', $context);
+        if ($this->content->usercreated == $USER->id) {
+            // This content has been created by the current user; check if she can delete her content.
+            $hascapability = $hascapability || has_capability('moodle/contentbank:deleteowncontent', $context);
+        }
+
+        return $hascapability;
+    }
+
+    /**
+     * Clean the information related to this content.
+     * This method will be called from delete_content and should be implemented by the plugins for deleting the information
+     * related to this content when it is removed.
+     */
+    public function clean_content(): void {
+    }
 }

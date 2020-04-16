@@ -66,4 +66,40 @@ class contenttype_h5p_content_plugin_testcase extends advanced_testcase {
         $this->assertInstanceOf(\stored_file::class, $file);
         $this->assertEquals($filename, $file->get_filename());
     }
+
+    /**
+     * Test the behaviour of clean_content().
+     */
+    public function test_clean_content() {
+        global $CFG, $USER, $DB;
+
+        $this->resetAfterTest();
+        $systemcontext = context_system::instance();
+
+        // Create users.
+        $roleid = $DB->get_field('role', 'id', array('shortname' => 'manager'));
+        $manager = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->role_assign($roleid, $manager->id);
+        $this->setUser($manager);
+
+        // Add an H5P file to the content bank.
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
+        $records = $generator->generate_contentbank_data('contenttype_h5p', 1, $USER->id, $systemcontext, true, $filepath);
+        $record = array_shift($records);
+
+        // Load this H5P file though the player to create the H5P DB entries.
+        $h5pplayer = new \core_h5p\player($record->get_file_url(), new \stdClass(), true);
+        $h5pplayer->add_assets_to_page();
+        $h5pplayer->output();
+
+        // Check the H5P content has been created.
+        $this->assertEquals(1, $DB->count_records('h5p'));
+        $this->assertEquals(1, $DB->count_records('contentbank_content'));
+
+        // Check only the H5P content is removed after calling the clean_content method.
+        $record->clean_content();
+        $this->assertEquals(0, $DB->count_records('h5p'));
+        $this->assertEquals(1, $DB->count_records('contentbank_content'));
+    }
 }

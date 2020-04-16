@@ -81,6 +81,31 @@ abstract class contenttype {
     }
 
     /**
+     * Delete this content from the content_bank.
+     *
+     * @param stdClass $record  Content record compatible object to delete.
+     * @return boolean true if the content has been deleted; false otherwise.
+     */
+    public function delete_content(\stdClass $record): bool {
+        global $DB;
+
+        $classname = "\\$record->contenttype\\content";
+        if (class_exists($classname)) {
+            $content = new $classname($record);
+            // Call the clean method in order to give the chance to the plugins to clean related information.
+            $content->clean_content();
+
+            // Delete the file if it exists.
+            if ($file = $content->get_file()) {
+                $file->delete();
+            }
+        }
+
+        // Delete the contentbank DB entry.
+        return $DB->delete_records('contentbank_content', ['id' => $record->id]);
+    }
+
+    /**
      * Returns the contenttype name of this content.
      *
      * @return string   Content type of the current instance
