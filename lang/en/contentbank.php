@@ -24,6 +24,9 @@
 
 $string['author'] = 'Author';
 $string['contentdeleted'] = 'The content has been deleted.';
+$string['contentname'] = 'Content name';
+$string['contentrenamed'] = 'The content has been renamed.';
+$string['contentnotrenamed'] = 'An error was encountered while trying to rename the content.';
 $string['contentnotdeleted'] = 'An error was encountered while trying to delete the content.';
 $string['deletecontent'] = 'Delete content';
 $string['deletecontentconfirm'] = '<p>Are you sure you want to delete content <em>\'{$a->name}\'</em>? It will remove the content and all its files.</p><p>This operation can not be undone.</p>';
@@ -34,6 +37,8 @@ $string['nopermissiontodelete'] = 'You have no permissions to delete the content
 $string['privacy:metadata:userid'] = 'The ID of the user creating or modifying content bank content.';
 $string['privacy:metadata:content:usercreated'] = 'The user has created the content.';
 $string['privacy:metadata:content:usermodified'] = 'Last user has modified the content.';
+$string['rename'] = 'Rename';
+$string['renamecontent'] = 'Rename content';
 $string['timecreated'] = 'Time created';
 $string['unsupported'] = 'This content type is not supported';
 $string['upload'] = 'Upload';

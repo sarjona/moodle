@@ -24,7 +24,6 @@
 
 namespace core_contentbank;
 
-use coding_exception;
 use moodle_url;
 
 /**
@@ -39,7 +38,7 @@ abstract class contenttype {
     /** Plugin implements uploading feature */
     const CAN_UPLOAD = 'upload';
 
-    /** @var context This content's context. **/
+    /** @var context This contenttype's context. **/
     protected $context = null;
 
     /**
@@ -238,6 +237,24 @@ abstract class contenttype {
     protected function is_delete_allowed(content $content): bool {
         // Plugins can overwrite this function to add any check they need.
         return true;
+    }
+
+    /**
+     * Check if the user can edit this content.
+     *
+     * @param stdClass $record  Th content to be displayed.
+     * @return bool     True if content could be edited. False otherwise.
+     */
+    public final function can_manage(\stdClass $record): bool {
+        global $USER;
+
+        // Check main contentbank management permission.
+        $hascapability = has_capability('moodle/contentbank:manageanycontent', $this->context);
+        if ($record->usercreated == $USER->id) {
+            // This content has been created by the current user; check if they can manage their content.
+            $hascapability = $hascapability || has_capability('moodle/contentbank:manageowncontent', $this->context);
+        }
+        return $hascapability;
     }
 
     /**
