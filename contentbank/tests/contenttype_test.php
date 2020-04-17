@@ -176,7 +176,6 @@ class core_contenttype_contenttype_testcase extends \advanced_testcase {
         $this->assertInstanceOf('\\contenttype_testable\\content', $content);
     }
 
-
     /**
      * Test the behaviour of can_delete().
      */
@@ -253,5 +252,54 @@ class core_contenttype_contenttype_testcase extends \advanced_testcase {
         $this->contents[$this->user->id] = $generator->generate_contentbank_data(null, 1, $this->user->id);
 
         $this->contenttype = new \contenttype_testable\contenttype($systemcontext);
+    }
+
+    /**
+     * Test the behaviour of can_manage().
+     *
+     * @covers ::can_manage
+     */
+    public function test_can_manage() {
+        global $DB, $USER;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
+
+        // Create course and teacher user.
+        $teacherroleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $manager = $this->getDataGenerator()->create_and_enrol($course, 'manager');
+        $coursecontext = \context_course::instance($course->id);
+
+        $contenttype = new contenttype($coursecontext);
+
+        // Add some content to the content bank as admin.
+        $this->setAdminUser();
+        $recordsbyadmin = $generator->generate_contentbank_data('contenttype_testable', 1, $USER->id, $coursecontext, false);
+        $recordbyadmin = array_shift($recordsbyadmin);
+
+        // Add some content to the content bank as teacher.
+        $recordsbyteacher = $generator->generate_contentbank_data('contenttype_testable', 1, $teacher->id, $coursecontext, false);
+        $recordbyteacher = array_shift($recordsbyteacher);
+
+        // Check the content has been created as expected.
+        $records = $DB->count_records('contentbank_content');
+        $this->assertEquals(2, $records);
+
+        // Check manager can manage by default all the contents created.
+        $this->setUser($manager);
+        $this->assertTrue($contenttype->can_manage($recordbyteacher));
+        $this->assertTrue($contenttype->can_manage($recordbyadmin));
+
+        // Check teacher can only edit their own content.
+        $this->setUser($teacher);
+        $this->assertTrue($contenttype->can_manage($recordbyteacher));
+        $this->assertFalse($contenttype->can_manage($recordbyadmin));
+
+        // Unassign capability to teacher role and check they not can not edit any content.
+        unassign_capability('moodle/contentbank:manageowncontent', $teacherroleid);
+        $this->assertFalse($contenttype->can_manage($recordbyteacher));
+        $this->assertFalse($contenttype->can_manage($recordbyadmin));
     }
 }
