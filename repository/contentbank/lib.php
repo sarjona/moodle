@@ -42,7 +42,7 @@ class repository_contentbank extends repository {
     public function get_listing($encodedpath = '', $page = '') {
         $ret = array();
         $ret['dynload'] = true;
-        $ret['nosearch'] = true;
+        $ret['nosearch'] = false;
         $ret['nologin'] = true;
 
         // Return the parameters from the encoded path if the encoded path is not empty.
@@ -133,5 +133,32 @@ class repository_contentbank extends repository {
         }
 
         return false;
+    }
+
+    /**
+     * Return search results.
+     *
+     * @param string $search
+     * @param int $page
+     * @return array
+     */
+    public function search($search, $page = 0) {
+        $ret = array();
+        $ret['dynload'] = true;
+        $ret['nologin'] = true;
+
+        $cb = new \core_contentbank\contentbank();
+        // Return all content bank files in the current context that match the search criteria.
+        $contents = $cb->search_contents($search);
+        $ret['list'] = array_reduce($contents, function($list, $content) {
+            $contentcontext = \context::instance_by_id($content->get_content()->contextid);
+            if (\repository_contentbank\helper::can_access_contentbank_context($contentcontext) &&
+                    $content->can_view() && $file = $content->get_file()) {
+                $list[] = \repository_contentbank\helper::create_contentbank_file_node($file);
+            }
+            return $list;
+        }, []);
+
+        return $ret;
     }
 }
