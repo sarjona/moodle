@@ -29,6 +29,7 @@ $string['deletecontent'] = 'Delete content';
 $string['deletecontentconfirm'] = '<p>Are you sure you want to delete content <em>\'{$a->name}\'</em>? It will remove the content and all its files.</p><p>This operation can not be undone.</p>';
 $string['file'] = 'Upload content';
 $string['file_help'] = 'Files may be stored in the content bank for use in courses. Only files used by content types enabled on the site may be uploaded.';
+$string['itemsfound'] = '{$a} items found';
 $string['name'] = 'Content';
 $string['nopermissiontodelete'] = 'You have no permissions to delete the content.';
 $string['privacy:metadata:userid'] = 'The ID of the user creating or modifying content bank content.';
