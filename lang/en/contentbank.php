@@ -32,6 +32,7 @@ $string['deletecontent'] = 'Delete content';
 $string['deletecontentconfirm'] = 'Are you sure you want to delete the content <em>\'{$a->name}\'</em> and all associated files? This action cannot be undone.';
 $string['file'] = 'Upload content';
 $string['file_help'] = 'Files may be stored in the content bank for use in courses. Only files used by content types enabled on the site may be uploaded.';
+$string['itemsfound'] = '{$a} items found';
 $string['name'] = 'Content';
 $string['nopermissiontodelete'] = 'You do not have permission to delete content.';
 $string['nopermissiontomanage'] = 'You do not have permission to manage content.';
