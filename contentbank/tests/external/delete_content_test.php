@@ -51,33 +51,62 @@ class delete_content_testcase extends externallib_advanced_testcase {
     public function test_delete_content() {
         global $DB;
         $this->resetAfterTest();
+        $records = [];
 
         // Create users.
+        $user = $this->getDataGenerator()->create_user();
         $roleid = $DB->get_field('role', 'id', array('shortname' => 'manager'));
         $manager = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->role_assign($roleid, $manager->id);
-        $this->setUser($manager);
 
-        // Add some content to the content bank as manager.
+        // Add some content to the content bank.
         $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
-        $records = $generator->generate_contentbank_data('contenttype_testable', 2, $manager->id, null, false);
-        $record = array_shift($records);
+        $records[$manager->id] = $generator->generate_contentbank_data('contenttype_testable', 4, $manager->id, null, false);
+        $records[$user->id] = $generator->generate_contentbank_data('contenttype_testable', 2, $user->id, null, false);
 
         // Check the content has been created as expected.
+        $this->assertEquals(6, $DB->count_records('contentbank_content'));
+
+        // Check the content is deleted as expected by the user when the content has been created by herself.
+        $this->setUser($user);
+        $userrecord = array_shift($records[$user->id]);
+        $result = delete_content::execute([$userrecord->id]);
+        $result = external_api::clean_returnvalue(delete_content::execute_returns(), $result);
+        $this->assertTrue($result['result']);
+        $this->assertCount(0, $result['warnings']);
+        $this->assertEquals(5, $DB->count_records('contentbank_content'));
+
+        // Check the content is not deleted if the user hasn't created it and has only permission to delete her own content.
+        $userrecord = array_shift($records[$user->id]);
+        $managerrecord1 = array_shift($records[$manager->id]);
+        $result = delete_content::execute([$managerrecord1->id, $userrecord->id]);
+        $result = external_api::clean_returnvalue(delete_content::execute_returns(), $result);
+        $this->assertFalse($result['result']);
+        $this->assertCount(1, $result['warnings']);
+        $warning = array_shift($result['warnings']);
+        $this->assertEquals('nopermissiontodelete', $warning['warningcode']);
+        $this->assertEquals($managerrecord1->id, $warning['item']);
+        $this->assertEquals(4, $DB->count_records('contentbank_content'));
+
+        // Check the content is deleted as expected by the manager.
+        $this->setUser($manager);
+        $managerrecord2 = array_shift($records[$manager->id]);
+        $result = delete_content::execute([$managerrecord1->id, $managerrecord2->id]);
+        $result = external_api::clean_returnvalue(delete_content::execute_returns(), $result);
+        $this->assertTrue($result['result']);
+        $this->assertCount(0, $result['warnings']);
         $this->assertEquals(2, $DB->count_records('contentbank_content'));
 
-        // Call the WS and check the content is deleted as expected.
-        $result = delete_content::execute($record->id);
+        // Check an exception warning is returned if an unexisting contentid is deleted.
+        // Check also the other content is deleted (so the process continues after the exception is thrown).
+        $managerrecord3 = array_shift($records[$manager->id]);
+        $result = delete_content::execute([$managerrecord1->id, $managerrecord3->id]);
         $result = external_api::clean_returnvalue(delete_content::execute_returns(), $result);
-        $this->assertTrue($result);
-        $this->assertEquals(1, $DB->count_records('contentbank_content'));
-
-        // Call the WS using an unexisting contentid and check the content is deleted as expected.
-        $record = array_shift($records);
-        $this->expectException(dml_missing_record_exception::class);
-        $result = delete_content::execute($record->id + 1);
-        $result = external_api::clean_returnvalue(delete_content::execute_returns(), $result);
-        $this->assertFalse($result);
+        $this->assertFalse($result['result']);
+        $this->assertCount(1, $result['warnings']);
+        $warning = array_shift($result['warnings']);
+        $this->assertEquals('exception', $warning['warningcode']);
+        $this->assertEquals($managerrecord1->id, $warning['item']);
         $this->assertEquals(1, $DB->count_records('contentbank_content'));
     }
 }

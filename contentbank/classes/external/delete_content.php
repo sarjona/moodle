@@ -32,7 +32,10 @@ require_once($CFG->libdir . '/externallib.php');
 
 use external_api;
 use external_function_parameters;
+use external_multiple_structure;
+use external_single_structure;
 use external_value;
+use external_warnings;
 
 /**
  * This is the external method for deleting a content.
@@ -47,44 +50,84 @@ class delete_content extends external_api {
      * @return external_function_parameters
      */
     public static function execute_parameters(): external_function_parameters {
-        return new external_function_parameters(
-            [
-                'contentid' => new external_value(PARAM_INT, 'The content id to delete', VALUE_REQUIRED),
-            ]
-        );
+        return new external_function_parameters([
+            'contentids' => new external_multiple_structure(
+                new external_value(PARAM_INT, 'The content id to delete', VALUE_REQUIRED)
+            )
+        ]);
     }
 
     /**
      * Delete content from the contentbank.
      *
-     * @param  int $contentid The content id to delete.
-     * @return boolean True if the content has been deleted; false otherwise.
-     * @throws \dml_missing_record_exception if there isn't any content with this identifier.
+     * @param  array $contentids List of content ids to delete.
+     * @return array True if the content has been deleted; false and the warning, otherwise.
      */
-    public static function execute(int $contentid): bool {
+    public static function execute(array $contentids): array {
         global $DB;
 
-        $params = external_api::validate_parameters(self::execute_parameters(), [
-            'contentid' => $contentid
-        ]);
+        $result = false;
+        $warnings = [];
 
-        $content = $DB->get_record('contentbank_content', ['id' => $contentid], '*', MUST_EXIST);
-        $contenttypeclass = "\\$content->contenttype\\contenttype";
-        if (class_exists($contenttypeclass)) {
-            $context = \context::instance_by_id($content->contextid, MUST_EXIST);
-            $contenttypemanager = new $contenttypeclass($context);
-            return $contenttypemanager->delete_content($content);
+        $params = self::validate_parameters(self::execute_parameters(), ['contentids' => $contentids]);
+        foreach ($params['contentids'] as $contentid) {
+            try {
+                $record = $DB->get_record('contentbank_content', ['id' => $contentid], '*', MUST_EXIST);
+                $contenttypeclass = "\\$record->contenttype\\contenttype";
+                if (class_exists($contenttypeclass)) {
+                    $context = \context::instance_by_id($record->contextid, MUST_EXIST);
+                    self::validate_context($context);
+                    $contenttype = new $contenttypeclass($context);
+                    $contentclass = "\\$record->contenttype\\content";
+                    $content = new $contentclass($record);
+                    // Check capability.
+                    if ($contenttype->can_delete($content)) {
+                        // This content can be deleted.
+                        if (!$contenttype->delete_content($content)) {
+                            $warnings[] = [
+                                'item' => $contentid,
+                                'warningcode' => 'contentnotdeleted',
+                                'message' => get_string('contentnotdeleted', 'core_contentbank')
+                            ];
+                        }
+                    } else {
+                        // The user has no permission to delete this content.
+                        $warnings[] = [
+                            'item' => $contentid,
+                            'warningcode' => 'nopermissiontodelete',
+                            'message' => get_string('nopermissiontodelete', 'core_contentbank')
+                        ];
+                    }
+                }
+            } catch (\moodle_exception $e) {
+                // The content or the context don't exist.
+                $warnings[] = [
+                    'item' => $contentid,
+                    'warningcode' => 'exception',
+                    'message' => $e->getMessage()
+                ];
+            }
         }
 
-        return false;
+        if (empty($warnings)) {
+            $result = true;
+        }
+
+        return [
+            'result' => $result,
+            'warnings' => $warnings
+        ];
     }
 
     /**
      * Return.
      *
-     * @return external_value
+     * @return external_single_structure
      */
-    public static function execute_returns(): external_value {
-        return new external_value(PARAM_BOOL, 'The success');
+    public static function execute_returns(): external_single_structure {
+        return new external_single_structure([
+            'result' => new external_value(PARAM_BOOL, 'The processing result'),
+            'warnings' => new external_warnings()
+        ]);
     }
 }
