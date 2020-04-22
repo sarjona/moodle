@@ -120,13 +120,13 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
         var request = {
             methodname: 'core_contentbank_delete_content',
             args: {
-                contentid: contentid
+                contentids: {contentid}
             }
         };
 
         var requestType = 'success';
         Ajax.call([request])[0].then(function(data) {
-            if (data) {
+            if (data['result']) {
                 return Str.get_string('contentdeleted', 'core_contentbank');
             }
             requestType = 'error';
@@ -150,7 +150,7 @@ function($, Ajax, Notification, Str, Templates, Url, ModalFactory, ModalEvents) 
         // Public variables and functions.
 
         /**
-         * Initialise the unified user filter.
+         * Initialise the contentbank actions.
          *
          * @method init
          * @return {Actions}

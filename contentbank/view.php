@@ -56,9 +56,11 @@ $title .= ": ".$record->name;
 $PAGE->set_title($title);
 $PAGE->set_pagetype('contenbank');
 
+$contenttypeclass = "\\$record->contenttype\\contenttype";
+$contenttype = new $contenttypeclass($context);
 $contentclass = "\\$record->contenttype\\content";
 $content = new $contentclass($record);
-if ($content->can_delete()) {
+if ($contenttype->can_delete($content)) {
     // Create the cog menu with all the secondary actions, such as delete, rename...
     $actionmenu = new action_menu();
     $actionmenu->set_alignment(action_menu::TR, action_menu::BR);
@@ -88,12 +90,8 @@ if ($content->can_delete()) {
 echo $OUTPUT->header();
 echo $OUTPUT->box_start('generalbox');
 
-$managerlass = "\\$record->contenttype\\contenttype";
-if (class_exists($managerlass)) {
-    $manager = new $managerlass($context);
-    if ($manager->can_access()) {
-        echo $manager->get_view_content($record);
-    }
+if ($contenttype->can_access()) {
+    echo $contenttype->get_view_content($record);
 }
 
 echo $OUTPUT->box_end();
