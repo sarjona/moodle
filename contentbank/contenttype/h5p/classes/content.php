@@ -36,12 +36,4 @@ use html_writer;
  */
 class content extends \core_contentbank\content {
 
-    /**
-     * Delete information related to this content.
-     */
-    public function clean_content(): void {
-        $factory = new \core_h5p\factory();
-        // Delete the H5P content.
-        \core_h5p\api::delete_content_from_pluginfile_url($this->get_file_url(), $factory);
-    }
 }

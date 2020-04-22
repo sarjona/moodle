@@ -82,27 +82,21 @@ abstract class contenttype {
 
     /**
      * Delete this content from the content_bank.
+     * This method can be overwritten by the plugins if they need to delete specific information.
      *
-     * @param stdClass $record  Content record compatible object to delete.
+     * @param  content $content The content to delete.
      * @return boolean true if the content has been deleted; false otherwise.
      */
-    public function delete_content(\stdClass $record): bool {
+    public function delete_content(content $content): bool {
         global $DB;
 
-        $classname = "\\$record->contenttype\\content";
-        if (class_exists($classname)) {
-            $content = new $classname($record);
-            // Call the clean method in order to give the chance to the plugins to clean related information.
-            $content->clean_content();
-
-            // Delete the file if it exists.
-            if ($file = $content->get_file()) {
-                $file->delete();
-            }
+        // Delete the file if it exists.
+        if ($file = $content->get_file()) {
+            $file->delete();
         }
 
         // Delete the contentbank DB entry.
-        return $DB->delete_records('contentbank_content', ['id' => $record->id]);
+        return $DB->delete_records('contentbank_content', ['id' => $content->get_id()]);
     }
 
     /**
@@ -208,6 +202,40 @@ abstract class contenttype {
      * @return bool     True if plugin allows uploading. False otherwise.
      */
     protected function is_upload_allowed(): bool {
+        // Plugins can overwrite this function to add any check they need.
+        return true;
+    }
+
+    /**
+     * Check if the user can delete this content.
+     *
+     * @param  content $content The content to be deleted.
+     * @return bool True if content could be uploaded. False otherwise.
+     */
+    final public function can_delete(content $content): bool {
+        global $USER;
+
+        if ($this->context->id != $content->get_content()->contextid) {
+            // The content has to have exactly the same context as this contenttype.
+            return false;
+        }
+
+        $hascapability = has_capability('moodle/contentbank:deleteanycontent', $this->context);
+        if ($content->get_content()->usercreated == $USER->id) {
+            // This content has been created by the current user; check if she can delete her content.
+            $hascapability = $hascapability || has_capability('moodle/contentbank:deleteowncontent', $this->context);
+        }
+
+        return $hascapability && $this->is_delete_allowed($content);
+    }
+
+    /**
+     * Returns if content allows deleting.
+     *
+     * @param  content $content The content to be deleted.
+     * @return bool True if content allows uploading. False otherwise.
+     */
+    protected function is_delete_allowed(content $content): bool {
         // Plugins can overwrite this function to add any check they need.
         return true;
     }
