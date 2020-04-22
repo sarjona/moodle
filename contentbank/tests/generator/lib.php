@@ -54,15 +54,15 @@ class core_contentbank_generator extends \component_generator_base {
         $records = [];
 
         $contenttype = $contenttype ?? 'contenttype_testable';
-        $managerclass = "\\$contenttype\\contenttype";
-        if (!class_exists($managerclass)) {
+        $contenttypeclass = "\\$contenttype\\contenttype";
+        if (!class_exists($contenttypeclass)) {
             // Early return with empty array because the contenttype doesn't exist.
             return $records;
         }
         if (empty($context)) {
             $context = \context_system::instance();
         }
-        $type = new $managerclass($context);
+        $type = new $contenttypeclass($context);
         $fs = get_file_storage();
         for ($i = 0; $i < $itemstocreate; $i++) {
             // Create content.
