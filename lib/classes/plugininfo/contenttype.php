@@ -187,13 +187,15 @@ class contenttype extends base {
     public function uninstall_cleanup() {
         global $DB;
 
-        $contents = $DB->get_records('contentbank_content', ['contenttype' => 'contenttype_'.$this->name]);
+        $records = $DB->get_records('contentbank_content', ['contenttype' => 'contenttype_'.$this->name]);
         $contenttypename = 'contenttype_'.$this->name;
         $contenttypeclass = "\\$contenttypename\\contenttype";
-        foreach ($contents as $content) {
-            $context = \context::instance_by_id($content->contextid, MUST_EXIST);
-            $contenttypemanager = new $contenttypeclass($context);
-            $contenttypemanager->delete_content($content);
+        foreach ($records as $record) {
+            $context = \context::instance_by_id($record->contextid, MUST_EXIST);
+            $contenttype = new $contenttypeclass($context);
+            $contentclass = "\\$contenttypename\\content";
+            $content = new $contentclass($record);
+            $contenttype->delete_content($content);
         }
 
         parent::uninstall_cleanup();
