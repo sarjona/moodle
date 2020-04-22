@@ -54,6 +54,10 @@ class behat_core_generator extends behat_generator_base {
                 'required' => ['shortname'],
                 'switchids' => ['category' => 'category'],
             ],
+            'contentbank contents' => [
+                'datagenerator' => 'contentbank_content',
+                'required' => ['name', 'contenttype', 'contextid'],
+            ],
             'groups' => [
                 'datagenerator' => 'group',
                 'required' => ['idnumber', 'course'],
@@ -815,5 +819,19 @@ class behat_core_generator extends behat_generator_base {
      */
     protected function process_user_preferences(array $data) {
         set_user_preference($data['preference'], $data['value'], $data['userid']);
+    }
+
+    /**
+     * Creates a contentbank content.
+     *
+     * @param array $data The row of data from the behat script.
+     */
+    protected function process_contentbank_content(array $data): void {
+        $classname = '\\' . $data['contenttype'] . '\\contenttype';
+        if (class_exists($classname)) {
+            $context = \context::instance_by_id($data['contextid'], MUST_EXIST);
+            $contenttype = new $classname($context);
+            $content = $contenttype->create_content((object) $data);
+        }
     }
 }
