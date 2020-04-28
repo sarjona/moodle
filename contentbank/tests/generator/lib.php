@@ -22,10 +22,9 @@
  * @copyright  2020 Sara Arjona <sara@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
-
 global $CFG;
 require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_contenttype.php');
+require_once($CFG->dirroot . '/contentbank/tests/fixtures/testable_content.php');
 
 /**
  * Generator for the core_contentbank subsystem.

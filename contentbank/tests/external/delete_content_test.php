@@ -24,9 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace core_contentbank;
-
-defined('MOODLE_INTERNAL') || die();
+namespace core_contentbank\external;
 
 global $CFG;
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
