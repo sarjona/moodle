@@ -128,6 +128,14 @@ abstract class content {
         if (!$updated) {
             $this->content->name = $oldname;
         }
+
+        if ($this->get_file()) {
+            $ext = pathinfo($this->get_file()->get_filename(), PATHINFO_EXTENSION);
+            // TODO: check if there is a better way to add the extension to the filename.
+            $newfilename = core_text::substr($name, 0, 254 - strlen($ext)) . '.' . $ext;
+            $this->get_file()->rename($this->get_file()->get_filepath(), $newfilename);
+        }
+
         return $updated;
     }
 
