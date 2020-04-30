@@ -855,4 +855,39 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $badge->delete_alignment($alignments1[$newid2]->id);
         $this->assertCount(1, $badge->get_alignments());
     }
+
+    /**
+     * Test badges_delete_site_backpack().
+     *
+     */
+    public function test_badges_delete_site_backpack(): void {
+        global $DB;
+
+        $this->setAdminUser();
+
+        // Create one backpack.
+        $total = $DB->count_records('badge_external_backpack');
+        $this->assertEquals(1, $total);
+
+        $data = new \stdClass();
+        $data->apiversion = OPEN_BADGES_V2P1;
+        $data->backpackapiurl = 'https://dc.imsglobal.org/obchost/ims/ob/v2p1';
+        $data->backpackweburl = 'https://dc.imsglobal.org';
+        badges_create_site_backpack($data);
+        $backpack = $DB->get_record('badge_external_backpack', ['backpackweburl' => $data->backpackweburl]);
+
+        $total = $DB->count_records('badge_external_backpack');
+        $this->assertEquals(2, $total);
+
+        // Remove the backpack created previously.
+        $result = badges_delete_site_backpack($backpack->id);
+        $this->assertTrue($result);
+
+        $total = $DB->count_records('badge_external_backpack');
+        $this->assertEquals(1, $total);
+
+        // Try to remove an unexisting backpack.
+        $result = badges_delete_site_backpack($backpack->id);
+        $this->assertFalse($result);
+    }
 }

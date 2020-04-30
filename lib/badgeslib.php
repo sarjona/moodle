@@ -810,6 +810,42 @@ function badges_update_site_backpack($id, $data) {
     return false;
 }
 
+
+/**
+ * Delete the backpack with this id.
+ *
+ * @param integer $id The backpack to delete.
+ * @return boolean
+ */
+function badges_delete_site_backpack($id) {
+    global $DB, $CFG;
+
+    $context = context_system::instance();
+    require_capability('moodle/badges:manageglobalsettings', $context);
+
+    // Only remove site backpack if it's not the default one.
+    if ($CFG->badges_site_backpack != $id && $DB->record_exists('badge_external_backpack', ['id' => $id])) {
+        // Remove connections for users to this backpack.
+        $sql = "SELECT DISTINCT bb.id
+                  FROM {badge_backpack} bb
+             LEFT JOIN {badge_external} be ON be. backpackid = bb.externalbackpackid
+                 WHERE bb.externalbackpackid = :backpackid";
+        $params = ['backpackid' => $id];
+        $externalbackpacks = $DB->get_fieldset_sql($sql, $params);
+        if ($externalbackpacks) {
+            list($sql, $params) = $DB->get_in_or_equal($externalbackpacks);
+            // Delete user external collections references to this backpack.
+            $DB->execute("DELETE FROM {badge_external} WHERE backpackid " . $sql, $params);
+        }
+        $DB->delete_records('badge_backpack', ['externalbackpackid' => $id]);
+
+        // Delete backpack entry.
+        return $DB->delete_records('badge_external_backpack', ['id' => $id]);
+    }
+
+    return false;
+}
+
 /**
  * Is any backpack enabled that supports open badges V1?
  * @return boolean
