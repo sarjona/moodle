@@ -129,4 +129,45 @@ class helper {
             'name' => $context->get_context_name(false)
         ];
     }
+
+
+    /**
+     * Create the content bank file node.
+     *
+     * @param \stored_file $file The stored file
+     * @return array The content bank file node
+     */
+    public static function create_contentbank_file_node(\stored_file $file): array {
+        global $OUTPUT;
+
+        $params = array(
+            'contextid' => $file->get_contextid(),
+            'component' => $file->get_component(),
+            'filearea'  => $file->get_filearea(),
+            'itemid'    => $file->get_itemid(),
+            'filepath'  => $file->get_filepath(),
+            'filename'  => $file->get_filename()
+        );
+
+        $encodedpath = base64_encode(json_encode($params));
+
+        $node = array(
+            'title' => $file->get_filename(),
+            'size' => $file->get_filesize(),
+            'datemodified' => $file->get_timemodified(),
+            'datecreated' => $file->get_timecreated(),
+            'author' => $file->get_author(),
+            'license' => $file->get_license(),
+            'isref' => $file->is_external_file(),
+            'source' => $encodedpath,
+            'icon' => $OUTPUT->image_url(file_file_icon($file, 24))->out(false),
+            'thumbnail' => $OUTPUT->image_url(file_file_icon($file, 90))->out(false)
+        );
+
+        if ($file->get_status() == 666) {
+            $node['originalmissing'] = true;
+        }
+
+        return $node;
+    }
 }

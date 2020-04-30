@@ -154,9 +154,8 @@ abstract class contentbank_browser {
         // Return all content bank content nodes from the current context which can be accessed by the user following the
         // defined conditions in can_access_content().
         return array_reduce($contents, function($list, $content) {
-            if ($this->can_access_content() &&
-                    $contentnode = \repository_contentbank\helper::create_contentbank_content_node($content)) {
-                $list[] = $contentnode;
+            if ($this->can_access_content() && $file = $content->get_file()) {
+                $list[] = \repository_contentbank\helper::create_contentbank_file_node($file);
             }
             return $list;
         }, []);
