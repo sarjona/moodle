@@ -2306,7 +2306,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2020041700.01);
     }
 
-    if ($oldversion < 2020042800.00) {
+    if ($oldversion < 2020042800.01) {
         // Define table badge_backpack_oauth2 to be created.
         $table = new xmldb_table('badge_backpack_oauth2');
 
@@ -2357,7 +2357,7 @@ function xmldb_main_upgrade($oldversion) {
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2020042800.00);
+        upgrade_main_savepoint(true, 2020042800.01);
     }
 
     return true;
