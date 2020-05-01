@@ -558,7 +558,7 @@ function badges_bake($hash, $badgeid, $userid = 0, $pathhash = false) {
  * @return null|object Returns null is there is no backpack or object with backpack settings.
  */
 function get_backpack_settings($userid, $refresh = false) {
-    global $DB, $CFG;
+    global $DB;
 
     // Try to get badges from cache first.
     $badgescache = cache::make('core', 'externalbadges');
