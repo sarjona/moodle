@@ -8,7 +8,7 @@ Feature: Backpack badges
     Given the following "badge external backpack" exist:
       | backpackapiurl                               | backpackweburl           | apiversion |
       | https://dc.imsglobal.org/obchost/ims/ob/v2p1 | https://dc.imsglobal.org | 2.1          |
-    Given the following "users" exist:
+    And the following "users" exist:
       | username | firstname | lastname | email                |
       | student1 | Student   | 1        | student1@example.com |
 
@@ -16,7 +16,7 @@ Feature: Backpack badges
   Scenario: Verify backback settings
     Given I am on homepage
     And I log in as "admin"
-    Given I navigate to "Badges > Backpack settings" in site administration
+    And I navigate to "Badges > Backpack settings" in site administration
     And I set the following fields to these values:
       | External backpack connection | 1                        |
       | Active external backpack     | https://dc.imsglobal.org |
@@ -43,10 +43,9 @@ Feature: Backpack badges
     And I set the field "potentialrecipients[]" to "Student 1 (student1@example.com)"
     And I press "Award badge"
     And I log out
-    Given I am on homepage
+    When I am on homepage
     And I log in as "student1"
-    And I click on "[id='action-menu-toggle-1']" "css_element"
-    And I click on "[data-title='preferences,moodle']" "css_element"
+    And I follow "Preferences" in the user menu
     And I follow "Backpack settings"
     Then I should see "https://dc.imsglobal.org"
     And I should see "Not connected"
@@ -82,16 +81,14 @@ Feature: Backpack badges
     And I set the field "potentialrecipients[]" to "Student 1 (student1@example.com)"
     And I press "Award badge"
     And I log out
-    Given the following "setup backpack connected" exist:
+    And the following "setup backpack connected" exist:
       | user     | externalbackpack         |
       | student1 | https://dc.imsglobal.org |
-    And I log in as "student1"
-    And I click on "[id='action-menu-toggle-1']" "css_element"
-    And I click on "[data-title='preferences,moodle']" "css_element"
-    And I follow "Manage badges"
-    And I should see "Test badge verify backpack"
-    Then "i.icon[title='Add to backpack']" "css_element" should exist in the "ul.badges li:first-child" "css_element"
-    And I click on "[id='action-menu-toggle-1']" "css_element"
-    And I click on "[data-title='preferences,moodle']" "css_element"
+    When I log in as "student1"
+    And I follow "Preferences" in the user menu
     And I follow "Backpack settings"
     Then I should see "Connected"
+    And I follow "Preferences" in the user menu
+    And I follow "Manage badges"
+    And I should see "Test badge verify backpack"
+    And "Add to backpack" "link" should exist
