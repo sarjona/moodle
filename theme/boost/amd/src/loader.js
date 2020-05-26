@@ -44,6 +44,7 @@ export {
  * Bootstrap init function
  */
 const init = () => {
+    M.util.js_pending('core/loader:init');
     rememberTabs();
 
     enablePopovers();
@@ -57,6 +58,7 @@ const init = () => {
     $.fn.dropdown.Constructor.Default.flip = false;
 
     Aria.init();
+    M.util.js_complete('core/loader:init');
 };
 
 /**
