@@ -61,23 +61,25 @@ class tour extends external_api {
         $context = \context_helper::instance_by_id($params['context']);
         self::validate_context($context);
 
+        // Initialize an empty tourconfig, which will be returned if this tour shouldn't be displayed to the user.
+        $tourconfig = ['name' => '', 'steps' => []];
         $tour = tourinstance::instance($params['tourid']);
-        if (!$tour->should_show_for_user()) {
-            return [];
+        if ($tour->should_show_for_user()) {
+            $touroutput = new \tool_usertours\output\tour($tour);
+
+            \tool_usertours\event\tour_started::create([
+                'contextid' => $context->id,
+                'objectid'  => $params['tourid'],
+                'other'     => [
+                    'pageurl' => $params['pageurl'],
+                ],
+            ])->trigger();
+
+            $tourconfig = $touroutput->export_for_template($PAGE->get_renderer('core'));
         }
 
-        $touroutput = new \tool_usertours\output\tour($tour);
-
-        \tool_usertours\event\tour_started::create([
-            'contextid' => $context->id,
-            'objectid'  => $tourid,
-            'other'     => [
-                'pageurl' => $pageurl,
-            ],
-        ])->trigger();
-
         return [
-            'tourconfig' => $touroutput->export_for_template($PAGE->get_renderer('core')),
+            'tourconfig' => $tourconfig,
         ];
     }
 

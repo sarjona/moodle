@@ -69,6 +69,11 @@ function(ajax, BootstrapTour, $, templates, str, log, notification) {
                 templates.render('tool_usertours/tourstep', {})
             )
             .then(function(response, template) {
+                if (response.tourconfig.name == '' && response.tourconfig.steps.length == 0) {
+                    // If tourconfig is empty, it shouldn't be displayed.
+                    return;
+                }
+
                 return usertours.startBootstrapTour(tourId, template[0], response.tourconfig);
             })
             .always(function() {
