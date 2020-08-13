@@ -74,6 +74,31 @@ class contenttype extends \core_contentbank\contenttype {
     }
 
     /**
+     * Returns the URL to download the content.
+     *
+     * @since  Moodle 3.10
+     * @param  content $content The content to be downloaded.
+     * @return string           URL with the content to download.
+     */
+    public function get_download_url(\core_contentbank\content $content): string {
+        $downloadurl = '';
+        $file = $content->get_file();
+        if (!empty($file)) {
+            $url  = \moodle_url::make_pluginfile_url(
+                $file->get_contextid(),
+                $file->get_component(),
+                $file->get_filearea(),
+                $file->get_itemid(),
+                $file->get_filepath(),
+                $file->get_filename()
+            );
+            $downloadurl = $url->out(false);
+        }
+
+        return $downloadurl;
+    }
+
+    /**
      * Returns the HTML code to render the icon for H5P content types.
      *
      * @param  content $content The content to be displayed.
@@ -110,7 +135,7 @@ class contenttype extends \core_contentbank\contenttype {
      * @return array
      */
     protected function get_implemented_features(): array {
-        return [self::CAN_UPLOAD, self::CAN_EDIT];
+        return [self::CAN_UPLOAD, self::CAN_EDIT, self::CAN_DOWNLOAD];
     }
 
     /**

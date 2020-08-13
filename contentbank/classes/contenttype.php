@@ -44,6 +44,11 @@ abstract class contenttype {
     /** Plugin implements edition feature */
     const CAN_EDIT = 'edit';
 
+    /** Plugin implements download feature
+     *  @since  Moodle 3.10
+    */
+    const CAN_DOWNLOAD = 'download';
+
     /** @var \context This contenttype's context. **/
     protected $context = null;
 
@@ -192,6 +197,17 @@ abstract class contenttype {
         $event = contentbank_content_viewed::create_from_record($content->get_content());
         $event->trigger();
 
+        return '';
+    }
+
+    /**
+     * Returns the URL to download the content.
+     *
+     * @since  Moodle 3.10
+     * @param  content $content The content to be downloaded.
+     * @return string           URL with the content to download.
+     */
+    public function get_download_url(content $content): string {
         return '';
     }
 
@@ -363,6 +379,38 @@ abstract class contenttype {
      * @return bool     True if plugin allows edition. False otherwise.
      */
     protected function is_edit_allowed(?content $content): bool {
+        // Plugins can overwrite this function to add any check they need.
+        return true;
+    }
+
+    /**
+     * Returns whether or not the user has permission to download the content.
+     *
+     * @since  Moodle 3.10
+     * @param  content $content The content to be downloaded.
+     * @return bool    True if the user can download the content. False otherwise.
+     */
+    final public function can_download(content $content): bool {
+        if (!$this->is_feature_supported(self::CAN_DOWNLOAD)) {
+            return false;
+        }
+
+        if (!$this->can_access()) {
+            return false;
+        }
+
+        $hascapability = has_capability('moodle/contentbank:downloadcontent', $this->context);
+        return $hascapability && $this->is_download_allowed($content);
+    }
+
+    /**
+     * Returns plugin allows downloading.
+     *
+     * @since  Moodle 3.10
+     * @param  content $content The content to be downloaed.
+     * @return bool    True if plugin allows downloading. False otherwise.
+     */
+    protected function is_download_allowed(content $content): bool {
         // Plugins can overwrite this function to add any check they need.
         return true;
     }
