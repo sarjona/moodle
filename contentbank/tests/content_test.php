@@ -113,6 +113,14 @@ class core_contenttype_content_testcase extends \advanced_testcase {
         $content = $contenttype->create_content($record);
         $this->assertEquals($oldname, $content->get_name());
 
+        // Check when $shouldbeupdated is set to false, DB is not updated.
+        $content->set_name($newname, false);
+        $this->assertEquals($expected, $content->get_name());
+
+        $record = $DB->get_record('contentbank_content', ['id' => $content->get_id()]);
+        $this->assertEquals($oldname, $record->name);
+
+        // Check when $shouldbeupdated is empty (so default to true value is used), DB is updated.
         $content->set_name($newname);
         $this->assertEquals($expected, $content->get_name());
 

@@ -66,4 +66,72 @@ class contenttype_h5p_content_plugin_testcase extends advanced_testcase {
         $this->assertInstanceOf(\stored_file::class, $file);
         $this->assertEquals($filename, $file->get_filename());
     }
+
+
+    /**
+     * Data provider for test_set_name.
+     *
+     * @return  array
+     */
+    public function set_name_provider() {
+        return [
+            'Standard name' => ['New name', 'New name'],
+            'Name with tags' => ['This is <b>bold</b>', 'This is bold'],
+            'Too long name' => [str_repeat('a', 300), str_repeat('a', 255)],
+        ];
+    }
+
+    /**
+     * Tests for 'set_name' behaviour.
+     *
+     * @dataProvider  set_name_provider
+     * @param  string $newname         The name to set.
+     * @param  string $expected        The name result.
+     *
+     * @covers ::set_name
+     */
+    public function test_set_name(string $newname, string $expected) {
+        global $DB, $CFG;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $oldname = 'Geography';
+        $context = context_system::instance();
+
+        // Add an H5P file to the content bank.
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
+        $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
+        $contents = $generator->generate_contentbank_data('contenttype_h5p', 1, 0, $context, true, $filepath, $oldname);
+        $content = array_shift($contents);
+
+        // Deploy the content through the player to create the H5P DB entries.
+        $h5pplayer = new \core_h5p\player($content->get_file_url(), new \stdClass(), true);
+        $h5pplayer->add_assets_to_page();
+        $h5pplayer->output();
+
+        // Check the content title has the expected value.
+        $this->assertEquals($oldname, $content->get_name());
+        $h5p = \core_h5p\api::get_content_from_pathnamehash($content->get_file()->get_pathnamehash());
+        $jsoncontent = json_decode($h5p->jsoncontent);
+        $this->assertEquals($oldname, $jsoncontent->title);
+
+        // Check when $shouldbeupdated is set to false, DB is not updated.
+        $content->set_name($newname, false);
+        $this->assertEquals($expected, $content->get_name());
+        $record = $DB->get_record('contentbank_content', ['id' => $content->get_id()]);
+        $h5p = \core_h5p\api::get_content_from_pathnamehash($content->get_file()->get_pathnamehash());
+        $jsoncontent = json_decode($h5p->jsoncontent);
+        $this->assertEquals($oldname, $record->name);
+        $this->assertEquals($oldname, $jsoncontent->title);
+
+        // Check when $shouldbeupdated is empty (so default true value used), DB is updated properly.
+        $content->set_name($newname);
+        $this->assertEquals($expected, $content->get_name());
+        $record = $DB->get_record('contentbank_content', ['id' => $content->get_id()]);
+        $h5p = \core_h5p\api::get_content_from_pathnamehash($content->get_file()->get_pathnamehash());
+        $jsoncontent = json_decode($h5p->jsoncontent);
+        $this->assertEquals($expected, $record->name);
+        $this->assertEquals($expected, $jsoncontent->title);
+    }
 }
