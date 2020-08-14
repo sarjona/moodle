@@ -135,10 +135,11 @@ abstract class content {
      * Set a new name to the content.
      *
      * @param string $name  The name of the content.
+     * @param bool $shouldbeupdated Whether this content should be updated in DB after changing the name or not.
      * @return bool  True if the content has been succesfully updated. False otherwise.
      * @throws \coding_exception if not loaded.
      */
-    public function set_name(string $name): bool {
+    public function set_name(string $name, bool $shouldbeupdated = true): bool {
         $name = trim($name);
         if (empty($name)) {
             return false;
@@ -150,12 +151,21 @@ abstract class content {
             $name = core_text::substr($name, 0, 255);
         }
 
+        // Set the content name.
         $oldname = $this->content->name;
         $this->content->name = $name;
+
+        if (!$shouldbeupdated) {
+            // For now, it doesn't need to be updated.
+            return true;
+        }
+
+        // Update the content.
         $updated = $this->update_content();
         if (!$updated) {
             $this->content->name = $oldname;
         }
+
         return $updated;
     }
 

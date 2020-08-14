@@ -111,7 +111,7 @@ Feature: Content bank use editor feature
     And I set the field "Title" to "New title"
     And I switch to the main frame
     When I click on "Save" "button"
-    And I should see "filltheblanks.h5p" in the "h1" "css_element"
+    And I should see "New title" in the "h1" "css_element"
     And I click on "Edit" "link"
     And I switch to "h5p-editor-iframe" class iframe
     Then the field "Title" matches value "New title"

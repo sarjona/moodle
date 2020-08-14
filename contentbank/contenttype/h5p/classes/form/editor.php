@@ -150,7 +150,7 @@ class editor extends edit_content {
         if (!isset($data->h5pid)) {
             // The initial name of the content is the title of the H5P content.
             $cbrecord = new stdClass();
-            $cbrecord->name = json_decode($data->h5pparams)->metadata->title;
+            $cbrecord->name = $h5pcontent['metadata']->title;
             $context = \context::instance_by_id($data->contextid, MUST_EXIST);
             // Create entry in content bank.
             $contenttype = new contenttype($context);
@@ -168,6 +168,10 @@ class editor extends edit_content {
                 $h5pfs->updateContentFields($h5pcontentid, ['pathnamehash' => $pathnamehash]);
             }
         } else {
+            // Update the content name in order to synchronise it with the H5P title defined in the editor form.
+            $h5ptitle = $h5pcontent['metadata']->title;
+            $this->content->set_name($h5ptitle, false);
+
             // Update content.
             $this->content->update_content();
         }
