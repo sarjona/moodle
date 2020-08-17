@@ -272,7 +272,7 @@ class editor {
         $content->id = $this->core->saveContent((array)$content);
 
         // Move any uploaded images or files. Determine content dependencies.
-        $this->h5peditor->processParameters($content, $content->library, $params->params, $oldlib, $oldparams);
+        $this->h5peditor->processParameters($content, $content->library, $content->params, $oldlib, $oldparams);
 
         $this->update_h5p_file($content);
 
