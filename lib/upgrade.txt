@@ -36,6 +36,8 @@ information provided here is intended especially for developers.
   a callback function instead of an array of options.
 * Admin setting admin_setting_configselect now supports validating the selection by supplying a
   callback function.
+* Constant \core_h5p\file_storage::EDITOR_FILEAREA has been deprecated
+because it's not required any more.
 
 === 3.9 ===
 * Following function has been deprecated, please use \core\task\manager::run_from_cli().
