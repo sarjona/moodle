@@ -221,17 +221,24 @@ class block_glossary_random extends block_base {
     }
 
     function get_content() {
-        if ($this->content !== null) {
+        if ($this->content !== NULL) {
             return $this->content;
         }
-        $this->content = (object)['text' => '', 'footer' => ''];
 
+        $renderable = new \block_glossary_random\output\glossary_random($this->config);
+        $renderer = $this->page->get_renderer('block_glossary_random');
+
+        $this->content = new stdClass();
+        $this->content->text = $renderer->render($renderable);
+
+        /*
         if (!$cm = $this->get_glossary_cm()) {
             if ($this->user_can_edit()) {
                 $this->content->text = get_string('notyetconfigured', 'block_glossary_random');
             }
             return $this->content;
         }
+        */
 
         if (empty($this->config->cache)) {
             $this->config->cache = '';
