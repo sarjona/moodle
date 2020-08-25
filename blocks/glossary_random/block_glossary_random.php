@@ -22,11 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define('BGR_RANDOMLY',     '0');
-define('BGR_LASTMODIFIED', '1');
-define('BGR_NEXTONE',      '2');
-define('BGR_NEXTALPHA',    '3');
-
 class block_glossary_random extends block_base {
 
     /**
@@ -74,84 +69,11 @@ class block_glossary_random extends block_base {
                 return false;
             }
 
-            $entry = (object)['concept' => '', 'definition' => ''];
-            // place glossary concept and definition in $pref->cache
-            if (!$numberofentries = $DB->count_records('glossary_entries',
-                                                       array('glossaryid'=>$this->config->glossary, 'approved'=>1))) {
-                $entry->definition = get_string('noentriesyet', 'block_glossary_random');
-                $this->config->cache = $entry;
-                $this->instance_config_commit();
-            }
+            // Get glossary entry.
+            $this->glossaryentry = \block_glossary_random\helper::get_entry($this, $cm);
 
-            $glossaryctx = context_module::instance($cm->id);
-
-            $limitfrom = 0;
-            $limitnum = 1;
-
-            $orderby = 'timemodified ASC';
-
-            switch ($this->config->type) {
-
-                case BGR_RANDOMLY:
-                    $i = ($numberofentries > 1) ? rand(1, $numberofentries) : 1;
-                    $limitfrom = $i-1;
-                    break;
-
-                case BGR_NEXTONE:
-                    if (isset($this->config->previous)) {
-                        $i = $this->config->previous + 1;
-                    } else {
-                        $i = 1;
-                    }
-                    if ($i > $numberofentries) {  // Loop back to beginning
-                        $i = 1;
-                    }
-                    $limitfrom = $i-1;
-                    break;
-
-                case BGR_NEXTALPHA:
-                    $orderby = 'concept ASC';
-                    if (isset($this->config->previous)) {
-                        $i = $this->config->previous + 1;
-                    } else {
-                        $i = 1;
-                    }
-                    if ($i > $numberofentries) {  // Loop back to beginning
-                        $i = 1;
-                    }
-                    $limitfrom = $i-1;
-                    break;
-
-                default:  // BGR_LASTMODIFIED
-                    $i = $numberofentries;
-                    $limitfrom = 0;
-                    $orderby = 'timemodified DESC, id DESC';
-                    break;
-            }
-
-            if ($entry = $DB->get_records_sql("SELECT id, concept, definition, definitionformat, definitiontrust
-                                                 FROM {glossary_entries}
-                                                WHERE glossaryid = ? AND approved = 1
-                                             ORDER BY $orderby", array($this->config->glossary), $limitfrom, $limitnum)) {
-
-                $entry = reset($entry);
-
-                if (!empty($this->config->showconcept)) {
-                    $entry->concept = format_string($entry->concept, true);
-                }
-
-                $options = new stdClass();
-                $options->trusted = $entry->definitiontrust;
-                $options->overflowdiv = true;
-                $entry->definition = file_rewrite_pluginfile_urls($entry->definition, 'pluginfile.php', $glossaryctx->id, 'mod_glossary', 'entry', $entry->id);
-                $entry->definition = format_text($entry->definition, $entry->definitionformat, $options);
-
-                $this->config->nexttime = usergetmidnight(time()) + DAYSECS * $this->config->refresh;
-                $this->config->previous = $i;
-
-                $this->config->cache = $entry;
-                $this->instance_config_commit();
-            }
+            $this->config->cache = $this->glossaryentry;
+            $this->instance_config_commit();
         }
     }
 
@@ -170,7 +92,7 @@ class block_glossary_random extends block_base {
      *
      * @return null|cm_info|stdClass object with properties 'id' (course module id) and 'uservisible'
      */
-    protected function get_glossary_cm() {
+    public function get_glossary_cm() {
         global $DB;
         if (empty($this->config->glossary)) {
             // No glossary is configured.
@@ -254,7 +176,7 @@ class block_glossary_random extends block_base {
             $this->content->footer = format_string($this->config->invisible);
         }
 
-        $renderable = new \block_glossary_random\output\glossary_random($this->config, $this->glossaryentry);
+        $renderable = new \block_glossary_random\output\glossary_random($this->config, $this->glossaryentry, $this->instance->id);
         $renderer = $this->page->get_renderer('block_glossary_random');
 
         $this->content->text = $renderer->render($renderable);
@@ -278,4 +200,3 @@ class block_glossary_random extends block_base {
         ];
     }
 }
-

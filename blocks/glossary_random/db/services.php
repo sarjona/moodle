@@ -1,3 +1,4 @@
+<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -14,34 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A javascript module to handle user ajax actions.
+ * Random glossary block external functions and service definitions.
  *
- * @module     block_glossary_random/repository
  * @package    block_glossary_random
  * @copyright  2020 Adrian Perez, Fernfachhochschule Schweiz (FFHS) <adrian.perez@ffhs.ch>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/ajax'], function(Ajax) {
 
-    /**
-     * Get the entry to display of a glossary.
-     *
-     * @method getEntry
-     * @param {int} blockinstanceid Random glossary block instance id
-     * @return {promise} Resolved with an array of a entry
-     */
-    var getEntry = function(blockinstanceid) {
-        var args = {};
-        if (typeof blockinstanceid !== 'undefined') {
-            args.blockinstanceid = blockinstanceid;
-        }
-        var request = {
-            methodname: 'block_glossary_random_get_entry',
-            args: args
-        };
-        return Ajax.call([request])[0];
-    };
-    return {
-        getEntry: getEntry
-    };
-});
+defined('MOODLE_INTERNAL') || die;
+
+$functions = [
+    'block_glossary_random_get_entry' => [
+        'classname'     => 'block_glossary_random\external\get_entry',
+        'methodname'    => 'execute',
+        'classpath'     => '',
+        'description'   => 'Return the information needed to get the glossary entry.',
+        'type'          => 'read',
+        'ajax'          => true,
+    ],
+];

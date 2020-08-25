@@ -26,6 +26,7 @@ namespace block_glossary_random\output;
 
 defined('MOODLE_INTERNAL') || die();
 
+use block_glossary_random\helper;
 use renderable;
 use renderer_base;
 use stdClass;
@@ -50,14 +51,20 @@ class glossary_random implements renderable, templatable {
     protected $glossaryentry;
 
     /**
+     * @var object An object containing the instance id of this block.
+     */
+    protected $blockinstanceid;
+
+    /**
      * Constructor.
      *
      * @param object $config An object containing the configuration information for the current instance of this block.
      * @param object $glossaryentry An object containing the information to render the current glossary entry in this block.
      */
-    public function __construct($config, $glossaryentry) {
+    public function __construct($config, $glossaryentry, $blockinstanceid) {
         $this->config = $config;
         $this->glossaryentry = $glossaryentry;
+        $this->blockinstanceid = $blockinstanceid;
     }
 
     /**
@@ -68,6 +75,9 @@ class glossary_random implements renderable, templatable {
      */
     public function export_for_template(renderer_base $output) {
         $this->glossaryentry->showconcept = empty($this->glossaryentry->concept) ? 0 : $this->config->showconcept;
+        $this->glossaryentry->showrefreshbutton = $this->config->showrefreshbutton;
+        $this->glossaryentry->blockinstanceid = $this->blockinstanceid;
+        $this->glossaryentry->reloadtime = helper::get_updatedynamically_time($this->config->updatedynamically);
 
         return $this->glossaryentry;
     }
