@@ -72,16 +72,13 @@ define(
          * @param {content} object of the element to be replaced
          */
         var reloadContent = function(content) {
-            // var entry = getEntry(blockinstanceid);
-            var entry = {
-                showconcept: 'true',
-                concept: 'Sara',
-                definition: '<div class="no-overflow"><p dir="ltr" style="text-align:left;">The best</p></div>'
-            };
+            return getEntry(blockinstanceid)
+                .then(function(entry) {
+                    return renderEntry(entry.data);
+                }).then(function(html, js) {
+                    return Templates.replaceNodeContents(content, html, js);
+                }).catch(Notification.exception);
 
-            return renderEntry(entry).then(function(html, js) {
-                return Templates.replaceNodeContents(content, html, js);
-            });
         };
 
         /**
