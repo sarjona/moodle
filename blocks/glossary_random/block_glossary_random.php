@@ -39,6 +39,10 @@ class block_glossary_random extends block_base {
         $this->title = get_string('pluginname','block_glossary_random');
     }
 
+    function has_config() {
+        return true;
+    }
+
     function specialization() {
         global $CFG, $DB;
 

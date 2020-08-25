@@ -31,6 +31,6 @@ if ($hassiteconfig) {
     $setting = new admin_setting_configselect('block_glossary_random/config_showrefreshbutton',
         new lang_string('showrefreshbutton', 'block_glossary_random'),
         new lang_string('showrefreshbutton_desc', 'block_glossary_random'), 1, $yesno);
-//    $setting->set_locked_flag_options(admin_setting_flag::ENABLED, yes);
+    $setting->set_locked_flag_options(admin_setting_flag::ENABLED, false);
     $settings->add($setting);
 }
