@@ -35,6 +35,11 @@ class block_glossary_random extends block_base {
      */
     protected $glossarycm = null;
 
+    /**
+     * @var stdClass contains the glossary entry object.
+     */
+    private $glossaryentry = null;
+
     function init() {
         $this->title = get_string('pluginname','block_glossary_random');
     }
@@ -69,10 +74,12 @@ class block_glossary_random extends block_base {
                 return false;
             }
 
+            $entry = (object)['concept' => '', 'definition' => ''];
             // place glossary concept and definition in $pref->cache
             if (!$numberofentries = $DB->count_records('glossary_entries',
                                                        array('glossaryid'=>$this->config->glossary, 'approved'=>1))) {
-                $this->config->cache = get_string('noentriesyet','block_glossary_random');
+                $entry->definition = get_string('noentriesyet', 'block_glossary_random');
+                $this->config->cache = $entry;
                 $this->instance_config_commit();
             }
 
@@ -129,27 +136,22 @@ class block_glossary_random extends block_base {
 
                 $entry = reset($entry);
 
-                if (empty($this->config->showconcept)) {
-                    $text = '';
-                } else {
-                    $text = "<h3>".format_string($entry->concept,true)."</h3>";
+                if (!empty($this->config->showconcept)) {
+                    $entry->concept = format_string($entry->concept, true);
                 }
 
                 $options = new stdClass();
                 $options->trusted = $entry->definitiontrust;
                 $options->overflowdiv = true;
                 $entry->definition = file_rewrite_pluginfile_urls($entry->definition, 'pluginfile.php', $glossaryctx->id, 'mod_glossary', 'entry', $entry->id);
-                $text .= format_text($entry->definition, $entry->definitionformat, $options);
+                $entry->definition = format_text($entry->definition, $entry->definitionformat, $options);
 
                 $this->config->nexttime = usergetmidnight(time()) + DAYSECS * $this->config->refresh;
                 $this->config->previous = $i;
 
-            } else {
-                $text = get_string('noentriesyet','block_glossary_random');
+                $this->config->cache = $entry;
+                $this->instance_config_commit();
             }
-            // store the text
-            $this->config->cache = $text;
-            $this->instance_config_commit();
         }
     }
 
@@ -224,21 +226,14 @@ class block_glossary_random extends block_base {
         if ($this->content !== NULL) {
             return $this->content;
         }
+        $this->content = (object)['text' => '', 'footer' => ''];
 
-        $renderable = new \block_glossary_random\output\glossary_random($this->config);
-        $renderer = $this->page->get_renderer('block_glossary_random');
-
-        $this->content = new stdClass();
-        $this->content->text = $renderer->render($renderable);
-
-        /*
         if (!$cm = $this->get_glossary_cm()) {
             if ($this->user_can_edit()) {
                 $this->content->text = get_string('notyetconfigured', 'block_glossary_random');
             }
             return $this->content;
         }
-        */
 
         if (empty($this->config->cache)) {
             $this->config->cache = '';
@@ -246,7 +241,7 @@ class block_glossary_random extends block_base {
 
         if ($cm->uservisible) {
             // Show glossary if visible and place links in footer.
-            $this->content->text = $this->config->cache;
+            $this->glossaryentry = $this->config->cache;
             if (has_capability('mod/glossary:write', context_module::instance($cm->id))) {
                 $this->content->footer = html_writer::link(new moodle_url('/mod/glossary/edit.php', ['cmid' => $cm->id]),
                     format_string($this->config->addentry)) . '<br/>';
@@ -258,6 +253,11 @@ class block_glossary_random extends block_base {
             // Otherwise just place some text, no link.
             $this->content->footer = format_string($this->config->invisible);
         }
+
+        $renderable = new \block_glossary_random\output\glossary_random($this->config, $this->glossaryentry);
+        $renderer = $this->page->get_renderer('block_glossary_random');
+
+        $this->content->text = $renderer->render($renderable);
 
         return $this->content;
     }

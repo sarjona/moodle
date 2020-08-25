@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use renderable;
 use renderer_base;
+use stdClass;
 use templatable;
 
 /**
@@ -44,12 +45,19 @@ class glossary_random implements renderable, templatable {
     protected $config;
 
     /**
+     * @var object An object containing the information to render the current glossary entry in this block.
+     */
+    protected $glossaryentry;
+
+    /**
      * Constructor.
      *
      * @param object $config An object containing the configuration information for the current instance of this block.
+     * @param object $glossaryentry An object containing the information to render the current glossary entry in this block.
      */
-    public function __construct($config) {
+    public function __construct($config, $glossaryentry) {
         $this->config = $config;
+        $this->glossaryentry = $glossaryentry;
     }
 
     /**
@@ -59,11 +67,8 @@ class glossary_random implements renderable, templatable {
      * @return stdClass
      */
     public function export_for_template(renderer_base $output) {
-        global $USER, $OUTPUT;
+        $this->glossaryentry->showconcept = empty($this->glossaryentry->concept) ? 0 : $this->config->showconcept;
 
-        $data = new \stdClass();
-        $data->content = '<h3>Adrian</h3><div class="no-overflow">He\'s from Brig<br>';
-
-        return $data;
+        return $this->glossaryentry;
     }
 }
