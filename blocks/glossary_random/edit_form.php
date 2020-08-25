@@ -69,6 +69,10 @@ class block_glossary_random_edit_form extends block_edit_form {
         );
         $mform->addElement('select', 'config_updatedynamically', get_string('updatedynamically', 'block_glossary_random'), $frequencies);
 
+        $mform->addElement('selectyesno', 'config_showrefreshbutton', get_string('showrefreshbutton', 'block_glossary_random'));
+        $mform->setDefault('config_showrefreshbutton', 1);
+        $mform->hideIf('config_showrefreshbutton', 'config_updatedynamically', 'eq', 0);
+
         $mform->addElement('selectyesno', 'config_showconcept', get_string('showconcept', 'block_glossary_random'));
         $mform->setDefault('config_showconcept', 1);
 
