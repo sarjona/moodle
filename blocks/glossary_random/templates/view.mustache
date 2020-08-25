@@ -32,4 +32,10 @@
     {{/showconcept}}
 
     {{{ definition }}}
+
+    {{#showrefreshbutton}}
+        <button class="btn btn-secondary mt-3 mb-2" id="refresh_glossary_button" type="submit">
+            <i aria-hidden="true" class="icon fa fa-refresh fa-fw "></i> <span class="sr-only">{{#str}} refresh, core {{/str}}</span>
+        </button>
+    {{/showrefreshbutton}}
 </div>
