@@ -15,21 +15,17 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_glossary_random/view
+    @template block_glossary_random/refreshbutton
 
-    This template renders the view for the starred courses block.
+    This template renders the refresh button for the glossary random block.
 
     Example context (json):
     {
-        "showconcept": "true",
-        "concept": "This is a heading.",
-        "definition": "This is an example text."
+        "showrefreshbutton": "true"
     }
 }}
-<div class="card-text content mt-3" data-region="randomglossaryentry-content">
-    {{#showconcept}}
-        <h3>{{{ concept }}}</h3>
-    {{/showconcept}}
-
-    {{{ definition }}}
-</div>
+{{#showrefreshbutton}}
+    <button class="btn btn-secondary mt-3 mb-2" id="refresh_glossary_button" type="submit">
+        <i aria-hidden="true" class="icon fa fa-refresh fa-fw "></i> {{#str}} refresh, core {{/str}}
+    </button>
+{{/showrefreshbutton}}
