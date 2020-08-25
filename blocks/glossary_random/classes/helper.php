@@ -60,7 +60,7 @@ class helper {
     public static function get_entry(\block_glossary_random $blockinstance) {
         global $DB;
 
-        $cm = $blockinstance->get_glossary_cm();
+//        $cm = $blockinstance->get_glossary_cm();
         $config = $blockinstance->config;
 
         // Place glossary concept and definition in cache.
@@ -72,7 +72,8 @@ class helper {
             $blockinstance->instance_config_commit();
         }
 
-        $glossaryctx = context_module::instance($cm->id);
+        $glossaryctx = context_module::instance($blockinstance->config->glossary);
+//        $glossaryctx = context_module::instance($cm->id);
 
         $limitfrom = 0;
         $limitnum = 1;
@@ -126,6 +127,7 @@ class helper {
                                          ORDER BY $orderby", [$config->glossary], $limitfrom, $limitnum)) {
             $entry = reset($entry);
 
+            $entry->showconcept = $config->showconcept;
             if (!empty($config->showconcept)) {
                 $text = format_string($entry->concept, true);
             }
@@ -136,6 +138,7 @@ class helper {
             $entry->definition = file_rewrite_pluginfile_urls($entry->definition, 'pluginfile.php', $glossaryctx->id,
                 'mod_glossary', 'entry', $entry->id);
             $entry->definition = format_text($entry->definition, $entry->definitionformat, $options);
+
             $text .= format_text($entry->definition, $entry->definitionformat, $options);
 
             $config->nexttime = usergetmidnight(time()) + DAYSECS * $config->refresh;

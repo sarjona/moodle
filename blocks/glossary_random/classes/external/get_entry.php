@@ -30,6 +30,7 @@ global $CFG;
 require_once($CFG->libdir . '/externallib.php');
 
 use external_api;
+use external_value;
 use external_function_parameters;
 use external_single_structure;
 use stdClass;
@@ -62,21 +63,31 @@ class get_entry extends external_api {
      * @return stdClass Glossary entry data
      */
     public static function execute(int $blockinstanceid): stdClass {
+        global $DB, $PAGE;
+
         $params = external_api::validate_parameters(self::execute_parameters(), [
             'blockinstanceid' => $blockinstanceid,
         ]);
         $blockinstanceid = $params['blockinstanceid'];
 
+        // Get and validate the context.
+        /*$blockinstancerow = $DB->get_record('block_instances', ['id' => $blockinstanceid]);
+        $context = \context_course::instance($blockinstancerow->parentid);
+        $context = \context::instance_by_id($blockinstancerow->parentid);
+        self::validate_context($context);
+        $PAGE->set_context($context);*/
+
         // Get the random glossary block.
         $blockinstance = block_instance_by_id($blockinstanceid);
+        $PAGE->set_context($blockinstance->context);
 
         // Get the entry to display.
-        $entry = helper::get_entry($blockinstance);
+        $entry = \block_glossary_random\helper::get_entry($blockinstance);
 
         // Prepare the result.
         $result = (object)[
-            'glossaryid' => $blockinstance->id,
-            'entry' => $entry,
+            'glossaryid' => $blockinstanceid,
+            'data' => $entry,
         ];
 
         return $result;
@@ -90,7 +101,7 @@ class get_entry extends external_api {
     public static function execute_returns(): external_single_structure {
         return new external_single_structure([
             'glossaryid' => new external_value(PARAM_INT, 'Glossary id'),
-            'entry' => new external_single_structure([
+            'data' => new external_single_structure([
                 'id' => new external_value(PARAM_INT, 'ID of the context'),
                 'concept' => new external_value(PARAM_RAW, 'Glossary concept'),
                 'definition' => new external_value(PARAM_RAW, 'Glossary definition'),

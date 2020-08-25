@@ -131,8 +131,8 @@ class block_glossary_random extends block_base {
             $this->glossarycm = $cm;
         } else if (empty($this->glossarycm)) {
             // Glossary does not exist. Remove it in the config so we don't repeat this check again later.
-            $this->config->glossary = 0;
-            $this->instance_config_commit();
+            //$this->config->glossary = 0;
+            //$this->instance_config_commit();
         }
 
         return $this->glossarycm;
