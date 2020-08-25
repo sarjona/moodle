@@ -42,16 +42,16 @@ class helper {
     /**
      * Returns a array of the given glossary entry depending the block configuration.
      *
-     * @param $blockinstance
-     * @param $cm
-     * @return array|false Array of glossary entry or false otherwise.
+     * @param block_glossary_random $blockinstance
+     * @return array|false Entry or false otherwise.
      * @throws coding_exception
      * @throws dml_exception
      */
-    public static function get_entry($blockinstance, $cm) {
+    public static function get_entry(\block_glossary_random $blockinstance) {
         global $DB;
 
-        $config = $blockinstance->get_config_for_external()->instance;
+        $cm = $blockinstance->get_glossary_cm();
+        $config = $blockinstance->config;
 
         // Place glossary concept and definition in cache.
         $entry = (object) ['concept' => '', 'definition' => ''];
@@ -109,32 +109,33 @@ class helper {
                 break;
         }
 
-        if (!$entry = $DB->get_records_sql("SELECT id, concept, definition, definitionformat, definitiontrust
-                                                 FROM {glossary_entries}
-                                                WHERE glossaryid = ? AND approved = 1
-                                             ORDER BY $orderby", array($config->glossary), $limitfrom, $limitnum)) {
-            $entry->definition = get_string('noentriesyet', 'block_glossary_random');
-            $config->cache = $entry;
-            $blockinstance->instance_config_commit();
+        $text = '';
+        if ($entry = $DB->get_records_sql("SELECT id, concept, definition, definitionformat, definitiontrust
+                                             FROM {glossary_entries}
+                                            WHERE glossaryid = ? AND approved = 1
+                                         ORDER BY $orderby", [$config->glossary], $limitfrom, $limitnum)) {
+            $entry = reset($entry);
+
+            if (!empty($config->showconcept)) {
+                $text = format_string($entry->concept, true);
+            }
+
+            $options = new stdClass();
+            $options->trusted = $entry->definitiontrust;
+            $options->overflowdiv = true;
+            $entry->definition = file_rewrite_pluginfile_urls($entry->definition, 'pluginfile.php', $glossaryctx->id,
+                'mod_glossary', 'entry', $entry->id);
+            $entry->definition = format_text($entry->definition, $entry->definitionformat, $options);
+            $text .= format_text($entry->definition, $entry->definitionformat, $options);
+
+            $config->nexttime = usergetmidnight(time()) + DAYSECS * $config->refresh;
+            $config->previous = $i;
+        } else {
+            $text = get_string('noentriesyet', 'block_glossary_random');
         }
 
-        $entry = reset($entry);
-
-        if (!empty($config->showconcept)) {
-            $entry->concept = format_string($entry->concept, true);
-        }
-
-        $options = new stdClass();
-        $options->trusted = $entry->definitiontrust;
-        $options->overflowdiv = true;
-        $entry->definition =
-                file_rewrite_pluginfile_urls($entry->definition, 'pluginfile.php', $glossaryctx->id, 'mod_glossary', 'entry',
-                        $entry->id);
-        $entry->definition = format_text($entry->definition, $entry->definitionformat, $options);
-
-        $config->nexttime = usergetmidnight(time()) + DAYSECS * $config->refresh;
-        $config->previous = $i;
-
+        // Store the text into the cache.
+        $config->cache = $text;
         $blockinstance->instance_config_save($config);
 
         return $entry;

@@ -97,7 +97,7 @@ class block_glossary_random extends block_base {
      *
      * @return null|cm_info|stdClass object with properties 'id' (course module id) and 'uservisible'
      */
-    protected function get_glossary_cm() {
+    public function get_glossary_cm() {
         global $DB;
         if (empty($this->config->glossary)) {
             // No glossary is configured.
@@ -205,4 +205,3 @@ class block_glossary_random extends block_base {
         ];
     }
 }
-

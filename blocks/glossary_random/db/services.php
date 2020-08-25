@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die;
 
 $functions = [
-    'block_glossary_random_get_entries' => [
-        'classname'     => 'block_glossary_random\external\get_entries',
+    'block_glossary_random_get_entry' => [
+        'classname'     => 'block_glossary_random\external\get_entry',
         'methodname'    => 'execute',
         'classpath'     => '',
-        'description'   => 'Return the information needed to get the glossary entries.',
+        'description'   => 'Return the information needed to get the glossary entry.',
         'type'          => 'read',
         'ajax'          => true,
     ],
