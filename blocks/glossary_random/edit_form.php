@@ -59,6 +59,16 @@ class block_glossary_random_edit_form extends block_edit_form {
         );
         $mform->addElement('select', 'config_type', get_string('type', 'block_glossary_random'), $types);
 
+        // And select quotetypes to put in dropdown box
+        $frequencies = array(
+            0 => get_string('no'),
+            1 => '30 ' . get_string('seconds'),
+            2 => '1 ' . get_string('minute'),
+            3 => '2 ' . get_string('minutes'),
+            4 => '5 ' . get_string('minutes')
+        );
+        $mform->addElement('select', 'config_updatedynamically', get_string('updatedynamically', 'block_glossary_random'), $frequencies);
+
         $mform->addElement('selectyesno', 'config_showconcept', get_string('showconcept', 'block_glossary_random'));
         $mform->setDefault('config_showconcept', 1);
 
