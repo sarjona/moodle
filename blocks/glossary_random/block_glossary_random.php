@@ -22,11 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define('BGR_RANDOMLY',     '0');
-define('BGR_LASTMODIFIED', '1');
-define('BGR_NEXTONE',      '2');
-define('BGR_NEXTALPHA',    '3');
-
 class block_glossary_random extends block_base {
 
     /**
@@ -181,7 +176,7 @@ class block_glossary_random extends block_base {
             $this->content->footer = format_string($this->config->invisible);
         }
 
-        $renderable = new \block_glossary_random\output\glossary_random($this->config, $this->glossaryentry);
+        $renderable = new \block_glossary_random\output\glossary_random($this->config, $this->glossaryentry, $this->instance->id);
         $renderer = $this->page->get_renderer('block_glossary_random');
 
         $this->content->text = $renderer->render($renderable);

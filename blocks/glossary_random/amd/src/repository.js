@@ -27,13 +27,13 @@ define(['core/ajax'], function(Ajax) {
      * Get the entry to display of a glossary.
      *
      * @method getEntry
-     * @param {int} glossaryactivityid Glossary activity id
+     * @param {int} blockinstanceid Random glossary block instance id
      * @return {promise} Resolved with an array of a entry
      */
-    var getEntry = function(glossaryactivityid) {
+    var getEntry = function(blockinstanceid) {
         var args = {};
-        if (typeof glossaryactivityid !== 'undefined') {
-            args.glossaryactivityid = glossaryactivityid;
+        if (typeof blockinstanceid !== 'undefined') {
+            args.blockinstanceid = blockinstanceid;
         }
         var request = {
             methodname: 'block_glossary_random_get_entry',

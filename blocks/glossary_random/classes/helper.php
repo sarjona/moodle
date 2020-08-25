@@ -31,6 +31,16 @@ use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
+define('BGR_RANDOMLY',     '0');
+define('BGR_LASTMODIFIED', '1');
+define('BGR_NEXTONE',      '2');
+define('BGR_NEXTALPHA',    '3');
+define('BGR_RELOAD0', '0');
+define('BGR_RELOAD30', '1');
+define('BGR_RELOAD60', '2');
+define('BGR_RELOAD120', '3');
+define('BGR_RELOAD300', '4');
+
 /**
  * Random glossary block helper.
  *
@@ -139,5 +149,29 @@ class helper {
         $blockinstance->instance_config_save($config);
 
         return $entry;
+    }
+
+    public static function get_updatedynamically_time($updatedynamically) {
+        switch ($updatedynamically) {
+            case BGR_RELOAD0:
+                $time = 0;
+                break;
+            case BGR_RELOAD30:
+                $time = 30 * 1000;
+                break;
+            case BGR_RELOAD60:
+                $time = 60 * 1000;
+                break;
+            case BGR_RELOAD120:
+                $time = 120 * 1000;
+                break;
+            case BGR_RELOAD300:
+                $time = 300 * 1000;
+                break;
+            default:
+                $time = 0;
+        }
+
+        return $time;
     }
 }

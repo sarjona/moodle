@@ -27,24 +27,31 @@ define(
     [
         'jquery',
         'block_glossary_random/repository',
-        'core/templates'
+        'core/templates',
+        'core/custom_interaction_events'
     ],
     function(
         $,
         Repository,
-        Templates
+        Templates,
+        CustomEvents
     ) {
         var GLOSSARYENTRY = '[data-region="randomglossaryentry-content"]';
+        var REFRESHBUTTON = '[id="refresh_glossary_button"]';
+
+        var content = '';
+        var timer = '';
+        var blockinstanceid = '';
 
         /**
          * Get entry from backend.
          *
          * @method getEntry
-         * @param {int} glossaryactivityid Glossary activity id
+         * @param {int} blockinstanceid Glossary block instance id
          * @return {promise} Resolved with an array of a entry
          */
-        var getEntry = function(glossaryactivityid) {
-            return Repository.getEntry(glossaryactivityid);
+        var getEntry = function(blockinstanceid) {
+            return Repository.getEntry(blockinstanceid);
         };
 
         /**
@@ -59,6 +66,41 @@ define(
         };
 
         /**
+         * Relodas the content of the block.
+         *
+         * @method reloadContent
+         * @param {content} object of the element to be replaced
+         */
+        var reloadContent = function(content) {
+            // var entry = getEntry(blockinstanceid);
+            var entry = {
+                showconcept: 'true',
+                concept: 'Sara',
+                definition: '<div class="no-overflow"><p dir="ltr" style="text-align:left;">The best</p></div>'
+            };
+
+            return renderEntry(entry).then(function(html, js) {
+                return Templates.replaceNodeContents(content, html, js);
+            });
+        };
+
+        /**
+         * Event listener for the refresh button.
+         *
+         * @param {object} root The root element for the overview block
+         */
+        var refreshButton = function(root) {
+            CustomEvents.define(root, [
+                CustomEvents.events.activate
+            ]);
+
+            root.on(CustomEvents.events.activate, REFRESHBUTTON, function(e, data) {
+                reloadContent(content);
+                data.originalEvent.preventDefault();
+            });
+        };
+
+        /**
          * Get and show the glossary entry into the block.
          *
          * @param {object} root The root element for the items block.
@@ -66,19 +108,19 @@ define(
         var init = function(root) {
             root = $(root);
 
-            // TODO: Add missing code here and delete example below.
-            // var entry = getEntry(0);
-            var entry = {
-                showconcept: 'true',
-                concept: 'Sara',
-                definition: 'The best'
-            };
+            content = root.find(GLOSSARYENTRY);
+            timer = root.attr('data-reloadtime') || null;
+            blockinstanceid = root.attr('data-blockinstanceid') || null;
 
-            var content = root.find(GLOSSARYENTRY);
+            // Init event click listener.
+            refreshButton(root);
 
-            return renderEntry(entry).then(function(html, js) {
-                return Templates.replaceNodeContents(content, html, js);
-            });
+            // Run periodical timer if set.
+            if (timer > 0) {
+                setInterval(() => {
+                    reloadContent(content);
+                }, timer);
+            }
         };
 
         return {
