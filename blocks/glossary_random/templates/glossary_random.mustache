@@ -36,10 +36,21 @@
         "content": "<h3>Adrian</h3><div class="no-overflow"><p dir="ltr" style="text-align:left;">He's from Brig</p>"
     }
 }}
-<div class="card-text content mt-3">
-    {{#showconcept}}
-        <h3>{{{ concept }}}</h3>
-    {{/showconcept}}
-
-    {{{ definition }}}
+<div id="block-glossaryrandom-{{uniqid}}">
+    {{> block_glossary_random/view}}
 </div>
+{{#js}}
+require(
+[
+    'jquery',
+    'block_glossary_random/main',
+],
+function(
+    $,
+    Main
+) {
+    var root = $('#block-glossaryrandom-{{uniqid}}');
+
+    Main.init(root);
+});
+{{/js}}
