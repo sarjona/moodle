@@ -75,13 +75,10 @@ class glossary_random implements renderable, templatable {
      */
     public function export_for_template(renderer_base $output) {
         $this->glossaryentry->showconcept = empty($this->glossaryentry->concept) ? 0 : $this->config->showconcept;
-        if (isset($this->config->showrefreshbutton)) {
-            $this->glossaryentry->showrefreshbutton = $this->config->showrefreshbutton;
-        }
+        $this->glossaryentry->showrefreshbutton = isset($this->config->showrefreshbutton) ? $this->config->showrefreshbutton : 0;
         $this->glossaryentry->blockinstanceid = $this->blockinstanceid;
-        if (isset($this->config->updatedynamically)) {
-            $this->glossaryentry->reloadtime = helper::get_updatedynamically_time($this->config->updatedynamically);
-        }
+        $this->glossaryentry->reloadtime =
+                isset($this->config->updatedynamically) ? helper::get_updatedynamically_time($this->config->updatedynamically) : 0;
 
         return $this->glossaryentry;
     }
