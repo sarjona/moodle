@@ -65,7 +65,7 @@ class block_glossary_random extends block_base {
             $this->config->nexttime = 0;
         }
 
-        //check if it's time to put a new entry in cache
+        // Check if it's time to put a new entry in cache.
         if (time() > $this->config->nexttime) {
 
             if (!($cm = $this->get_glossary_cm()) || !$cm->uservisible) {
@@ -75,7 +75,6 @@ class block_glossary_random extends block_base {
 
             // Get glossary entry.
             $this->glossaryentry = \block_glossary_random\helper::get_entry($this, $cm);
-
             $this->config->cache = $this->glossaryentry;
             $this->instance_config_commit();
         }
@@ -98,6 +97,7 @@ class block_glossary_random extends block_base {
      */
     public function get_glossary_cm() {
         global $DB;
+
         if (empty($this->config->glossary)) {
             // No glossary is configured.
             return null;
@@ -135,8 +135,8 @@ class block_glossary_random extends block_base {
             $this->glossarycm = $cm;
         } else if (empty($this->glossarycm)) {
             // Glossary does not exist. Remove it in the config so we don't repeat this check again later.
-            //$this->config->glossary = 0;
-            //$this->instance_config_commit();
+            $this->config->glossary = 0;
+            $this->instance_config_commit();
         }
 
         return $this->glossarycm;

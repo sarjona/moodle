@@ -71,15 +71,14 @@ class get_entry extends external_api {
         $blockinstanceid = $params['blockinstanceid'];
 
         // Get and validate the context.
-        /*$blockinstancerow = $DB->get_record('block_instances', ['id' => $blockinstanceid]);
-        $context = \context_course::instance($blockinstancerow->parentid);
-        $context = \context::instance_by_id($blockinstancerow->parentid);
+        $blockinstancerow = $DB->get_record('block_instances', ['id' => $blockinstanceid]);
+        $context = \context::instance_by_id($blockinstancerow->parentcontextid);
         self::validate_context($context);
-        $PAGE->set_context($context);*/
+        $PAGE->set_context($context);
 
         // Get the random glossary block.
         $blockinstance = block_instance_by_id($blockinstanceid);
-        $PAGE->set_context($blockinstance->context);
+        // $PAGE->set_context($blockinstance->context);
 
         // Get the entry to display.
         $entry = \block_glossary_random\helper::get_entry($blockinstance);
