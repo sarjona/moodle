@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+use \block_glossary_random\helper;
+
 /**
  * Glossary Random block.
  *
@@ -21,7 +23,6 @@
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class block_glossary_random extends block_base {
 
     /**
@@ -44,38 +45,23 @@ class block_glossary_random extends block_base {
     }
 
     function specialization() {
-        global $CFG, $DB;
-
-        require_once($CFG->libdir . '/filelib.php');
-
         $this->course = $this->page->course;
 
-        // load userdefined title and make sure it's never empty
+        // Load userdefined title and make sure it's never empty.
         if (empty($this->config->title)) {
             $this->title = get_string('pluginname','block_glossary_random');
         } else {
             $this->title = format_string($this->config->title, true, ['context' => $this->context]);
         }
 
-        if (empty($this->config->glossary)) {
+        if (empty($this->config)) {
             return false;
         }
 
-        if (!isset($this->config->nexttime)) {
-            $this->config->nexttime = 0;
-        }
-
-        // Check if it's time to put a new entry in cache.
-        if (time() > $this->config->nexttime) {
-
-            if (!($cm = $this->get_glossary_cm()) || !$cm->uservisible) {
-                // Skip generating of the cache if we can't display anything to the current user.
-                return false;
-            }
-
-            // Get glossary entry.
-            $this->glossaryentry = \block_glossary_random\helper::get_entry($this, $cm);
-            $this->config->cache = $this->glossaryentry;
+        // Get the glossary entry to display.
+        $this->glossaryentry = helper::get_entry($this->config, $this->get_glossary_cm());
+        if ($this->glossaryentry) {
+            // Store glossary entry into the cache.
             $this->instance_config_commit();
         }
     }
@@ -96,44 +82,19 @@ class block_glossary_random extends block_base {
      * @return null|cm_info|stdClass object with properties 'id' (course module id) and 'uservisible'
      */
     public function get_glossary_cm() {
-        global $DB;
-
-        if (empty($this->config->glossary)) {
-            // No glossary is configured.
-            return null;
-        }
-
         if (!empty($this->glossarycm)) {
             return $this->glossarycm;
         }
 
-        if (!empty($this->page->course->id)) {
-            // First check if glossary belongs to the current course (we don't need to make any DB queries to find it).
-            $modinfo = get_fast_modinfo($this->page->course);
-            if (isset($modinfo->instances['glossary'][$this->config->glossary])) {
-                $this->glossarycm = $modinfo->instances['glossary'][$this->config->glossary];
-                if ($this->glossarycm->uservisible) {
-                    // The glossary is in the same course and is already visible to the current user,
-                    // no need to check if it is global, save on DB query.
-                    return $this->glossarycm;
-                }
-            }
+        if (empty($this->config)) {
+            // The block has no configuration yet.
+            return null;
         }
 
-        // Find course module id for the given glossary, only if it is global.
-        $cm = $DB->get_record_sql("SELECT cm.id, cm.visible AS uservisible
-              FROM {course_modules} cm
-                   JOIN {modules} md ON md.id = cm.module
-                   JOIN {glossary} g ON g.id = cm.instance
-             WHERE g.id = :instance AND md.name = :modulename AND g.globalglossary = 1",
-            ['instance' => $this->config->glossary, 'modulename' => 'glossary']);
+        // Get the glossary course_module.
+        $this->glossarycm = helper::get_glossary_cm($this->config, $this->page->course);
 
-        if ($cm) {
-            // This is a global glossary, create an object with properties 'id' and 'uservisible'. We don't need any
-            // other information so why bother retrieving it. Full access check is skipped for global glossaries for
-            // performance reasons.
-            $this->glossarycm = $cm;
-        } else if (empty($this->glossarycm)) {
+        if (empty($this->glossarycm)) {
             // Glossary does not exist. Remove it in the config so we don't repeat this check again later.
             $this->config->glossary = 0;
             $this->instance_config_commit();

@@ -63,31 +63,40 @@ class get_entry extends external_api {
      * @return stdClass Glossary entry data
      */
     public static function execute(int $blockinstanceid): stdClass {
-        global $DB, $PAGE;
+        global $DB;
 
         $params = external_api::validate_parameters(self::execute_parameters(), [
             'blockinstanceid' => $blockinstanceid,
         ]);
         $blockinstanceid = $params['blockinstanceid'];
 
-        // Get and validate the context.
-        $blockinstancerow = $DB->get_record('block_instances', ['id' => $blockinstanceid]);
-        $context = \context::instance_by_id($blockinstancerow->parentcontextid);
-        self::validate_context($context);
-        $PAGE->set_context($context);
+        // Get glossary random dataconfig.
+        $blockinstance = $DB->get_record('block_instances', ['id' => $blockinstanceid]);
+        $config = unserialize(base64_decode($blockinstance->configdata));
 
-        // Get the random glossary block.
-        $blockinstance = block_instance_by_id($blockinstanceid);
-        // $PAGE->set_context($blockinstance->context);
+        // Get course context and validate it.
+        $coursecontext = \context::instance_by_id($blockinstance->parentcontextid);
+        self::validate_context($coursecontext);
 
-        // Get the entry to display.
-        $entry = \block_glossary_random\helper::get_entry($blockinstance);
+        // Get glossary course_module data.
+        $course = get_course($coursecontext->instanceid);
+        $glossarycm = \block_glossary_random\helper::get_glossary_cm($config, $course);
 
         // Prepare the result.
         $result = (object)[
             'glossaryid' => $blockinstanceid,
-            'data' => $entry,
         ];
+
+        if ($glossarycm) {
+            // Get the entry to display.
+            $entry = \block_glossary_random\helper::get_entry($config, $glossarycm);
+            if (!empty($entry->id)) {
+                // Update blockinstace configdata.
+                $DB->update_record('block_instances', ['id' => $blockinstanceid,
+                        'configdata' => base64_encode(serialize($config)), 'timemodified' => time()]);
+                $result->data = $entry;
+            }
+        }
 
         return $result;
     }
@@ -107,7 +116,7 @@ class get_entry extends external_api {
                 'definitionformat' => new external_value(PARAM_RAW, 'Glossary definition format'),
                 'definitiontrust' => new external_value(PARAM_RAW, 'Glossary definition trust'),
                 'showconcept' => new external_value(PARAM_BOOL, 'If the concept should be displayed')
-            ]),
+            ], '', VALUE_OPTIONAL),
         ], 'Glossary entry data');
     }
 }

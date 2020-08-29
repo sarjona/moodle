@@ -49,45 +49,142 @@ define('BGR_RELOAD300', '4');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
+
     /**
-     * Returns a array of the given glossary entry depending the block configuration.
+     * Returns the given glossary entry depending on the block configuration.
+     * Given $config is updated, taking into account the values of the new entry to display.
      *
-     * @param block_glossary_random $blockinstance
-     * @return array|false Entry or false otherwise.
+     * @param  stdClass &$config    Glossary random block configuration.
+     * @param  \cm_info $glossarycm course_module data for the glossary displayed into the block.
+     * @return stdClass|false Glossary entry; otherwise false.
      * @throws coding_exception
      * @throws dml_exception
      */
-    public static function get_entry(\block_glossary_random $blockinstance) {
+    public static function get_entry(stdClass &$config, \cm_info $glossarycm) {
         global $DB;
 
-        $cm = $blockinstance->get_glossary_cm();
-        $config = $blockinstance->config;
+        $entry = new stdClass();
 
-        // Place glossary concept and definition in cache.
-        $entry = (object) ['concept' => '', 'definition' => ''];
-        if (!$numberofentries = $DB->count_records('glossary_entries',
-                array('glossaryid' => $config->glossary, 'approved' => 1))) {
-            $entry->definition = get_string('noentriesyet', 'block_glossary_random');
-            $config->cache = $entry;
-            $blockinstance->instance_config_commit();
+        if (empty($config->glossary)) {
+            return false;
         }
 
-//        $glossaryctx = context_module::instance($blockinstance->config->glossary);
-        $glossaryctx = context_module::instance($cm->id);
+        if (!$glossarycm || !$glossarycm->uservisible) {
+            // Skip generating of the cache if we can't display anything to the current user.
+            return false;
+        }
 
+        if (!isset($config->nexttime)) {
+            $config->nexttime = 0;
+        }
+
+        // Check if it's time to put a new entry in cache; otherwise, the existing cache entry will be returned.
+        if (time() <= $config->nexttime) {
+            return $config->cache;
+        }
+
+        // Get the new glossary entry to display.
+        if ($numberofentries = $DB->count_records('glossary_entries', ['glossaryid' => $config->glossary, 'approved' => 1])) {
+            if (!isset($config->previous)) {
+                $config->previous = null;
+            }
+            list($orderby, $limitfrom, $limitnum, $i) = self::get_next_entry($config->type, $config->previous, $numberofentries);
+
+            if ($entry = $DB->get_records_sql("SELECT id, concept, definition, definitionformat, definitiontrust
+                                                 FROM {glossary_entries}
+                                                WHERE glossaryid = ? AND approved = 1
+                                             ORDER BY $orderby", [$config->glossary], $limitfrom, $limitnum)) {
+                $entry = reset($entry);
+
+                // Update definition and showconcept properly.
+                $options = new stdClass();
+                $options->trusted = $entry->definitiontrust;
+                $options->overflowdiv = true;
+                $glossaryctx = context_module::instance($glossarycm->id);
+                $entry->definition = file_rewrite_pluginfile_urls($entry->definition, 'pluginfile.php', $glossaryctx->id,
+                    'mod_glossary', 'entry', $entry->id);
+                $entry->definition = format_text($entry->definition, $entry->definitionformat, $options);
+                $entry->showconcept = !empty($config->showconcept);
+
+                // Update block configuration, with nexttime and previous entry displayed.
+                $config->nexttime = usergetmidnight(time()) + DAYSECS * $config->refresh;
+                $config->previous = $i;
+            }
+        }
+        // Update the cache with the entry.
+        $config->cache = $entry;
+
+        return $entry;
+    }
+
+    /**
+     * Checks if glossary is available - it should be either located in the same course or be global.
+     *
+     * @param  stdClass $config Glossary random block configuration.
+     * @param  stdClass $course Course object where the glossary belongs.
+     * @return null|cm_info|stdClass object with properties 'id' (course module id) and 'uservisible'
+     */
+    public static function get_glossary_cm(?stdClass $config, stdClass $course) {
+        global $DB;
+
+        if (empty($config->glossary)) {
+            // No glossary is configured.
+            return null;
+        }
+
+        if (!empty($course)) {
+            // Check if glossary belongs to the courseid.
+            $modinfo = get_fast_modinfo($course);
+            if (isset($modinfo->instances['glossary'][$config->glossary])) {
+                $glossarycm = $modinfo->instances['glossary'][$config->glossary];
+                if ($glossarycm->uservisible) {
+                    // The glossary is in the same course and is already visible to the current user,
+                    // no need to check if it is global, save on DB query.
+                    return $glossarycm;
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        // Find course module id for the given glossary, only if it is global.
+        // If it exists, it will be a global glossary, create an object with properties 'id' and 'uservisible'. We don't need any
+        // other information so why bother retrieving it. Full access check is skipped for global glossaries for
+        // performance reasons.
+        $sql = "SELECT cm.id, cm.visible AS uservisible
+                  FROM {course_modules} cm
+                  JOIN {modules} md ON md.id = cm.module
+                  JOIN {glossary} g ON g.id = cm.instance
+                 WHERE g.id = :instance AND md.name = :modulename AND g.globalglossary = 1";
+        $params = ['instance' => $config->glossary, 'modulename' => 'glossary'];
+
+        return $DB->get_record_sql($sql, $params);
+    }
+
+    /**
+     * Get the following values for the next glossary entry to display: limitfrom, limitnum, orderby and previous.
+     * It depends on the type, the number of entries and the previous value.
+     *
+     * @param  string $type            [description]
+     * @param  int    $previous        [description]
+     * @param  int    $numberofentries [description]
+     * @return array  Array with the following values: limitfrom, limitnum, orderby and previous.
+     */
+    private static function get_next_entry(string $type, ?int $previous, int $numberofentries) {
         $limitfrom = 0;
         $limitnum = 1;
 
         $orderby = 'timemodified ASC';
 
-        switch ($config->type) {
+        switch ($type) {
             case BGR_RANDOMLY:
                 $i = ($numberofentries > 1) ? rand(1, $numberofentries) : 1;
                 $limitfrom = $i - 1;
                 break;
+
             case BGR_NEXTONE:
-                if (isset($config->previous)) {
-                    $i = $config->previous + 1;
+                if (isset($previous)) {
+                    $i = $previous + 1;
                 } else {
                     $i = 1;
                 }
@@ -99,10 +196,11 @@ class helper {
 
                 $limitfrom = $i - 1;
                 break;
+
             case BGR_NEXTALPHA:
                 $orderby = 'concept ASC';
-                if (isset($config->previous)) {
-                    $i = $config->previous + 1;
+                if (isset($previous)) {
+                    $i = $previous + 1;
                 } else {
                     $i = 1;
                 }
@@ -113,6 +211,7 @@ class helper {
 
                 $limitfrom = $i - 1;
                 break;
+
             default:  // BGR_LASTMODIFIED.
                 $i = $numberofentries;
                 $limitfrom = 0;
@@ -120,39 +219,7 @@ class helper {
                 break;
         }
 
-        $text = '';
-        if ($entry = $DB->get_records_sql("SELECT id, concept, definition, definitionformat, definitiontrust
-                                             FROM {glossary_entries}
-                                            WHERE glossaryid = ? AND approved = 1
-                                         ORDER BY $orderby", [$config->glossary], $limitfrom, $limitnum)) {
-            $entry = reset($entry);
-
-            $entry->showconcept = $config->showconcept;
-            if (!empty($config->showconcept)) {
-                $text = format_string($entry->concept, true);
-            }
-
-            $options = new stdClass();
-            $options->trusted = $entry->definitiontrust;
-            $options->overflowdiv = true;
-            $entry->definition = file_rewrite_pluginfile_urls($entry->definition, 'pluginfile.php', $glossaryctx->id,
-                'mod_glossary', 'entry', $entry->id);
-            $entry->definition = format_text($entry->definition, $entry->definitionformat, $options);
-
-            $text .= format_text($entry->definition, $entry->definitionformat, $options);
-
-            $config->nexttime = usergetmidnight(time()) + DAYSECS * $config->refresh;
-            $config->previous = $i;
-        } else {
-            $text = get_string('noentriesyet', 'block_glossary_random');
-        }
-
-        // Store the text into the cache.
-        $config->cache = $text;
-        $blockinstance->config = $config;
-        $blockinstance->instance_config_commit();
-
-        return $entry;
+        return [$orderby, $limitfrom, $limitnum, $i];
     }
 
     public static function get_updatedynamically_time($updatedynamically) {
