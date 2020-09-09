@@ -101,6 +101,8 @@ class auth_email_external_testcase extends externallib_advanced_testcase {
 
         require_once($CFG->dirroot . '/lib/externallib.php');
 
+        $this->resetAfterTest(true);
+
         // Enable MathJax filter in content and headings.
         $this->configure_filters([
             ['name' => 'mathjaxloader', 'state' => TEXTFILTER_ON, 'move' => -1, 'applytostrings' => true],
