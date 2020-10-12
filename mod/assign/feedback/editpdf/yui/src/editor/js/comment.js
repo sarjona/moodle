@@ -232,7 +232,7 @@ var COMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext) {
      * @method delete_comment_later
      */
     this.delete_comment_later = function() {
-        if (this.deleteme) {
+        if (this.deleteme && !this.menu.get('visible')) {
             this.remove();
         }
     };
@@ -254,7 +254,7 @@ var COMMENT = function(editor, gradeid, pageno, x, y, width, colour, rawtext) {
         // Function to collapse a comment to a marker icon.
         node.collapse = function(delay) {
             node.collapse.delay = Y.later(delay, node, function() {
-                if (editor.collapsecomments) {
+                if (editor.collapsecomments && !menu.getData('comment').menu.get('visible')) {
                     container.addClass('commentcollapsed');
                 }
             });
