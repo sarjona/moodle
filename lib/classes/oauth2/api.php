@@ -366,6 +366,47 @@ class api {
         }
     }
 
+    /**
+     * Get the discovery endpoint URL:
+     * - If the discovery point exists in database, its value is returned.
+     * - Otherwise, it checks if badgeconnect.json discovery file exists in basesurl; if that's the case, the discovery endpoint
+     * is updated in DB with that value; if not, the default openid-configuration URL is returned.
+     *
+     * @param issuer $issuer issuer the endpoints should be created for.
+     * @return mixed
+     * @throws \coding_exception
+     * @throws \core\invalid_persistent_exception
+     */
+    private static function get_discovery_endpoint_url($issuer) {
+        $url = $issuer->get_endpoint_url('discovery');
+        if ($url) {
+            return $url;
+        }
+
+        // If the issuer hasn't baseurl, early return.
+        if (empty($issuer->get('baseurl'))) {
+            return false;
+        }
+
+        // Check if the issuer has the badgeconnect.json discovery file.
+        $curl = new curl();
+        $url = $issuer->get('baseurl') . '/.well-known/badgeconnect.json';
+        if (!$json = $curl->get($url)) {
+            // OBv2.1 badgeconnect manifest file doesn't exist. Default openid-configuration URL should be returned.
+            $url = $issuer->get('baseurl') . '/.well-known/openid-configuration';
+        } else {
+            // Discovery OBv2.1 file exists. Store it in database and return discovery badgeconnect.json endpoint URL.
+            $record = (object) [
+                'issuerid' => $issuer->get('id'),
+                'name' => 'discovery_endpoint',
+                'url' => $url,
+            ];
+            $endpoint = new endpoint(0, $record);
+            $endpoint->create();
+        }
+
+        return $url;
+    }
 
     /**
      * List all the issuers, ordered by the sortorder field
@@ -535,17 +576,12 @@ class api {
      * @return int The number of discovered services.
      */
     protected static function discover_endpoints($issuer) {
-        $curl = new curl();
-
-        if (empty($issuer->get('baseurl'))) {
+        $url = self::get_discovery_endpoint_url($issuer);
+        if (empty($url)) {
             return 0;
         }
 
-        $url = $issuer->get_endpoint_url('discovery');
-        if (!$url) {
-            $url = $issuer->get('baseurl') . '/.well-known/openid-configuration';
-        }
-
+        $curl = new curl();
         if (!$json = $curl->get($url)) {
             $msg = 'Could not discover end points for identity issuer' . $issuer->get('name');
             throw new moodle_exception($msg);
@@ -567,20 +603,43 @@ class api {
             }
         }
 
-        foreach ($info as $key => $value) {
-            if (substr_compare($key, '_endpoint', - strlen('_endpoint')) === 0) {
-                $record = new stdClass();
-                $record->issuerid = $issuer->get('id');
-                $record->name = $key;
-                $record->url = $value;
+        if (!empty($info->badgeConnectAPI)) {
+            // This is a OB2.1 manifest file (format of this file can be found in the OBv2.1 specification).
+            $info = array_pop($info->badgeConnectAPI);
+            foreach ($info as $key => $value) {
+                if (substr_compare($key, 'Url', - strlen('Url')) === 0 && !empty($value)) {
+                    $record = new stdClass();
+                    $record->issuerid = $issuer->get('id');
+                    // Convert key names from xxxxUrl to xxxx_endpoint, in order to make it compliant with the Moodle oAuth API.
+                    $record->name = strtolower(substr($key, 0, - strlen('Url'))) . '_endpoint';
+                    $record->url = $value;
 
-                $endpoint = new endpoint(0, $record);
-                $endpoint->create();
+                    $endpoint = new endpoint(0, $record);
+                    $endpoint->create();
+                }
+
+                if ($key == 'scopesOffered') {
+                    $issuer->set('scopessupported', implode(' ', $value));
+                    $issuer->update();
+                }
             }
+        } else {
+            // This is a openid manifest file.
+            foreach ($info as $key => $value) {
+                if (substr_compare($key, '_endpoint', - strlen('_endpoint')) === 0) {
+                    $record = new stdClass();
+                    $record->issuerid = $issuer->get('id');
+                    $record->name = $key;
+                    $record->url = $value;
 
-            if ($key == 'scopes_supported') {
-                $issuer->set('scopessupported', implode(' ', $value));
-                $issuer->update();
+                    $endpoint = new endpoint(0, $record);
+                    $endpoint->create();
+                }
+
+                if ($key == 'scopes_supported') {
+                    $issuer->set('scopessupported', implode(' ', $value));
+                    $issuer->update();
+                }
             }
         }
 
