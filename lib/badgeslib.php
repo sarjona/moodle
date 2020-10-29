@@ -861,8 +861,9 @@ function badges_save_external_backpack(stdClass $data) {
         $backpack->id = $data->id;
         $method = 'update_record';
     }
+
     $record = $DB->$method('badge_external_backpack', $backpack, true);
-    $data->externalbackpackid = $data->id ?? $record;
+    $data->externalbackpackid = empty($data->id) ? $record : $data->id;
 
     unset($data->id);
     badges_save_backpack_credentials($data);
