@@ -97,6 +97,9 @@ $string['myattempts'] = 'My attempts';
 $string['no_compatible_track'] = 'This interaction ({$a}) does not provide tracking information or the tracking
         provided is not compatible with the current activity version.';
 $string['noparticipants'] = 'No participants to display';
+$string['opencontentbank'] = '<a href="{$a}" target="_blank">Display this H5P file in the content bank</a> (opens in a new window).';
+$string['opencontentbank_warning'] = 'If you have selected a different package file, you will need to save changes before in order to
+        access to the proper file.';
 $string['outcome'] = 'Outcome';
 $string['package'] = 'Package file';
 $string['package_help'] = 'The package file is a h5p file containing H5P interactive content.';
@@ -134,5 +137,7 @@ $string['totalscore'] = 'Total score';
 $string['tracking_messages'] = 'Some H5P provide attempt tracking data for advanced reporting such as number of attempts, responses and grades. Note: Some H5P don\'t provide attempt tracking data. In such cases, the following settings will have no effect.';
 $string['true'] = 'True';
 $string['usecontentbank'] = 'Use the <a href="{$a}" target="_blank">content bank (opens in new window)</a> to manage your H5P files';
+$string['usecontentbank_warning'] = 'Then, for the "Package file" field, pick one from the "Content bank" repository and
+        add it as a "Link to the file".';
 $string['view'] = 'View';
 $string['view_report'] = 'View report';
