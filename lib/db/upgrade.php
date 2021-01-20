@@ -2387,5 +2387,23 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2021052500.42);
     }
 
+    if ($oldversion < 2021052500.53) {
+
+        // Define field type to be added to oauth2_issuer.
+        $table = new xmldb_table('oauth2_issuer');
+        $field = new xmldb_field('servicetype', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'requireconfirmation');
+
+        // Conditionally launch add field type.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // TODO: Upgrade existing records ???
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2021052500.53);
+    }
+
+
     return true;
 }

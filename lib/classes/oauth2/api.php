@@ -27,12 +27,14 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/filelib.php');
 
-use context_system;
 use curl;
 use stdClass;
-use moodle_exception;
 use moodle_url;
-
+use context_system;
+use moodle_exception;
+use core\oauth2\service\google;
+use core\oauth2\discovery\openidconnect;
+use core\oauth2\discovery\base_definition;
 
 /**
  * Static list of api methods for system oauth2 configuration.
@@ -41,23 +43,6 @@ use moodle_url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class api {
-
-    /**
-     * Build a google ready OAuth 2 service.
-     * @return \core\oauth2\issuer
-     */
-    private static function init_google() {
-        $record = (object) [
-            'name' => 'Google',
-            'image' => 'https://accounts.google.com/favicon.ico',
-            'baseurl' => 'https://accounts.google.com/',
-            'loginparamsoffline' => 'access_type=offline&prompt=consent',
-            'showonloginpage' => true
-        ];
-
-        $issuer = new issuer(0, $record);
-        return $issuer;
-    }
 
     /**
      * Create endpoints for google issuers.
@@ -76,6 +61,26 @@ class api {
         $endpoint = new endpoint(0, $record);
         $endpoint->create();
         return $issuer;
+    }
+
+    /**
+     * Helper method to create discovery endpoint.
+     *
+     * @param issuer $issuer Issuer the endpoints should be created for.
+     * @return endpoint The endpoint created.
+     *
+     * @throws \core\invalid_persistent_exception
+     */
+    private static function create_discovery_endpoint(issuer $issuer, string $url): endpoint {
+        $record = (object) [
+            'issuerid' => $issuer->get('id'),
+            'name' => 'discovery_endpoint',
+            'url' => $url,
+        ];
+        $endpoint = new endpoint(0, $record);
+        $endpoint->create();
+
+        return $endpoint;
     }
 
     /**
@@ -297,15 +302,19 @@ class api {
      */
     public static function init_standard_issuer($type) {
         require_capability('moodle/site:config', context_system::instance());
-        if ($type == 'google') {
-            return self::init_google();
-        } else if ($type == 'microsoft') {
+
+        // TODO: Move these methods to new service classes (to make this API easier to understand and maintain).
+        if ($type == 'microsoft') {
             return self::init_microsoft();
         } else if ($type == 'facebook') {
             return self::init_facebook();
         } else if ($type == 'nextcloud') {
             return self::init_nextcloud();
         } else {
+            $classname = 'core\\oauth2\\service\\' . $type;
+            if (class_exists($classname)) {
+                return $classname::init();
+            }
             throw new moodle_exception('OAuth 2 service type not recognised: ' . $type);
         }
     }
@@ -318,17 +327,21 @@ class api {
      */
     public static function create_endpoints_for_standard_issuer($type, $issuer) {
         require_capability('moodle/site:config', context_system::instance());
-        if ($type == 'google') {
-            $issuer = self::create_endpoints_for_google($issuer);
-            self::discover_endpoints($issuer);
-            return $issuer;
-        } else if ($type == 'microsoft') {
+
+        // TODO: Move these methods to new service classes (to make this API easier to understand and maintain).
+        if ($type == 'microsoft') {
             return self::create_endpoints_for_microsoft($issuer);
         } else if ($type == 'facebook') {
             return self::create_endpoints_for_facebook($issuer);
         } else if ($type == 'nextcloud') {
             return self::create_endpoints_for_nextcloud($issuer);
         } else {
+            $classname = 'core\\oauth2\\service\\' . $type;
+            if (class_exists($classname)) {
+                $provider = self::get_provider_discovery_definition($issuer);
+                self::discover_endpoints($issuer, $provider);
+                return $issuer;
+            }
             throw new moodle_exception('OAuth 2 service type not recognised: ' . $type);
         }
     }
@@ -342,7 +355,7 @@ class api {
     public static function create_standard_issuer($type, $baseurl = false) {
         require_capability('moodle/site:config', context_system::instance());
         if ($type == 'google') {
-            $issuer = self::init_google();
+            $issuer = google::init();
             $issuer->create();
             return self::create_endpoints_for_google($issuer);
         } else if ($type == 'microsoft') {
@@ -534,20 +547,21 @@ class api {
      * @param issuer $issuer
      * @return int The number of discovered services.
      */
-    protected static function discover_endpoints($issuer) {
-        $curl = new curl();
-
+    protected static function discover_endpoints($issuer, base_definition $provider) {
         if (empty($issuer->get('baseurl'))) {
             return 0;
         }
 
+        $creatediscoveryendpoint = false;
         $url = $issuer->get_endpoint_url('discovery');
         if (!$url) {
-            $url = $issuer->get('baseurl') . '/.well-known/openid-configuration';
+            $url = $provider->get_discovery_endpoint_url($issuer);
+            $creatediscoveryendpoint = true;
         }
 
+        $curl = new curl();
         if (!$json = $curl->get($url)) {
-            $msg = 'Could not discover end points for identity issuer' . $issuer->get('name');
+            $msg = 'Could not discover end points for identity issuer: ' . $issuer->get('name') . " [URL: $url]";
             throw new moodle_exception($msg);
         }
 
@@ -557,8 +571,13 @@ class api {
 
         $info = json_decode($json);
         if (empty($info)) {
-            $msg = 'Could not discover end points for identity issuer' . $issuer->get('name');
+            $msg = 'Could not discover end points for identity issuer: ' . $issuer->get('name') . " [URL: $url]";
             throw new moodle_exception($msg);
+        }
+
+        if ($creatediscoveryendpoint) {
+            // Create the discovery endpoint (because it didn't exist and the URL exists and is returning some valid JSON content).
+            self::create_discovery_endpoint($issuer, $url);
         }
 
         foreach (endpoint::get_records(['issuerid' => $issuer->get('id')]) as $endpoint) {
@@ -567,50 +586,9 @@ class api {
             }
         }
 
-        foreach ($info as $key => $value) {
-            if (substr_compare($key, '_endpoint', - strlen('_endpoint')) === 0) {
-                $record = new stdClass();
-                $record->issuerid = $issuer->get('id');
-                $record->name = $key;
-                $record->url = $value;
+        $provider->process_configuration_json($issuer, $info);
 
-                $endpoint = new endpoint(0, $record);
-                $endpoint->create();
-            }
-
-            if ($key == 'scopes_supported') {
-                $issuer->set('scopessupported', implode(' ', $value));
-                $issuer->update();
-            }
-        }
-
-        // We got to here - must be a decent OpenID connect service. Add the default user field mapping list.
-        foreach (user_field_mapping::get_records(['issuerid' => $issuer->get('id')]) as $userfieldmapping) {
-            $userfieldmapping->delete();
-        }
-
-        // Create the field mappings.
-        $mapping = [
-            'given_name' => 'firstname',
-            'middle_name' => 'middlename',
-            'family_name' => 'lastname',
-            'email' => 'email',
-            'website' => 'url',
-            'nickname' => 'alternatename',
-            'picture' => 'picture',
-            'address' => 'address',
-            'phone' => 'phone1',
-            'locale' => 'lang'
-        ];
-        foreach ($mapping as $external => $internal) {
-            $record = (object) [
-                'issuerid' => $issuer->get('id'),
-                'externalfield' => $external,
-                'internalfield' => $internal
-            ];
-            $userfieldmapping = new user_field_mapping(0, $record);
-            $userfieldmapping->create();
-        }
+        $provider->process_userfield_mapping($issuer);
 
         return endpoint::count_records(['issuerid' => $issuer->get('id')]);
     }
@@ -622,16 +600,7 @@ class api {
      * @return \core\oauth2\issuer
      */
     public static function update_issuer($data) {
-        require_capability('moodle/site:config', context_system::instance());
-        $issuer = new issuer(0, $data);
-
-        // Will throw exceptions on validation failures.
-        $issuer->update();
-
-        // Perform service discovery.
-        self::discover_endpoints($issuer);
-        self::guess_image($issuer);
-        return $issuer;
+        return self::create_or_update_issuer($data, false);
     }
 
     /**
@@ -641,16 +610,55 @@ class api {
      * @return \core\oauth2\issuer
      */
     public static function create_issuer($data) {
+        return self::create_or_update_issuer($data, true);
+    }
+
+    /**
+     * Take the data from the mform and create or update the issuer.
+     *
+     * @param stdClass $data Form data for them issuer to be created/updated.
+     * @param boolean $create If true, the issuer will be created; otherwise, it will be updated.
+     * @return issuer The created/updated issuer.
+     */
+    protected static function create_or_update_issuer($data, bool $create): issuer {
         require_capability('moodle/site:config', context_system::instance());
         $issuer = new issuer(0, $data);
 
         // Will throw exceptions on validation failures.
-        $issuer->create();
+        if ($create) {
+            $issuer->create();
+        } else {
+            $issuer->update();
+        }
+
+        // Get the proper provider definition.
+        $provider = self::get_provider_discovery_definition($issuer);
 
         // Perform service discovery.
-        self::discover_endpoints($issuer);
+        self::discover_endpoints($issuer, $provider);
         self::guess_image($issuer);
+
         return $issuer;
+    }
+
+    /**
+     * Get the provider discovery definition for an issuer.
+     *
+     * @param issuer $issuer The OAuth issuer.
+     *
+     * @return base_definition The discovery definition for this issuer or Open ID Connect definition if the issuer hasn't any
+     *                         associated.
+     */
+    protected static function get_provider_discovery_definition(issuer $issuer): base_definition {
+        $type = $issuer->get('servicetype');
+        $classname = 'core\\oauth2\\service\\' . $type;
+        if (class_exists($classname)) {
+            $provider = $classname::get_discovery_provider();
+        } else {
+            $provider = new openidconnect();
+        }
+
+        return $provider;
     }
 
     /**
