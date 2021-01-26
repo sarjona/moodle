@@ -55,4 +55,12 @@ abstract class base_definition {
      */
     public abstract function process_userfield_mapping(issuer $issuer): void;
 
+    /**
+     * Self-register the issuer.
+     *
+     * @param issuer $issuer The OAuth issuer to register.
+     * @return void
+     */
+    public abstract function register(issuer $issuer): void;
+
 }

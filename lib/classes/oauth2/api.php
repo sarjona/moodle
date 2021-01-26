@@ -592,6 +592,8 @@ class api {
 
         $provider->process_userfield_mapping($issuer);
 
+        $provider->register($issuer);
+
         return endpoint::count_records(['issuerid' => $issuer->get('id')]);
     }
 
