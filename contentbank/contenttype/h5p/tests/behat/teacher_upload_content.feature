@@ -1,4 +1,4 @@
-@core @core_contentbank @contenttype_h5p @_file_upload @_switch_iframe @javascript
+@core @core_contentbank @contenttype_h5p @core_h5p @_file_upload @_switch_iframe @javascript
 Feature: H5P file upload to content bank for non admins
   In order import new H5P content to content bank
   As an admin
@@ -89,6 +89,7 @@ Feature: H5P file upload to content bank for non admins
     And I click on "filltheblanks.h5p" "link"
     And I click on "Select this file" "button"
     And I click on "Save changes" "button"
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     Then I should not see "Of which countries"
     And I should see "missing-required-library"
@@ -122,6 +123,7 @@ Feature: H5P file upload to content bank for non admins
     And I click on "filltheblanks.h5p" "link"
     And I click on "Select this file" "button"
     And I click on "Save changes" "button"
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     Then I should see "Of which countries"
@@ -140,6 +142,7 @@ Feature: H5P file upload to content bank for non admins
     And I click on "Content bank" "link"
     And I should see "filltheblanks.h5p"
     And I click on "filltheblanks.h5p" "link"
+    And I wait "2" seconds
     And I switch to "h5p-player" class iframe
     Then I should not see "Of which countries"
     Then I should see "missing-required-library"
