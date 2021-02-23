@@ -129,3 +129,6 @@ hidepicture,core_group
 hidepicture,core_moodle
 sitebackpack,core_badges
 sitebackpack_help,core_badges
+addbackpack,core_badges
+error:backpacknotavailable,core_badges
+error:backpackproblem,core_badges
