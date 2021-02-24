@@ -593,4 +593,39 @@ class api {
 
         return null;
     }
+
+    /**
+     * Enable a library.
+     *
+     * @param int $libraryid The id of the library to enable.
+     */
+    public static function enable_library(int $libraryid): void {
+        self::set_library_enabled($libraryid, true);
+    }
+
+    /**
+     * Disable a library.
+     *
+     * @param int $libraryid The id of the library to disable.
+     */
+    public static function disable_library(int $libraryid): void {
+        self::set_library_enabled($libraryid, false);
+    }
+
+    /**
+     * Enable or disable a library.
+     *
+     * @param int $libraryid The id of the library to enable/disable.
+     * @param bool $isenabled True if the library should be enabled; false otherwise.
+     */
+    private static function set_library_enabled(int $libraryid, bool $isenabled): void {
+        global $DB;
+
+        $library = [
+            'id' => $libraryid,
+            'enabled' => $isenabled,
+        ];
+        $DB->update_record('h5p_libraries', $library);
+    }
+
 }

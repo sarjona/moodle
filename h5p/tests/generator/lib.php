@@ -251,14 +251,15 @@ class core_h5p_generator extends \component_generator_base {
      * @param string $addto The plugin configuration data
      * @param string $tutorial The tutorial URL
      * @param string $examlpe The example URL
+     * @param bool $enabled Whether the library is enabled or not
      * @return stdClass An object representing the added library record
      */
     public function create_library_record(string $machinename, string $title, int $majorversion = 1,
             int $minorversion = 0, int $patchversion = 1, string $semantics = '', string $addto = null,
-            string $tutorial = null, string $example = null): stdClass {
+            string $tutorial = null, string $example = null, bool $enabled = true): stdClass {
         global $DB;
 
-        $content = array(
+        $content = [
             'machinename' => $machinename,
             'title' => $title,
             'majorversion' => $majorversion,
@@ -272,8 +273,9 @@ class core_h5p_generator extends \component_generator_base {
             'semantics' => $semantics,
             'addto' => $addto,
             'tutorial' => $tutorial,
-            'example' => $example
-        );
+            'example' => $example,
+            'enabled' => $enabled,
+        ];
 
         $libraryid = $DB->insert_record('h5p_libraries', $content);
 
