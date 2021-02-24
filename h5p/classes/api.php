@@ -593,4 +593,21 @@ class api {
 
         return null;
     }
+
+    /**
+     * Enable or disable a library.
+     *
+     * @param int $libraryid The id of the library to enable/disable.
+     * @param bool $isenabled True if the library should be enabled; false otherwise.
+     */
+    public static function set_library_enabled(int $libraryid, bool $isenabled): void {
+        global $DB;
+
+        $library = [
+            'id' => $libraryid,
+            'enabled' => $isenabled,
+        ];
+        $DB->update_record('h5p_libraries', $library);
+    }
+
 }
