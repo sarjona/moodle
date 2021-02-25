@@ -26,6 +26,7 @@ namespace core_h5p;
 
 defined('MOODLE_INTERNAL') || die();
 
+use stdClass;
 use core\lock\lock_config;
 
 /**
@@ -251,13 +252,21 @@ class api {
         $context = \context::instance_by_id($file->get_contextid());
         if ($h5p) {
             // The H5P content has been deployed previously.
-            $displayoptions = helper::get_display_options($core, $config);
-            // Check if the user can set the displayoptions.
-            if ($displayoptions != $h5p->displayoptions && has_capability('moodle/h5p:setdisplayoptions', $context)) {
-                // If the displayoptions has changed and the user has permission to modify it, update this information in the DB.
-                $core->h5pF->updateContentFields($h5p->id, ['displayoptions' => $displayoptions]);
+
+            // If the main library for this H5P content is disabled, the content won't be displayed.
+            $mainlibrary = (object) ['id' => $h5p->mainlibraryid];
+            if (!self::is_library_enabled($mainlibrary)) {
+                $core->h5pF->setErrorMessage(get_string('mainlibrarydisabled', 'core_h5p'));
+                return [$file, false];
+            } else {
+                $displayoptions = helper::get_display_options($core, $config);
+                // Check if the user can set the displayoptions.
+                if ($displayoptions != $h5p->displayoptions && has_capability('moodle/h5p:setdisplayoptions', $context)) {
+                    // If displayoptions has changed and user has permission to modify it, update this information in DB.
+                    $core->h5pF->updateContentFields($h5p->id, ['displayoptions' => $displayoptions]);
+                }
+                return [$file, $h5p->id];
             }
-            return [$file, $h5p->id];
         } else {
             // The H5P content hasn't been deployed previously.
 
@@ -628,4 +637,38 @@ class api {
         $DB->update_record('h5p_libraries', $library);
     }
 
+    /**
+     * Check whether a library is enabled or not. When machinename is passed, it will return false if any of the versions
+     * for this machinename is disabled.
+     * If the library doesn't exist, it will return true.
+     *
+     * @param stdClass $librarydata Supported fields for library: 'id' and 'machichename'.
+     * @return bool
+     */
+    public static function is_library_enabled(stdClass $librarydata): bool {
+        global $DB;
+
+        $params = [];
+        if (property_exists($librarydata, 'machinename')) {
+            $params['machinename'] = $librarydata->machinename;
+        }
+        if (property_exists($librarydata, 'id')) {
+            $params['id'] = $librarydata->id;
+        }
+
+        if (empty($params)) {
+            return false;
+        }
+
+        $libraries = $DB->get_records('h5p_libraries', $params);
+
+        // If any of the libraries with these values have been disabled, return false.
+        foreach ($libraries as $id => $library) {
+            if (!$library->enabled) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
