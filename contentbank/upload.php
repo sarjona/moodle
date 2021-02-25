@@ -100,13 +100,23 @@ if ($mform->is_cancelled()) {
     $files = $fs->get_area_files($usercontext->id, 'user', 'draft', $formdata->file, 'itemid, filepath, filename', false);
     if (!empty($files)) {
         $file = reset($files);
-        if ($id) {
-            $content = $contenttype->replace_content($file, $content);
-        } else {
-            $content = $cb->create_content_from_file($context, $USER->id, $file);
+        try {
+            if ($id) {
+                $content = $contenttype->replace_content($file, $content);
+            } else {
+                $content = $cb->create_content_from_file($context, $USER->id, $file);
+            }
+            $url = new \moodle_url('/contentbank/view.php', ['id' => $content->get_id(), 'contextid' => $contextid]);
+        } catch (Exception $e) {
+            // Redirect to the right page (depending on if content is new or existing) and display an error.
+            if ($id) {
+                $params = ['id' => $content->get_id(), 'contextid' => $contextid, 'errormsg' => 'notvalidpackage'];
+                $url = new \moodle_url('/contentbank/view.php', $params);
+            } else {
+                $url = new \moodle_url('/contentbank/index.php', ['contextid' => $contextid, 'errormsg' => 'notvalidpackage']);
+            }
         }
-        $viewurl = new \moodle_url('/contentbank/view.php', ['id' => $content->get_id(), 'contextid' => $contextid]);
-        redirect($viewurl);
+        redirect($url);
     } else {
         $error = get_string('errornofile', 'contentbank');
     }
