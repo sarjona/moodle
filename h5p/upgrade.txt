@@ -1,6 +1,10 @@
 This files describes API changes in core libraries and APIs,
 information provided here is intended especially for developers.
 
+=== 3.11 ===
+* Added $skipcapcheck parameter to H5P constructor, api::create_content_from_pluginfile_url() and
+api::get_content_from_pluginfile_url() to let skip capabilities check to get the pluginfile URL.
+
 === 3.10 ===
 * Added a new cache for h5p_library_files (MDL-69207)
 

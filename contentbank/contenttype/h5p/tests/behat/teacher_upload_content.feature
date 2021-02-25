@@ -89,12 +89,18 @@ Feature: H5P file upload to content bank for non admins
     And I click on "filltheblanks.h5p" "link"
     And I click on "Select this file" "button"
     And I click on "Save changes" "button"
-    And I switch to "h5p-player" class iframe
-    Then I should not see "Of which countries"
-    And I should see "missing-required-library"
-    And I switch to the main frame
+    Then I should see "Sorry, this content is not available or its content-type is not enabled."
+    And I should not see "filltheblanks.h5p"
     And I log out
     And I log in as "admin"
+    And I am on "Course 1" course homepage
+    And I expand "Site pages" node
+    And I click on "Content bank" "link"
+    And I should see "filltheblanks.h5p"
+    And I click on "filltheblanks.h5p" "link"
+    And I switch to "h5p-player" class iframe
+    And I should see "missing-required-library"
+    And I switch to the main frame
     And I navigate to "H5P > Manage H5P content types" in site administration
     And I should not see "Fill in the Blanks"
 
@@ -138,8 +144,13 @@ Feature: H5P file upload to content bank for non admins
     Given I am on "Course 1" course homepage
     When I expand "Site pages" node
     And I click on "Content bank" "link"
+    Then I should not see "filltheblanks.h5p"
+    And I log out
+    And I log in as "admin"
+    And I am on "Course 1" course homepage
+    And I expand "Site pages" node
+    And I click on "Content bank" "link"
     And I should see "filltheblanks.h5p"
     And I click on "filltheblanks.h5p" "link"
     And I switch to "h5p-player" class iframe
-    Then I should not see "Of which countries"
-    Then I should see "missing-required-library"
+    And I should see "missing-required-library"
