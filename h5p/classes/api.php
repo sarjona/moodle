@@ -186,16 +186,20 @@ class api {
      *
      * @param string $url H5P pluginfile URL.
      * @param bool $preventredirect Set to true in scripts that can not redirect (CLI, RSS feeds, etc.), throws exceptions
+     * @param bool $skipcapcheck Whether capabilities should be checked or not to get the pluginfile URL because sometimes they
+     *     might be controlled before calling this method.
      *
      * @return array of [file, stdClass|false]:
      *             - file local file for this $url.
      *             - stdClass is an H5P object or false if there isn't any H5P with this URL.
      */
-    public static function get_content_from_pluginfile_url(string $url, bool $preventredirect = true): array {
+    public static function get_content_from_pluginfile_url(string $url, bool $preventredirect = true,
+        bool $skipcapcheck = false): array {
+
         global $DB;
 
         // Deconstruct the URL and get the pathname associated.
-        if (self::can_access_pluginfile_hash($url, $preventredirect)) {
+        if ($skipcapcheck || self::can_access_pluginfile_hash($url, $preventredirect)) {
             $pathnamehash = self::get_pluginfile_hash($url);
         }
 
@@ -224,17 +228,19 @@ class api {
      * @param factory $factory The \core_h5p\factory object
      * @param stdClass $messages The error, exception and info messages, raised while preparing and running an H5P content.
      * @param bool $preventredirect Set to true in scripts that can not redirect (CLI, RSS feeds, etc.), throws exceptions
+     * @param bool $skipcapcheck Whether capabilities should be checked or not to get the pluginfile URL because sometimes they
+     *     might be controlled before calling this method.
      *
      * @return array of [file, h5pid]:
      *             - file local file for this $url.
      *             - h5pid is the H5P identifier or false if there isn't any H5P with this URL.
      */
     public static function create_content_from_pluginfile_url(string $url, \stdClass $config, factory $factory,
-        \stdClass &$messages, bool $preventredirect = true): array {
+        \stdClass &$messages, bool $preventredirect = true, bool $skipcapcheck = false): array {
         global $USER;
 
         $core = $factory->get_core();
-        list($file, $h5p) = self::get_content_from_pluginfile_url($url, $preventredirect);
+        list($file, $h5p) = self::get_content_from_pluginfile_url($url, $preventredirect, $skipcapcheck);
 
         if (!$file) {
             $core->h5pF->setErrorMessage(get_string('h5pfilenotfound', 'core_h5p'));

@@ -206,9 +206,10 @@ class core_contentbank_testcase extends advanced_testcase {
      */
     public function test_search_contents(?string $search, string $where, int $expectedresult, array $contexts = [],
             array $contenttypes = null): void {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest();
+        $this->setAdminUser();
 
         // Create users.
         $managerroleid = $DB->get_field('role', 'id', ['shortname' => 'manager']);
@@ -230,11 +231,12 @@ class core_contentbank_testcase extends advanced_testcase {
         }
 
         // Add some content to the content bank.
+        $filepath = $CFG->dirroot . '/h5p/tests/fixtures/filltheblanks.h5p';
         $generator = $this->getDataGenerator()->get_plugin_generator('core_contentbank');
         foreach ($contexts as $context) {
             $contextinstance = $existingcontexts[$context];
             $records = $generator->generate_contentbank_data('contenttype_h5p', 3,
-                $manager->id, $contextinstance, false);
+                $manager->id, $contextinstance, false, $filepath);
         }
 
         // Search for some content.
