@@ -120,7 +120,7 @@ class client extends \core\oauth2\client {
                 'client_id' => $this->clientid,
                 'response_type' => 'code',
                 'redirect_uri' => $callbackurl->out(false),
-                'state' => $this->returnurl->out_as_local_url(false),
+                'state' => base64_encode($this->returnurl->out_as_local_url(false)),
                 'scope' => $scopes,
                 'code_challenge' => $this->code_challenge(),
                 'code_challenge_method' => BACKPACK_CHALLENGE_METHOD,
