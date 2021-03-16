@@ -230,6 +230,15 @@ class backpack_api2p1 {
         } else {
             $msg['status'] = \core\output\notification::NOTIFY_ERROR;
             $msg['message'] = get_string('backpackexporterror', 'badges', $data['assertion']['badge']['name']);
+            // If response is not empty, display also information about the error raised.
+            if ($response) {
+                $string = [
+                    'error' => $response->status->error,
+                    'code' => $response->status->statusCode,
+                    'status' => $response->status->statusText,
+                ];
+                $msg['message'] .= ' ' . get_string('backpackexporterrormessage', 'badges', $string);
+            }
         }
         return $msg;
     }

@@ -247,7 +247,11 @@ class client extends \core\oauth2\client {
         $response = $this->post($this->token_url(), $this->build_post_data($params));
         $r = json_decode($response);
         if ($this->info['http_code'] !== 200) {
-            throw new moodle_exception('Could not upgrade oauth token');
+            $error = 'Could not upgrade oauth token';
+            if ($r->status) {
+                $error .= '. "' . $r->status->error . '" (statusCode = ' . $r->status->statusCode . ')';
+            }
+            throw new moodle_exception($error);
         }
 
         if (is_null($r)) {

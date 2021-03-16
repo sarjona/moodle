@@ -127,7 +127,8 @@ $string['backpackemailverifyemailsubject'] = '{$a}: Badges backpack email verifi
 $string['backpackemailverifypending'] = 'A verification email has been sent to <strong>{$a}</strong>. Click on the verification link in the email to activate your Backpack connection.';
 $string['backpackemailverifysuccess'] = 'Thanks for verifying your email address. You are now connected to your backpack.';
 $string['backpackemailverifytokenmismatch'] = 'The token in the link you clicked does not match the stored token. Make sure you clicked the link in most recent email you received.';
-$string['backpackexporterror'] = 'Can\'t export the badge to backpack';
+$string['backpackexporterror'] = 'Can\'t export the badge "{$a}" to backpack.';
+$string['backpackexporterrormessage'] = 'Status: {$a->status} ({$a->code}). Error text: "{$a->error}"';
 $string['backpackimport'] = 'Badge import settings';
 $string['backpackimport_help'] = 'After the backpack connection is successfully established, badges from your backpack can be displayed on your badges page and your profile page.
 
