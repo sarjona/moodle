@@ -47,6 +47,7 @@ renderer and course format renderer:
 compatibility (to not break third-party plugins without it), legacy_format_renderer has been created and will be used when
 course formats don't have their own renderer.
 * New external function course_get_state::execute returns current state information for a given course.
+* New external function course_course_edit::execute runs given action to edit course status.
 
 === 3.11 ===
 * A new callback xxx_coursemodule_definition_after_data that allows plugins to extend activity forms after the data is set.

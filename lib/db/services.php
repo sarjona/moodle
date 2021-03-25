@@ -517,6 +517,14 @@ $functions = array(
         'ajax'          => 'true',
         'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'core_course_edit' => [
+        'classname'     => 'core_course\external\course_edit',
+        'methodname'    => 'execute',
+        'description'   => 'Edit course contents.',
+        'type'          => 'write',
+        'ajax'          => 'true',
+        'capabilities'  => 'moodle/course:sectionvisibility, moodle/course:activityvisibility',
+    ],
     'core_course_edit_module' => array(
         'classname'   => 'core_course_external',
         'methodname'  => 'edit_module',
