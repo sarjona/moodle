@@ -1068,3 +1068,18 @@ abstract class format_section_renderer_base extends core_course_renderer {
 class format_site_renderer extends format_section_renderer_base {
 
 }
+
+/**
+ * Legacy course format renderer.
+ *
+ * Since Moodle 4.0, renderer.php file was optional (although highly recommended) for course formats. From Moodle 4.0 onwards,
+ * renderer is required to support the new course editor implementation.
+ * This legacy class has been created for backward compatibility, to avoid some errors with course formats (such as social)
+ * without this renderer.php file.
+ *
+ * @copyright 2021 Sara Arjona (sara@moodle.com)
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class legacy_format_renderer extends format_section_renderer_base {
+
+}
