@@ -37,6 +37,7 @@ use moodle_url;
 use lang_string;
 use completion_info;
 use external_api;
+use legacy_format_renderer;
 use stdClass;
 
 /**
@@ -1055,7 +1056,22 @@ abstract class course_format {
      * @return renderer_base
      */
     public function get_renderer(moodle_page $page) {
-        return $page->get_renderer('format_'. $this->get_format());
+        global $CFG;
+
+        try {
+            $renderer = $page->get_renderer('format_'. $this->get_format());
+        } catch (moodle_exception $e) {
+            debugging(
+                 'Course format ' . $this->get_format() . ' has not a renderer file so legacy_format_renderer class will be used.',
+                 DEBUG_DEVELOPER
+            );
+            if (!class_exists('legacy_format_renderer')) {
+                require_once($CFG->dirroot . '/course/format/renderer.php');
+            }
+            $renderer = new legacy_format_renderer($page, null);
+        }
+
+        return $renderer;
     }
 
     /**
