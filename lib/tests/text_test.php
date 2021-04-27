@@ -341,6 +341,8 @@ class core_text_testcase extends advanced_testcase {
     public function test_specialtoascii() {
         $str = "Žluťoučký koníček";
         $this->assertSame('Zlutoucky konicek', core_text::specialtoascii($str));
+        $utf8 = "Der eine stößt den Speer zum Mann";
+        $this->assertSame('Der eine stoesst den Speer zum Mann', core_text::specialtoascii($utf8));
     }
 
     /**

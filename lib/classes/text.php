@@ -24,6 +24,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+if (!class_exists('CharsetConverter')) {
+    require_once($CFG->libdir . '/typo3/src/autoload.php');
+}
+
+use TYPO3\CMS\Core\Charset\CharsetConverter;
+
 /**
  * defines string api's for manipulating strings
  *
@@ -60,6 +66,7 @@ class core_text {
      * @return t3lib_cs
      */
     protected static function typo3($reset = false) {
+        global $CFG;
         static $typo3cs = null;
 
         if ($reset) {
@@ -71,41 +78,16 @@ class core_text {
             return $typo3cs;
         }
 
-        global $CFG;
-
-        // Required files
-        require_once($CFG->libdir.'/typo3/class.t3lib_cs.php');
-        require_once($CFG->libdir.'/typo3/class.t3lib_div.php');
-        require_once($CFG->libdir.'/typo3/interface.t3lib_singleton.php');
-        require_once($CFG->libdir.'/typo3/class.t3lib_l10n_locales.php');
-
-        // do not use mbstring or recode because it may return invalid results in some corner cases
-        $GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_convMethod'] = 'iconv';
-        $GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_utils'] = 'iconv';
-
-        // Tell Typo3 we are curl enabled always (mandatory since 2.0)
-        $GLOBALS['TYPO3_CONF_VARS']['SYS']['curlUse'] = '1';
-
         // And this directory must exist to allow Typo to cache conversion
         // tables when using internal functions
-        make_temp_directory('typo3temp/cs');
+        make_temp_directory('typo3temp/charset');
 
-        // Make sure typo is using our dir permissions
-        $GLOBALS['TYPO3_CONF_VARS']['BE']['folderCreateMask'] = decoct($CFG->directorypermissions);
+        // Constants required by typo3.
+        defined('LF') ?: define('LF', chr(10));
+        defined('TYPO3_DATA_PATH') ?: define('TYPO3_DATA_PATH', str_replace('\\', '/', $CFG->libdir . '/typo3/data/'));
+        defined('TYPO3_TEMP_PATH') ?: define('TYPO3_TEMP_PATH', str_replace('\\', '/', $CFG->tempdir . '/typo3temp'));
 
-        // Default mask for Typo
-        $GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = decoct($CFG->filepermissions);
-
-        // This full path constants must be defined too, transforming backslashes
-        // to forward slashed because Typo3 requires it.
-        if (!defined('PATH_t3lib')) {
-            define('PATH_t3lib', str_replace('\\','/',$CFG->libdir.'/typo3/'));
-            define('PATH_typo3', str_replace('\\','/',$CFG->libdir.'/typo3/'));
-            define('PATH_site', str_replace('\\','/',$CFG->tempdir.'/'));
-            define('TYPO3_OS', stristr(PHP_OS,'win')&&!stristr(PHP_OS,'darwin')?'WIN':'');
-        }
-
-        $typo3cs = new t3lib_cs();
+        $typo3cs = new CharsetConverter();
 
         return $typo3cs;
     }
@@ -159,9 +141,18 @@ class core_text {
         if ($charset === 'gb18030') {
             return 'gb18030';
         }
+        if ($charset === 'ms-ansi') {
+            return 'windows-1252';
+        }
 
-        // fallback to typo3
-        return self::typo3()->parse_charset($charset);
+        // Confirm the charset is supported. mb_encoding_aliases will return false if not supported/unknown.
+        $encodings = mb_list_encodings();
+        if (in_array($charset, $encodings) || @mb_encoding_aliases($charset)) {
+            return $charset;
+        }
+
+        // We have reached this stage and haven't matched with anything. Return the original.
+        return $charset;
     }
 
     /**
@@ -210,7 +201,7 @@ class core_text {
     }
 
     /**
-     * Multibyte safe substr() function, uses mbstring or iconv for UTF-8, falls back to typo3.
+     * Multibyte safe substr() function, uses mbstring or iconv for UTF-8
      *
      * @param string $text string to truncate
      * @param int $start negative value means from end
@@ -222,33 +213,22 @@ class core_text {
         $charset = self::parse_charset($charset);
 
         if ($charset === 'utf-8') {
-            if (function_exists('mb_substr')) {
-                // this is much faster than iconv - see MDL-31142
-                if ($len === null) {
-                    $oldcharset = mb_internal_encoding();
-                    mb_internal_encoding('UTF-8');
-                    $result = mb_substr($text, $start);
-                    mb_internal_encoding($oldcharset);
-                    return $result;
-                } else {
-                    return mb_substr($text, $start, $len, 'UTF-8');
-                }
-
-            } else {
-                if ($len === null) {
-                    $len = iconv_strlen($text, 'UTF-8');
-                }
-                return iconv_substr($text, $start, $len, 'UTF-8');
+            // this is much faster than iconv - see MDL-31142
+            if ($len === null) {
+                $oldcharset = mb_internal_encoding();
+                mb_internal_encoding('UTF-8');
+                $result = mb_substr($text, $start);
+                mb_internal_encoding($oldcharset);
+                return $result;
             }
         }
 
-        $oldlevel = error_reporting(E_PARSE);
-        if ($len === null) {
-            $result = self::typo3()->substr($charset, (string)$text, $start);
+        // Check whether the charset is supported by mbstring. CP1250 is not supported. Fall back to iconv.
+        if (@mb_encoding_aliases($charset)) {
+            $result = mb_substr($text, $start, $len, $charset);
         } else {
-            $result = self::typo3()->substr($charset, (string)$text, $start, $len);
+            $result = iconv_substr($text, $start, $len, $charset);
         }
-        error_reporting($oldlevel);
 
         return $result;
     }
@@ -257,24 +237,13 @@ class core_text {
      * Truncates a string to no more than a certain number of bytes in a multi-byte safe manner.
      * UTF-8 only!
      *
-     * Many of the other charsets we test for (like ISO-2022-JP and EUC-JP) are not supported
-     * by typo3, and will give invalid results, so we are supporting UTF-8 only.
-     *
      * @param string $string String to truncate
      * @param int $bytes Maximum length of bytes in the result
      * @return string Portion of string specified by $bytes
      * @since Moodle 3.1
      */
     public static function str_max_bytes($string, $bytes) {
-        if (function_exists('mb_strcut')) {
-            return mb_strcut($string, 0, $bytes, 'UTF-8');
-        }
-
-        $oldlevel = error_reporting(E_PARSE);
-        $result = self::typo3()->strtrunc('utf-8', $string, $bytes);
-        error_reporting($oldlevel);
-
-        return $result;
+        return mb_strcut($string, 0, $bytes, 'UTF-8');
     }
 
     /**
@@ -308,7 +277,7 @@ class core_text {
     }
 
     /**
-     * Multibyte safe strlen() function, uses mbstring or iconv for UTF-8, falls back to typo3.
+     * Multibyte safe strlen() function, uses mbstring or iconv for UTF-8. Falls back to mbstring.
      *
      * @param string $text input string
      * @param string $charset encoding of the text
@@ -325,15 +294,11 @@ class core_text {
             }
         }
 
-        $oldlevel = error_reporting(E_PARSE);
-        $result = self::typo3()->strlen($charset, (string)$text);
-        error_reporting($oldlevel);
-
-        return $result;
+        return iconv_strlen($text, $charset);
     }
 
     /**
-     * Multibyte safe strtolower() function, uses mbstring, falls back to typo3.
+     * Multibyte safe strtolower() function, uses mbstring.
      *
      * @param string $text input string
      * @param string $charset encoding of the text (may not work for all encodings)
@@ -342,19 +307,20 @@ class core_text {
     public static function strtolower($text, $charset='utf-8') {
         $charset = self::parse_charset($charset);
 
-        if ($charset === 'utf-8' and function_exists('mb_strtolower')) {
-            return mb_strtolower($text, 'UTF-8');
+        // Confirm mbstring can handle the charset.
+        if (@mb_encoding_aliases($charset)) {
+            return mb_strtolower($text, $charset);
         }
 
-        $oldlevel = error_reporting(E_PARSE);
-        $result = self::typo3()->conv_case($charset, (string)$text, 'toLower');
-        error_reporting($oldlevel);
-
+        // mbstring cannot handle the charset. Convert to UTF-8.
+        $convertedtext = self::convert($text, $charset, 'utf-8');
+        $result = mb_strtolower($convertedtext);
+        $result = self::convert($result, 'utf-8', $charset);
         return $result;
     }
 
     /**
-     * Multibyte safe strtoupper() function, uses mbstring, falls back to typo3.
+     * Multibyte safe strtoupper() function, uses mbstring.
      *
      * @param string $text input string
      * @param string $charset encoding of the text (may not work for all encodings)
@@ -363,14 +329,15 @@ class core_text {
     public static function strtoupper($text, $charset='utf-8') {
         $charset = self::parse_charset($charset);
 
-        if ($charset === 'utf-8' and function_exists('mb_strtoupper')) {
-            return mb_strtoupper($text, 'UTF-8');
+        // Confirm mbstring can handle the charset.
+        if (@mb_encoding_aliases($charset)) {
+            return mb_strtoupper($text, $charset);
         }
 
-        $oldlevel = error_reporting(E_PARSE);
-        $result = self::typo3()->conv_case($charset, (string)$text, 'toUpper');
-        error_reporting($oldlevel);
-
+        // mbstring cannot handle the charset. Convert to UTF-8.
+        $convertedtext = self::convert($text, $charset, 'utf-8');
+        $result = mb_strtoupper($convertedtext);
+        $result = self::convert($result, 'utf-8', $charset);
         return $result;
     }
 
@@ -602,11 +569,10 @@ class core_text {
             $str = self::entities_to_utf8($str, true);
         }
 
-        // Avoid some notices from Typo3 code
-        $oldlevel = error_reporting(E_PARSE);
-        $result = self::typo3()->utf8_to_entities((string)$str);
-        error_reporting($oldlevel);
+        $result = mb_strtolower(mb_encode_numericentity($str, [0xa0, 0xffff, 0, 0xffff], 'UTF-8', true));
 
+        // We cannot use the decimal equivalent of the above call due to the unit test and our allowance for
+        // entities to be entered within the provided $str. Refer to the correspond unit test for examples.
         if ($dec) {
             if (!$callback) {
                 $callback = function($matches) {
@@ -681,7 +647,8 @@ class core_text {
         $nixenc = strtoupper(get_string('oldcharset', 'langconfig'));
         $encodings[$nixenc] = $nixenc;
 
-        foreach (self::typo3()->synonyms as $enc) {
+        $listedencodings = mb_list_encodings();
+        foreach ($listedencodings as $enc) {
             $enc = strtoupper($enc);
             $encodings[$enc] = $enc;
         }
