@@ -4,9 +4,22 @@ Changes:
 1/ hacked relative include of class.t3lib_utility_debug.php
 
 Procedure:
-1/ download latest version form http://typo3.org/download/
-2/ copy csconvtbl/*, unidata/* and all other necessary files we use
-3/ run our phpunit tests with and without mbstring PHP extension
+1/ Download latest version form http://typo3.org/download/
+2/ Copy csconvtbl/*, unidata/* from typo3/sysext/core/Resources/Private/Charsets into the 'data' folder with
+    the same file tree starting from 'Resources'
+3/ Copy the following from typo3 into src keeping the same file tree starting after Classes:
+    * Charset/CharsetConverter.php
+    * Charset/UnknownCharsetException.php
+    * Exception.php
+    * SingletonInterface.php
+4/ Copy the following files from the current version of Moodle. These have been customised to fit Moodle.
+    * Core/Environment.php
+    * Utility/ExtensionManagementUtility.php
+    * Utility/GeneralyUtility.php
+    * autoload.php
+4/ Remove all the functions in the Utility and Core classes that are NOT used in CharsetConverter.php.
+5/ Remove all use/define/include statements for files/globals not included in the list above
+6/ Run the full suite of phpunit tests (NOT just text_test.php)
 
 Local changes (to verify/apply with new imports):
 
