@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2010 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_text_testcase extends advanced_testcase {
+class text_test extends advanced_testcase {
 
     /**
      * Tests the static parse charset method.
@@ -93,9 +93,11 @@ class core_text_testcase extends advanced_testcase {
         $this->assertSame('Zlutoucky konicek', core_text::convert($utf8, 'utf-8', 'ascii'));
         $this->assertSame($utf8, core_text::convert($utf8.chr(130), 'utf-8', 'utf-8'));
         $utf8 = "Der eine stößt den Speer zum Mann";
-        $this->assertSame('Der eine stoesst den Speer zum Mann', core_text::convert($utf8, 'utf-8', 'ascii'));
+        $this->assertSame('Der eine stosst den Speer zum Mann', core_text::convert($utf8, 'utf-8', 'ascii'));
         $iso1 = core_text::convert($utf8, 'utf-8', 'iso-8859-1');
-        $this->assertSame('Der eine stoesst den Speer zum Mann', core_text::convert($iso1, 'iso-8859-1', 'ascii'));
+        $this->assertSame('Der eine stosst den Speer zum Mann', core_text::convert($iso1, 'iso-8859-1', 'ascii'));
+        $utf8 = "A æ Übérmensch på høyeste nivå! И я люблю PHP! есть. アクセシビリティ. ﬁ";
+        $this->assertSame("A ae Ubermensch pa hoyeste niva! I a lublu PHP! est'. akuseshibiriti. fi", core_text::convert($utf8, 'utf-8', 'ascii'));
     }
 
     /**
@@ -342,7 +344,7 @@ class core_text_testcase extends advanced_testcase {
         $str = "Žluťoučký koníček";
         $this->assertSame('Zlutoucky konicek', core_text::specialtoascii($str));
         $utf8 = "Der eine stößt den Speer zum Mann";
-        $this->assertSame('Der eine stoesst den Speer zum Mann', core_text::specialtoascii($utf8));
+        $this->assertSame('Der eine stosst den Speer zum Mann', core_text::specialtoascii($utf8));
     }
 
     /**
@@ -483,4 +485,3 @@ class core_text_testcase extends advanced_testcase {
         $this->assertFalse(core_text::strrchr($str, 'ç', true));
     }
 }
-
