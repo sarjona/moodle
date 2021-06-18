@@ -66,14 +66,23 @@ class framework implements \H5PFrameworkInterface {
     /**
      * Fetches a file from a remote server using HTTP GET.
      * Implements fetchExternalData.
+     * Some extra parameters  ($fulldata, $headers, $files and $method) have been added to this method to avoid conflict with sites
+     * using the latest h5p-php-library third-party library in mod_hvp.
+     * These parameters are ignored for now.
      *
      * @param string $url Where you want to get or send data
      * @param array $data Data to post to the URL
      * @param bool $blocking Set to 'FALSE' to instantly time out (fire and forget)
      * @param string $stream Path to where the file should be saved
+     * @param bool $fulldata Ignored for now
+     * @param array $headers Ignored for now
+     * @param array $files Ignored for now
+     * @param string $method Ignored for now
+     *
      * @return string The content (response body). NULL if something went wrong
      */
-    public function fetchExternalData($url, $data = null, $blocking = true, $stream = null) {
+    public function fetchExternalData($url, $data = null, $blocking = true, $stream = null, $fulldata = false, $headers = [],
+            $files = [], $method = 'POST') {
 
         if ($stream === null) {
             // Download file.
@@ -1678,5 +1687,59 @@ class framework implements \H5PFrameworkInterface {
         }
 
         return null;
+    }
+
+    /**
+     * Replace content hub metadata cache.
+     * This method has been added to avoid conflict with sites using the latest h5p-php-library third-party library in mod_hvp
+     * but it hasn't been implemented because, at least for now, it's not used.
+     *
+     * @param JsonSerializable $metadata Metadata as received from content hub
+     * @param string $lang Language in ISO 639-1
+     *
+     * @return mixed
+     */
+    public function replaceContentHubMetadataCache($metadata, $lang) {
+        // Not being used.
+    }
+
+    /**
+     * Get content hub metadata cache from db
+     * This method has been added to avoid conflict with sites using the latest h5p-php-library third-party library in mod_hvp
+     * but it hasn't been implemented because, at least for now, it's not used.
+     *
+     * @param  string  $lang Language code in ISO 639-1
+     *
+     * @return JsonSerializable Json string
+     */
+    public function getContentHubMetadataCache($lang = 'en') {
+        // Not being used.
+    }
+
+    /**
+     * Get time of last content hub metadata check
+     * This method has been added to avoid conflict with sites using the latest h5p-php-library third-party library in mod_hvp
+     * but it hasn't been implemented because, at least for now, it's not used.
+     *
+     * @param  string  $lang Language code iin ISO 639-1 format
+     *
+     * @return string|null Time in RFC7231 format
+     */
+    public function getContentHubMetadataChecked($lang = 'en') {
+        // Not being used.
+    }
+
+    /**
+     * Set time of last content hub metadata check
+     * This method has been added to avoid conflict with sites using the latest h5p-php-library third-party library in mod_hvp
+     * but it hasn't been implemented because, at least for now, it's not used.
+     *
+     * @param  int|null  $time Time in RFC7231 format
+     * @param  string  $lang Language code iin ISO 639-1 format
+     *
+     * @return bool True if successful
+     */
+    public function setContentHubMetadataChecked($time, $lang = 'en') {
+        // Not being used.
     }
 }
