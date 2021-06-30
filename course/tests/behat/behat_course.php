@@ -612,6 +612,43 @@ class behat_course extends behat_base {
     }
 
     /**
+     * Moves the specified section to another section location.
+     *
+     * This step requires Javascript enabled and the format should be compatible with he move tool.
+     *
+     * Editing mode should be on.
+     *
+     * @Given /^I move section "(?P<section_number>\d+)" to section "(?P<destination_number>\d+)"$/
+     * @throws DriverException Step not available when Javascript is enabled
+     * @param int $sectionnumber
+     * @param int $destinationnumber
+     */
+    public function i_move_section_to_section($sectionnumber, $destinationnumber) {
+
+        if (!$this->running_javascript()) {
+            throw new DriverException('Move a section to specific location step requires Javascript enabled');
+        }
+
+        // Ensures both sections exists.
+        $sectionxpath = $this->section_exists($sectionnumber);
+        $destinationxpath = $this->section_exists($destinationnumber);
+
+        // If javascript is on, link is inside a menu.
+        $this->i_open_section_edit_menu($sectionnumber);
+
+        // Click the move link.
+        $moveuplink = $this->get_node_in_container('link', get_string('move'), 'xpath_element', $sectionxpath);
+        $moveuplink->click();
+
+        $this->execute("behat_general::i_click_on_in_the", [
+            "[data-for='section'][data-number='$destinationnumber']",
+            'css_element',
+            "[data-region='modal-container']",
+            'css_element'
+        ]);
+    }
+
+    /**
      * Checks that the specified activity is visible. You need to be in the course page. It can be used being logged as a student and as a teacher on editing mode.
      *
      * @Then /^"(?P<activity_or_resource_string>(?:[^"]|\\")*)" activity should be visible$/
@@ -762,7 +799,9 @@ class behat_course extends behat_base {
     }
 
     /**
-     * Moves the specified activity to the first slot of a section. This step is experimental when using it in Javascript tests. Editing mode should be on.
+     * Moves the specified activity to the first slot of a section.
+     *
+     * This step is experimental when using it in Javascript tests. Editing mode should be on.
      *
      * @Given /^I move "(?P<activity_name_string>(?:[^"]|\\")*)" activity to section "(?P<section_number>\d+)"$/
      * @param string $activityname The activity name
@@ -773,26 +812,81 @@ class behat_course extends behat_base {
         // Ensure the destination is valid.
         $sectionxpath = $this->section_exists($sectionnumber);
 
+        // Not all formats are compatible with the move tool.
+        $activitynode = $this->get_activity_node($activityname);
+        if (!$activitynode->find('css', "[data-action='moveCm']")) {
+            // Execute the legacy YUI move option.
+            $this->i_move_activity_to_section_yui($activityname, $sectionnumber);
+            return;
+        }
+
+        // JS enabled.
+        if ($this->running_javascript()) {
+
+            $this->i_open_actions_menu($activityname);
+
+            $this->execute(
+                'behat_course::i_click_on_in_the_activity',
+                array(get_string('move'), "link", $this->escape($activityname))
+            );
+
+            $this->execute("behat_general::i_click_on_in_the", [
+                "[data-for='section'][data-number='$sectionnumber']",
+                'css_element',
+                "[data-region='modal-container']",
+                'css_element'
+            ]);
+
+        } else {
+            $this->execute(
+                'behat_course::i_click_on_in_the_activity',
+                array(get_string('move'), "link", $this->escape($activityname))
+            );
+
+            $this->execute(
+                'behat_general::i_click_on_in_the',
+                array("li.movehere a", "css_element", $this->escape($sectionxpath), "xpath_element")
+            );
+        }
+    }
+
+    /**
+     * Moves the specified activity to the first slot of a section using the YUI course format.
+     *
+     * This step is experimental when using it in Javascript tests. Editing mode should be on.
+     *
+     * @param string $activityname The activity name
+     * @param int $sectionnumber The number of section
+     */
+    private function i_move_activity_to_section_yui($activityname, $sectionnumber) {
+
+        // Ensure the destination is valid.
+        $sectionxpath = $this->section_exists($sectionnumber);
+
         // JS enabled.
         if ($this->running_javascript()) {
 
             $activitynode = $this->get_activity_element('Move', 'icon', $activityname);
             $destinationxpath = $sectionxpath . "/descendant::ul[contains(concat(' ', normalize-space(@class), ' '), ' yui3-dd-drop ')]";
 
-            $this->execute("behat_general::i_drag_and_i_drop_it_in",
-                array($this->escape($activitynode->getXpath()), "xpath_element",
-                    $this->escape($destinationxpath), "xpath_element")
+            $this->execute(
+                "behat_general::i_drag_and_i_drop_it_in",
+                array(
+                    $this->escape($activitynode->getXpath()), "xpath_element",
+                    $this->escape($destinationxpath), "xpath_element"
+                )
             );
-
         } else {
             // Following links with no-JS.
 
             // Moving to the fist spot of the section (before all other section's activities).
-            $this->execute('behat_course::i_click_on_in_the_activity',
+            $this->execute(
+                'behat_course::i_click_on_in_the_activity',
                 array("a.editing_move", "css_element", $this->escape($activityname))
             );
 
-            $this->execute('behat_general::i_click_on_in_the',
+            $this->execute(
+                'behat_general::i_click_on_in_the',
                 array("li.movehere a", "css_element", $this->escape($sectionxpath), "xpath_element")
             );
         }

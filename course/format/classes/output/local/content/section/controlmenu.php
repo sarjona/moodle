@@ -124,6 +124,8 @@ class controlmenu implements renderable, templatable {
         $sectionreturn = $format->get_section_number();
         $user = $USER;
 
+        $usecomponents = $format->supports_components();
+
         $coursecontext = context_course::instance($course->id);
         $numsections = $format->get_last_section_number();
         $isstealth = $section->section > $numsections;
@@ -176,33 +178,49 @@ class controlmenu implements renderable, templatable {
                     }
                 }
 
-                if (!$sectionreturn) {
-                    if (has_capability('moodle/course:movesections', $coursecontext, $user)) {
-                        $url = clone($baseurl);
-                        if ($section->section > 1) { // Add a arrow to move section up.
-                            $url->param('section', $section->section);
-                            $url->param('move', -1);
-                            $strmoveup = get_string('moveup');
-                            $controls['moveup'] = array(
-                                'url' => $url,
-                                'icon' => 'i/up',
-                                'name' => $strmoveup,
-                                'pixattr' => array('class' => ''),
-                                'attr' => array('class' => 'icon moveup'));
-                        }
+                if (!$sectionreturn && has_capability('moodle/course:movesections', $coursecontext, $user)) {
+                    if ($usecomponents) {
+                        // This tool will appear only when the state is ready.
+                        $url = clone ($baseurl);
+                        $url->param('movesection', $section->section);
+                        $url->param('section', $section->section);
+                        $controls['movesection'] = array(
+                            'url' => $url,
+                            'icon' => 'i/dragdrop',
+                            'name' => get_string('move', 'moodle'),
+                            'pixattr' => array('class' => ''),
+                            'attr' => array(
+                                'class' => 'icon move waitstate',
+                                'data-action' => 'moveSection',
+                                'data-id' => $section->id,
+                            )
+                        );
+                    }
+                    // Legacy move up and down links for non component-based formats.
+                    $url = clone($baseurl);
+                    if ($section->section > 1) { // Add a arrow to move section up.
+                        $url->param('section', $section->section);
+                        $url->param('move', -1);
+                        $strmoveup = get_string('moveup');
+                        $controls['moveup'] = array(
+                            'url' => $url,
+                            'icon' => 'i/up',
+                            'name' => $strmoveup,
+                            'pixattr' => array('class' => ''),
+                            'attr' => array('class' => 'icon moveup whilenostate'));
+                    }
 
-                        $url = clone($baseurl);
-                        if ($section->section < $numsections) { // Add a arrow to move section down.
-                            $url->param('section', $section->section);
-                            $url->param('move', 1);
-                            $strmovedown = get_string('movedown');
-                            $controls['movedown'] = array(
-                                'url' => $url,
-                                'icon' => 'i/down',
-                                'name' => $strmovedown,
-                                'pixattr' => array('class' => ''),
-                                'attr' => array('class' => 'icon movedown'));
-                        }
+                    $url = clone($baseurl);
+                    if ($section->section < $numsections) { // Add a arrow to move section down.
+                        $url->param('section', $section->section);
+                        $url->param('move', 1);
+                        $strmovedown = get_string('movedown');
+                        $controls['movedown'] = array(
+                            'url' => $url,
+                            'icon' => 'i/down',
+                            'name' => $strmovedown,
+                            'pixattr' => array('class' => ''),
+                            'attr' => array('class' => 'icon movedown whilenostate'));
                     }
                 }
             }
