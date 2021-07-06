@@ -1,0 +1,43 @@
+@tool @tool_admin_presets
+Feature: I can revert changes after a load
+
+  Background: Create a preset to revert from
+    Given I log in as "admin"
+    And I navigate to "Site admin presets" in site administration
+    And I click on "Export settings" "link_or_button"
+    And I set the following fields to these values:
+      | Name | My preset revert |
+    And I press "Save changes"
+
+  @javascript
+  Scenario: Changes some settings, load preset and revert
+    And I navigate to "Advanced features" in site administration
+    And I set the field "Enable portfolios" to "1"
+    And I set the field "Enable badges" to "0"
+    And I press "Save changes"
+    And I navigate to "Plugins > Activity modules > Assignment > Assignment settings" in site administration
+    And I set the field "Feedback plugin" to "File feedback"
+    And I press "Save changes"
+    And I navigate to "Plugins > Blocks > Course overview" in site administration
+    And I set the field "Custom field" to "1"
+    And I press "Save changes"
+    And I navigate to "Site admin presets" in site administration
+    And I click on "Actions" "link_or_button" in the "My preset" "table_row"
+    And I click on "Show" "link" in the "My preset" "table_row"
+    And I press "Apply"
+    And I navigate to "Site admin presets" in site administration
+    And I click on "Actions" "link_or_button" in the "My preset" "table_row"
+    And I click on "Show version history" "link" in the "My preset" "table_row"
+    And I follow "Restore this version"
+    Then I should see "Settings successfully restored"
+    And I should see "Enable portfolios" in the ".admin_presets_applied" "css_element"
+    And I should see "Enable badges" in the ".admin_presets_applied" "css_element"
+    And I should see "Feedback plugin" in the ".admin_presets_applied" "css_element"
+    And I should see "Custom field" in the ".admin_presets_applied" "css_element"
+    And I navigate to "Advanced features" in site administration
+    And the field "Enable portfolios" matches value "1"
+    And the field "Enable badges" matches value "0"
+    And I navigate to "Plugins > Activity modules > Assignment > Assignment settings" in site administration
+    And the field "Feedback plugin" matches value "File feedback"
+    And I navigate to "Plugins > Blocks > Course overview" in site administration
+    And I set the field "Custom field" to "0"
