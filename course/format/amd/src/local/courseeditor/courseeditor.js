@@ -33,6 +33,14 @@ import ajax from 'core/ajax';
 export default class extends Reactive {
 
     /**
+     * The current page section return
+     * @attribute sectionReturn
+     * @type number
+     * @default 0
+     */
+    sectionReturn = 0;
+
+    /**
      * Set up the course editor when the page is ready.
      *
      * The course can only be loaded once per instance. Otherwise an error is thrown.

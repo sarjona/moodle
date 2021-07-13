@@ -17,6 +17,7 @@
 namespace core_courseformat\output\local\state;
 
 use core_courseformat\base as course_format;
+use course_modinfo;
 use renderable;
 use stdClass;
 
@@ -50,13 +51,15 @@ class course implements renderable {
     public function export_for_template(\renderer_base $output): stdClass {
         $format = $this->format;
         $course = $format->get_course();
-        $modinfo = $this->format->get_modinfo();
+        // State must represent always the most updated version of the course.
+        $modinfo = course_modinfo::instance($course);
 
         $data = (object)[
             'id' => $course->id,
             'numsections' => $format->get_last_section_number(),
             'sectionlist' => [],
             'editmode' => $format->show_editor(),
+            'maxsections' => $format->get_max_sections(),
         ];
 
         $sections = $modinfo->get_section_info_all();

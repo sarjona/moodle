@@ -110,5 +110,10 @@
         {{#cmsummary}} {{> core_courseformat/local/content/section/cmsummary }} {{/cmsummary}}
         {{#cmlist}} {{> core_courseformat/local/content/section/cmlist }} {{/cmlist}}
         {{{cmcontrols}}}
+        {{#insertafter}}
+            {{#numsections}}
+                {{> core_courseformat/local/content/addsection}}
+            {{/numsections}}
+        {{/insertafter}}
     </div>
 </li>
