@@ -268,7 +268,8 @@ class api {
      * - The user is the author of the file.
      * - The component is different from user (i.e. private files).
      * - If the component is contentbank, the user can edit this file (calling the ContentBank API).
-     * - If the component is mod_h5pactivity, the user has the addinstance capability.
+     * - If the component is mod_forum and filearea is post, the user can edit the post where the H5P is.
+     * - If the component is mod_xxx or block_xxx, the user has the addinstance capability.
      *
      * @param \stored_file $file The H5P file to check.
      *
@@ -278,25 +279,50 @@ class api {
     public static function can_edit_content(\stored_file $file): bool {
         global $USER;
 
+        list($type, $component) = \core_component::normalize_component($file->get_component());
+
         // Private files.
         $currentuserisauthor = $file->get_userid() == $USER->id;
-        $isuserfile = $file->get_component() === 'user';
+        $isuserfile = $component === 'user';
         if ($currentuserisauthor && $isuserfile) {
             // The user can edit the content because it's a private user file and she is the owner.
             return true;
         }
 
-        // For mod_h5pactivity, check whether the user can add/edit them.
-        if ($file->get_component() === 'mod_h5pactivity') {
+        // For mod_forum files in posts, check if the user can edit the post where the H5P is.
+        if ($type === 'mod' && $component === 'forum' && $file->get_filearea() === 'post') {
+            // Check if the user can edit the forum post.
+            $vaultfactory = \mod_forum\local\container::get_vault_factory();
+            $forumvault = $vaultfactory->get_forum_vault();
+            $discussionvault = $vaultfactory->get_discussion_vault();
+            $postvault = $vaultfactory->get_post_vault();
+            $postid = $file->get_itemid();
+            $postentity = $postvault->get_from_id($postid);
+            if (!empty($postentity)) {
+                $discussionentity = $discussionvault->get_from_id($postentity->get_discussion_id());
+                $managerfactory = \mod_forum\local\container::get_manager_factory();
+                $forumentity = $forumvault->get_from_id($discussionentity->get_forum_id());
+                $capabilitymanager = $managerfactory->get_capability_manager($forumentity);
+                if ($capabilitymanager->can_edit_post($USER, $discussionentity, $postentity)) {
+                    return true;
+                }
+            }
+        }
+
+        // For mod/block files, check if the user has the addinstance capability of the component where the file belongs.
+        if ($type === 'mod' || $type === 'block') {
+            // For any other component, check whether the user can add/edit them.
             $context = \context::instance_by_id($file->get_contextid());
-            if (has_capability("mod/h5pactivity:addinstance", $context)) {
-                // The user can edit the content because she has the capability for creating H5P activities where the file belongs.
+            $plugins = \core_component::get_plugin_list($type);
+            $isvalid = array_key_exists($component, $plugins);
+            if ($isvalid && has_capability("$type/$component:addinstance", $context)) {
+                // The user can edit the content because she has the capability for creating instances where the file belongs.
                 return true;
             }
         }
 
         // For contentbank files, use the API to check if the user has access.
-        if ($file->get_component() == 'contentbank') {
+        if ($component == 'contentbank') {
             $cb = new \core_contentbank\contentbank();
             $content = $cb->get_content_from_id($file->get_itemid());
             $contenttype = $content->get_content_type_instance();

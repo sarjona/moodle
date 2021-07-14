@@ -444,10 +444,12 @@ class api_test extends \advanced_testcase {
      * @param string $fileauthor Author of the file to check.
      * @param string $filecomponent Component of the file to check.
      * @param bool $expected Expected result after calling the can_edit_content method.
+     * @param string $filearea Area of the file to check.
      *
      * @return void
      */
-    public function test_can_edit_content(string $currentuser, string $fileauthor, string $filecomponent, bool $expected): void {
+    public function test_can_edit_content(string $currentuser, string $fileauthor, string $filecomponent, bool $expected,
+            $filearea = 'unittest'): void {
         global $USER;
 
         $this->setRunTestInSeparateProcess(true);
@@ -491,7 +493,7 @@ class api_test extends \advanced_testcase {
             $filerecord = [
                 'contextid' => $context->id,
                 'component' => $filecomponent,
-                'filearea'  => 'unittest',
+                'filearea'  => $filearea,
                 'itemid'    => rand(),
                 'filepath'  => '/',
                 'filename'  => basename($path),
@@ -589,18 +591,79 @@ class api_test extends \advanced_testcase {
                 'expected' => false,
             ],
 
+            // Component = mod_book.
+            'mod_book: Admin user is author' => [
+                'currentuser' => 'admin',
+                'fileauthor' => 'admin',
+                'filecomponent' => 'mod_book',
+                'expected' => true,
+            ],
+            'mod_book: Admin user, teacher is author' => [
+                'currentuser' => 'admin',
+                'fileauthor' => 'teacher',
+                'filecomponent' => 'mod_book',
+                'expected' => true,
+            ],
+
             // Component = mod_forum.
             'mod_forum: Admin user is author' => [
                 'currentuser' => 'admin',
                 'fileauthor' => 'admin',
                 'filecomponent' => 'mod_forum',
-                'expected' => false,
+                'expected' => true,
             ],
             'mod_forum: Admin user, teacher is author' => [
                 'currentuser' => 'admin',
                 'fileauthor' => 'teacher',
                 'filecomponent' => 'mod_forum',
+                'expected' => true,
+            ],
+            'mod_forum: Teacher user, admin is author' => [
+                'currentuser' => 'teacher',
+                'fileauthor' => 'admin',
+                'filecomponent' => 'mod_forum',
+                'expected' => true,
+            ],
+            'mod_forum: Student user, teacher is author' => [
+                'currentuser' => 'student',
+                'fileauthor' => 'teacher',
+                'filecomponent' => 'mod_forum',
                 'expected' => false,
+            ],
+            'mod_forum/post: Admin user is author' => [
+                'currentuser' => 'admin',
+                'fileauthor' => 'admin',
+                'filecomponent' => 'mod_forum',
+                'expected' => true,
+                'filearea' => 'post',
+            ],
+            'mod_forum/post: Teacher user, admin is author' => [
+                'currentuser' => 'teacher',
+                'fileauthor' => 'admin',
+                'filecomponent' => 'mod_forum',
+                'expected' => true,
+                'filearea' => 'post',
+            ],
+            'mod_forum/post: Student user, teacher is author' => [
+                'currentuser' => 'student',
+                'fileauthor' => 'teacher',
+                'filecomponent' => 'mod_forum',
+                'expected' => false,
+                'filearea' => 'post',
+            ],
+
+            // Component = block_html.
+            'block_html: Admin user is author' => [
+                'currentuser' => 'admin',
+                'fileauthor' => 'admin',
+                'filecomponent' => 'block_html',
+                'expected' => true,
+            ],
+            'block_html: Admin user, teacher is author' => [
+                'currentuser' => 'admin',
+                'fileauthor' => 'teacher',
+                'filecomponent' => 'block_html',
+                'expected' => true,
             ],
 
             // Component = contentbank.
@@ -652,6 +715,12 @@ class api_test extends \advanced_testcase {
                 'currentuser' => 'admin',
                 'fileauthor' => 'admin',
                 'filecomponent' => 'mod_unexisting',
+                'expected' => false,
+            ],
+            'Unexisting block' => [
+                'currentuser' => 'admin',
+                'fileauthor' => 'admin',
+                'filecomponent' => 'block_unexisting',
                 'expected' => false,
             ],
         ];
