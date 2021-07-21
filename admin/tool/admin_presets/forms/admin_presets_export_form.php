@@ -54,6 +54,7 @@ class admin_presets_export_form extends moodleform {
 
         $mform->addElement('checkbox', 'excludesensiblesettings',
                 get_string('autohidesensiblesettings', 'tool_admin_presets'));
+        $mform->setDefault('excludesensiblesettings', 1);
 
         // Moodle settings table.
         $mform->addElement('header', 'general',
