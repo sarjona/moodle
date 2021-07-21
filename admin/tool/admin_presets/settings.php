@@ -28,10 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
 
-    $ADMIN->add('root', new admin_externalpage('tool_admin_presets',
-    get_string('pluginname', 'tool_admin_presets'),
-    new moodle_url('/admin/tool/admin_presets/index.php')));
-
     $settings = new admin_settingpage('tool_admin_presets_settings', get_string('pluginname', 'tool_admin_presets'));
     $ADMIN->add('tools', $settings);
 

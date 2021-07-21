@@ -46,6 +46,7 @@ $ADMIN->add('root', new admin_category('appearance', new lang_string('appearance
 $ADMIN->add('root', new admin_category('frontpage', new lang_string('frontpage','admin')));
 $ADMIN->add('root', new admin_category('server', new lang_string('server','admin')));
 $ADMIN->add('root', new admin_category('mnet', new lang_string('net','mnet'), (isset($CFG->mnet_dispatcher_mode) and $CFG->mnet_dispatcher_mode === 'off')));
+$ADMIN->add('root', new admin_category('admin_presets', new lang_string('pluginname', 'tool_admin_presets')));
 $ADMIN->add('root', new admin_category('reports', new lang_string('reports')));
 $ADMIN->add('root', new admin_category('development', new lang_string('development', 'admin')));
 
