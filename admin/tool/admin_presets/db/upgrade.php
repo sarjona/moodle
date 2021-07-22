@@ -18,8 +18,8 @@
  * Admin presets tool main controller
  *
  * @package          tool_admin_presets
- * @copyright        2019 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | DigiDago
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
  * @orignalauthor    David Monllaó <david.monllao@urv.cat>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
