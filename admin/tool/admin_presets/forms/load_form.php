@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+* Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -24,29 +24,50 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets\forms;
+
+use moodleform;
+
 defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
 
 require_once($CFG->dirroot . '/lib/formslib.php');
 
-class admin_presets_import_form extends moodleform {
+class load_form extends moodleform {
 
-    public function definition() {
+    private $preview;
+
+    public function __construct($url, $preview = false) {
+        $this->preview = $preview;
+        parent::__construct($url);
+    }
+
+    public function definition(): void {
+
+        global $OUTPUT;
 
         $mform = &$this->_form;
 
+        // Moodle settings table.
         $mform->addElement('header', 'general',
-                get_string('selectfile', 'tool_admin_presets'));
+            get_string('adminsettings', 'tool_admin_presets'));
 
-        // File upload
-        $mform->addElement('filepicker', 'xmlfile',
-                get_string('selectfile', 'tool_admin_presets'));
-        $mform->addRule('xmlfile', null, 'required');
+        $class = '';
+        if (!$this->preview) {
+            $class = 'ygtv-checkbox';
+        }
+        $mform->addElement('html', '<div id="settings_tree_div" class="' . $class .
+            '"><img src="' . $OUTPUT->pix_icon('i/loading_small',
+                get_string('loading', 'tool_admin_presets')) . '"/></div>');
 
-        // Rename input
-        $mform->addElement('text', 'name',
-                get_string('renamepreset', 'tool_admin_presets'), 'maxlength="254" size="40"');
-        $mform->setType('name', PARAM_TEXT);
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
 
-        $mform->addElement('submit', 'admin_presets_submit', get_string('savechanges'));
+        // Submit.
+        if (!$this->preview) {
+            $mform->addElement('submit', 'admin_presets_submit',
+                get_string('loadselected', 'tool_admin_presets'));
+        }
     }
 }

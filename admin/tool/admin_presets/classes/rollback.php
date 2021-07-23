@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+* Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -24,16 +24,33 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets;
+
+use html_table;
+use html_writer;
+use \stdClass;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/admin_presets_base.class.php');
+global $CFG;
 
-class admin_presets_rollback extends admin_presets_base {
+require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
+
+/**
+ * Admin tool presets plugin this class extend base class and handle rollback function.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class rollback extends base {
 
     /**
      * Displays the different previous applications of the preset
      */
-    public function show() {
+    public function show(): void {
 
         global $CFG, $DB, $OUTPUT;
 
@@ -80,7 +97,7 @@ class admin_presets_rollback extends admin_presets_base {
      *
      * Each setting value is checked against the config_log->value
      */
-    public function execute() {
+    public function execute(): void {
 
         global $DB, $OUTPUT;
 

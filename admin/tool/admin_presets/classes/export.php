@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+ * Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -24,14 +24,33 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets;
+
+use \StdClass;
+use admin_tool_presets\forms\export_form;
+use memory_xml_output;
+use xml_writer;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/admin_presets_base.class.php');
+global $CFG;
+
+require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
+require_once($CFG->dirroot . '/admin/tool/admin_presets/forms/export_form.php');
 require_once($CFG->dirroot . '/backup/util/xml/xml_writer.class.php');
 require_once($CFG->dirroot . '/backup/util/xml/output/xml_output.class.php');
 require_once($CFG->dirroot . '/backup/util/xml/output/memory_xml_output.class.php');
 
-class admin_presets_export extends admin_presets_base {
+/**
+ * Admin tool presets plugin this class extend base class and handle export function.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class export extends base {
 
     /**
      * Shows the initial form to export/save admin settings
@@ -39,7 +58,7 @@ class admin_presets_export extends admin_presets_base {
      * Loads the database configuration and prints
      * the settings in a hierical table
      */
-    public function show() {
+    public function show(): void {
 
         global $CFG;
 
@@ -48,27 +67,27 @@ class admin_presets_export extends admin_presets_base {
         $this->_get_settings_branches($settings);
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export&mode=execute';
-        $this->moodleform = new admin_presets_export_form($url);
+        $this->moodleform = new export_form($url);
     }
 
     /**
      * Stores the preset into the DB
      */
-    public function execute() {
+    public function execute(): void {
 
         global $CFG, $USER, $DB;
 
         confirm_sesskey();
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export&mode=execute';
-        $this->moodleform = new admin_presets_export_form($url);
+        $this->moodleform = new export_form($url);
 
         // Reload site settings.
         $sitesettings = $this->_get_site_settings();
 
         if ($data = $this->moodleform->get_data()) {
 
-            // admin_preset record.
+            // Admin_preset record.
             $preset = new StdClass();
             $preset->userid = $USER->id;
             $preset->name = $data->name;
@@ -113,12 +132,12 @@ class admin_presets_export extends admin_presets_base {
 
                     // Setting attributes must also be exported.
                     if ($attributes = $sitesettings[$setting->plugin][$setting->name]->get_attributes_values()) {
-                        foreach ($attributes as $attributename => $value) {
+                        foreach ($attributes as $attributename => $valueattr) {
 
                             $attr = new StdClass();
                             $attr->itemid = $setting->id;
                             $attr->name = $attributename;
-                            $attr->value = $value;
+                            $attr->value = $valueattr;
 
                             $DB->insert_record('tool_admin_presets_it_a', $attr);
                         }
@@ -130,7 +149,7 @@ class admin_presets_export extends admin_presets_base {
             if (empty($settingsfound)) {
                 $DB->delete_records('tool_admin_presets', array('id' => $preset->id));
                 redirect($CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export',
-                        get_string('novalidsettingsselected', 'tool_admin_presets'), 4);
+                    get_string('novalidsettingsselected', 'tool_admin_presets'), 4);
             }
         }
 
@@ -149,7 +168,7 @@ class admin_presets_export extends admin_presets_base {
      * @throws xml_output_exception
      * @throws xml_writer_exception
      */
-    public function download_xml() {
+    public function download_xml(): void {
 
         global $DB;
 
@@ -221,7 +240,7 @@ class admin_presets_export extends admin_presets_base {
             $xmlwriter->end_tag('ADMIN_SETTINGS');
         }
 
-        // End
+        // End.
         $xmlwriter->end_tag('PRESET');
         $xmlwriter->stop();
         $xmlstr = $xmloutput->get_allcontents();

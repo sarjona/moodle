@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+* Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -25,6 +25,8 @@
  */
 
 require_once(__DIR__ . '/../../../config.php');
+
+global $CFG, $PAGE;
 
 $action = optional_param('action', 'base', PARAM_ALPHA);
 $mode = optional_param('mode', 'show', PARAM_ALPHAEXT);
@@ -38,10 +40,13 @@ if (!$context = context_system::instance()) {
 require_capability('moodle/site:config', $context);
 
 // Loads the required action class and form.
-$classname = 'admin_presets_' . $action;
+$fileclassname = $action;
+$classname = 'admin_tool_presets\\'.$action;
 $formname = $classname . '_form';
+
 $formpath = $CFG->dirroot . '/admin/tool/admin_presets/forms/' . $formname . '.php';
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/' . $classname . '.class.php');
+require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/' . $fileclassname . '.php');
+
 if (file_exists($formpath)) {
     require_once($formpath);
 }

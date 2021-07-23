@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+* Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
