@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+* Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -24,23 +24,43 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets;
+
+use \StdClass;
+use admin_tool_presets\forms\load_form;
+
+use html_table;
+use html_writer;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/admin_presets_base.class.php');
+global $CFG;
 
-class admin_presets_load extends admin_presets_base {
+require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
+require_once($CFG->dirroot . '/admin/tool/admin_presets/forms/load_form.php');
+
+/**
+ * Admin tool presets plugin this class extend base class and handle load function.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class load extends base {
 
     /**
      * Executes the settings load into the system
      */
-    public function execute() {
+    public function execute(): void {
 
         global $CFG, $DB, $OUTPUT, $USER;
 
         confirm_sesskey();
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=load&mode=execute';
-        $this->moodleform = new admin_presets_load_form($url);
+        $this->moodleform = new load_form($url);
 
         if ($data = $this->moodleform->get_data()) {
 
@@ -83,8 +103,8 @@ class admin_presets_load extends admin_presets_base {
                     // Wrong setting, set_value() method has previously cleaned the value.
                     if ($presetsetting->get_value() === false) {
                         debugging($presetsetting->get_settingdata()->plugin . '/' .
-                                $presetsetting->get_settingdata()->name .
-                                ' setting has a wrong value!', DEBUG_DEVELOPER);
+                            $presetsetting->get_settingdata()->name .
+                            ' setting has a wrong value!', DEBUG_DEVELOPER);
                         continue;
                     }
 
@@ -116,7 +136,7 @@ class admin_presets_load extends admin_presets_base {
                             $presetapplied->userid = $USER->id;
                             $presetapplied->time = time();
                             if (!$adminpresetapplyid = $DB->insert_record('tool_admin_presets_app',
-                                    $presetapplied)) {
+                                $presetapplied)) {
                                 print_error('errorinserting', 'tool_admin_presets');
                             }
                         }
@@ -159,11 +179,11 @@ class admin_presets_load extends admin_presets_base {
         // Output applied changes.
         if (!empty($appliedchanges)) {
             $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('settingsapplied',
-                            'tool_admin_presets'), 3, 'admin_presets_success');
+                    'tool_admin_presets'), 3, 'admin_presets_success');
             $this->_output_applied_changes($appliedchanges);
         } else {
             $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('nothingloaded',
-                            'tool_admin_presets'), 3, 'admin_presets_error');
+                    'tool_admin_presets'), 3, 'admin_presets_error');
         }
 
         // Show skipped changes.
@@ -172,19 +192,19 @@ class admin_presets_load extends admin_presets_base {
             $skippedtable = new html_table();
             $skippedtable->attributes['class'] = 'generaltable boxaligncenter admin_presets_skipped';
             $skippedtable->head = array(get_string('plugin'),
-                    get_string('settingname', 'tool_admin_presets'),
-                    get_string('actualvalue', 'tool_admin_presets')
+                get_string('settingname', 'tool_admin_presets'),
+                get_string('actualvalue', 'tool_admin_presets')
             );
 
             $skippedtable->align = array('center', 'center');
 
             $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('settingsnotapplied',
-                            'tool_admin_presets'), 3);
+                    'tool_admin_presets'), 3);
 
             foreach ($unnecessarychanges as $setting) {
                 $skippedtable->data[] = array($setting->get_settingdata()->plugin,
-                        $setting->get_settingdata()->visiblename,
-                        $setting->get_visiblevalue()
+                    $setting->get_settingdata()->visiblename,
+                    $setting->get_visiblevalue()
                 );
             }
 
@@ -198,7 +218,7 @@ class admin_presets_load extends admin_presets_base {
     /**
      * Lists the preset available settings
      */
-    public function preview() {
+    public function preview(): void {
         $this->show(1);
     }
 
@@ -211,11 +231,8 @@ class admin_presets_load extends admin_presets_base {
      * to import the preset available settings
      *
      * @param boolean $preview If it's a preview it only lists the preset applicable settings
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws moodle_exception
      */
-    public function show($preview = false) {
+    public function show($preview = false): void {
 
         global $CFG, $DB, $OUTPUT;
 
@@ -266,13 +283,13 @@ class admin_presets_load extends admin_presets_base {
         if (!empty($notapplicable)) {
 
             $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('settingsnotapplicable',
-                            'tool_admin_presets'), 3, 'admin_presets_error');
+                    'tool_admin_presets'), 3, 'admin_presets_error');
 
             $table = new html_table();
             $table->attributes['class'] = 'generaltable boxaligncenter';
             $table->head = array(get_string('plugin'),
-                    get_string('settingname', 'tool_admin_presets'),
-                    get_string('value', 'tool_admin_presets'));
+                get_string('settingname', 'tool_admin_presets'),
+                get_string('value', 'tool_admin_presets'));
 
             $table->align = array('center', 'center');
 
@@ -285,7 +302,7 @@ class admin_presets_load extends admin_presets_base {
         }
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=load&mode=execute';
-        $this->moodleform = new admin_presets_load_form($url, $preview);
+        $this->moodleform = new load_form($url, $preview);
         $this->moodleform->set_data($data);
 
     }

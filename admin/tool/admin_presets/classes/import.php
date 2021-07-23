@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+* Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -24,27 +24,45 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets;
+
+use \StdClass;
+use admin_tool_presets\forms\import_form;
+use context_user;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/admin_presets_base.class.php');
+global $CFG;
 
-class admin_presets_import extends admin_presets_base {
+require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
+require_once($CFG->dirroot . '/admin/tool/admin_presets/forms/import_form.php');
+
+/**
+ * Admin tool presets plugin this class extend base class and handle import function.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class import extends base {
 
     /**
      * Displays the import moodleform
      */
-    public function show() {
+    public function show(): void {
 
         global $CFG;
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import&mode=execute';
-        $this->moodleform = new admin_presets_import_form($url);
+        $this->moodleform = new import_form($url);
     }
 
     /**
      * Imports the xmlfile into DB
      */
-    public function execute() {
+    public function execute(): void {
 
         global $CFG, $USER, $DB;
 
@@ -53,7 +71,7 @@ class admin_presets_import extends admin_presets_base {
         $sitesettings = $this->_get_site_settings();
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import&mode=execute';
-        $this->moodleform = new admin_presets_import_form($url);
+        $this->moodleform = new import_form($url);
 
         if ($data = $this->moodleform->get_data()) {
 

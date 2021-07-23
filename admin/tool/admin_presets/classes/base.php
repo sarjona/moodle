@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+ * Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -24,22 +24,40 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/admin_presets_settings_types.php');
+use html_writer;
+use html_table;
+use context_system;
+use moodle_url;
+use StdClass;
 
-class admin_presets_base {
+global $CFG;
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/settings_types.php');
+
+/**
+ * Admin tool presets main controller file.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class base {
 
     protected static $eventsactionsmap = array(
-            'base' => 'presets_listed',
-            'delete' => 'preset_deleted',
-            'export' => 'preset_exported',
-            'import' => 'preset_imported',
-            'preview' => 'preset_previewed',
-            'load' => 'preset_loaded',
-            'rollback' => 'preset_reverted',
-            'download_xml' => 'preset_downloaded'
+        'base' => 'presets_listed',
+        'delete' => 'preset_deleted',
+        'export' => 'preset_exported',
+        'import' => 'preset_imported',
+        'preview' => 'preset_previewed',
+        'load' => 'preset_loaded',
+        'rollback' => 'preset_reverted',
+        'download_xml' => 'preset_downloaded'
     );
     protected $action;
     protected $mode;
@@ -59,12 +77,12 @@ class admin_presets_base {
 
         // DB - XML relations.
         $this->rel = array('name' => 'NAME', 'comments' => 'COMMENTS',
-                'timecreated' => 'PRESET_DATE', 'site' => 'SITE_URL', 'author' => 'AUTHOR',
-                'moodleversion' => 'MOODLE_VERSION', 'moodlerelease' => 'MOODLE_RELEASE');
+            'timecreated' => 'PRESET_DATE', 'site' => 'SITE_URL', 'author' => 'AUTHOR',
+            'moodleversion' => 'MOODLE_VERSION', 'moodlerelease' => 'MOODLE_RELEASE');
 
         // Sensible settings.
         $sensiblesettings = explode(',',
-                str_replace(' ', '', get_config('admin_presets', 'sensiblesettings')));
+            str_replace(' ', '', get_config('admin_presets', 'sensiblesettings')));
         $this->sensiblesettings = array_combine($sensiblesettings, $sensiblesettings);
     }
 
@@ -74,7 +92,7 @@ class admin_presets_base {
      * It allows users to access the different preset
      * actions (preview, load, download, delete and rollback)
      */
-    public function show() {
+    public function show(): void {
 
         global $CFG, $DB, $OUTPUT;
 
@@ -90,28 +108,28 @@ class admin_presets_base {
 
                 // Preset actions.
                 $previewlink = $CFG->wwwroot .
-                        '/admin/tool/admin_presets/index.php?action=load&mode=preview&id=' . $preset->id;
+                    '/admin/tool/admin_presets/index.php?action=load&mode=preview&id=' . $preset->id;
                 $loadlink = $CFG->wwwroot .
-                        '/admin/tool/admin_presets/index.php?action=load&id=' . $preset->id;
+                    '/admin/tool/admin_presets/index.php?action=load&id=' . $preset->id;
                 $downloadlink = $CFG->wwwroot .
-                        '/admin/tool/admin_presets/index.php?action=export&mode=download_xml&sesskey=' .
-                        sesskey() . '&id=' . $preset->id;
+                    '/admin/tool/admin_presets/index.php?action=export&mode=download_xml&sesskey=' .
+                    sesskey() . '&id=' . $preset->id;
                 $deletelink = $CFG->wwwroot .
-                        '/admin/tool/admin_presets/index.php?action=delete&id=' . $preset->id;
+                    '/admin/tool/admin_presets/index.php?action=delete&id=' . $preset->id;
                 $rollbacklink = $CFG->wwwroot .
-                        '/admin/tool/admin_presets/index.php?action=rollback&id=' . $preset->id;
+                    '/admin/tool/admin_presets/index.php?action=rollback&id=' . $preset->id;
 
                 $actions = array();
                 $actions[] = html_writer::link($previewlink, strtolower(get_string("preview")));
                 $actions[] = html_writer::link($loadlink, get_string("load",
-                        "tool_admin_presets"));
+                    "tool_admin_presets"));
                 $actions[] = html_writer::link($downloadlink, strtolower(get_string("download")));
                 $actions[] = html_writer::link($deletelink, strtolower(get_string("delete")));
 
                 // Look for preset applications.
                 if ($DB->get_records('tool_admin_presets_app', array('adminpresetid' => $preset->id))) {
                     $actions[] = html_writer::link($rollbacklink,
-                            get_string("rollback", "tool_admin_presets"));
+                        get_string("rollback", "tool_admin_presets"));
                 }
 
                 if ($preset->timeimported) {
@@ -122,13 +140,13 @@ class admin_presets_base {
 
                 // Populate table.
                 $table->data[] = array(format_text($preset->name, FORMAT_PLAIN),
-                        format_text($preset->comments, FORMAT_HTML),
-                        format_text($preset->moodlerelease, FORMAT_PLAIN),
-                        format_text($preset->author, FORMAT_PLAIN),
-                        format_text(clean_text($preset->site, PARAM_URL), FORMAT_PLAIN),
-                        userdate($preset->timecreated),
-                        $timeimportedstring,
-                        '<div>' . implode('</div><div>', $actions) . '</div>');
+                    format_text($preset->comments, FORMAT_HTML),
+                    format_text($preset->moodlerelease, FORMAT_PLAIN),
+                    format_text($preset->author, FORMAT_PLAIN),
+                    format_text(clean_text($preset->site, PARAM_URL), FORMAT_PLAIN),
+                    userdate($preset->timecreated),
+                    $timeimportedstring,
+                    '<div>' . implode('</div><div>', $actions) . '</div>');
             }
 
             $this->outputs .= html_writer::table($table);
@@ -137,18 +155,18 @@ class admin_presets_base {
         } else {
 
             $exportlink = '<a href="' . $CFG->wwwroot .
-                    '/admin/tool/admin_presets/index.php?action=export">' .
-                    strtolower(get_string("actionexport", "tool_admin_presets")) . '</a>';
+                '/admin/tool/admin_presets/index.php?action=export">' .
+                strtolower(get_string("actionexport", "tool_admin_presets")) . '</a>';
             $importlink = '<a href="' .
-                    $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import">' .
-                    strtolower(get_string("actionimport", "tool_admin_presets")) . '</a>';
+                $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import">' .
+                strtolower(get_string("actionimport", "tool_admin_presets")) . '</a>';
 
             $this->outputs = $OUTPUT->box_start('generalbox', 'id_nopresets');
             $this->outputs .= '<ul>' . get_string('nopresets', 'tool_admin_presets');
             $this->outputs .= '<li>' . get_string('toexportclick',
-                            'tool_admin_presets', $exportlink) . '</li>';
+                    'tool_admin_presets', $exportlink) . '</li>';
             $this->outputs .= '<li>' . get_string('toimportclick',
-                            'tool_admin_presets', $importlink) . '</li>';
+                    'tool_admin_presets', $importlink) . '</li>';
             $this->outputs .= '</ul>';
             $this->outputs .= $OUTPUT->box_end();
         }
@@ -160,19 +178,18 @@ class admin_presets_base {
      *
      * @param boolean $actionstable If is set to true adds a column to display actions
      * @return html_table
-     * @throws coding_exception
      */
-    protected function _create_preset_data_table($actionstable = true) {
+    protected function _create_preset_data_table($actionstable = true): html_table {
 
         $table = new html_table();
         $table->attributes['class'] = 'generaltable boxaligncenter';
         $table->align = array('left', 'left', 'center', 'left', 'left', 'center', 'center');
         $table->head = array(get_string('name'), get_string('description'),
-                get_string('presetmoodlerelease', 'tool_admin_presets'),
-                get_string('author', 'tool_admin_presets'),
-                get_string('site', 'tool_admin_presets'),
-                get_string('created', 'tool_admin_presets'),
-                get_string('imported', 'tool_admin_presets'));
+            get_string('presetmoodlerelease', 'tool_admin_presets'),
+            get_string('author', 'tool_admin_presets'),
+            get_string('site', 'tool_admin_presets'),
+            get_string('created', 'tool_admin_presets'),
+            get_string('imported', 'tool_admin_presets'));
 
         if ($actionstable) {
             $table->align[] = 'left';
@@ -193,7 +210,7 @@ class admin_presets_base {
      *
      * $outputs value depends on $mode and $action selected
      */
-    public function display() {
+    public function display(): void {
         global $OUTPUT;
 
         $this->_display_header();
@@ -215,7 +232,7 @@ class admin_presets_base {
     /**
      * Displays the header
      */
-    protected function _display_header() {
+    protected function _display_header(): void {
 
         global $CFG, $PAGE, $OUTPUT, $SITE;
 
@@ -229,7 +246,7 @@ class admin_presets_base {
         $PAGE->set_heading($SITE->fullname);
 
         $PAGE->navbar->add(get_string('pluginname', 'tool_admin_presets'),
-                new moodle_url($CFG->wwwroot . '/admin/tool/admin_presets/index.php'));
+            new moodle_url($CFG->wwwroot . '/admin/tool/admin_presets/index.php'));
 
         $PAGE->navbar->add($actionstr . ': ' . $modestr);
 
@@ -240,12 +257,12 @@ class admin_presets_base {
         echo $OUTPUT->heading($actionstr . ': ' . $modestr, 1);
     }
 
-    public function log() {
+    public function log(): void {
         // TODO please, me of the future, fix this ununderstandable code.
 
         // The only read action we store is list presets.
         if ($this->mode != 'show' ||
-                ($this->mode == 'show' && $this->action == 'base')) {
+            ($this->mode == 'show' && $this->action == 'base')) {
 
             $action = $this->action;
             if ($this->mode != 'execute' && $this->mode != 'show') {
@@ -254,8 +271,8 @@ class admin_presets_base {
 
             $eventnamespace = '\\tool_admin_presets\\event\\' . self::$eventsactionsmap[$action];
             $eventdata = array(
-                    'context' => context_system::instance(),
-                    'objectid' => $this->id
+                'context' => context_system::instance(),
+                'objectid' => $this->id
             );
             $event = $eventnamespace::create($eventdata);
             $event->trigger();
@@ -269,10 +286,9 @@ class admin_presets_base {
      * $CFG->prefix.'config_plugins' values and redirects
      * the flow through $this->_get_settings()
      *
-     * @return    array        $settings        Array format $array['plugin']['settingname'] = admin_preset_setting child class
-     * @throws dml_exception
+     * @return    array        $settings        Array format $array['plugin']['settingname'] = settings_types child class
      */
-    protected function _get_site_settings() {
+    protected function _get_site_settings(): array {
 
         global $DB;
 
@@ -281,7 +297,7 @@ class admin_presets_base {
 
         // Adding site settings in course table.
         $frontpagevalues = $DB->get_record_select('course', 'id = 1',
-                array(), 'fullname, shortname, summary');
+            array(), 'fullname, shortname, summary');
         foreach ($frontpagevalues as $field => $value) {
             $dbconfig[$field] = new StdClass();
             $dbconfig[$field]->name = $field;
@@ -314,12 +330,11 @@ class admin_presets_base {
      * @param array $dbsettings Standarized array,
      * format $array['plugin']['name'] = obj('name'=>'settingname', 'value'=>'settingvalue')
      * @param boolean $sitedbvalues Indicates if $dbsettings comes from the site db or not
-     * @param array $settings Array format $array['plugin']['settingname'] = admin_preset_setting child class
+     * @param array $settings Array format $array['plugin']['settingname'] = settings_types child class
      * @param bool $children admin_category children
-     * @return    array Array format $array['plugin']['settingname'] = admin_preset_setting child class
-     * @throws dml_exception
+     * @return    array Array format $array['plugin']['settingname'] = settings_types child class
      */
-    protected function _get_settings($dbsettings, $sitedbvalues = false, $settings, $children = false) {
+    protected function _get_settings($dbsettings, $sitedbvalues = false, $settings, $children = false): array {
 
         global $DB;
         // If there are no children, load admin tree and iterate through.
@@ -382,15 +397,15 @@ class admin_presets_base {
                             continue;
                         }
 
-                         // Admin_preset_setting childs with.
-                         // attributes provides an attributes array.
+                        // settings_types childs with.
+                        // attributes provides an attributes array.
                         if ($attributes = $setting->get_attributes()) {
 
                             // Look for settings attributes if it is a presets.
                             if (!$sitedbvalues) {
                                 $itemid = $dbsettings[$values->plugin][$settingname]->itemid;
                                 $attrs = $DB->get_records('tool_admin_presets_it_a',
-                                        array('itemid' => $itemid), '', 'name, value');
+                                    array('itemid' => $itemid), '', 'name, value');
                             }
                             foreach ($attributes as $defaultvarname => $varname) {
 
@@ -439,7 +454,7 @@ class admin_presets_base {
      *
      * @param object $settingdata Setting data
      * @param mixed $currentvalue
-     * @return bool
+     * @return mixed
      */
     protected function _get_setting($settingdata, $currentvalue) {
 
@@ -451,20 +466,19 @@ class admin_presets_base {
 
         // TODO: Implement all the settings types.
         if (!class_exists($classname)) {
+            var_dump($classname);
             return false;
         }
 
-        $setting = new $classname($settingdata, $currentvalue);
-
-        return $setting;
+        return new $classname($settingdata, $currentvalue);
     }
 
     /**
      * Gets the javascript to populate the settings tree
      *
-     * @param array $settings Array format $array['plugin']['settingname'] = admin_preset_setting child class
+     * @param array $settings Array format $array['plugin']['settingname'] = settings_types child class
      */
-    protected function _get_settings_branches($settings) {
+    protected function _get_settings_branches($settings): void {
 
         global $PAGE;
 
@@ -485,20 +499,20 @@ class admin_presets_base {
             }
         }
         $PAGE->requires->js_init_call('M.tool_admin_presets.addNodes',
-                array($ids, $nodes, $labels, $descriptions, $parents), true);
+            array($ids, $nodes, $labels, $descriptions, $parents), true);
         $PAGE->requires->js_init_call('M.tool_admin_presets.render', null, true);
     }
 
     /**
      * Gets the html code to select the settings to export/import/load
      *
-     * @param array $allsettings Array format $array['plugin']['settingname'] = admin_preset_setting child class
+     * @param array $allsettings Array format $array['plugin']['settingname'] = settings_types child class
      * @param bool $admintree The admin tree branche object or false if we are in the root
      * @param bool $jsparentnode Name of the javascript parent category node
      * @param array $nodes Tree nodes
      * @return array Code to output
      */
-    protected function _get_settings_elements($allsettings, $admintree = false, $jsparentnode = false, &$nodes) {
+    protected function _get_settings_elements($allsettings, $admintree = false, $jsparentnode = false, &$nodes): array {
 
         if (empty($this->adminroot)) {
             $this->adminroot = admin_get_root(false, true);
@@ -525,7 +539,7 @@ class admin_presets_base {
                     $categorynode = $child->name . 'Node';
                     $nodehtml = '<div class="catnode">' . $child->visiblename . '</div>';
                     $nodes['categories'][$categorynode] = array("category",
-                            $categorynode, (String) $nodehtml, "", $jsparentnode);
+                        $categorynode, (string) $nodehtml, "", $jsparentnode);
 
                     // Not all admin_categories have admin_settingpages.
                     $this->_get_settings_elements($allsettings, $child->children, $categorynode, $nodes);
@@ -557,13 +571,13 @@ class admin_presets_base {
 
                         // String to add the setting to js tree.
                         $pagesettings[$settingid] = array($settingid, $settingid,
-                                $setting->get_text(), $setting->get_description(), $pagenode);
+                            $setting->get_text(), $setting->get_description(), $pagenode);
                     }
 
                     // The page node only should be added if it have children.
                     if ($pagesettings) {
                         $nodehtml = '<div class="catnode">' . $child->visiblename . '</div>';
-                        $nodes['pages'][$pagenode] = array("page", $pagenode, (String) $nodehtml, "", $jsparentnode);
+                        $nodes['pages'][$pagenode] = array("page", $pagenode, (string) $nodehtml, "", $jsparentnode);
                         $nodes['settings'] = array_merge($nodes['settings'], $pagesettings);
                     }
                 }
@@ -580,13 +594,13 @@ class admin_presets_base {
      * @return   array Standarized array,
      * format $array['plugin']['name'] = obj('name'=>'settingname', 'value'=>'settingvalue')
      */
-    protected function _get_settings_from_db($dbsettings) {
+    protected function _get_settings_from_db($dbsettings): array {
+        $settings = array();
 
         if (!$dbsettings) {
-            return false;
+            return $settings;
         }
 
-        $settings = array();
         foreach ($dbsettings as $dbsetting) {
             $settings[$dbsetting->plugin][$dbsetting->name] = new StdClass();
             $settings[$dbsetting->plugin][$dbsetting->name]->itemid = $dbsetting->id;
@@ -597,22 +611,22 @@ class admin_presets_base {
         return $settings;
     }
 
-    protected function _output_applied_changes($appliedchanges) {
+    protected function _output_applied_changes($appliedchanges): void {
 
         $appliedtable = new html_table();
         $appliedtable->attributes['class'] = 'generaltable boxaligncenter admin_presets_applied';
         $appliedtable->head = array(get_string('plugin'),
-                get_string('settingname', 'tool_admin_presets'),
-                get_string('oldvalue', 'tool_admin_presets'),
-                get_string('newvalue', 'tool_admin_presets'));
+            get_string('settingname', 'tool_admin_presets'),
+            get_string('oldvalue', 'tool_admin_presets'),
+            get_string('newvalue', 'tool_admin_presets'));
 
         $appliedtable->align = array('center', 'center');
 
         foreach ($appliedchanges as $setting) {
             $appliedtable->data[] = array($setting->plugin,
-                    $setting->visiblename,
-                    $setting->oldvisiblevalue,
-                    $setting->visiblevalue);
+                $setting->visiblename,
+                $setting->oldvisiblevalue,
+                $setting->visiblevalue);
         }
 
         $this->outputs .= html_writer::table($appliedtable);
@@ -622,10 +636,9 @@ class admin_presets_base {
      * Returns a table with the preset data
      *
      * @param object $preset
-     * @return string|string
-     * @throws coding_exception
+     * @return string
      */
-    protected function _html_writer_preset_info_table($preset) {
+    protected function _html_writer_preset_info_table($preset): string {
 
         if (!$preset) {
             return '';
@@ -638,12 +651,12 @@ class admin_presets_base {
         }
         $infotable = $this->_create_preset_data_table(false);
         $infotable->data[] = array(format_text($preset->name, FORMAT_PLAIN),
-                format_text($preset->comments, FORMAT_HTML),
-                format_text($preset->moodlerelease, FORMAT_PLAIN),
-                format_text($preset->author, FORMAT_PLAIN),
-                format_text(clean_text($preset->site, PARAM_URL), FORMAT_PLAIN),
-                userdate($preset->timecreated),
-                $timeimportedstring);
+            format_text($preset->comments, FORMAT_HTML),
+            format_text($preset->moodlerelease, FORMAT_PLAIN),
+            format_text($preset->author, FORMAT_PLAIN),
+            format_text(clean_text($preset->site, PARAM_URL), FORMAT_PLAIN),
+            userdate($preset->timecreated),
+            $timeimportedstring);
 
         return html_writer::table($infotable);
     }

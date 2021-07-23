@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+ * Admin tool presets plugin to load some settings
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -26,24 +26,35 @@
 
 namespace tool_admin_presets\event;
 
+use core\event\base;
+
 defined('MOODLE_INTERNAL') || die();
 
-class preset_reverted extends \core\event\base {
+/**
+ * Admin tool presets event class reverted.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class preset_reverted extends base {
 
-    public static function get_name() {
+    public static function get_name(): string {
         return get_string('eventpresetreverted', 'tool_admin_presets');
     }
 
-    public function get_description() {
+    public function get_description(): string {
         return "User {$this->userid} has reverted the preset with id {$this->objectid}.";
     }
 
-    public function get_legacy_logdata() {
+    public function get_legacy_logdata(): array {
         return array($this->courseid, 'tool_admin_presets', 'rollback', '',
-                $this->objectid, $this->contextinstanceid);
+            $this->objectid, $this->contextinstanceid);
     }
 
-    protected function init() {
+    protected function init(): void {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'tool_admin_presets';
