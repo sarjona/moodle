@@ -24,21 +24,35 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets\forms;
+
+use moodleform;
+
 defined('MOODLE_INTERNAL') || die();
 
-if ($hassiteconfig) {
+global $CFG;
 
-    $settings = new admin_settingpage('tool_admin_presets_settings', get_string('pluginname', 'tool_admin_presets'));
-    $ADMIN->add('tools', $settings);
+require_once($CFG->dirroot . '/lib/formslib.php');
 
-    $sensiblesettingsdefault = 'recaptchapublickey@@none, recaptchaprivatekey@@none, googlemapkey@@none, ';
-    $sensiblesettingsdefault .= 'secretphrase@@none, cronremotepassword@@none, smtpuser@@none, ';
-    $sensiblesettingsdefault .= 'smtppass@none, proxypassword@@none, password@@quiz, ';
-    $sensiblesettingsdefault .= 'enrolpassword@@moodlecourse, allowedip@@none, blockedip@@none';
+class import_form extends moodleform {
 
-    $settings->add(new admin_setting_configtextarea('tool_admin_presets/sensiblesettings',
-             get_string('sensiblesettings', 'tool_admin_presets'),
-             get_string('sensiblesettingstext', 'tool_admin_presets'),
-             $sensiblesettingsdefault, PARAM_TEXT));
+    public function definition(): void {
 
+        $mform = &$this->_form;
+
+        $mform->addElement('header', 'general',
+            get_string('selectfile', 'tool_admin_presets'));
+
+        // File upload.
+        $mform->addElement('filepicker', 'xmlfile',
+            get_string('selectfile', 'tool_admin_presets'));
+        $mform->addRule('xmlfile', null, 'required');
+
+        // Rename input.
+        $mform->addElement('text', 'name',
+            get_string('renamepreset', 'tool_admin_presets'), 'maxlength="254" size="40"');
+        $mform->setType('name', PARAM_TEXT);
+
+        $mform->addElement('submit', 'admin_presets_submit', get_string('savechanges'));
+    }
 }

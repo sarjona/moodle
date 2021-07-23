@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+ * Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -24,16 +24,29 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace admin_tool_presets;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/admin_presets_base.class.php');
+global $CFG;
 
-class admin_presets_delete extends admin_presets_base {
+require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
+
+/**
+ * Admin tool presets plugin this class extend base class and handle delete function.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class delete extends base {
 
     /**
      * Shows a confirm box
      */
-    public function show() {
+    public function show(): void {
 
         global $DB, $CFG, $OUTPUT;
 
@@ -42,15 +55,15 @@ class admin_presets_delete extends admin_presets_base {
 
         $deletetext = get_string("deletepreset", "tool_admin_presets", $presetdata->name);
         $confirmurl = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=' .
-                $this->action . '&mode=execute&id=' . $this->id . '&sesskey=' . sesskey();
+            $this->action . '&mode=execute&id=' . $this->id . '&sesskey=' . sesskey();
         $cancelurl = $CFG->wwwroot . '/admin/tool/admin_presets/index.php';
 
         // If the preset was applied add a warning text.
         if ($previouslyapplied = $DB->get_records('tool_admin_presets_app',
-                array('adminpresetid' => $this->id))) {
+            array('adminpresetid' => $this->id))) {
 
             $deletetext .= '<br/><br/><strong>' .
-                    get_string("deletepreviouslyapplied", "tool_admin_presets") . '</strong>';
+                get_string("deletepreviouslyapplied", "tool_admin_presets") . '</strong>';
         }
 
         $this->outputs = $OUTPUT->confirm($deletetext, $confirmurl, $cancelurl);
@@ -59,7 +72,7 @@ class admin_presets_delete extends admin_presets_base {
     /**
      * Delete the DB preset
      */
-    public function execute() {
+    public function execute(): void {
 
         global $DB, $CFG;
 
@@ -81,27 +94,27 @@ class admin_presets_delete extends admin_presets_base {
 
         // Deleting the preset applications.
         if ($previouslyapplied = $DB->get_records('tool_admin_presets_app',
-                array('adminpresetid' => $this->id), 'id')) {
+            array('adminpresetid' => $this->id), 'id')) {
 
             foreach ($previouslyapplied as $application) {
 
                 // Deleting items.
                 if (!$DB->delete_records('tool_admin_presets_app_it',
-                        array('adminpresetapplyid' => $application->id))) {
+                    array('adminpresetapplyid' => $application->id))) {
 
                     print_error('errordeleting', 'tool_admin_presets');
                 }
 
                 // Deleting attributes.
                 if (!$DB->delete_records('tool_admin_presets_app_it_a',
-                        array('adminpresetapplyid' => $application->id))) {
+                    array('adminpresetapplyid' => $application->id))) {
 
                     print_error('errordeleting', 'tool_admin_presets');
                 }
             }
 
             if (!$DB->delete_records('tool_admin_presets_app',
-                    array('adminpresetid' => $this->id))) {
+                array('adminpresetid' => $this->id))) {
 
                 print_error('errordeleting', 'tool_admin_presets');
             }

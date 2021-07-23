@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+ * Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -26,24 +26,35 @@
 
 namespace tool_admin_presets\event;
 
+use core\event\base;
+
 defined('MOODLE_INTERNAL') || die();
 
-class preset_previewed extends \core\event\base {
+/**
+ * Admin tool presets event class previewed.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class preset_previewed extends base {
 
-    public static function get_name() {
+    public static function get_name(): string {
         return get_string('eventpresetpreviewed', 'tool_admin_presets');
     }
 
-    public function get_description() {
+    public function get_description(): string {
         return "User {$this->userid} has previewed the preset with id {$this->objectid}.";
     }
 
-    public function get_url() {
+    public function get_url(): \moodle_url {
         return new \moodle_url('/admin/tool/admin_presets/index.php',
-                array('action' => 'load', 'mode' => 'preview', 'id' => $this->objectid));
+            array('action' => 'load', 'mode' => 'preview', 'id' => $this->objectid));
     }
 
-    protected function init() {
+    protected function init(): void {
         $this->data['crud'] = 'r';
         $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'tool_admin_presets';

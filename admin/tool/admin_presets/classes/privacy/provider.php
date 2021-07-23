@@ -14,15 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Admin tool presets plugin to load some settings.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace tool_admin_presets\privacy;
 
 defined('MOODLE_INTERNAL') || die();
 
 use core_privacy\local\metadata\null_provider;
 
+/**
+ * Admin tool presets this file handle privacy provider.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
+ * @orignalauthor    David Monllaó <david.monllao@urv.cat>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class provider implements
-        // This plugin does not store any personal user data.
-        null_provider {
+    // This plugin does not store any personal user data.
+    null_provider {
 
     /**
      * Get the language string identifier with the component's language
@@ -30,7 +49,7 @@ class provider implements
      *
      * @return  string
      */
-    public static function get_reason() : string {
+    public static function get_reason(): string {
         return 'privacy:null_reason';
     }
 }

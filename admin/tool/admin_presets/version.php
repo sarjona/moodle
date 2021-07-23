@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin presets tool main controller
+* Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2021052700;
+$plugin->version = 2021052701;
 $plugin->requires = 2016052300;        // Requires this Moodle version
 $plugin->component = 'tool_admin_presets';
 $plugin->release = '3.4';
