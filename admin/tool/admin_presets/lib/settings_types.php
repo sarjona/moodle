@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
-* Admin tool presets plugin to load some settings.
+ * Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -88,7 +88,7 @@ abstract class admin_preset_setting {
             $this->settingdata->plugin = 'none';
         }
 
-        // Applies specific children behaviors
+        // Applies specific children behaviors.
         $this->set_behaviors();
         $this->apply_behaviors();
 
@@ -346,8 +346,6 @@ class admin_presets_delegation {
     }
 }
 
-/** TEXT **/
-
 /**
  * Basic text setting, cleans the param using the admin_setting paramtext attribute
  */
@@ -365,7 +363,7 @@ class admin_preset_auth_ldap_admin_setting_special_contexts_configtext extends a
 
         if (empty($this->settingdata->paramtype)) {
 
-            // For configfile, configpasswordunmask...
+            // For configfile, configpasswordunmask....
             $this->settingdata->paramtype = 'RAW';
         }
 
@@ -401,7 +399,7 @@ class admin_preset_admin_setting_configtext extends admin_preset_setting {
 
         if (empty($this->settingdata->paramtype)) {
 
-            // For configfile, configpasswordunmask...
+            // For configfile, configpasswordunmask....
             $this->settingdata->paramtype = 'RAW';
         }
 
@@ -438,7 +436,7 @@ class admin_preset_admin_setting_configtext_with_advanced extends admin_preset_a
     protected function set_visiblevalue() {
         parent::set_visiblevalue();
         $this->visiblevalue .= $this->delegation->extra_set_visiblevalue(
-                $this->attributesvalues[$this->attributes['fix']], 'advanced');
+            $this->attributesvalues[$this->attributes['fix']], 'advanced');
     }
 }
 
@@ -619,7 +617,7 @@ class admin_preset_admin_setting_configselect_with_advanced extends admin_preset
     protected function set_visiblevalue() {
         parent::set_visiblevalue();
         $this->visiblevalue .= $this->delegation->extra_set_visiblevalue(
-                $this->attributesvalues[$this->attributes[$this->advancedkey]], 'advanced');
+            $this->attributesvalues[$this->attributes[$this->advancedkey]], 'advanced');
     }
 }
 
@@ -666,7 +664,7 @@ class admin_preset_admin_setting_gradecat_combo extends admin_preset_admin_setti
 
         // set_attribute_value() will mod the VARNAME_flag value.
         $this->attributes = array('forced' => $settingdata->name . '_flag',
-                'adv' => $settingdata->name . '_flag');
+            'adv' => $settingdata->name . '_flag');
         parent::__construct($settingdata, $dbsettingvalue);
     }
 
@@ -853,7 +851,7 @@ class admin_preset_admin_setting_configcheckbox_with_advanced extends admin_pres
     protected function set_visiblevalue() {
         parent::set_visiblevalue();
         $this->visiblevalue .= $this->delegation->extra_set_visiblevalue(
-                $this->attributesvalues[$this->attributes['adv']], 'advanced');
+            $this->attributesvalues[$this->attributes['adv']], 'advanced');
     }
 }
 
@@ -872,7 +870,7 @@ class admin_preset_admin_setting_configcheckbox_with_lock extends admin_preset_a
     protected function set_visiblevalue() {
         parent::set_visiblevalue();
         $this->visiblevalue .= $this->delegation->extra_set_visiblevalue(
-                $this->attributesvalues[$this->attributes['locked']], 'locked');
+            $this->attributesvalues[$this->attributes['locked']], 'locked');
     }
 }
 
@@ -948,17 +946,17 @@ class admin_preset_admin_setting_quiz_reviewoptions extends admin_preset_setting
 
     // Caution VENOM! admin_setting_quiz_reviewoptions vars can't be accessed.
     private static $times = array(
-            QUIZ_REVIEW_IMMEDIATELY => 'reviewimmediately',
-            QUIZ_REVIEW_OPEN => 'reviewopen',
-            QUIZ_REVIEW_CLOSED => 'reviewclosed');
+        QUIZ_REVIEW_IMMEDIATELY => 'reviewimmediately',
+        QUIZ_REVIEW_OPEN => 'reviewopen',
+        QUIZ_REVIEW_CLOSED => 'reviewclosed');
 
     private static $things = array(
-            QUIZ_REVIEW_RESPONSES => 'responses',
-            QUIZ_REVIEW_ANSWERS => 'answers',
-            QUIZ_REVIEW_FEEDBACK => 'feedback',
-            QUIZ_REVIEW_GENERALFEEDBACK => 'generalfeedback',
-            QUIZ_REVIEW_SCORES => 'scores',
-            QUIZ_REVIEW_OVERALLFEEDBACK => 'overallfeedback');
+        QUIZ_REVIEW_RESPONSES => 'responses',
+        QUIZ_REVIEW_ANSWERS => 'answers',
+        QUIZ_REVIEW_FEEDBACK => 'feedback',
+        QUIZ_REVIEW_GENERALFEEDBACK => 'generalfeedback',
+        QUIZ_REVIEW_SCORES => 'scores',
+        QUIZ_REVIEW_OVERALLFEEDBACK => 'overallfeedback');
 
     /**
      * Stores the setting data and the selected value
@@ -988,7 +986,7 @@ class admin_preset_admin_setting_quiz_reviewoptions extends admin_preset_setting
 
         foreach ($marked as $time => $types) {
             $visiblevalues[] = '<strong>' . get_string($time, "quiz") .
-                    ':</strong> ' . implode(', ', $types);
+                ':</strong> ' . implode(', ', $types);
         }
         $this->visiblevalue = implode('<br/>', $visiblevalues);
 
@@ -1015,7 +1013,7 @@ class admin_preset_mod_quiz_admin_review_setting extends admin_preset_setting {
         $this->set_visiblevalue();
 
         $name = get_string('reviewoptionsheading', 'quiz') .
-                ': ' . $this->settingdata->visiblename;
+            ': ' . $this->settingdata->visiblename;
         $namediv = '<div class="admin_presets_tree_name">' . $name . '</div>';
         $valuediv = '<div class="admin_presets_tree_value">' . $this->visiblevalue . '</div>';
 
@@ -1052,6 +1050,9 @@ class admin_preset_admin_setting_configtextarea extends admin_preset_admin_setti
 }
 
 class admin_preset_admin_setting_configfile extends admin_preset_admin_setting_configtext {
+}
+
+class admin_preset_admin_setting_filetypes extends admin_preset_admin_setting_configtext {
 }
 
 class admin_preset_admin_setting_configexecutable extends admin_preset_admin_setting_configfile {
@@ -1198,4 +1199,171 @@ class admin_preset_admin_setting_special_gradebookroles extends admin_preset_adm
 }
 
 class admin_preset_admin_setting_special_gradeexport extends admin_preset_admin_setting_configmulticheckbox {
+}
+
+class admin_preset_admin_settings_h5plib_handler_select extends admin_preset_admin_setting_configselect {
+
+}
+
+class admin_preset_auth_ldap_admin_setting_special_lowercase_configtext extends admin_preset_admin_setting_configtext {
+}
+
+class admin_preset_auth_ldap_admin_setting_special_ntlm_configtext extends admin_preset_admin_setting_configtext {
+
+}
+
+class admin_preset_admin_setting_configselect_with_lock extends admin_preset_admin_setting_configselect {
+
+}
+
+class admin_preset_admin_setting_configstoredfile extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_configthemepreset extends admin_preset_admin_setting_configselect {
+
+}
+
+class admin_preset_admin_settings_sitepolicy_handler_select extends admin_preset_admin_setting_configselect {
+}
+
+class admin_preset_admin_setting_scsscode extends admin_preset_admin_setting_configtextarea {
+
+}
+
+class admin_preset_admin_setting_manageexternalservices extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_managewebserviceprotocols extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_webservicesoverview extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_agedigitalconsentmap extends admin_preset_admin_setting_configtextarea {
+
+}
+
+class admin_preset_admin_setting_countrycodes extends admin_preset_admin_setting_configtextarea {
+
+}
+
+class admin_preset_mod_glossary_admin_setting_display_formats extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_manageantiviruses extends admin_preset_setting {
+
+}
+
+class admin_preset_antivirus_clamav_runningmethod_setting extends admin_preset_admin_setting_configselect {
+
+}
+
+class admin_preset_admin_setting_description extends admin_preset_admin_setting_configtext {
+
+}
+
+class admin_preset_admin_setting_configmixedhostiplist extends admin_preset_admin_setting_configtextarea {
+
+}
+
+class admin_preset_antivirus_clamav_pathtounixsocket_setting extends admin_preset_admin_setting_configtext {
+
+}
+
+class admin_preset_antivirus_clamav_tcpsockethost_setting extends admin_preset_admin_setting_configtext {
+
+}
+
+class admin_preset_admin_setting_manageauths extends admin_preset_setting {
+
+}
+
+class admin_preset_auth_db_admin_setting_special_auth_configtext extends admin_preset_admin_setting_configtext {
+
+}
+
+class admin_preset_auth_shibboleth_admin_setting_convert_data extends admin_preset_admin_setting_configfile {
+
+}
+
+class admin_preset_auth_shibboleth_admin_setting_special_wayf_select extends admin_preset_admin_setting_configselect {
+
+}
+
+class admin_preset_auth_shibboleth_admin_setting_special_idp_configtextarea extends admin_preset_admin_setting_configtextarea {
+
+}
+
+class admin_preset_admin_setting_managecontentbankcontenttypes extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_manageformats extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_managecustomfields extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_managedataformats extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_manage_fileconverter_plugins extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_manageenrols extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_ldap_rolemapping extends admin_preset_setting {
+
+}
+
+class admin_preset_tool_log_setting_managestores extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_managemediaplayers extends admin_preset_setting {
+
+}
+
+class admin_preset_qtype_multichoice_admin_setting_answernumbering extends admin_preset_admin_setting_configselect {
+
+}
+
+
+class admin_preset_admin_setting_searchsetupinfo extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_manageeditors extends admin_preset_setting {
+
+}
+
+class admin_preset_editor_atto_subplugins_setting extends admin_preset_setting {
+
+}
+
+class admin_preset_editor_atto_toolbar_setting extends admin_preset_admin_setting_configtextarea {
+
+}
+
+class admin_preset_tiynce_subplugins_settings extends admin_preset_setting {
+
+}
+
+class admin_preset_admin_setting_configportlist extends admin_preset_admin_setting_configtextarea {
+
+}
+
+class admin_preset_admin_setting_heading extends admin_preset_setting {
+
 }
