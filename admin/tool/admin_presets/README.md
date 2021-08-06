@@ -3,9 +3,6 @@
 Block to export and import Moodle administration settings
 
 ## Build status
-
-[![Build Status](https://travis-ci.org/DigiDago/moodle-block_admin_presets.svg?branch=master)](https://travis-ci.org/DigiDago/moodle-block_admin_presets)
-
 ## Features
 
 * Export system settings to XML files
@@ -17,7 +14,6 @@ Block to export and import Moodle administration settings
 
 ## See also
 * Modules and Plugins entry: https://moodle.org/plugins/view.php?plugin=block_admin_presets
-
 
 Maintainer
 ============
