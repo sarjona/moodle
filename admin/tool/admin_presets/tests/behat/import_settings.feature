@@ -1,13 +1,14 @@
 @tool @tool_admin_presets @tool_admin_presets_import
 Feature: I can export and import site settings
 
-  Background:
+  Background: Create a preset to load
     Given I log in as "admin"
     And I am on site homepage
     And I navigate to "Admin presets > Export settings" in site administration
     And I set the following fields to these values:
       | Name | My preset |
     And I press "Save changes"
+    And I am on site homepage
 
   @javascript
   Scenario: Preset settings are applied
@@ -41,6 +42,7 @@ Feature: I can export and import site settings
 
   @javascript
   Scenario: Settings don't change if you import what you just exported
+    And I navigate to "Admin presets > List presets" in site administration
     When I click on "load" "link" in the "My preset" "table_row"
     And I press "Load selected settings"
     Then I should see "All preset settings skipped, they are already loaded"

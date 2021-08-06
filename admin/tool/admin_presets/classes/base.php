@@ -398,7 +398,7 @@ class base {
                             continue;
                         }
 
-                        // settings_types childs with.
+                        // Settings_types childs with.
                         // attributes provides an attributes array.
                         if ($attributes = $setting->get_attributes()) {
 
@@ -467,7 +467,6 @@ class base {
 
         // Remember to implement all the settings types in lib/settings_types files.
         if (!class_exists($classname)) {
-            var_dump($classname);
             return false;
         }
 
