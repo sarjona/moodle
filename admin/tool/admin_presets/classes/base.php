@@ -337,6 +337,7 @@ class base {
     protected function _get_settings($dbsettings, $sitedbvalues = false, $settings, $children = false): array {
 
         global $DB;
+
         // If there are no children, load admin tree and iterate through.
         if (!$children) {
             $this->adminroot = admin_get_root(false, true);
@@ -356,7 +357,7 @@ class base {
                 // Settings page.
             } else if (is_a($child, 'admin_settingpage')) {
 
-                if ($child->settings) {
+                if (property_exists($child, 'settings')) {
 
                     foreach ($child->settings as $values) {
                         $settingname = $values->name;
@@ -464,7 +465,7 @@ class base {
         // Skipping admin_*.
         $classname = 'admin_preset_' . $settingtype;
 
-        // TODO: Implement all the settings types.
+        // Remember to implement all the settings types in lib/settings_types files.
         if (!class_exists($classname)) {
             var_dump($classname);
             return false;
@@ -546,9 +547,9 @@ class base {
                 }
 
                 // Settings page.
-            } else if (is_a($child, 'admin_settingpage')) {
+            } else if (is_a($child, 'admin_settingpage') || is_a($child, 'admin_externalpage')) {
                 // Only if there are settings.
-                if ($child->settings) {
+                if (property_exists($child, 'settings')) {
 
                     // The name of that page tree node.
                     $pagenode = $child->name . 'Node';

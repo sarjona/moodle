@@ -1,33 +1,28 @@
-@block @block_admin_presets
+@tool @tool_admin_presets @tool_admin_presets_import
 Feature: I can export and import site settings
-  In order to save time
-  As an admin
-  I need to export and import settings presets
 
   Background:
     Given I log in as "admin"
     And I am on site homepage
-    And I follow "Turn editing on"
-    And I add the "Admin presets" block
-    And I follow "Export settings"
+    And I navigate to "Admin presets > Export settings" in site administration
     And I set the following fields to these values:
       | Name | My preset |
     And I press "Save changes"
 
   @javascript
   Scenario: Preset settings are applied
-    Given I follow "Advanced features"
+    And I navigate to "Advanced features" in site administration
     And I set the field "Enable portfolios" to "1"
     And I set the field "Enable badges" to "0"
     And I press "Save changes"
-    And I navigate to "Assignment settings" node in "Site administration > Plugins > Activity modules > Assignment"
+    And I navigate to "Plugins > Activity modules > Assignment > Assignment settings" in site administration
     And I set the field "Feedback plugin" to "File feedback"
     And I press "Save changes"
-    And I navigate to "Course overview" node in "Site administration > Plugins > Blocks"
-    And I set the field "Default maximum courses" to "5"
+    And I navigate to "Plugins > Blocks > Course overview" in site administration
+    And I set the field "Custom field" to "1"
     And I press "Save changes"
     When I am on site homepage
-    And I follow "Presets"
+    And I navigate to "Admin presets > List presets" in site administration
     And I click on "load" "link" in the "My preset" "table_row"
     And I press "Load selected settings"
     Then I should not see "All preset settings skipped, they are already loaded"
@@ -35,18 +30,14 @@ Feature: I can export and import site settings
     And I should see "Enable portfolios" in the ".admin_presets_applied" "css_element"
     And I should see "Enable badges" in the ".admin_presets_applied" "css_element"
     And I should see "Feedback plugin" in the ".admin_presets_applied" "css_element"
-    And I should see "File feedback" in the ".admin_presets_applied" "css_element"
-    And I should see "Default maximum courses" in the ".admin_presets_applied" "css_element"
-    And I should see "Enable outcomes" in the ".admin_presets_skipped" "css_element"
-    And I should see "Show recent submissions" in the ".admin_presets_skipped" "css_element"
-    And I should see "Force maximum courses" in the ".admin_presets_skipped" "css_element"
-    And I follow "Advanced features"
+    And I should see "Custom field" in the ".admin_presets_applied" "css_element"
+    And I navigate to "Advanced features" in site administration
     And the field "Enable portfolios" matches value "0"
     And the field "Enable badges" matches value "1"
-    And I navigate to "Assignment settings" node in "Site administration > Plugins > Activity modules > Assignment"
+    And I navigate to "Plugins > Activity modules > Assignment > Assignment settings" in site administration
     And the field "Feedback plugin" matches value "Feedback comments"
-    And I navigate to "Course overview" node in "Site administration > Plugins > Blocks"
-    And the field "Default maximum courses" matches value "10"
+    And I navigate to "Plugins > Blocks > Course overview" in site administration
+    And the field "Custom field" matches value "0"
 
   @javascript
   Scenario: Settings don't change if you import what you just exported
