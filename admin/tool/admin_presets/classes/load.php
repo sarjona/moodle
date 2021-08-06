@@ -63,11 +63,10 @@ class load extends base {
         $this->moodleform = new load_form($url);
 
         if ($data = $this->moodleform->get_data()) {
-
             // Standarized format $array['plugin']['settingname'] =  child class.
             $siteavailablesettings = $this->_get_site_settings();
 
-            // Get preset settings
+            // Get preset settings.
             if (!$items = $DB->get_records('tool_admin_presets_it', array('adminpresetid' => $this->id))) {
                 print_error('errornopreset', 'tool_admin_presets');
             }
@@ -79,7 +78,8 @@ class load extends base {
             // Only for selected items.
             $appliedchanges = array();
             $unnecessarychanges = array();
-            foreach (filter_input_array(INPUT_POST) as $varname => $value) {
+
+            foreach ($_POST as $varname => $value) {
 
                 unset($updatesetting);
 
@@ -125,7 +125,7 @@ class load extends base {
                         }
                     }
 
-                    // Saving data
+                    // Saving data.
                     if (!empty($updatesetting)) {
 
                         // The preset application it's only saved when values differences are found.
