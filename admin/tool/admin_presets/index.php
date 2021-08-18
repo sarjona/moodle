@@ -15,13 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
-* Admin tool presets plugin to load some settings.
+ * Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
+ * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(__DIR__ . '/../../../config.php');
@@ -41,15 +40,7 @@ require_capability('moodle/site:config', $context);
 
 // Loads the required action class and form.
 $fileclassname = $action;
-$classname = 'admin_tool_presets\\'.$action;
-$formname = $classname . '_form';
-
-$formpath = $CFG->dirroot . '/admin/tool/admin_presets/forms/' . $formname . '.php';
-require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/' . $fileclassname . '.php');
-
-if (file_exists($formpath)) {
-    require_once($formpath);
-}
+$classname = 'tool_admin_presets\\'.$action;
 
 if (!class_exists($classname)) {
     print_error('falseaction', 'tool_admin_presets', $action);

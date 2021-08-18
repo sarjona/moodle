@@ -14,36 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
-* Admin tool presets plugin to load some settings.
- *
- * @package          tool_admin_presets
- * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace tool_admin_presets;
 
-namespace admin_tool_presets;
-
+use stdClass;
 use html_table;
 use html_writer;
-use \stdClass;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-
-require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
 
 /**
- * Admin tool presets plugin this class extend base class and handle rollback function.
+ * This class extends base class and handles rollback function.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
+ * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class rollback extends base {
 
