@@ -14,17 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Admin tool presets plugin to load some settings.
- *
- * @package          tool_admin_presets
- * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-namespace admin_tool_presets;
+namespace tool_admin_presets;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -32,20 +22,19 @@ use html_writer;
 use html_table;
 use context_system;
 use moodle_url;
-use StdClass;
+use stdClass;
 
 global $CFG;
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/settings_types.php');
 
 /**
- * Admin tool presets main controller file.
+ * Admin tool presets main controller class.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
+ * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class base {
 
@@ -299,7 +288,7 @@ class base {
         $frontpagevalues = $DB->get_record_select('course', 'id = 1',
             array(), 'fullname, shortname, summary');
         foreach ($frontpagevalues as $field => $value) {
-            $dbconfig[$field] = new StdClass();
+            $dbconfig[$field] = new stdClass();
             $dbconfig[$field]->name = $field;
             $dbconfig[$field]->value = $value;
         }
@@ -308,7 +297,7 @@ class base {
         // Config plugins.
         $configplugins = $DB->get_records('config_plugins');
         foreach ($configplugins as $configplugin) {
-            $sitedbsettings[$configplugin->plugin][$configplugin->name] = new StdClass();
+            $sitedbsettings[$configplugin->plugin][$configplugin->name] = new stdClass();
             $sitedbsettings[$configplugin->plugin][$configplugin->name]->name = $configplugin->name;
             $sitedbsettings[$configplugin->plugin][$configplugin->name]->value = $configplugin->value;
         }
@@ -602,7 +591,7 @@ class base {
         }
 
         foreach ($dbsettings as $dbsetting) {
-            $settings[$dbsetting->plugin][$dbsetting->name] = new StdClass();
+            $settings[$dbsetting->plugin][$dbsetting->name] = new stdClass();
             $settings[$dbsetting->plugin][$dbsetting->name]->itemid = $dbsetting->id;
             $settings[$dbsetting->plugin][$dbsetting->name]->name = $dbsetting->name;
             $settings[$dbsetting->plugin][$dbsetting->name]->value = $dbsetting->value;

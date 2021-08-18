@@ -14,26 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
-* Admin tool presets plugin to load some settings.
- *
- * @package          tool_admin_presets
- * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-namespace admin_tool_presets\forms;
-
-use moodleform;
+namespace tool_admin_presets\form;
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
+use moodleform;
 
+global $CFG;
 require_once($CFG->dirroot . '/lib/formslib.php');
 
+/**
+ * Form for loading settings.
+ *
+ * @package          tool_admin_presets
+ * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
+ * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class load_form extends moodleform {
 
     private $preview;

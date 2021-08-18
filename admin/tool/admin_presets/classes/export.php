@@ -14,41 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Admin tool presets plugin to load some settings.
- *
- * @package          tool_admin_presets
- * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace tool_admin_presets;
 
-namespace admin_tool_presets;
-
-use \StdClass;
-use admin_tool_presets\forms\export_form;
+use stdClass;
+use tool_admin_presets\form\export_form;
 use memory_xml_output;
 use xml_writer;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-
-require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
-require_once($CFG->dirroot . '/admin/tool/admin_presets/forms/export_form.php');
-require_once($CFG->dirroot . '/backup/util/xml/xml_writer.class.php');
-require_once($CFG->dirroot . '/backup/util/xml/output/xml_output.class.php');
-require_once($CFG->dirroot . '/backup/util/xml/output/memory_xml_output.class.php');
-
 /**
- * Admin tool presets plugin this class extend base class and handle export function.
+ * This class extends base class and handles export function.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
+ * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class export extends base {
 
@@ -88,7 +66,7 @@ class export extends base {
         if ($data = $this->moodleform->get_data()) {
 
             // Admin_preset record.
-            $preset = new StdClass();
+            $preset = new stdClass();
             $preset->userid = $USER->id;
             $preset->name = $data->name;
             $preset->comments = $data->comments['text'];
@@ -120,7 +98,7 @@ class export extends base {
                     }
 
                     $name = explode('@@', $varname);
-                    $setting = new StdClass();
+                    $setting = new stdClass();
                     $setting->adminpresetid = $preset->id;
                     $setting->plugin = $name[1];
                     $setting->name = $name[0];
@@ -134,7 +112,7 @@ class export extends base {
                     if ($attributes = $sitesettings[$setting->plugin][$setting->name]->get_attributes_values()) {
                         foreach ($attributes as $attributename => $valueattr) {
 
-                            $attr = new StdClass();
+                            $attr = new stdClass();
                             $attr->itemid = $setting->id;
                             $attr->name = $attributename;
                             $attr->value = $valueattr;
