@@ -14,39 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
-* Admin tool presets plugin to load some settings.
- *
- * @package          tool_admin_presets
- * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace tool_admin_presets;
 
-namespace admin_tool_presets;
-
-use \StdClass;
-use admin_tool_presets\forms\load_form;
-
+use stdClass;
 use html_table;
 use html_writer;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-
-require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
-require_once($CFG->dirroot . '/admin/tool/admin_presets/forms/load_form.php');
+use tool_admin_presets\form\load_form;
 
 /**
- * Admin tool presets plugin this class extend base class and handle load function.
+ * This class extends base class and handles load function.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
+ * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class load extends base {
 
@@ -131,7 +112,7 @@ class load extends base {
                         // The preset application it's only saved when values differences are found.
                         if (empty($applieditem)) {
                             // Save the preset application and store the preset applied id.
-                            $presetapplied = new StdClass();
+                            $presetapplied = new stdClass();
                             $presetapplied->adminpresetid = $this->id;
                             $presetapplied->userid = $USER->id;
                             $presetapplied->time = time();
@@ -144,7 +125,7 @@ class load extends base {
                         // Implemented this way because the config_write.
                         // method of admin_setting class does not.
                         // return the config_log inserted id.
-                        $applieditem = new StdClass();
+                        $applieditem = new stdClass();
                         $applieditem->adminpresetapplyid = $adminpresetapplyid;
                         if ($applieditem->configlogid = $presetsetting->save_value()) {
                             $DB->insert_record('tool_admin_presets_app_it', $applieditem);
@@ -153,7 +134,7 @@ class load extends base {
                         // For settings with multiple values.
                         if ($attributeslogids = $presetsetting->save_attributes_values()) {
                             foreach ($attributeslogids as $attributelogid) {
-                                $applieditemattr = new StdClass();
+                                $applieditemattr = new stdClass();
                                 $applieditemattr->adminpresetapplyid = $applieditem->adminpresetapplyid;
                                 $applieditemattr->configlogid = $attributelogid;
                                 $applieditemattr->itemname = $presetsetting->get_settingdata()->name;
@@ -162,7 +143,7 @@ class load extends base {
                         }
 
                         // Added to changed values.
-                        $appliedchanges[$varname] = new StdClass();
+                        $appliedchanges[$varname] = new stdClass();
                         $appliedchanges[$varname]->plugin = $presetsetting->get_settingdata()->plugin;
                         $appliedchanges[$varname]->visiblename = $presetsetting->get_settingdata()->visiblename;
                         $appliedchanges[$varname]->oldvisiblevalue = $sitesetting->get_visiblevalue();
@@ -236,7 +217,7 @@ class load extends base {
 
         global $CFG, $DB, $OUTPUT;
 
-        $data = new StdClass();
+        $data = new stdClass();
         $data->id = $this->id;
 
         // Preset data.

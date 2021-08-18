@@ -14,37 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
-* Admin tool presets plugin to load some settings.
- *
- * @package          tool_admin_presets
- * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace tool_admin_presets;
 
-namespace admin_tool_presets;
-
-use \StdClass;
-use admin_tool_presets\forms\import_form;
+use stdClass;
 use context_user;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-
-require_once($CFG->dirroot . '/admin/tool/admin_presets/classes/base.php');
-require_once($CFG->dirroot . '/admin/tool/admin_presets/forms/import_form.php');
+use tool_admin_presets\form\import_form;
 
 /**
- * Admin tool presets plugin this class extend base class and handle import function.
+ * This class extends base class and handles import function.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
- * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko
- * @orignalauthor    David Monllaó <david.monllao@urv.cat>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
+ * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class import extends base {
 
@@ -86,7 +68,7 @@ class import extends base {
             }
 
             // Preset info.
-            $preset = new StdClass();
+            $preset = new stdClass();
             foreach ($this->rel as $dbname => $xmlname) {
                 $preset->$dbname = (String) $xml->$xmlname;
             }
@@ -146,7 +128,7 @@ class import extends base {
                         $settingsfound = true;
 
                         // New item.
-                        $item = new StdClass();
+                        $item = new stdClass();
                         $item->adminpresetid = $preset->id;
                         $item->plugin = $plugin;
                         $item->name = $name;
@@ -171,7 +153,7 @@ class import extends base {
                                     continue;
                                 }
 
-                                $attr = new StdClass();
+                                $attr = new stdClass();
                                 $attr->itemid = $item->id;
                                 $attr->name = $attrname;
                                 $attr->value = $attrvalue->__toString();
