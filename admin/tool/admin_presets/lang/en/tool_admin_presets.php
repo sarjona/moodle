@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
-* Admin tool presets plugin to load some settings.
+ * Admin tool presets plugin to load some settings.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -116,4 +116,14 @@ $string['value'] = 'setting value';
 $string['voidvalue'] = 'that setting does not have a value';
 $string['wrongfile'] = 'Wrong file';
 $string['wrongid'] = 'Wrong id';
-$string['privacy:null_reason'] = 'The admin presets tool does not effect or store any user data';
+$string['privacy:metadata:admin_presets'] = 'The list of configuration presets.';
+$string['privacy:metadata:admin_presets:comments'] = 'A description about the preset.';
+$string['privacy:metadata:admin_presets:moodlerelease'] = 'The Moodle release version where the preset is based on.';
+$string['privacy:metadata:admin_presets:name'] = 'The name of the preset.';
+$string['privacy:metadata:admin_presets:site'] = 'The Moodle site where this preset was created.';
+$string['privacy:metadata:admin_presets:timecreated'] = 'The time that the change was made.';
+$string['privacy:metadata:admin_presets:userid'] = 'The user who create the preset.';
+$string['privacy:metadata:tool_admin_presets_app'] = 'The configuration presets that have been applied.';
+$string['privacy:metadata:tool_admin_presets_app:adminpresetid'] = 'The id of the preset applied.';
+$string['privacy:metadata:tool_admin_presets_app:time'] = 'The time that the preset was applied.';
+$string['privacy:metadata:tool_admin_presets_app:userid'] = 'The user who applied the preset.';
