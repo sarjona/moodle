@@ -26,8 +26,6 @@ use stdClass;
 
 global $CFG;
 require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot . '/admin/tool/admin_presets/lib/settings_types.php');
-
 /**
  * Admin tool presets main controller class.
  *
@@ -451,12 +449,11 @@ class base {
         // Getting the appropiate class to get the correct setting value.
         $settingtype = get_class($settingdata);
 
-        // Skipping admin_*.
-        $classname = 'admin_preset_' . $settingtype;
+        $classname = '\\tool_admin_presets\\local\\setting\\admin_preset_' . $settingtype;
 
-        // Remember to implement all the settings types in lib/settings_types files.
         if (!class_exists($classname)) {
-            return false;
+            // Return the default setting class if there is no specific class for this setting.
+            $classname = '\\tool_admin_presets\\local\\setting\\admin_preset_setting';
         }
 
         return new $classname($settingdata, $currentvalue);
