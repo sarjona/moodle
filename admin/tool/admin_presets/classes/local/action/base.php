@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tool_admin_presets;
+namespace tool_admin_presets\local\action;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -239,7 +239,7 @@ class base {
 
         echo $OUTPUT->header();
 
-        include(dirname(dirname(__FILE__)) . '/tabs.php');
+        include(dirname(dirname(__FILE__)) . '../../../tabs.php');
 
         echo $OUTPUT->heading($actionstr . ': ' . $modestr, 1);
     }
