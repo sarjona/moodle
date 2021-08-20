@@ -40,7 +40,7 @@ require_capability('moodle/site:config', $context);
 
 // Loads the required action class and form.
 $fileclassname = $action;
-$classname = 'tool_admin_presets\\'.$action;
+$classname = 'tool_admin_presets\\local\\action\\'.$action;
 
 if (!class_exists($classname)) {
     print_error('falseaction', 'tool_admin_presets', $action);
