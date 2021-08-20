@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tool_admin_presets;
+namespace tool_admin_presets\local\action;
 
 use stdClass;
 use html_table;
