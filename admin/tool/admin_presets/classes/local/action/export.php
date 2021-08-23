@@ -16,10 +16,19 @@
 
 namespace tool_admin_presets\local\action;
 
+defined('MOODLE_INTERNAL') || die();
+
 use stdClass;
 use tool_admin_presets\form\export_form;
 use memory_xml_output;
 use xml_writer;
+
+global $CFG;
+require_once($CFG->dirroot . '/lib/filelib.php');
+require_once($CFG->dirroot . '/backup/util/xml/xml_writer.class.php');
+require_once($CFG->dirroot . '/backup/util/xml/output/xml_output.class.php');
+require_once($CFG->dirroot . '/backup/util/xml/output/memory_xml_output.class.php');
+
 /**
  * This class extends base class and handles export function.
  *
