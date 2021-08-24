@@ -48,6 +48,7 @@ class base {
     ];
     protected $action;
     protected $mode;
+    protected $id;
     protected $adminroot;
     protected $outputs;
     protected $moodleform;
@@ -63,13 +64,18 @@ class base {
         $this->id = optional_param('id', false, PARAM_INT);
 
         // DB - XML relations.
-        $this->rel = array('name' => 'NAME', 'comments' => 'COMMENTS',
-            'timecreated' => 'PRESET_DATE', 'site' => 'SITE_URL', 'author' => 'AUTHOR',
-            'moodleversion' => 'MOODLE_VERSION', 'moodlerelease' => 'MOODLE_RELEASE');
+        $this->rel = [
+            'name' => 'NAME',
+            'comments' => 'COMMENTS',
+            'timecreated' => 'PRESET_DATE',
+            'site' => 'SITE_URL',
+            'author' => 'AUTHOR',
+            'moodleversion' => 'MOODLE_VERSION',
+            'moodlerelease' => 'MOODLE_RELEASE'
+        ];
 
         // Sensible settings.
-        $sensiblesettings = explode(',',
-            str_replace(' ', '', get_config('admin_presets', 'sensiblesettings')));
+        $sensiblesettings = explode(',', str_replace(' ', '', get_config('tool_admin_presets', 'sensiblesettings')));
         $this->sensiblesettings = array_combine($sensiblesettings, $sensiblesettings);
     }
 
@@ -144,24 +150,29 @@ class base {
     }
 
     public function log(): void {
-        // TODO please, me of the future, fix this ununderstandable code.
-
-        // The only read action we store is list presets.
+        // The only read action we store is list presets and preview.
+        $islist = ($this->action == 'base' && $this->mode == 'show');
+        $ispreview = ($this->action == 'load' && $this->mode == 'show');
+        if ($this->mode != 'show' || $islist || $ispreview) {
             $action = $this->action;
-            if ($this->mode != 'execute' && $this->mode != 'show') {
-                $action = $this->mode;
-            }
-            if ($this->mode == 'show' && $this->action == 'load') {
+            if ($ispreview) {
                 $action = 'preview';
             }
 
-            $eventnamespace = '\\tool_admin_presets\\event\\' . self::$eventsactionsmap[$action];
-            $eventdata = array(
-                'context' => context_system::instance(),
-                'objectid' => $this->id
-            );
-            $event = $eventnamespace::create($eventdata);
-            $event->trigger();
+            if ($this->mode != 'execute' && $this->mode != 'show') {
+                $action = $this->mode;
+            }
+
+            if (array_key_exists($action, self::$eventsactionsmap)) {
+                $eventnamespace = '\\tool_admin_presets\\event\\' . self::$eventsactionsmap[$action];
+                $eventdata = [
+                    'context' => context_system::instance(),
+                    'objectid' => $this->id
+                ];
+                $event = $eventnamespace::create($eventdata);
+                $event->trigger();
+            }
+        }
     }
 
     /**
@@ -178,11 +189,11 @@ class base {
         global $DB;
 
         // Db configs (to avoid multiple queries).
-        $dbconfig = $DB->get_records_select('config', '', array(), '', 'name, value');
+        $dbconfig = $DB->get_records_select('config', '', [], '', 'name, value');
 
         // Adding site settings in course table.
         $frontpagevalues = $DB->get_record_select('course', 'id = 1',
-            array(), 'fullname, shortname, summary');
+            [], 'fullname, shortname, summary');
         foreach ($frontpagevalues as $field => $value) {
             $dbconfig[$field] = new stdClass();
             $dbconfig[$field]->name = $field;
@@ -198,7 +209,7 @@ class base {
             $sitedbsettings[$configplugin->plugin][$configplugin->name]->value = $configplugin->value;
         }
         // Get an array with the common format.
-        return $this->_get_settings($sitedbsettings, true, $settings = array());
+        return $this->_get_settings($sitedbsettings, true, []);
     }
 
     /**
@@ -219,7 +230,7 @@ class base {
      * @param bool $children admin_category children
      * @return    array Array format $array['plugin']['settingname'] = settings_types child class
      */
-    protected function _get_settings($dbsettings, $sitedbvalues = false, $settings, $children = false): array {
+    protected function _get_settings($dbsettings, $sitedbvalues = false, $settings = [], $children = false): array {
 
         global $DB;
 
@@ -291,7 +302,7 @@ class base {
                             if (!$sitedbvalues) {
                                 $itemid = $dbsettings[$values->plugin][$settingname]->itemid;
                                 $attrs = $DB->get_records('tool_admin_presets_it_a',
-                                    array('itemid' => $itemid), '', 'name, value');
+                                    ['itemid' => $itemid], '', 'name, value');
                             }
                             foreach ($attributes as $defaultvarname => $varname) {
 
@@ -367,12 +378,12 @@ class base {
         global $PAGE;
 
         // Nodes should be added in hierarchical order.
-        $nodes = array('categories' => array(), 'pages' => array(), 'settings' => array());
+        $nodes = ['categories' => [], 'pages' => [], 'settings' => []];
         $nodes = $this->_get_settings_elements($settings, false, false, $nodes);
 
         $PAGE->requires->js_init_call('M.tool_admin_presets.init', null, true);
 
-        $levels = array('categories', 'pages', 'settings');
+        $levels = ['categories', 'pages', 'settings'];
         foreach ($levels as $level) {
             foreach ($nodes[$level] as $data) {
                 $ids[] = $data[0];
@@ -383,7 +394,7 @@ class base {
             }
         }
         $PAGE->requires->js_init_call('M.tool_admin_presets.addNodes',
-            array($ids, $nodes, $labels, $descriptions, $parents), true);
+            [$ids, $nodes, $labels, $descriptions, $parents], true);
         $PAGE->requires->js_init_call('M.tool_admin_presets.render', null, true);
     }
 
@@ -391,12 +402,13 @@ class base {
      * Gets the html code to select the settings to export/import/load
      *
      * @param array $allsettings Array format $array['plugin']['settingname'] = settings_types child class
-     * @param bool $admintree The admin tree branche object or false if we are in the root
-     * @param bool $jsparentnode Name of the javascript parent category node
+     * @param object|bool $admintree The admin tree branche object or false if we are in the root
+     * @param object|bool $jsparentnode Name of the javascript parent category node
      * @param array $nodes Tree nodes
      * @return array Code to output
      */
-    protected function _get_settings_elements($allsettings, $admintree = false, $jsparentnode = false, &$nodes): array {
+    protected function _get_settings_elements(array $allsettings, $admintree = false, $jsparentnode = false,
+            array &$nodes = []): array {
 
         if (empty($this->adminroot)) {
             $this->adminroot = admin_get_root(false, true);
@@ -415,15 +427,14 @@ class base {
 
         // Iterates through children.
         foreach ($admintree as $key => $child) {
-            $pagesettings = array();
+            $pagesettings = [];
 
             // We must search category children.
             if (is_a($child, 'admin_category')) {
                 if ($child->children) {
                     $categorynode = $child->name . 'Node';
                     $nodehtml = '<div class="catnode">' . $child->visiblename . '</div>';
-                    $nodes['categories'][$categorynode] = array("category",
-                        $categorynode, (string) $nodehtml, "", $jsparentnode);
+                    $nodes['categories'][$categorynode] = ['category', $categorynode, (string) $nodehtml, '', $jsparentnode];
 
                     // Not all admin_categories have admin_settingpages.
                     $this->_get_settings_elements($allsettings, $child->children, $categorynode, $nodes);
@@ -454,14 +465,14 @@ class base {
                         $settingid = $setting->get_id();
 
                         // String to add the setting to js tree.
-                        $pagesettings[$settingid] = array($settingid, $settingid,
-                            $setting->get_text(), $setting->get_description(), $pagenode);
+                        $pagesettings[$settingid] = [$settingid, $settingid, $setting->get_text(),
+                                $setting->get_description(), $pagenode];
                     }
 
                     // The page node only should be added if it have children.
                     if ($pagesettings) {
                         $nodehtml = '<div class="catnode">' . $child->visiblename . '</div>';
-                        $nodes['pages'][$pagenode] = array("page", $pagenode, (string) $nodehtml, "", $jsparentnode);
+                        $nodes['pages'][$pagenode] = ['page', $pagenode, (string) $nodehtml, '', $jsparentnode];
                         $nodes['settings'] = array_merge($nodes['settings'], $pagesettings);
                     }
                 }
@@ -479,7 +490,7 @@ class base {
      * format $array['plugin']['name'] = obj('name'=>'settingname', 'value'=>'settingvalue')
      */
     protected function _get_settings_from_db($dbsettings): array {
-        $settings = array();
+        $settings = [];
 
         if (!$dbsettings) {
             return $settings;
