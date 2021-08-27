@@ -148,7 +148,7 @@ Feature: Non anonymous feedback
     And I click on "Back" "link" in the "region-main" "region"
     # Delete non anonymous response
     And I click on "Delete entry" "link" in the "Username 1" "table_row"
-    And I press "Yes"
+    And I click on "Yes" "button" in the "Confirmation" "dialogue"
     And I should see "Non anonymous entries (1)"
     And I should not see "Username 1"
     And I should see "Username 2"

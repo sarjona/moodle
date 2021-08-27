@@ -51,19 +51,20 @@ Feature: Feedbacks in courses with groups
       | feedback   | Course feedback | C1                   | feedback1 | 2         | 1             | 1         | 0       |
       | feedback   | Course anon feedback | C1              | feedback2 | 1         | 1             | 1         | 0       |
     And I am on the "Site feedback" "feedback activity" page logged in as manager
-    And I click on "Edit questions" "link" in the "[role=main]" "css_element"
+    And I navigate to "Edit questions" in current page administration
     And I add a "Multiple choice" question to the feedback with:
       | Question                       | Do you like our site?              |
       | Label                          | multichoice2                       |
       | Multiple choice type           | Multiple choice - single answer    |
       | Hide the "Not selected" option | Yes                                |
       | Multiple choice values         | Yes of course\nNot at all\nI don't know |
+    And I change the window size to "large"
     And I log out
 
   @javascript
   Scenario: Non anonymous feedback with groups in a course
     Given I am on the "Course feedback" "feedback activity" page logged in as teacher
-    And I click on "Edit questions" "link" in the "[role=main]" "css_element"
+    And I navigate to "Edit questions" in current page administration
     And I add a "Multiple choice" question to the feedback with:
       | Question                       | Do you like this course?           |
       | Label                          | multichoice1                       |
@@ -153,7 +154,7 @@ Feature: Feedbacks in courses with groups
   @javascript
   Scenario: Anonymous feedback with groups in a course
     Given I am on the "Course anon feedback" "feedback activity" page logged in as teacher
-    And I click on "Edit questions" "link" in the "[role=main]" "css_element"
+    And I navigate to "Edit questions" in current page administration
     And I add a "Multiple choice" question to the feedback with:
       | Question                       | Do you like this course?           |
       | Label                          | multichoice1                       |

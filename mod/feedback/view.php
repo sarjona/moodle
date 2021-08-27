@@ -114,7 +114,7 @@ if (has_capability('mod/feedback:edititems', $context)) {
 if (!has_capability('mod/feedback:viewreports', $context) &&
         $feedbackcompletion->can_view_analysis()) {
     $analysisurl = new moodle_url('/mod/feedback/analysis.php', array('id' => $id));
-    echo '<div class="mdl-align"><a href="'.$analysisurl->out().'">';
+    echo '<div class="mdl-align"><a href="'.$analysisurl->out().'" role="button">';
     echo get_string('completed_feedbacks', 'feedback').'</a>';
     echo '</div>';
 }
@@ -154,4 +154,3 @@ if ($feedbackcompletion->can_complete()) {
 }
 
 echo $OUTPUT->footer();
-

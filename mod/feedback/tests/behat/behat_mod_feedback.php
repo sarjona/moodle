@@ -167,10 +167,12 @@ class behat_mod_feedback extends behat_base {
             if ($node->getAttribute('aria-expanded') === 'false') {
                 $this->execute('behat_general::i_click_on_in_the', array(
                     get_string('showchartdata'),
-                    'link',
+                    'button',
                     $feedbackxpath,
                     'xpath_element'
                 ));
+                // Wait for page to be loaded.
+                $this->execute("behat_general::wait_until_the_page_is_ready");
             }
         }
     }

@@ -38,6 +38,8 @@
 </div>
 
 {{#js}}
+M.util.js_pending("chart-table-{{uniqid}}");
+
 require([
     'jquery',
     'core/chart_builder',
@@ -53,6 +55,7 @@ require([
     Builder.make(data).then(function(ChartInst) {
         new Output(chartImage, ChartInst);
         new OutputTable(chartTable, ChartInst);
+        M.util.js_complete("chart-table-{{uniqid}}");
     });
 
     chartLink.on('click', function(e) {
@@ -62,9 +65,9 @@ require([
             chartLink.text({{#quote}}{{#str}}showchartdata, moodle{{/str}}{{/quote}});
             chartTable.attr('aria-expanded', false);
         } else {
-            chartTable.show();
             chartLink.text({{#quote}}{{#str}}hidechartdata, moodle{{/str}}{{/quote}});
             chartTable.attr('aria-expanded', true);
+            chartTable.show();
         }
     });
 });
