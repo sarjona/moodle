@@ -3,12 +3,11 @@ Feature: I can export and import site settings
 
   Background: Create a preset to load
     Given I log in as "admin"
-    And I am on site homepage
-    And I navigate to "Admin presets > Export settings" in site administration
+    And I navigate to "Admin presets" in site administration
+    And I click on "Export settings" "link_or_button"
     And I set the following fields to these values:
       | Name | My preset |
     And I press "Save changes"
-    And I am on site homepage
 
   @javascript
   Scenario: Preset settings are applied
@@ -22,9 +21,9 @@ Feature: I can export and import site settings
     And I navigate to "Plugins > Blocks > Course overview" in site administration
     And I set the field "Custom field" to "1"
     And I press "Save changes"
-    When I am on site homepage
-    And I navigate to "Admin presets > List presets" in site administration
-    And I click on "load" "link" in the "My preset" "table_row"
+    And I navigate to "Admin presets" in site administration
+    And I click on "Actions" "link_or_button" in the "My preset" "table_row"
+    And I click on "Load" "link" in the "My preset" "table_row"
     And I press "Load selected settings"
     Then I should not see "All preset settings skipped, they are already loaded"
     And I should see "Settings applied"
@@ -42,8 +41,9 @@ Feature: I can export and import site settings
 
   @javascript
   Scenario: Settings don't change if you import what you just exported
-    And I navigate to "Admin presets > List presets" in site administration
-    When I click on "load" "link" in the "My preset" "table_row"
-    And I press "Load selected settings"
+    And I navigate to "Admin presets" in site administration
+    And I click on "Actions" "link_or_button" in the "My preset" "table_row"
+    And I click on "Load" "link" in the "My preset" "table_row"
+    When I press "Load selected settings"
     Then I should see "All preset settings skipped, they are already loaded"
     And I should not see "Settings applied"

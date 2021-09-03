@@ -17,8 +17,6 @@
 namespace tool_admin_presets\local\action;
 
 use stdClass;
-use html_table;
-use html_writer;
 
 /**
  * This class extends base class and handles rollback function.
@@ -35,44 +33,31 @@ class rollback extends base {
      */
     public function show(): void {
 
-        global $CFG, $DB, $OUTPUT;
-
-        $table = new html_table();
-        $table->attributes['class'] = 'generaltable boxaligncenter';
-        $table->head = array(get_string('timeapplied',
-                'tool_admin_presets'), get_string('user'), get_string('actions'));
-        $table->align = array('left', 'center', 'left');
+        global $DB, $OUTPUT;
 
         // Preset data.
         $preset = $DB->get_record('tool_admin_presets', array('id' => $this->id));
 
         // Applications data.
-        $applications = $DB->get_records('tool_admin_presets_app', array('adminpresetid' => $this->id));
-        if (!$applications) {
-            print_error('notpreviouslyapplied', 'tool_admin_presets');
-        }
-
+        $context = new stdClass();
+        $applications = $DB->get_records('tool_admin_presets_app', array('adminpresetid' => $this->id), 'time DESC');
+        $context->noapplications = !empty($applications);
+        $context->applications = [];
         foreach ($applications as $application) {
-
             $format = get_string('strftimedatetime', 'langconfig');
-
             $user = $DB->get_record('user', array('id' => $application->userid));
+            $rollbacklink = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'rollback', 'mode' => 'execute', 'id' => $application->id, 'sesskey' => sesskey()]);
 
-            $rollbacklink = $CFG->wwwroot .
-                    '/admin/tool/admin_presets/index.php?action=rollback&mode=execute&id=' .
-                    $application->id . '&sesskey=' . sesskey();
-            $action = html_writer::link($rollbacklink,
-                    get_string("rollback", "tool_admin_presets"));
-
-            $table->data[] = array(strftime($format, $application->time),
-                    $user->firstname . ' ' . $user->lastname,
-                    '<div>' . $action . '</div>'
-            );
+            $context->applications[] = [
+                'timeapplied' => strftime($format, $application->time),
+                'user' => fullname($user),
+                'action' => $rollbacklink->out(false),
+            ];
         }
 
         $this->outputs .= '<br/>' . $OUTPUT->heading(get_string("presetname",
                                 "tool_admin_presets") . ': ' . $preset->name, 3);
-        $this->outputs .= html_writer::table($table);
+        $this->outputs = $OUTPUT->render_from_template('tool_admin_presets/preset_applications_list', $context);
     }
 
     /**
@@ -90,8 +75,8 @@ class rollback extends base {
         $sitesettings = $this->_get_site_settings();
 
         // To store rollback results.
-        $rollback = array();
-        $failures = array();
+        $rollback = [];
+        $failures = [];
 
         if (!$DB->get_record('tool_admin_presets_app', array('id' => $this->id))) {
             print_error('wrongid', 'tool_admin_presets');
@@ -117,7 +102,12 @@ class rollback extends base {
                     $actualsetting = $sitesettings[$change->plugin][$change->name];
                     $oldsetting = $this->_get_setting($actualsetting->get_settingdata(), $change->oldvalue);
                     $oldsetting->set_text();
-                    $varname = $change->plugin . '_' . $change->name;
+                    $contextdata = [
+                        'plugin' => $oldsetting->get_settingdata()->plugin,
+                        'visiblename' => $oldsetting->get_settingdata()->visiblename,
+                        'oldvisiblevalue' => $actualsetting->get_visiblevalue(),
+                        'visiblevalue' => $oldsetting->get_visiblevalue()
+                    ];
 
                     // Check if the actual value is the same set by the preset.
                     if ($change->value == $actualsetting->get_value()) {
@@ -125,11 +115,7 @@ class rollback extends base {
                         $oldsetting->save_value();
 
                         // Output table.
-                        $rollback[$varname] = new stdClass();
-                        $rollback[$varname]->plugin = $oldsetting->get_settingdata()->plugin;
-                        $rollback[$varname]->visiblename = $oldsetting->get_settingdata()->visiblename;
-                        $rollback[$varname]->oldvisiblevalue = $actualsetting->get_visiblevalue();
-                        $rollback[$varname]->visiblevalue = $oldsetting->get_visiblevalue();
+                        $rollback[] = $contextdata;
 
                         // Deleting the admin_preset_apply_item instance.
                         $deletewhere = array('adminpresetapplyid' => $change->adminpresetapplyid,
@@ -137,12 +123,7 @@ class rollback extends base {
                         $DB->delete_records('tool_admin_presets_app_it', $deletewhere);
 
                     } else {
-
-                        $failures[$varname] = new stdClass();
-                        $failures[$varname]->plugin = $oldsetting->get_settingdata()->plugin;
-                        $failures[$varname]->visiblename = $oldsetting->get_settingdata()->visiblename;
-                        $failures[$varname]->oldvisiblevalue = $actualsetting->get_visiblevalue();
-                        $failures[$varname]->visiblevalue = $oldsetting->get_visiblevalue();
+                        $failures[] = $contextdata;
                     }
                 }
             }
@@ -181,11 +162,12 @@ class rollback extends base {
                         $oldsetting->save_attributes_values();
 
                         // Output table.
-                        $rollback[$varname] = new stdClass();
-                        $rollback[$varname]->plugin = $oldsetting->get_settingdata()->plugin;
-                        $rollback[$varname]->visiblename = $oldsetting->get_settingdata()->visiblename;
-                        $rollback[$varname]->oldvisiblevalue = $actualsetting->get_visiblevalue();
-                        $rollback[$varname]->visiblevalue = $oldsetting->get_visiblevalue();
+                        $rollback[] = [
+                            'plugin' => $oldsetting->get_settingdata()->plugin,
+                            'visiblename' => $oldsetting->get_settingdata()->visiblename,
+                            'oldvisiblevalue' => $actualsetting->get_visiblevalue(),
+                            'visiblevalue' => $oldsetting->get_visiblevalue()
+                        ];
 
                         // Deleting the admin_preset_apply_item_attr instance.
                         $deletewhere = array('adminpresetapplyid' => $change->adminpresetapplyid,
@@ -193,38 +175,37 @@ class rollback extends base {
                         $DB->delete_records('tool_admin_presets_app_it_a', $deletewhere);
 
                     } else {
-
-                        $failures[$varname] = new stdClass();
-                        $failures[$varname]->plugin = $oldsetting->get_settingdata()->plugin;
-                        $failures[$varname]->visiblename = $oldsetting->get_settingdata()->visiblename;
-                        $failures[$varname]->oldvisiblevalue = $actualsetting->get_visiblevalue();
-                        $failures[$varname]->visiblevalue = $oldsetting->get_visiblevalue();
+                        $failures[] = [
+                            'plugin' => $oldsetting->get_settingdata()->plugin,
+                            'visiblename' => $oldsetting->get_settingdata()->visiblename,
+                            'oldvisiblevalue' => $actualsetting->get_visiblevalue(),
+                            'visiblevalue' => $oldsetting->get_visiblevalue()
+                        ];
                     }
                 }
             }
         }
 
         // Delete application if no items nor attributes of the application remains.
-        if (!$DB->get_record('tool_admin_presets_app_it', array('adminpresetapplyid' => $this->id)) &&
+        if (!$DB->get_records('tool_admin_presets_app_it', array('adminpresetapplyid' => $this->id)) &&
                 !$DB->get_records('tool_admin_presets_app_it_a', array('adminpresetapplyid' => $this->id))) {
 
             $DB->delete_records('tool_admin_presets_app', array('id' => $this->id));
         }
 
-        // Display the rollback changes.
-        if (!empty($rollback)) {
-            $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('rollbackresults',
-                            "tool_admin_presets"), 3, 'admin_presets_success');
-            $this->outputs .= '<br/>';
-            $this->_output_applied_changes($rollback);
-        }
+        $appliedchanges = new stdClass();
+        $appliedchanges->show = !empty($rollback);
+        $appliedchanges->caption = get_string('rollbackresults', 'tool_admin_presets');
+        $appliedchanges->settings = $rollback;
 
-        // Display the rollback failures.
-        if (!empty($failures)) {
-            $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('rollbackfailures',
-                            'tool_admin_presets'), 3, 'admin_presets_error');
-            $this->outputs .= '<br/>';
-            $this->_output_applied_changes($failures);
-        }
+        $skippedchanges = new stdClass();
+        $skippedchanges->show = !empty($failures);
+        $skippedchanges->caption = get_string('rollbackfailures', 'tool_admin_presets');
+        $skippedchanges->settings = $failures;
+
+        $context = new stdClass();
+        $context->appliedchanges = $appliedchanges;
+        $context->skippedchanges = $skippedchanges;
+        $this->outputs = $OUTPUT->render_from_template('tool_admin_presets/settings_rollback', $context);
     }
 }

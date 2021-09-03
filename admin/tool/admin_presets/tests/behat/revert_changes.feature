@@ -4,8 +4,8 @@ Feature: I can revert changes after a load
   @javascript
   Scenario: Load changes and revert them
     Given I log in as "admin"
-    And I am on site homepage
-    And I navigate to "Admin presets > Export settings" in site administration
+    And I navigate to "Admin presets" in site administration
+    And I click on "Export settings" "link_or_button"
     And I set the following fields to these values:
       | Name | My preset |
     And I press "Save changes"
@@ -19,12 +19,14 @@ Feature: I can revert changes after a load
     And I navigate to "Plugins > Blocks > Course overview" in site administration
     And I set the field "Custom field" to "1"
     And I press "Save changes"
-    And I navigate to "Admin presets > List presets" in site administration
-    And I click on "load" "link" in the "My preset" "table_row"
+    And I navigate to "Admin presets" in site administration
+    And I click on "Actions" "link_or_button" in the "My preset" "table_row"
+    And I click on "Load" "link" in the "My preset" "table_row"
     And I press "Load selected settings"
-    And I navigate to "Admin presets > List presets" in site administration
-    And I click on "revert" "link" in the "My preset" "table_row"
-    And I follow "revert"
+    And I navigate to "Admin presets" in site administration
+    And I click on "Actions" "link_or_button" in the "My preset" "table_row"
+    And I click on "Revert" "link" in the "My preset" "table_row"
+    And I follow "Revert"
     Then I should see "Settings successfully restored"
     And I should see "Enable portfolios" in the ".admin_presets_applied" "css_element"
     And I should see "Enable badges" in the ".admin_presets_applied" "css_element"

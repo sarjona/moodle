@@ -17,9 +17,9 @@
 namespace tool_admin_presets\local\action;
 
 use stdClass;
-use html_table;
-use html_writer;
 use tool_admin_presets\form\load_form;
+use tool_admin_presets\output\presets_list;
+use tool_admin_presets\output\settings_application;
 
 /**
  * This class extends base class and handles load function.
@@ -36,14 +36,18 @@ class load extends base {
      */
     public function execute(): void {
 
-        global $CFG, $DB, $OUTPUT, $USER;
+        global $DB, $OUTPUT, $USER;
 
         confirm_sesskey();
 
-        $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=load&mode=execute';
+        $url = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'load', 'mode' => 'execute']);
         $this->moodleform = new load_form($url);
 
-        if ($data = $this->moodleform->get_data()) {
+        if ($this->moodleform->is_cancelled()) {
+            redirect(new \moodle_url('/admin/tool/admin_presets/index.php?action=base'));
+        }
+
+        if ($this->moodleform->is_submitted() && $this->moodleform->is_validated() && ($data = $this->moodleform->get_data())) {
             // Standarized format $array['plugin']['settingname'] =  child class.
             $siteavailablesettings = $this->_get_site_settings();
 
@@ -57,8 +61,8 @@ class load extends base {
             $presetsettings = $this->_get_settings($presetdbsettings, false, $presetsettings = array());
 
             // Only for selected items.
-            $appliedchanges = array();
-            $unnecessarychanges = array();
+            $applied = [];
+            $skipped = [];
 
             foreach ($_POST as $varname => $value) {
 
@@ -106,6 +110,12 @@ class load extends base {
                         }
                     }
 
+                    $data = [
+                        'plugin' => $presetsetting->get_settingdata()->plugin,
+                        'visiblename' => $presetsetting->get_settingdata()->visiblename,
+                        'visiblevalue' => $presetsetting->get_visiblevalue()
+                    ];
+
                     // Saving data.
                     if (!empty($updatesetting)) {
 
@@ -143,64 +153,35 @@ class load extends base {
                         }
 
                         // Added to changed values.
-                        $appliedchanges[$varname] = new stdClass();
-                        $appliedchanges[$varname]->plugin = $presetsetting->get_settingdata()->plugin;
-                        $appliedchanges[$varname]->visiblename = $presetsetting->get_settingdata()->visiblename;
-                        $appliedchanges[$varname]->oldvisiblevalue = $sitesetting->get_visiblevalue();
-                        $appliedchanges[$varname]->visiblevalue = $presetsetting->get_visiblevalue();
+                        $data['oldvisiblevalue'] = $sitesetting->get_visiblevalue();
+                        $applied[] = $data;
 
                         // Unnecessary changes (actual setting value).
                     } else {
-                        $unnecessarychanges[$varname] = $presetsetting;
-                    }
+                        $skipped[] = $data;
+                   }
                 }
             }
         }
 
-        // Output applied changes.
-        if (!empty($appliedchanges)) {
-            $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('settingsapplied',
-                    'tool_admin_presets'), 3, 'admin_presets_success');
-            $this->_output_applied_changes($appliedchanges);
-        } else {
-            $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('nothingloaded',
-                    'tool_admin_presets'), 3, 'admin_presets_error');
-        }
+        $application = new stdClass();
 
-        // Show skipped changes.
-        if (!empty($unnecessarychanges)) {
+        $applieddata = new stdClass();
+        $applieddata->show = !empty($applied);
+        $applieddata->caption = get_string('settingsnotapplicable', 'tool_admin_presets');
+        $applieddata->settings = $applied;
+        $application->appliedchanges = $applieddata;
 
-            $skippedtable = new html_table();
-            $skippedtable->attributes['class'] = 'generaltable boxaligncenter admin_presets_skipped';
-            $skippedtable->head = array(get_string('plugin'),
-                get_string('settingname', 'tool_admin_presets'),
-                get_string('actualvalue', 'tool_admin_presets')
-            );
+        $skippeddata = new stdClass();
+        $skippeddata->show = !empty($skipped);
+        $skippeddata->caption = get_string('settingsnotapplicable', 'tool_admin_presets');
+        $skippeddata->settings = $skipped;
+        $application->skippedchanges = $skippeddata;
 
-            $skippedtable->align = array('center', 'center');
-
-            $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('settingsnotapplied',
-                    'tool_admin_presets'), 3);
-
-            foreach ($unnecessarychanges as $setting) {
-                $skippedtable->data[] = array($setting->get_settingdata()->plugin,
-                    $setting->get_settingdata()->visiblename,
-                    $setting->get_visiblevalue()
-                );
-            }
-
-            $this->outputs .= html_writer::table($skippedtable);
-        }
+        $this->outputs = $OUTPUT->render_from_template('tool_admin_presets/settings_application', $application);
 
         // Don't display the load form.
         $this->moodleform = false;
-    }
-
-    /**
-     * Lists the preset available settings
-     */
-    public function preview(): void {
-        $this->show(1);
     }
 
     /**
@@ -210,12 +191,9 @@ class load extends base {
      *
      * It checks the Moodle version, it only allows users
      * to import the preset available settings
-     *
-     * @param boolean $preview If it's a preview it only lists the preset applicable settings
      */
-    public function show($preview = false): void {
-
-        global $CFG, $DB, $OUTPUT;
+    public function show(): void {
+        global $DB, $OUTPUT;
 
         $data = new stdClass();
         $data->id = $this->id;
@@ -233,7 +211,7 @@ class load extends base {
         // object('name' => 'settingname', 'value' => 'settingvalue').
         $presetdbsettings = $this->_get_settings_from_db($items);
 
-        // Load site avaible settings to ensure that the settings exists on this release.
+        // Load site available settings to ensure that the settings exists on this release.
         $siteavailablesettings = $this->_get_site_settings();
 
         $notapplicable = array();
@@ -243,7 +221,6 @@ class load extends base {
 
                     // If the setting doesn't exists in that release skip it.
                     if (empty($siteavailablesettings[$plugin][$settingname])) {
-
                         // Adding setting plugin.
                         $presetdbsettings[$plugin][$settingname]->plugin = $plugin;
 
@@ -258,32 +235,36 @@ class load extends base {
         $this->_get_settings_branches($presetsettings);
 
         // Print preset basic data.
-        $this->outputs .= $this->_html_writer_preset_info_table($preset);
+        $list = new presets_list([$preset]);
+        $this->outputs = $OUTPUT->render($list);
 
         // Display not applicable settings.
+        $skipped = [];
         if (!empty($notapplicable)) {
-
-            $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('settingsnotapplicable',
-                    'tool_admin_presets'), 3, 'admin_presets_error');
-
-            $table = new html_table();
-            $table->attributes['class'] = 'generaltable boxaligncenter';
-            $table->head = array(get_string('plugin'),
-                get_string('settingname', 'tool_admin_presets'),
-                get_string('value', 'tool_admin_presets'));
-
-            $table->align = array('center', 'center');
-
             foreach ($notapplicable as $setting) {
-                $table->data[] = array($setting->plugin, $setting->name, $setting->value);
+                $skipped[] = [
+                    'plugin' => $setting->plugin,
+                    'visiblename' => $setting->name,
+                    'visiblevalue' => $setting->value
+                ];
             }
 
-            $this->outputs .= html_writer::table($table);
+            $application = new stdClass();
+            $application->skippedchanges = [];
+
+            $contextdata = new stdClass();
+            $contextdata->show = !empty($skipped);
+            $contextdata->caption = get_string('settingsnotapplicable', 'tool_admin_presets');
+            $contextdata->settings = $skipped;
+            $application->skippedchanges[] = $contextdata;
+
+
+            $this->outputs .= $OUTPUT->render_from_template('tool_admin_presets/not_applicable_settings', $application);
+
 
         }
-
-        $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=load&mode=execute';
-        $this->moodleform = new load_form($url, $preview);
+        $url = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'load', 'mode' => 'execute']);
+        $this->moodleform = new load_form($url);
         $this->moodleform->set_data($data);
 
     }
