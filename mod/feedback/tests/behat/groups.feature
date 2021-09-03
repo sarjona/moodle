@@ -58,6 +58,7 @@ Feature: Feedbacks in courses with groups
       | Multiple choice type           | Multiple choice - single answer    |
       | Hide the "Not selected" option | Yes                                |
       | Multiple choice values         | Yes of course\nNot at all\nI don't know |
+    And I change the window size to "large"
     And I log out
 
   @javascript
