@@ -33,10 +33,7 @@ require_once($CFG->dirroot . '/lib/formslib.php');
  */
 class load_form extends moodleform {
 
-    private $preview;
-
-    public function __construct($url, $preview = false) {
-        $this->preview = $preview;
+    public function __construct($url) {
         parent::__construct($url);
     }
 
@@ -50,10 +47,7 @@ class load_form extends moodleform {
         $mform->addElement('header', 'general',
             get_string('adminsettings', 'tool_admin_presets'));
 
-        $class = '';
-        if (!$this->preview) {
-            $class = 'ygtv-checkbox';
-        }
+        $class = 'ygtv-checkbox';
         $mform->addElement('html', '<div id="settings_tree_div" class="' . $class .
             '"><img src="' . $OUTPUT->pix_icon('i/loading_small',
                 get_string('loading', 'tool_admin_presets')) . '"/></div>');
@@ -61,10 +55,11 @@ class load_form extends moodleform {
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
-        // Submit.
-        if (!$this->preview) {
-            $mform->addElement('submit', 'admin_presets_submit',
-                get_string('loadselected', 'tool_admin_presets'));
-        }
+        $buttonarray=array();
+        $buttonarray[] = $mform->createElement('submit', 'admin_presets_submit',
+            get_string('loadselected', 'tool_admin_presets'));
+        $buttonarray[] = $mform->createElement('cancel');
+        $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
+        $mform->closeHeaderBefore('buttonar');
     }
 }

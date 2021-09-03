@@ -45,8 +45,8 @@ class delete extends base {
         if ($previouslyapplied = $DB->get_records('tool_admin_presets_app',
             array('adminpresetid' => $this->id))) {
 
-            $deletetext .= '<br/><br/><strong>' .
-                get_string("deletepreviouslyapplied", "tool_admin_presets") . '</strong>';
+            $deletetext .= '<p><strong>' .
+                get_string("deletepreviouslyapplied", "tool_admin_presets") . '</strong></p>';
         }
 
         $this->outputs = $OUTPUT->confirm($deletetext, $confirmurl, $cancelurl);
