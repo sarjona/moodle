@@ -18,11 +18,11 @@ namespace tool_admin_presets\local\action;
 
 defined('MOODLE_INTERNAL') || die();
 
-use html_writer;
-use html_table;
 use context_system;
 use moodle_url;
 use stdClass;
+use tool_admin_presets\output\presets_list;
+use tool_admin_presets\output\export_import;
 
 global $CFG;
 require_once($CFG->libdir . '/adminlib.php');
@@ -36,7 +36,7 @@ require_once($CFG->libdir . '/adminlib.php');
  */
 class base {
 
-    protected static $eventsactionsmap = array(
+    protected static $eventsactionsmap = [
         'base' => 'presets_listed',
         'delete' => 'preset_deleted',
         'export' => 'preset_exported',
@@ -45,7 +45,7 @@ class base {
         'load' => 'preset_loaded',
         'rollback' => 'preset_reverted',
         'download_xml' => 'preset_downloaded'
-    );
+    ];
     protected $action;
     protected $mode;
     protected $adminroot;
@@ -80,113 +80,14 @@ class base {
      * actions (preview, load, download, delete and rollback)
      */
     public function show(): void {
+        global $DB, $OUTPUT;
 
-        global $CFG, $DB, $OUTPUT;
+        $options = new export_import();
+        $this->outputs = $OUTPUT->render($options);
 
         $presets = $DB->get_records('tool_admin_presets');
-        $this->outputs = '';
-
-        if ($presets) {
-
-            // Initialize table.
-            $table = $this->_create_preset_data_table();
-
-            foreach ($presets as $preset) {
-
-                // Preset actions.
-                $previewlink = $CFG->wwwroot .
-                    '/admin/tool/admin_presets/index.php?action=load&mode=preview&id=' . $preset->id;
-                $loadlink = $CFG->wwwroot .
-                    '/admin/tool/admin_presets/index.php?action=load&id=' . $preset->id;
-                $downloadlink = $CFG->wwwroot .
-                    '/admin/tool/admin_presets/index.php?action=export&mode=download_xml&sesskey=' .
-                    sesskey() . '&id=' . $preset->id;
-                $deletelink = $CFG->wwwroot .
-                    '/admin/tool/admin_presets/index.php?action=delete&id=' . $preset->id;
-                $rollbacklink = $CFG->wwwroot .
-                    '/admin/tool/admin_presets/index.php?action=rollback&id=' . $preset->id;
-
-                $actions = array();
-                $actions[] = html_writer::link($previewlink, strtolower(get_string("preview")));
-                $actions[] = html_writer::link($loadlink, get_string("load",
-                    "tool_admin_presets"));
-                $actions[] = html_writer::link($downloadlink, strtolower(get_string("download")));
-                $actions[] = html_writer::link($deletelink, strtolower(get_string("delete")));
-
-                // Look for preset applications.
-                if ($DB->get_records('tool_admin_presets_app', array('adminpresetid' => $preset->id))) {
-                    $actions[] = html_writer::link($rollbacklink,
-                        get_string("rollback", "tool_admin_presets"));
-                }
-
-                if ($preset->timeimported) {
-                    $timeimportedstring = userdate($preset->timeimported);
-                } else {
-                    $timeimportedstring = '';
-                }
-
-                // Populate table.
-                $table->data[] = array(format_text($preset->name, FORMAT_PLAIN),
-                    format_text($preset->comments, FORMAT_HTML),
-                    format_text($preset->moodlerelease, FORMAT_PLAIN),
-                    format_text($preset->author, FORMAT_PLAIN),
-                    format_text(clean_text($preset->site, PARAM_URL), FORMAT_PLAIN),
-                    userdate($preset->timecreated),
-                    $timeimportedstring,
-                    '<div>' . implode('</div><div>', $actions) . '</div>');
-            }
-
-            $this->outputs .= html_writer::table($table);
-
-            // If there aren't presets notify it.
-        } else {
-
-            $exportlink = '<a href="' . $CFG->wwwroot .
-                '/admin/tool/admin_presets/index.php?action=export">' .
-                strtolower(get_string("actionexport", "tool_admin_presets")) . '</a>';
-            $importlink = '<a href="' .
-                $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import">' .
-                strtolower(get_string("actionimport", "tool_admin_presets")) . '</a>';
-
-            $this->outputs = $OUTPUT->box_start('generalbox', 'id_nopresets');
-            $this->outputs .= '<ul>' . get_string('nopresets', 'tool_admin_presets');
-            $this->outputs .= '<li>' . get_string('toexportclick',
-                    'tool_admin_presets', $exportlink) . '</li>';
-            $this->outputs .= '<li>' . get_string('toimportclick',
-                    'tool_admin_presets', $importlink) . '</li>';
-            $this->outputs .= '</ul>';
-            $this->outputs .= $OUTPUT->box_end();
-        }
-
-    }
-
-    /**
-     * Table to display preset/s data
-     *
-     * @param boolean $actionstable If is set to true adds a column to display actions
-     * @return html_table
-     */
-    protected function _create_preset_data_table($actionstable = true): html_table {
-
-        $table = new html_table();
-        $table->attributes['class'] = 'generaltable boxaligncenter';
-        $table->align = array('left', 'left', 'center', 'left', 'left', 'center', 'center');
-        $table->head = array(get_string('name'), get_string('description'),
-            get_string('presetmoodlerelease', 'tool_admin_presets'),
-            get_string('author', 'tool_admin_presets'),
-            get_string('site', 'tool_admin_presets'),
-            get_string('created', 'tool_admin_presets'),
-            get_string('imported', 'tool_admin_presets'));
-
-        if ($actionstable) {
-            $table->align[] = 'left';
-            $table->head[] = get_string('actions');
-            $table->size = array('14%', '16%', '12%', '11%', '17%', '10%', '10%', '10%');
-        } else {
-            $table->size = array('17%', '20%', '13%', '12%', '18%', '10%', '10%');
-        }
-
-        return $table;
+        $list = new presets_list($presets, true);
+        $this->outputs .= $OUTPUT->render($list);
     }
 
     /**
@@ -239,8 +140,6 @@ class base {
 
         echo $OUTPUT->header();
 
-        include(dirname(dirname(__FILE__)) . '../../../tabs.php');
-
         echo $OUTPUT->heading($actionstr . ': ' . $modestr, 1);
     }
 
@@ -248,12 +147,12 @@ class base {
         // TODO please, me of the future, fix this ununderstandable code.
 
         // The only read action we store is list presets.
-        if ($this->mode != 'show' ||
-            ($this->mode == 'show' && $this->action == 'base')) {
-
             $action = $this->action;
             if ($this->mode != 'execute' && $this->mode != 'show') {
                 $action = $this->mode;
+            }
+            if ($this->mode == 'show' && $this->action == 'load') {
+                $action = 'preview';
             }
 
             $eventnamespace = '\\tool_admin_presets\\event\\' . self::$eventsactionsmap[$action];
@@ -263,7 +162,6 @@ class base {
             );
             $event = $eventnamespace::create($eventdata);
             $event->trigger();
-        }
     }
 
     /**
@@ -595,55 +493,5 @@ class base {
         }
 
         return $settings;
-    }
-
-    protected function _output_applied_changes($appliedchanges): void {
-
-        $appliedtable = new html_table();
-        $appliedtable->attributes['class'] = 'generaltable boxaligncenter admin_presets_applied';
-        $appliedtable->head = array(get_string('plugin'),
-            get_string('settingname', 'tool_admin_presets'),
-            get_string('oldvalue', 'tool_admin_presets'),
-            get_string('newvalue', 'tool_admin_presets'));
-
-        $appliedtable->align = array('center', 'center');
-
-        foreach ($appliedchanges as $setting) {
-            $appliedtable->data[] = array($setting->plugin,
-                $setting->visiblename,
-                $setting->oldvisiblevalue,
-                $setting->visiblevalue);
-        }
-
-        $this->outputs .= html_writer::table($appliedtable);
-    }
-
-    /**
-     * Returns a table with the preset data
-     *
-     * @param object $preset
-     * @return string
-     */
-    protected function _html_writer_preset_info_table($preset): string {
-
-        if (!$preset) {
-            return '';
-        }
-
-        if ($preset->timeimported) {
-            $timeimportedstring = userdate($preset->timeimported);
-        } else {
-            $timeimportedstring = '';
-        }
-        $infotable = $this->_create_preset_data_table(false);
-        $infotable->data[] = array(format_text($preset->name, FORMAT_PLAIN),
-            format_text($preset->comments, FORMAT_HTML),
-            format_text($preset->moodlerelease, FORMAT_PLAIN),
-            format_text($preset->author, FORMAT_PLAIN),
-            format_text(clean_text($preset->site, PARAM_URL), FORMAT_PLAIN),
-            userdate($preset->timecreated),
-            $timeimportedstring);
-
-        return html_writer::table($infotable);
     }
 }
