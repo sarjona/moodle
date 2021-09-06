@@ -24,6 +24,7 @@
 
 import {BaseComponent} from 'core/reactive';
 import {getCurrentCourseEditor} from 'core_courseformat/courseeditor';
+import TreeNav from 'core_courseformat/local/courseindex/keyboardnav';
 
 export default class Component extends BaseComponent {
 
@@ -84,6 +85,9 @@ export default class Component extends BaseComponent {
         cms.forEach((cm) => {
             this.cms[cm.dataset.id] = cm;
         });
+
+        // Setup keyboard navigation.
+        this.treeNav = new TreeNav(this);
     }
 
     getWatchers() {
