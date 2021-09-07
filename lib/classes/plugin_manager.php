@@ -1946,6 +1946,7 @@ class core_plugin_manager {
                 'exportquestions',
                 'importquestions',
                 'managecategories',
+                'previewquestion',
                 'tagquestion',
                 'viewcreator',
                 'viewquestionname',
@@ -1962,7 +1963,7 @@ class core_plugin_manager {
 
             'qformat' => array(
                 'aiken', 'blackboard_six', 'examview', 'gift',
-                'missingword', 'multianswer',
+                'missingword', 'multianswer', 'webct',
                 'xhtml', 'xml'
             ),
 
