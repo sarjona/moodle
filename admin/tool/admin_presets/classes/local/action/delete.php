@@ -16,6 +16,8 @@
 
 namespace tool_admin_presets\local\action;
 
+use moodle_exception;
+
 /**
  * This class extends base class and handles delete function.
  *
@@ -30,77 +32,70 @@ class delete extends base {
      * Shows a confirm box
      */
     public function show(): void {
-
         global $DB, $CFG, $OUTPUT;
 
         // Getting the preset name.
-        $presetdata = $DB->get_record('tool_admin_presets', array('id' => $this->id), 'name');
+        $presetdata = $DB->get_record('tool_admin_presets', ['id' => $this->id], 'name');
 
-        $deletetext = get_string("deletepreset", "tool_admin_presets", $presetdata->name);
-        $confirmurl = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=' .
-            $this->action . '&mode=execute&id=' . $this->id . '&sesskey=' . sesskey();
-        $cancelurl = $CFG->wwwroot . '/admin/tool/admin_presets/index.php';
+        if ($presetdata) {
+            $deletetext = get_string('deletepreset', 'tool_admin_presets', $presetdata->name);
+            $confirmurl = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=' .
+                $this->action . '&mode=execute&id=' . $this->id . '&sesskey=' . sesskey();
+            $cancelurl = $CFG->wwwroot . '/admin/tool/admin_presets/index.php';
 
-        // If the preset was applied add a warning text.
-        if ($previouslyapplied = $DB->get_records('tool_admin_presets_app',
-            array('adminpresetid' => $this->id))) {
+            // If the preset was applied add a warning text.
+            if ($previouslyapplied = $DB->get_records('tool_admin_presets_app', ['adminpresetid' => $this->id])) {
+                $deletetext .= '<p><strong>' .
+                    get_string("deletepreviouslyapplied", "tool_admin_presets") . '</strong></p>';
+            }
 
-            $deletetext .= '<p><strong>' .
-                get_string("deletepreviouslyapplied", "tool_admin_presets") . '</strong></p>';
+            $this->outputs = $OUTPUT->confirm($deletetext, $confirmurl, $cancelurl);
+        } else {
+            throw new moodle_exception('errordeleting', 'tool_admin_presets');
         }
-
-        $this->outputs = $OUTPUT->confirm($deletetext, $confirmurl, $cancelurl);
     }
 
     /**
      * Delete the DB preset
      */
     public function execute(): void {
-
         global $DB, $CFG;
 
         confirm_sesskey();
 
-        if (!$DB->delete_records('tool_admin_presets', array('id' => $this->id))) {
-            print_error('errordeleting', 'tool_admin_presets');
-        }
-
-        // Getting items ids before deleting to delete item attributes.
-        $items = $DB->get_records('tool_admin_presets_it', array('adminpresetid' => $this->id), 'id');
-        foreach ($items as $item) {
-            $DB->delete_records('tool_admin_presets_it_a', array('itemid' => $item->id));
-        }
-
-        if (!$DB->delete_records('tool_admin_presets_it', array('adminpresetid' => $this->id))) {
-            print_error('errordeleting', 'tool_admin_presets');
+        // Check the preset exists.
+        $preset = $DB->get_record('tool_admin_presets', ['id' => $this->id]);
+        if (!$preset) {
+            throw new moodle_exception('errordeleting', 'tool_admin_presets');
         }
 
         // Deleting the preset applications.
-        if ($previouslyapplied = $DB->get_records('tool_admin_presets_app',
-            array('adminpresetid' => $this->id), 'id')) {
+        if ($previouslyapplied = $DB->get_records('tool_admin_presets_app', ['adminpresetid' => $this->id], 'id')) {
 
-            foreach ($previouslyapplied as $application) {
+            $appids = array_keys($previouslyapplied);
+            list($insql, $inparams) = $DB->get_in_or_equal($appids);
+            $DB->delete_records_select('tool_admin_presets_app_it', "adminpresetapplyid $insql", $inparams);
+            $DB->delete_records_select('tool_admin_presets_app_it_a', "adminpresetapplyid $insql", $inparams);
 
-                // Deleting items.
-                if (!$DB->delete_records('tool_admin_presets_app_it',
-                    array('adminpresetapplyid' => $application->id))) {
-
-                    print_error('errordeleting', 'tool_admin_presets');
-                }
-
-                // Deleting attributes.
-                if (!$DB->delete_records('tool_admin_presets_app_it_a',
-                    array('adminpresetapplyid' => $application->id))) {
-
-                    print_error('errordeleting', 'tool_admin_presets');
-                }
+            if (!$DB->delete_records('tool_admin_presets_app', ['adminpresetid' => $this->id])) {
+                throw new moodle_exception('errordeleting', 'tool_admin_presets');
             }
+        }
 
-            if (!$DB->delete_records('tool_admin_presets_app',
-                array('adminpresetid' => $this->id))) {
+        // Getting items ids and remove advanced items associated to them.
+        $items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $this->id], 'id');
+        if (!empty($items)) {
+            $itemsid = array_keys($items);
+            list($insql, $inparams) = $DB->get_in_or_equal($itemsid);
+            $DB->delete_records_select('tool_admin_presets_it_a', "itemid $insql", $inparams);
+        }
 
-                print_error('errordeleting', 'tool_admin_presets');
-            }
+        if (!$DB->delete_records('tool_admin_presets_it', ['adminpresetid' => $this->id])) {
+            throw new moodle_exception('errordeleting', 'tool_admin_presets');
+        }
+
+        if (!$DB->delete_records('tool_admin_presets', ['id' => $this->id])) {
+            throw new moodle_exception('errordeleting', 'tool_admin_presets');
         }
 
         // Trigger the as it is usually triggered after execute finishes.
