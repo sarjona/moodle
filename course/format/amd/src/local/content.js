@@ -52,12 +52,15 @@ export default class Component extends BaseComponent {
             // Formats can override the activity/section tags but a default one is needed to create new elements.
             ACTIVITYTAG: 'li',
             SECTIONTAG: 'li',
+            TOGGLER: `[data-action="togglecoursecontentsection"]`,
+            COLLAPSE: `[data-toggle="collapse"]`,
         };
         // Course content classes.
         this.classes = {
             STATEDREADY: `stateready`,
             ACTIVITY: `activity`,
             SECTION: `section`,
+            COLLAPSED: `collapsed`,
         };
         // Array to save dettached elements during element resorting.
         this.dettachedCms = {};
@@ -88,19 +91,10 @@ export default class Component extends BaseComponent {
 
     /**
      * Initial state ready method.
-     *
-     * Course content elements could not provide JS Components because the elements HTML is applied
-     * directly from the course actions. To keep internal components updated this module keeps
-     * a list of the active components and mark them as "indexed". This way when any action replace
-     * the HTML this component will recreate the components an add any necessary event listener.
-     *
-     * Format plugins can override this method to provide extra logic to the course frontend.
-     *
      */
     stateReady() {
 
         this._indexContents();
-
         if (this.reactive.supportComponents) {
             // Actions are only available in edit mode.
             if (this.reactive.isEditing) {
@@ -116,6 +110,41 @@ export default class Component extends BaseComponent {
             CourseEvents.manualCompletionToggled,
             this._completionHandler
         );
+
+        // Activate section togglers.
+        this.addEventListener(this.element, 'click', this._sectionTogglers);
+    }
+
+    /**
+     * Setup sections toggler.
+     *
+     * Toggler click is delegated to the main course content element because new sections can
+     * appear at any moment and this way we prevent accidental double bindings.
+     *
+     * @param {Event} event the triggered event
+     */
+    _sectionTogglers(event) {
+        const sectionlink = event.target.closest(this.selectors.TOGGLER);
+        const isChevron = event.target.closest(this.selectors.COLLAPSE);
+
+        if (sectionlink || isChevron) {
+
+            const section = event.target.closest(this.selectors.SECTION);
+            const toggler = section.querySelector(this.selectors.COLLAPSE);
+            const isCollapsed = toggler?.classList.contains(this.classes.COLLAPSED) ?? false;
+
+            if (isChevron || isCollapsed) {
+                // Update the state.
+                const sectionId = section.getAttribute('data-id');
+                this.reactive.dispatch(
+                    'sectionPreferences',
+                    [sectionId],
+                    {
+                        contentexpanded: isCollapsed,
+                    },
+                );
+            }
+        }
     }
 
     /**
@@ -137,6 +166,8 @@ export default class Component extends BaseComponent {
             {watch: `cm.visible:updated`, handler: this._reloadCm},
             // Update section number and title.
             {watch: `section.number:updated`, handler: this._refreshSectionNumber},
+            // Collapse and expand sections.
+            {watch: `section.contentexpanded:updated`, handler: this._refreshSectionCollapsed},
             // Sections and cm sorting.
             {watch: `transaction:start`, handler: this._startProcessing},
             {watch: `course.sectionlist:updated`, handler: this._refreshCourseSectionlist},
@@ -147,6 +178,25 @@ export default class Component extends BaseComponent {
             {watch: `cm.visible:updated`, handler: this._reloadCm},
             {watch: `cm.sectionid:updated`, handler: this._reloadCm},
         ];
+    }
+
+    /**
+     * Update section collapsed.
+     *
+     * @param {Object} details the update details.
+     */
+    _refreshSectionCollapsed({element}) {
+        const target = this.getElement(this.selectors.SECTION, element.id);
+        if (!target) {
+            throw new Error(`Unkown section with ID ${element.id}`);
+        }
+        // Check if it is already done.
+        const toggler = target.querySelector(this.selectors.COLLAPSE);
+        const isCollapsed = toggler?.classList.contains(this.classes.COLLAPSED) ?? false;
+
+        if (element.contentexpanded === isCollapsed) {
+            toggler.click();
+        }
     }
 
     /**

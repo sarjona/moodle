@@ -72,7 +72,6 @@ export default class {
         const section = {
             ...sectioninfo,
             cms: [],
-            isactive: true,
         };
         const cmlist = sectioninfo.cmlist ?? [];
         cmlist.forEach(cmid => {
