@@ -21,6 +21,7 @@ defined('MOODLE_INTERNAL') || die();
 use stdClass;
 use tool_admin_presets\form\export_form;
 use memory_xml_output;
+use moodle_exception;
 use xml_writer;
 
 global $CFG;
@@ -86,20 +87,19 @@ class export extends base {
             $preset->timecreated = time();
             $preset->timemodified = 0;
             if (!$preset->id = $DB->insert_record('tool_admin_presets', $preset)) {
-                print_error('errorinserting', 'tool_admin_presets');
+                throw new moodle_exception('errorinserting', 'tool_admin_presets');
             }
 
             // Store it here for logging and other future id-oriented stuff.
             $this->id = $preset->id;
 
             // We must ensure that there are settings selected.
+            $settingsfound = false;
             foreach ($_POST as $varname => $value) {
 
                 unset($setting);
 
                 if (strstr($varname, '@@') != false) {
-
-                    $settingsfound = true;
 
                     // Avoid sensible data.
                     if (!empty($data->excludesensiblesettings) && !empty($this->sensiblesettings[$varname])) {
@@ -111,10 +111,17 @@ class export extends base {
                     $setting->adminpresetid = $preset->id;
                     $setting->plugin = $name[1];
                     $setting->name = $name[0];
+                    $pluginexists = array_key_exists($setting->plugin, $sitesettings);
+                    $settingexists = $pluginexists && array_key_exists($setting->name, $sitesettings[$setting->plugin]);
+                    if (!$settingexists) {
+                        // Ignore it if the plugin or the setting doesn't exist.
+                        continue;
+                    }
+
                     $setting->value = $sitesettings[$setting->plugin][$setting->name]->get_value();
 
                     if (!$setting->id = $DB->insert_record('tool_admin_presets_it', $setting)) {
-                        print_error('errorinserting', 'tool_admin_presets');
+                        throw new moodle_exception('errorinserting', 'tool_admin_presets');
                     }
 
                     // Setting attributes must also be exported.
@@ -129,14 +136,17 @@ class export extends base {
                             $DB->insert_record('tool_admin_presets_it_a', $attr);
                         }
                     }
+                    $settingsfound = true;
                 }
             }
 
             // If there are no valid or selected settings we should delete the admin preset record.
-            if (empty($settingsfound)) {
-                $DB->delete_records('tool_admin_presets', array('id' => $preset->id));
-                redirect($CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export',
-                    get_string('novalidsettingsselected', 'tool_admin_presets'), 4);
+            if (!$settingsfound) {
+                $DB->delete_records('tool_admin_presets', ['id' => $preset->id]);
+                redirect(
+                    $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export',
+                    get_string('novalidsettingsselected', 'tool_admin_presets')
+                );
             }
         }
 
@@ -161,12 +171,12 @@ class export extends base {
 
         confirm_sesskey();
 
-        if (!$preset = $DB->get_record('tool_admin_presets', array('id' => $this->id))) {
-            print_error('errornopreset', 'tool_admin_presets');
+        if (!$preset = $DB->get_record('tool_admin_presets', ['id' => $this->id])) {
+            throw new moodle_exception('errornopreset', 'tool_admin_presets');
         }
 
-        if (!$items = $DB->get_records('tool_admin_presets_it', array('adminpresetid' => $this->id))) {
-            print_error('errornopreset', 'tool_admin_presets');
+        if (!$items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $this->id])) {
+            throw new moodle_exception('errornopreset', 'tool_admin_presets');
         }
 
         // Start.
@@ -205,10 +215,10 @@ class export extends base {
                     foreach ($settings as $setting) {
 
                         // Unset the tag attributes string.
-                        $attributes = array();
+                        $attributes = [];
 
                         // Getting setting attributes, if present.
-                        $attrs = $DB->get_records('tool_admin_presets_it_a', array('itemid' => $setting->itemid));
+                        $attrs = $DB->get_records('tool_admin_presets_it_a', ['itemid' => $setting->itemid]);
                         if ($attrs) {
                             foreach ($attrs as $attr) {
                                 $attributes[$attr->name] = $attr->value;
