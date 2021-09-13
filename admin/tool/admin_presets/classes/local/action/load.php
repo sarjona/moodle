@@ -16,10 +16,10 @@
 
 namespace tool_admin_presets\local\action;
 
+use moodle_exception;
 use stdClass;
 use tool_admin_presets\form\load_form;
 use tool_admin_presets\output\presets_list;
-use tool_admin_presets\output\settings_application;
 
 /**
  * This class extends base class and handles load function.
@@ -48,29 +48,29 @@ class load extends base {
         }
 
         if ($this->moodleform->is_submitted() && $this->moodleform->is_validated() && ($data = $this->moodleform->get_data())) {
-            // Standarized format $array['plugin']['settingname'] =  child class.
+            // Standarized format: $array['plugin']['settingname'] = child class.
             $siteavailablesettings = $this->_get_site_settings();
 
             // Get preset settings.
-            if (!$items = $DB->get_records('tool_admin_presets_it', array('adminpresetid' => $this->id))) {
-                print_error('errornopreset', 'tool_admin_presets');
+            if (!$items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $this->id])) {
+                throw new moodle_exception('errornopreset', 'tool_admin_presets');
             }
-            $presetdbsettings = $this->_get_settings_from_db($items);
 
-            // Standarized format $array['plugin']['settingname'] =  child class.
-            $presetsettings = $this->_get_settings($presetdbsettings, false, $presetsettings = array());
+            $presetdbsettings = $this->_get_settings_from_db($items);
+            // Standarized format $array['plugin']['settingname'] = child class.
+            $presetsettings = $this->_get_settings($presetdbsettings, false, []);
 
             // Only for selected items.
             $applied = [];
             $skipped = [];
 
-            foreach ($_POST as $varname => $value) {
+            foreach ($_POST as $varname => $ignored) {
 
                 unset($updatesetting);
 
                 if (strstr($varname, '@@') != false) {
 
-                    // [0] => setting [1] => plugin.
+                    // Format: [0] => setting [1] => plugin.
                     $name = explode('@@', $varname);
 
                     // Just to be sure.
@@ -113,7 +113,7 @@ class load extends base {
                     $data = [
                         'plugin' => $presetsetting->get_settingdata()->plugin,
                         'visiblename' => $presetsetting->get_settingdata()->visiblename,
-                        'visiblevalue' => $presetsetting->get_visiblevalue()
+                        'visiblevalue' => $presetsetting->get_visiblevalue(),
                     ];
 
                     // Saving data.
@@ -126,15 +126,13 @@ class load extends base {
                             $presetapplied->adminpresetid = $this->id;
                             $presetapplied->userid = $USER->id;
                             $presetapplied->time = time();
-                            if (!$adminpresetapplyid = $DB->insert_record('tool_admin_presets_app',
-                                $presetapplied)) {
-                                print_error('errorinserting', 'tool_admin_presets');
+                            if (!$adminpresetapplyid = $DB->insert_record('tool_admin_presets_app', $presetapplied)) {
+                                throw new moodle_exception('errorinserting', 'tool_admin_presets');
                             }
                         }
 
-                        // Implemented this way because the config_write.
-                        // method of admin_setting class does not.
-                        // return the config_log inserted id.
+                        // Implemented this way because the config_write method of admin_setting class does not return the
+                        // config_log inserted id.
                         $applieditem = new stdClass();
                         $applieditem->adminpresetapplyid = $adminpresetapplyid;
                         if ($applieditem->configlogid = $presetsetting->save_value()) {
@@ -159,38 +157,37 @@ class load extends base {
                         // Unnecessary changes (actual setting value).
                     } else {
                         $skipped[] = $data;
-                   }
+                    }
                 }
             }
+
+            $application = new stdClass();
+
+            $applieddata = new stdClass();
+            $applieddata->show = !empty($applied);
+            $applieddata->caption = get_string('settingsnotapplicable', 'tool_admin_presets');
+            $applieddata->settings = $applied;
+            $application->appliedchanges = $applieddata;
+
+            $skippeddata = new stdClass();
+            $skippeddata->show = !empty($skipped);
+            $skippeddata->caption = get_string('settingsnotapplicable', 'tool_admin_presets');
+            $skippeddata->settings = $skipped;
+            $application->skippedchanges = $skippeddata;
+
+            $this->outputs = $OUTPUT->render_from_template('tool_admin_presets/settings_application', $application);
+
+            // Don't display the load form.
+            $this->moodleform = false;
         }
-
-        $application = new stdClass();
-
-        $applieddata = new stdClass();
-        $applieddata->show = !empty($applied);
-        $applieddata->caption = get_string('settingsnotapplicable', 'tool_admin_presets');
-        $applieddata->settings = $applied;
-        $application->appliedchanges = $applieddata;
-
-        $skippeddata = new stdClass();
-        $skippeddata->show = !empty($skipped);
-        $skippeddata->caption = get_string('settingsnotapplicable', 'tool_admin_presets');
-        $skippeddata->settings = $skipped;
-        $application->skippedchanges = $skippeddata;
-
-        $this->outputs = $OUTPUT->render_from_template('tool_admin_presets/settings_application', $application);
-
-        // Don't display the load form.
-        $this->moodleform = false;
     }
 
     /**
-     * Displays the select preset settings to select what to import
+     * Displays the select preset settings to select what to import.
+     * Loads the preset data and displays a settings tree.
      *
-     * Loads the preset data and displays a settings tree
-     *
-     * It checks the Moodle version, it only allows users
-     * to import the preset available settings
+     * It checks the Moodle version and it only allows users to import
+     * the preset available settings.
      */
     public function show(): void {
         global $DB, $OUTPUT;
@@ -199,12 +196,12 @@ class load extends base {
         $data->id = $this->id;
 
         // Preset data.
-        if (!$preset = $DB->get_record('tool_admin_presets', array('id' => $data->id))) {
-            print_error('errornopreset', 'tool_admin_presets');
+        if (!$preset = $DB->get_record('tool_admin_presets', ['id' => $data->id])) {
+            throw new moodle_exception('errornopreset', 'tool_admin_presets');
         }
 
-        if (!$items = $DB->get_records('tool_admin_presets_it', array('adminpresetid' => $data->id))) {
-            print_error('errornopreset', 'tool_admin_presets');
+        if (!$items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $data->id])) {
+            throw new moodle_exception('errornopreset', 'tool_admin_presets');
         }
 
         // Standarized format $array['pluginname']['settingname'].
@@ -214,7 +211,7 @@ class load extends base {
         // Load site available settings to ensure that the settings exists on this release.
         $siteavailablesettings = $this->_get_site_settings();
 
-        $notapplicable = array();
+        $notapplicable = [];
         if ($presetdbsettings) {
             foreach ($presetdbsettings as $plugin => $elements) {
                 foreach ($elements as $settingname => $element) {
@@ -229,8 +226,8 @@ class load extends base {
                 }
             }
         }
-        // Standarized format $array['plugin']['settingname'] =  child class.
-        $presetsettings = $this->_get_settings($presetdbsettings, false, $presetsettings = array());
+        // Standarized format $array['plugin']['settingname'] = child class.
+        $presetsettings = $this->_get_settings($presetdbsettings, false, []);
 
         $this->_get_settings_branches($presetsettings);
 
@@ -258,14 +255,10 @@ class load extends base {
             $contextdata->settings = $skipped;
             $application->skippedchanges[] = $contextdata;
 
-
             $this->outputs .= $OUTPUT->render_from_template('tool_admin_presets/not_applicable_settings', $application);
-
-
         }
         $url = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'load', 'mode' => 'execute']);
         $this->moodleform = new load_form($url);
         $this->moodleform->set_data($data);
-
     }
 }
