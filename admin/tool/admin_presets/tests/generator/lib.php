@@ -187,4 +187,17 @@ class tool_admin_presets_generator extends \component_generator_base {
         return $id;
     }
 
+    /**
+     * Helper method to access to a protected property.
+     *
+     * @param string|object $object The class.
+     * @param string $property The private/protected property in $object to access.
+     * @return mixed The current value of the property.
+     */
+    public function access_protected($object, string $property) {
+        $reflection = new ReflectionClass($object);
+        $property = $reflection->getProperty($property);
+        $property->setAccessible(true);
+        return $property->getValue($object);
+    }
 }
