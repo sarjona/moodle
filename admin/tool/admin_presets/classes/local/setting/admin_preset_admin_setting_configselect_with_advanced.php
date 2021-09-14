@@ -51,7 +51,9 @@ class admin_preset_admin_setting_configselect_with_advanced extends admin_preset
      */
     protected function set_visiblevalue() {
         parent::set_visiblevalue();
-        $this->visiblevalue .= $this->delegation->extra_set_visiblevalue(
-            $this->attributesvalues[$this->attributes[$this->advancedkey]], 'advanced');
+        if (!is_null($this->attributesvalues)) {
+            $attribute = $this->attributes[$this->advancedkey];
+            $this->visiblevalue .= $this->delegation->extra_set_visiblevalue($this->attributesvalues[$attribute], 'advanced');
+        }
     }
 }
