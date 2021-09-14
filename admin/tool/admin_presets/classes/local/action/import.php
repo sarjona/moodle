@@ -18,6 +18,7 @@ namespace tool_admin_presets\local\action;
 
 use stdClass;
 use context_user;
+use moodle_exception;
 use tool_admin_presets\form\import_form;
 
 /**
@@ -45,26 +46,23 @@ class import extends base {
      * Imports the xmlfile into DB
      */
     public function execute(): void {
-
         global $CFG, $USER, $DB;
 
         confirm_sesskey();
-
-        $sitesettings = $this->_get_site_settings();
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import&mode=execute';
         $this->moodleform = new import_form($url);
 
         if ($data = $this->moodleform->get_data()) {
 
-            $usercontext = context_user::instance($USER->id);
+            $sitesettings = $this->_get_site_settings();
 
             // Getting the file.
             $xmlcontent = $this->moodleform->get_file_content('xmlfile');
             $xml = simplexml_load_string($xmlcontent);
             if (!$xml) {
-                redirect($CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import',
-                        get_string('wrongfile', 'tool_admin_presets'), 4);
+                $redirecturl = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import';
+                redirect($redirecturl, get_string('wrongfile', 'tool_admin_presets'));
             }
 
             // Preset info.
@@ -82,7 +80,7 @@ class import extends base {
 
             // Inserting preset.
             if (!$preset->id = $DB->insert_record('tool_admin_presets', $preset)) {
-                print_error('errorinserting', 'tool_admin_presets');
+                throw new moodle_exception('errorinserting', 'tool_admin_presets');
             }
 
             // Store it here for logging and other future id-oriented stuff.
@@ -136,7 +134,7 @@ class import extends base {
 
                         // Inserting items.
                         if (!$item->id = $DB->insert_record('tool_admin_presets_it', $item)) {
-                            print_error('errorinserting', 'tool_admin_presets');
+                            throw new moodle_exception('errorinserting', 'tool_admin_presets');
                         }
 
                         // Adding settings attributes.
@@ -166,9 +164,9 @@ class import extends base {
 
             // If there are no valid or selected settings we should delete the admin preset record.
             if (empty($settingsfound)) {
-                $DB->delete_records('tool_admin_presets', array('id' => $preset->id));
+                $DB->delete_records('tool_admin_presets', ['id' => $preset->id]);
                 redirect($CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import',
-                        get_string('novalidsettings', 'tool_admin_presets'), 4);
+                        get_string('novalidsettings', 'tool_admin_presets'));
             }
 
             // Trigger the as it is usually triggered after execute finishes.
