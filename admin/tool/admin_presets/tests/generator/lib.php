@@ -92,7 +92,7 @@ class tool_admin_presets_generator extends \component_generator_base {
             // The allowemojipicker setting shouldn't be applied because the value matches the current one.
             $this->apply_setting($appid, 'mediawidth', '640', '900', 'mod_lesson');
             $this->apply_setting($appid, 'maxanswers', '5', '2', 'mod_lesson');
-            $this->apply_setting($appid, 'maxanswers_adv', '1', '0', 'mod_lesson', true);
+            $this->apply_setting($appid, 'maxanswers_adv', '1', '0', 'mod_lesson', 'maxanswers');
         }
 
         return $presetid;
@@ -141,10 +141,10 @@ class tool_admin_presets_generator extends \component_generator_base {
      * @param string $oldvalue The setting old value.
      * @param string $newvalue The setting new value.
      * @param string|null $plugin The setting plugin (or null if none).
-     * @param bool $isadv Whether it should be treated as advanced item or not.
+     * @param string|null $itemname Whether it should be treated as advanced item or not.
      */
     private function apply_setting(int $appid, string $name, string $oldvalue, string $newvalue, ?string $plugin = null,
-            bool $isadv = false) {
+            ?string $itemname = null) {
         global $DB;
 
         set_config($name, $newvalue, $plugin);
@@ -154,8 +154,9 @@ class tool_admin_presets_generator extends \component_generator_base {
             'configlogid' => $configlogid,
         ];
         $table = 'tool_admin_presets_app_it';
-        if ($isadv) {
+        if (!is_null($itemname)) {
             $table = 'tool_admin_presets_app_it_a';
+            $presetappitem['itemname'] = $itemname;
         }
         $appitemid = $DB->insert_record($table, $presetappitem);
 
