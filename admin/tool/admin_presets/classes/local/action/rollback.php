@@ -16,6 +16,7 @@
 
 namespace tool_admin_presets\local\action;
 
+use moodle_exception;
 use stdClass;
 
 /**
@@ -36,17 +37,20 @@ class rollback extends base {
         global $DB, $OUTPUT;
 
         // Preset data.
-        $preset = $DB->get_record('tool_admin_presets', array('id' => $this->id));
+        $preset = $DB->get_record('tool_admin_presets', ['id' => $this->id]);
 
         // Applications data.
         $context = new stdClass();
-        $applications = $DB->get_records('tool_admin_presets_app', array('adminpresetid' => $this->id), 'time DESC');
+        $applications = $DB->get_records('tool_admin_presets_app', ['adminpresetid' => $this->id], 'time DESC');
         $context->noapplications = !empty($applications);
         $context->applications = [];
         foreach ($applications as $application) {
             $format = get_string('strftimedatetime', 'langconfig');
-            $user = $DB->get_record('user', array('id' => $application->userid));
-            $rollbacklink = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'rollback', 'mode' => 'execute', 'id' => $application->id, 'sesskey' => sesskey()]);
+            $user = $DB->get_record('user', ['id' => $application->userid]);
+            $rollbacklink = new \moodle_url(
+                '/admin/tool/admin_presets/index.php',
+                ['action' => 'rollback', 'mode' => 'execute', 'id' => $application->id, 'sesskey' => sesskey()]
+            );
 
             $context->applications[] = [
                 'timeapplied' => strftime($format, $application->time),
@@ -55,8 +59,7 @@ class rollback extends base {
             ];
         }
 
-        $this->outputs .= '<br/>' . $OUTPUT->heading(get_string("presetname",
-                                "tool_admin_presets") . ': ' . $preset->name, 3);
+        $this->outputs .= '<br/>' . $OUTPUT->heading(get_string('presetname', 'tool_admin_presets') . ': ' . $preset->name, 3);
         $this->outputs = $OUTPUT->render_from_template('tool_admin_presets/preset_applications_list', $context);
     }
 
@@ -78,15 +81,15 @@ class rollback extends base {
         $rollback = [];
         $failures = [];
 
-        if (!$DB->get_record('tool_admin_presets_app', array('id' => $this->id))) {
-            print_error('wrongid', 'tool_admin_presets');
+        if (!$DB->get_record('tool_admin_presets_app', ['id' => $this->id])) {
+            throw new moodle_exception('wrongid', 'tool_admin_presets');
         }
 
         // Items.
         $itemsql = "SELECT cl.id, cl.plugin, cl.name, cl.value, cl.oldvalue, ap.adminpresetapplyid
-                    FROM {tool_admin_presets_app_it} ap
-                    JOIN {config_log} cl ON cl.id = ap.configlogid
-                    WHERE ap.adminpresetapplyid = {$this->id}";
+                      FROM {tool_admin_presets_app_it} ap
+                      JOIN {config_log} cl ON cl.id = ap.configlogid
+                     WHERE ap.adminpresetapplyid = {$this->id}";
         $itemchanges = $DB->get_records_sql($itemsql);
         if ($itemchanges) {
 
@@ -118,8 +121,10 @@ class rollback extends base {
                         $rollback[] = $contextdata;
 
                         // Deleting the admin_preset_apply_item instance.
-                        $deletewhere = array('adminpresetapplyid' => $change->adminpresetapplyid,
-                                'configlogid' => $change->id);
+                        $deletewhere = [
+                            'adminpresetapplyid' => $change->adminpresetapplyid,
+                            'configlogid' => $change->id,
+                        ];
                         $DB->delete_records('tool_admin_presets_app_it', $deletewhere);
 
                     } else {
@@ -131,9 +136,9 @@ class rollback extends base {
 
         // Attributes.
         $attrsql = "SELECT cl.id, cl.plugin, cl.name, cl.value, cl.oldvalue, ap.itemname, ap.adminpresetapplyid
-                    FROM {tool_admin_presets_app_it_a} ap
-                    JOIN {config_log} cl ON cl.id = ap.configlogid
-                    WHERE ap.adminpresetapplyid = {$this->id}";
+                      FROM {tool_admin_presets_app_it_a} ap
+                      JOIN {config_log} cl ON cl.id = ap.configlogid
+                     WHERE ap.adminpresetapplyid = {$this->id}";
         $attrchanges = $DB->get_records_sql($attrsql);
         if ($attrchanges) {
 
@@ -170,8 +175,10 @@ class rollback extends base {
                         ];
 
                         // Deleting the admin_preset_apply_item_attr instance.
-                        $deletewhere = array('adminpresetapplyid' => $change->adminpresetapplyid,
-                                'configlogid' => $change->id);
+                        $deletewhere = [
+                            'adminpresetapplyid' => $change->adminpresetapplyid,
+                            'configlogid' => $change->id,
+                        ];
                         $DB->delete_records('tool_admin_presets_app_it_a', $deletewhere);
 
                     } else {
@@ -187,10 +194,10 @@ class rollback extends base {
         }
 
         // Delete application if no items nor attributes of the application remains.
-        if (!$DB->get_records('tool_admin_presets_app_it', array('adminpresetapplyid' => $this->id)) &&
-                !$DB->get_records('tool_admin_presets_app_it_a', array('adminpresetapplyid' => $this->id))) {
+        if (!$DB->get_records('tool_admin_presets_app_it', ['adminpresetapplyid' => $this->id]) &&
+                !$DB->get_records('tool_admin_presets_app_it_a', ['adminpresetapplyid' => $this->id])) {
 
-            $DB->delete_records('tool_admin_presets_app', array('id' => $this->id));
+            $DB->delete_records('tool_admin_presets_app', ['id' => $this->id]);
         }
 
         $appliedchanges = new stdClass();
