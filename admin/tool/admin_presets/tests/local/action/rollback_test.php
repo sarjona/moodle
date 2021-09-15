@@ -43,6 +43,7 @@ class rollback_test extends \advanced_testcase {
         set_config('allowemojipicker', 1);
         set_config('mediawidth', '640', 'mod_lesson');
         set_config('maxanswers', '5', 'mod_lesson');
+        set_config('maxanswers_adv', '1', 'mod_lesson');
         set_config('enablecompletion', 1);
         set_config('usecomments', 0);
 
@@ -89,6 +90,7 @@ class rollback_test extends \advanced_testcase {
         $this->assertEquals(1, get_config('core', 'enablebadges'));
         $this->assertEquals(640, get_config('mod_lesson', 'mediawidth'));
         $this->assertEquals(5, get_config('mod_lesson', 'maxanswers'));
+        $this->assertEquals(1, get_config('mod_lesson', 'maxanswers_adv'));
 
         // These settings won't change, regardless if they are posted to the form.
         $this->assertEquals(1, get_config('core', 'allowemojipicker'));
