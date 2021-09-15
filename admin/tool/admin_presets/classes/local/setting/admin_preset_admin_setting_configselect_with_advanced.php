@@ -19,7 +19,7 @@ namespace tool_admin_presets\local\setting;
 use admin_setting;
 
 /**
- * Adds support for the "advanced" attribute
+ * Adds support for the "advanced" attribute.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -42,7 +42,7 @@ class admin_preset_admin_setting_configselect_with_advanced extends admin_preset
         }
 
         // To look for other values.
-        $this->attributes = array($this->advancedkey => $settingdata->name . '_adv');
+        $this->attributes = [$this->advancedkey => $settingdata->name . '_adv'];
         parent::__construct($settingdata, $dbsettingvalue);
     }
 

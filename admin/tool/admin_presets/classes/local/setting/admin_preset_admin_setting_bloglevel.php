@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * TODO:
+ * Select setting for blog's bloglevel setting.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -27,7 +27,7 @@ namespace tool_admin_presets\local\setting;
 class admin_preset_admin_setting_bloglevel extends admin_preset_admin_setting_configselect {
 
     /**
-     * Extended to change the tool visibility
+     * Extended to change the tool visibility.
      */
     public function save_value($name = false, $value = false) {
 
@@ -39,9 +39,9 @@ class admin_preset_admin_setting_bloglevel extends admin_preset_admin_setting_co
 
         // Pasted from admin_setting_bloglevel (can't use write_config).
         if ($value == 0) {
-            $DB->set_field('tool', 'visible', 0, array('name' => 'blog_menu'));
+            $DB->set_field('tool', 'visible', 0, ['name' => 'blog_menu']);
         } else {
-            $DB->set_field('tool', 'visible', 1, array('name' => 'blog_menu'));
+            $DB->set_field('tool', 'visible', 1, ['name' => 'blog_menu']);
         }
 
         return $id;

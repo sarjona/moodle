@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * Extends configselect to reuse set_valuevisible
+ * Extends configselect to reuse set_valuevisible.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>

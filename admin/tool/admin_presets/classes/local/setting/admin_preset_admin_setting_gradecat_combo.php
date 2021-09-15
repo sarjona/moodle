@@ -32,13 +32,12 @@ class admin_preset_admin_setting_gradecat_combo extends admin_preset_admin_setti
      * One db value for two setting attributes
      *
      * @param admin_setting $settingdata
-     * @param unknown_type $dbsettingvalue
+     * @param mixed $dbsettingvalue
      */
     public function __construct(admin_setting $settingdata, $dbsettingvalue) {
 
         // The set_attribute_value() method will mod the VARNAME_flag value.
-        $this->attributes = array('forced' => $settingdata->name . '_flag',
-            'adv' => $settingdata->name . '_flag');
+        $this->attributes = ['forced' => $settingdata->name . '_flag', 'adv' => $settingdata->name . '_flag'];
         parent::__construct($settingdata, $dbsettingvalue);
     }
 

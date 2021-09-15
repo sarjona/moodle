@@ -17,7 +17,8 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * It doesn't specify loadchoices behavior because is set_visiblevalue who needs it
+ * Special control for selecting days to backup.
+ * It doesn't specify loadchoices behavior because is set_visiblevalue who needs it.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -35,9 +36,9 @@ class admin_preset_admin_setting_special_backupdays extends admin_preset_setting
         // TODO Try to use $this->behaviors.
         $this->settingdata->load_choices();
 
-        $days = array('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday');
+        $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
-        $selecteddays = array();
+        $selecteddays = [];
 
         $week = str_split($this->value);
         foreach ($week as $key => $day) {

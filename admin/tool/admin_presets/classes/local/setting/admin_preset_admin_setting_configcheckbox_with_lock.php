@@ -19,7 +19,7 @@ namespace tool_admin_presets\local\setting;
 use admin_setting;
 
 /**
- * TODO:
+ * Checkbox with an advanced checkbox that controls an additional $name.'_locked' config setting.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -31,7 +31,7 @@ class admin_preset_admin_setting_configcheckbox_with_lock extends admin_preset_a
     public function __construct(admin_setting $settingdata, $dbsettingvalue) {
 
         // To look for other values.
-        $this->attributes = array('locked' => $settingdata->name . '_locked');
+        $this->attributes = ['locked' => $settingdata->name . '_locked'];
         parent::__construct($settingdata, $dbsettingvalue);
     }
 
@@ -40,7 +40,7 @@ class admin_preset_admin_setting_configcheckbox_with_lock extends admin_preset_a
      */
     protected function set_visiblevalue() {
         parent::set_visiblevalue();
-        $this->visiblevalue .= $this->delegation->extra_set_visiblevalue(
-            $this->attributesvalues[$this->attributes['locked']], 'locked');
+        $value = $this->attributesvalues[$this->attributes['locked']];
+        $this->visiblevalue .= $this->delegation->extra_set_visiblevalue($value, 'locked');
     }
 }

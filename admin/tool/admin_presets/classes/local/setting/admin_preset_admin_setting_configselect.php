@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * TODO:
+ * Select one value from list.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -27,9 +27,9 @@ namespace tool_admin_presets\local\setting;
 class admin_preset_admin_setting_configselect extends admin_preset_setting {
 
     /**
-     * $value must be one of the setting choices
+     * @param mixed $value must be one of the setting choices.
      *
-     * @return     boolean          true if the value one of the setting choices
+     * @return bool true if the value one of the setting choices
      */
     protected function set_value($value) {
 

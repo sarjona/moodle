@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * Basic text setting, cleans the param using the admin_setting paramtext attribute
+ * Basic text setting, cleans the param using the admin_setting paramtext attribute.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -29,8 +29,8 @@ class admin_preset_admin_setting_configtext extends admin_preset_setting {
     /**
      * Validates the value using paramtype attribute
      *
-     * @param string $value
-     * @return   boolean              Cleaned or not, but always true
+     * @param mixed $value
+     * @return  boolean Cleaned or not, but always true.
      */
     protected function set_value($value) {
 
