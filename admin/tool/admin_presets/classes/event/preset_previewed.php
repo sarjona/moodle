@@ -38,7 +38,7 @@ class preset_previewed extends base {
 
     public function get_url(): \moodle_url {
         return new \moodle_url('/admin/tool/admin_presets/index.php',
-            array('action' => 'load', 'mode' => 'preview', 'id' => $this->objectid));
+            ['action' => 'load', 'mode' => 'preview', 'id' => $this->objectid]);
     }
 
     protected function init(): void {

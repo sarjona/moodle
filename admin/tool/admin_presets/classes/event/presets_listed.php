@@ -41,8 +41,7 @@ class presets_listed extends base {
     }
 
     public function get_legacy_logdata(): array {
-        return array($this->courseid, 'tool_admin_presets', 'base', '',
-            $this->objectid, $this->contextinstanceid);
+        return [$this->courseid, 'tool_admin_presets', 'base', '', $this->objectid, $this->contextinstanceid];
     }
 
     protected function init(): void {
