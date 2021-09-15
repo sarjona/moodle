@@ -17,6 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 use admin_setting;
+use moodle_exception;
 use stdClass;
 
 /**
@@ -310,7 +311,7 @@ class admin_preset_setting {
 
         // Getting the inserted config_log id.
         if (!$id = $DB->insert_record('config_log', $log)) {
-            print_error('errorinserting', 'tool_admin_presets');
+            throw new moodle_exception('errorinserting', 'tool_admin_presets');
         }
 
         return $id;
