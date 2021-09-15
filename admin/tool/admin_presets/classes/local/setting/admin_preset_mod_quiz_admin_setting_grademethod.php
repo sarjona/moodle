@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * TODO:
+ * Admin settings class for the quiz grading method.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>

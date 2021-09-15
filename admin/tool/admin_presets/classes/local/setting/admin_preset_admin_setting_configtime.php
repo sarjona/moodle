@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * TODO:
+ * Time selector.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -47,7 +47,7 @@ class admin_preset_admin_setting_configtime extends admin_preset_setting {
 
     protected function set_value($value) {
 
-        $this->attributes = array('m' => $this->settingdata->name2);
+        $this->attributes = ['m' => $this->settingdata->name2];
 
         for ($i = 0; $i < 24; $i++) {
             $hours[$i] = $i;

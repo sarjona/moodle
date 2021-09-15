@@ -242,6 +242,16 @@ class base_test extends \advanced_testcase {
         $this->assertInstanceOf('\tool_admin_presets\local\setting\admin_preset_admin_setting_configcheckbox', $result);
         $this->assertNotEquals('tool_admin_presets\local\setting\admin_preset_setting', get_class($result));
 
+        // Check the mapped class is returned when no specific class exists and it exists in the mappings array.
+        $settingpage = $adminroot->locate('h5psettings');
+        $settingdata = $settingpage->settings->h5plibraryhandler;;
+        $result = $method->invokeArgs(new base(), [$settingdata, '']);
+        $this->assertInstanceOf('\tool_admin_presets\local\setting\admin_preset_admin_setting_configselect', $result);
+        $this->assertNotEquals(
+            'tool_admin_presets\local\setting\admin_preset_admin_settings_h5plib_handler_select',
+            get_class($result)
+        );
+
         // Check the admin_preset_setting class is returned when no specific class exists.
         $settingpage = $adminroot->locate('managecustomfields');
         $settingdata = $settingpage->settings->customfieldsui;;

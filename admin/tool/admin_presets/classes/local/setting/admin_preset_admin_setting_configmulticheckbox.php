@@ -18,7 +18,6 @@ namespace tool_admin_presets\local\setting;
 
 /**
  * Class to be extended by multicheckbox settings.
- * Now it's a useless class, child classes could extend admin_preset_admin_setting_configmultiselect.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>

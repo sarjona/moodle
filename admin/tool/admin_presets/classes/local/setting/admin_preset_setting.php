@@ -229,7 +229,7 @@ class admin_preset_setting {
         }
 
         // To store inserted ids.
-        $ids = array();
+        $ids = [];
         foreach ($this->attributesvalues as $name => $value) {
 
             // Getting actual setting.

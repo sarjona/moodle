@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * Extends the base class and lists the selected values separated by comma
+ * Extends the base class and lists the selected values separated by comma.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -53,7 +53,7 @@ class admin_preset_admin_setting_configmultiselect extends admin_preset_setting 
     protected function set_visiblevalue() {
 
         $values = explode(',', $this->value);
-        $visiblevalues = array();
+        $visiblevalues = [];
 
         foreach ($values as $value) {
 

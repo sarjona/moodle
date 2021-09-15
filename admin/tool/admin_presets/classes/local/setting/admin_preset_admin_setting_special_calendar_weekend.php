@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * TODO:
+ * Special admin control for calendar weekend.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
@@ -33,7 +33,7 @@ class admin_preset_admin_setting_special_calendar_weekend extends admin_preset_s
             return;
         }
 
-        $days = array('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday');
+        $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         for ($i = 0; $i < 7; $i++) {
             if ($this->value & (1 << $i)) {
                 $settings[] = get_string($days[$i], 'calendar');

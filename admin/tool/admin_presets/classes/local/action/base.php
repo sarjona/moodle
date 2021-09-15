@@ -46,6 +46,81 @@ class base {
         'rollback' => 'preset_reverted',
         'download_xml' => 'preset_downloaded'
     ];
+
+    /** var array Setting classes mapping, to associated the local/setting class that should be used when there is
+     * no specific class. */
+    protected static $settingclassesmap = [
+        'admin_preset_admin_setting_agedigitalconsentmap' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configcolourpicker' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configdirectory' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configduration_with_advanced' => 'admin_preset_admin_setting_configtext_with_advanced',
+        'admin_preset_admin_setting_configduration' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configempty' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configexecutable' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configfile' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_confightmleditor' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configmixedhostiplist' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configmultiselect_modules' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_setting_configpasswordunmask' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configportlist' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configselect_with_lock' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_setting_configtext_trim_lower' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configtext_with_maxlength' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configtextarea' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_configthemepreset' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_setting_countrycodes' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_courselist_frontpage' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_setting_description' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_enablemobileservice' => 'admin_preset_admin_setting_configcheckbox',
+        'admin_preset_admin_setting_filetypes' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_forcetimezone' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_setting_grade_profilereport' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_setting_langlist' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_my_grades_report' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_setting_pickroles' => 'admin_preset_admin_setting_configmulticheckbox',
+        'admin_preset_admin_setting_question_behaviour' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_setting_regradingcheckbox' => 'admin_preset_admin_setting_configcheckbox',
+        'admin_preset_admin_setting_scsscode' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_servertimezone' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_setting_sitesetcheckbox' => 'admin_preset_admin_setting_configcheckbox',
+        'admin_preset_admin_setting_sitesetselect' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_setting_special_adminseesall' => 'admin_preset_admin_setting_configcheckbox',
+        'admin_preset_admin_setting_special_backup_auto_destination' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_special_coursecontact' => 'admin_preset_admin_setting_configmulticheckbox',
+        'admin_preset_admin_setting_special_coursemanager' => 'admin_preset_admin_setting_configmulticheckbox',
+        'admin_preset_admin_setting_special_debug' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_setting_special_frontpagedesc' => 'admin_preset_admin_setting_sitesettext',
+        'admin_preset_admin_setting_special_gradebookroles' => 'admin_preset_admin_setting_configmulticheckbox',
+        'admin_preset_admin_setting_special_gradeexport' => 'admin_preset_admin_setting_configmulticheckbox',
+        'admin_preset_admin_setting_special_gradelimiting' => 'admin_preset_admin_setting_configcheckbox',
+        'admin_preset_admin_setting_special_grademinmaxtouse' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_setting_special_gradepointdefault' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_special_gradepointmax' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_admin_setting_special_registerauth' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_setting_special_selectsetup' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_settings_country_select' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_settings_coursecat_select' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_settings_h5plib_handler_select' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_admin_settings_num_course_sections' => 'admin_preset_admin_setting_configmultiselect_with_loader',
+        'admin_preset_admin_settings_sitepolicy_handler_select' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_antivirus_clamav_pathtounixsocket_setting' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_antivirus_clamav_runningmethod_setting' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_antivirus_clamav_tcpsockethost_setting' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_auth_db_admin_setting_special_auth_configtext' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_auth_ldap_admin_setting_special_lowercase_configtext' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_auth_ldap_admin_setting_special_ntlm_configtext' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_auth_shibboleth_admin_setting_convert_data' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_auth_shibboleth_admin_setting_special_idp_configtextarea' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_auth_shibboleth_admin_setting_special_wayf_select' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_editor_atto_toolbar_setting' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_editor_tinymce_json_setting_textarea' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_enrol_database_admin_setting_category' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_enrol_flatfile_role_setting' => 'admin_preset_admin_setting_configtext',
+        'admin_preset_enrol_ldap_admin_setting_category' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_format_singleactivity_admin_setting_activitytype' => 'admin_preset_admin_setting_configselect',
+        'admin_preset_qtype_multichoice_admin_setting_answernumbering' => 'admin_preset_admin_setting_configselect',
+    ];
+
     protected $action;
     protected $mode;
     protected $id;
@@ -358,11 +433,15 @@ class base {
         // Getting the appropiate class to get the correct setting value.
         $settingtype = get_class($settingdata);
 
-        $classname = '\\tool_admin_presets\\local\\setting\\admin_preset_' . $settingtype;
-
+        $settingname = 'admin_preset_' . $settingtype;
+        $classname = '\\tool_admin_presets\\local\\setting\\' . $settingname;
         if (!class_exists($classname)) {
-            // Return the default setting class if there is no specific class for this setting.
-            $classname = '\\tool_admin_presets\\local\\setting\\admin_preset_setting';
+            // Check if there is some mapped class that should be used for this setting.
+            $classname = self::_get_settings_class($settingname);
+            if (is_null($classname)) {
+                // Return the default setting class if there is no specific class for this setting.
+                $classname = '\\tool_admin_presets\\local\\setting\\admin_preset_setting';
+            }
         }
 
         return new $classname($settingdata, $currentvalue);
@@ -504,5 +583,19 @@ class base {
         }
 
         return $settings;
+    }
+
+    /**
+     * Returns the settings class mapped to the defined $classname or null if it doesn't exist any associated class.
+     *
+     * @param string $classname The classname to get the mapped class.
+     * @return string|null
+     */
+    protected static function _get_settings_class(string $classname): ?string {
+        if (array_key_exists($classname, self::$settingclassesmap)) {
+            return '\\tool_admin_presets\\local\\setting\\' . self::$settingclassesmap[$classname];
+        }
+
+        return null;
     }
 }
