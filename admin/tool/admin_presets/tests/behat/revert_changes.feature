@@ -1,14 +1,16 @@
 @tool @tool_admin_presets @tool_admin_presets_revert
 Feature: I can revert changes after a load
 
-  @javascript
-  Scenario: Load changes and revert them
+  Background: Create a preset to revert from
     Given I log in as "admin"
     And I navigate to "Admin presets" in site administration
     And I click on "Export settings" "link_or_button"
     And I set the following fields to these values:
-      | Name | My preset |
+      | Name | My preset revert |
     And I press "Save changes"
+
+  @javascript
+  Scenario: Changes some settings, load preset and revert
     And I navigate to "Advanced features" in site administration
     And I set the field "Enable portfolios" to "1"
     And I set the field "Enable badges" to "0"
