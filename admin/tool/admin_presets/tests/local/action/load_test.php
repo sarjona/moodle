@@ -84,6 +84,7 @@ class load_test extends \advanced_testcase {
         set_config('allowemojipicker', 1);
         set_config('mediawidth', '640', 'mod_lesson');
         set_config('maxanswers', '5', 'mod_lesson');
+        set_config('maxanswers_adv', '1', 'mod_lesson');
         set_config('enablecompletion', 1);
         set_config('usecomments', 0);
 
@@ -128,8 +129,10 @@ class load_test extends \advanced_testcase {
         }
         if (in_array('maxanswers@@mod_lesson', $params)) {
             $this->assertEquals(2, get_config('mod_lesson', 'maxanswers'));
+            $this->assertEquals(0, get_config('mod_lesson', 'maxanswers_adv'));
         } else {
             $this->assertEquals(5, get_config('mod_lesson', 'maxanswers'));
+            $this->assertEquals(1, get_config('mod_lesson', 'maxanswers_adv'));
         }
 
         // These settings won't change, regardless if they are posted to the form.
