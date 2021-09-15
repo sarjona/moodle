@@ -33,7 +33,7 @@ $mode = optional_param('mode', 'show', PARAM_ALPHAEXT);
 require_login();
 
 if (!$context = context_system::instance()) {
-    print_error('wrongcontext', 'error');
+    throw new moodle_exception('wrongcontext', 'error');
 }
 
 require_capability('moodle/site:config', $context);
@@ -43,7 +43,7 @@ $fileclassname = $action;
 $classname = 'tool_admin_presets\\local\\action\\'.$action;
 
 if (!class_exists($classname)) {
-    print_error('falseaction', 'tool_admin_presets', $action);
+    throw new moodle_exception('falseaction', 'tool_admin_presets', $action);
 }
 
 $url = new moodle_url('/admin/tool/admin_presets/index.php');
@@ -56,7 +56,7 @@ $PAGE->set_context($context);
 // Executes the required action.
 $instance = new $classname();
 if (!method_exists($instance, $mode)) {
-    print_error('falsemode', 'tool_admin_presets', $mode);
+    throw new moodle_exception('falsemode', 'tool_admin_presets', $mode);
 }
 
 // Executes the required method and displays output.
