@@ -430,18 +430,36 @@ class base {
      */
     protected function _get_setting($settingdata, $currentvalue) {
 
+        $classname = null;
+
         // Getting the appropiate class to get the correct setting value.
         $settingtype = get_class($settingdata);
 
-        $settingname = 'admin_preset_' . $settingtype;
-        $classname = '\\tool_admin_presets\\local\\setting\\' . $settingname;
-        if (!class_exists($classname)) {
-            // Check if there is some mapped class that should be used for this setting.
-            $classname = self::_get_settings_class($settingname);
-            if (is_null($classname)) {
-                // Return the default setting class if there is no specific class for this setting.
-                $classname = '\\tool_admin_presets\\local\\setting\\admin_preset_setting';
+        // Check if it is a setting from a plugin.
+        $plugindata = explode('_', $settingtype);
+        $types = \core_component::get_plugin_types();
+        if (array_key_exists($plugindata[0], $types)) {
+            $plugins = \core_component::get_plugin_list($plugindata[0]);
+            if (array_key_exists($plugindata[1], $plugins)) {
+                // Check if there is a specific class for this plugin admin setting.
+                $settingname = 'admin_preset_' . $settingtype;
+                $classname = "\\$plugindata[0]_$plugindata[1]\\local\\setting\\$settingname";
+                if (!class_exists($classname)) {
+                    $classname = null;
+                }
             }
+        } else {
+            $settingname = 'admin_preset_' . $settingtype;
+            $classname = '\\tool_admin_presets\\local\\setting\\' . $settingname;
+            if (!class_exists($classname)) {
+                // Check if there is some mapped class that should be used for this setting.
+                $classname = self::_get_settings_class($settingname);
+            }
+        }
+
+        if (is_null($classname)) {
+            // Return the default setting class if there is no specific class for this setting.
+            $classname = '\\tool_admin_presets\\local\\setting\\admin_preset_setting';
         }
 
         return new $classname($settingdata, $currentvalue);
