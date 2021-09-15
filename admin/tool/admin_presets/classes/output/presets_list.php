@@ -98,7 +98,7 @@ class presets_list implements renderable, templatable {
                 $actionsmenu->add(new \action_menu_link_secondary($deletelink, new \pix_icon('i/delete', ''), get_string('delete')));
 
                 // Look for preset applications.
-                if ($DB->get_records('tool_admin_presets_app', array('adminpresetid' => $preset->id))) {
+                if ($DB->get_records('tool_admin_presets_app', ['adminpresetid' => $preset->id])) {
                     $rollbacklink = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'rollback', 'id' => $preset->id]);
                     $actionsmenu->add(new \action_menu_link_secondary($rollbacklink, new \pix_icon('i/reload', ''), get_string('rollback', 'tool_admin_presets')));
                 }
