@@ -38,7 +38,7 @@ class preset_downloaded extends base {
 
     public function get_url(): \moodle_url {
         return new \moodle_url('/admin/tool/admin_presets/index.php',
-            array('action' => 'export', 'mode' => 'download_xml', 'id' => $this->objectid, 'sesskey' => sesskey()));
+            ['action' => 'export', 'mode' => 'download_xml', 'id' => $this->objectid, 'sesskey' => sesskey()]);
     }
 
     protected function init(): void {
