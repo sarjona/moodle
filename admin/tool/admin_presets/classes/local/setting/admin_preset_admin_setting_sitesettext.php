@@ -45,7 +45,7 @@ class admin_preset_admin_setting_sitesettext extends admin_preset_admin_setting_
             $name = $this->settingdata->name;
         }
 
-        $sitecourse = $DB->get_record('course', array('id' => 1));
+        $sitecourse = $DB->get_record('course', ['id' => 1]);
         $actualvalue = $sitecourse->{$name};
 
         // If it's the same value skip.

@@ -19,7 +19,7 @@ namespace tool_admin_presets\local\setting;
 use ReflectionMethod;
 
 /**
- * Compatible with moodle 2.1 onwards (20120314)
+ * Admin settings class for the quiz review options.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>

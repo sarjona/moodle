@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * Reimplementation to allow human friendly view of the selected regexps
+ * Reimplementation to allow human friendly view of the selected regexps.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>

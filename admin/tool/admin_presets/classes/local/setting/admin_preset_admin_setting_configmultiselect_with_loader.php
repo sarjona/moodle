@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * Generalizes a configmultipleselect with load_choices()
+ * Generalizes a configmultipleselect with load_choices().
  *
  * @abstract
  * @package          tool_admin_presets
@@ -25,7 +25,7 @@ namespace tool_admin_presets\local\setting;
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class admin_preset_admin_setting_configmultiselect_with_loader extends admin_preset_admin_setting_configmultiselect {
+class admin_preset_admin_setting_configmultiselect_with_loader extends admin_preset_admin_setting_configmultiselect {
 
     public function set_behaviors() {
         $this->behaviors['loadchoices'] = &$this->settingdata;

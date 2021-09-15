@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * Basic text setting, cleans the param using the admin_setting paramtext attribute
+ * Basic text setting, cleans the param using the admin_setting paramtext attribute.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>

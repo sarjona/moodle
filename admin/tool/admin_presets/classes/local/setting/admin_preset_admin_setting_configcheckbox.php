@@ -17,7 +17,7 @@
 namespace tool_admin_presets\local\setting;
 
 /**
- * TODO:
+ * Checkbox setting.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
