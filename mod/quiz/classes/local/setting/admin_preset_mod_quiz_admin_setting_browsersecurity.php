@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tool_admin_presets\local\setting;
+namespace mod_quiz\local\setting;
+
+use tool_admin_presets\local\setting\admin_preset_admin_setting_configselect_with_advanced;
 
 /**
- * Admin settings class for the quiz overdue attempt handling method.
+ * Admin settings class for the quiz browser security option.
  *
  * @package          tool_admin_presets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_mod_quiz_admin_setting_overduehandling extends admin_preset_admin_setting_configselect_with_advanced {
+class admin_preset_mod_quiz_admin_setting_browsersecurity extends admin_preset_admin_setting_configselect_with_advanced {
 
     public function set_behaviors() {
         $this->behaviors['loadchoices'] = &$this->settingdata;

@@ -252,6 +252,13 @@ class base_test extends \advanced_testcase {
             get_class($result)
         );
 
+        // Check the mapped class is returned when no specific class exists and it exists in the mappings array.
+        $settingpage = $adminroot->locate('modsettingquiz');
+        $settingdata = $settingpage->settings->quizbrowsersecurity;;
+        $result = $method->invokeArgs(new base(), [$settingdata, '']);
+        $this->assertInstanceOf('\mod_quiz\local\setting\admin_preset_mod_quiz_admin_setting_browsersecurity', $result);
+        $this->assertNotEquals('tool_admin_presets\local\setting\admin_preset_setting', get_class($result));
+
         // Check the admin_preset_setting class is returned when no specific class exists.
         $settingpage = $adminroot->locate('managecustomfields');
         $settingdata = $settingpage->settings->customfieldsui;;

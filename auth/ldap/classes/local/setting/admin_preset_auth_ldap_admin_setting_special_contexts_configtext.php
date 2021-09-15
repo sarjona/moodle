@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tool_admin_presets\local\setting;
+namespace auth_ldap\local\setting;
+
+use tool_admin_presets\local\setting\admin_preset_setting;
 
 /**
  * Basic text setting, cleans the param using the admin_setting paramtext attribute.
