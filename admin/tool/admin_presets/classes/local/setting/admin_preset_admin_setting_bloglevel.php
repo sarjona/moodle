@@ -27,9 +27,9 @@ namespace tool_admin_presets\local\setting;
 class admin_preset_admin_setting_bloglevel extends admin_preset_admin_setting_configselect {
 
     /**
-     * Extended to change the tool visibility.
+     * Extended to change the block visibility.
      */
-    public function save_value($name = false, $value = false) {
+    public function save_value($name = false, $value = null) {
 
         global $DB;
 
@@ -37,11 +37,19 @@ class admin_preset_admin_setting_bloglevel extends admin_preset_admin_setting_co
             return false;
         }
 
+        // Object values if no arguments.
+        if ($value === null) {
+            $value = $this->value;
+        }
+        if (!$name) {
+            $name = $this->settingdata->name;
+        }
+
         // Pasted from admin_setting_bloglevel (can't use write_config).
         if ($value == 0) {
-            $DB->set_field('tool', 'visible', 0, ['name' => 'blog_menu']);
+            $DB->set_field('block', 'visible', 0, ['name' => 'blog_menu']);
         } else {
-            $DB->set_field('tool', 'visible', 1, ['name' => 'blog_menu']);
+            $DB->set_field('block', 'visible', 1, ['name' => 'blog_menu']);
         }
 
         return $id;
