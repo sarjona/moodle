@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
+use tool_admin_presets\local\action\base;
+use tool_admin_presets\local\setting\admin_preset_setting;
+
+global $CFG;
+require_once($CFG->libdir . '/adminlib.php');
+
 /**
  * Data generator the admin_presets tool.
  *
@@ -200,5 +208,26 @@ class tool_admin_presets_generator extends \component_generator_base {
         $property = $reflection->getProperty($property);
         $property->setAccessible(true);
         return $property->getValue($object);
+    }
+
+
+    /**
+     * Given a tree category and setting name, it gets the admin_preset_setting class.
+     *
+     * @param string $category Tree category name where the setting is located.
+     * @param string $settingname Setting name to get the class.
+     * @return admin_preset_setting
+     */
+    public function get_admin_preset_setting(string $category, string $settingname): admin_preset_setting {
+        $adminroot = admin_get_root();
+
+        // Set method accessibility.
+        $method = new ReflectionMethod(base::class, '_get_setting');
+        $method->setAccessible(true);
+
+        // Get the proper admin_preset_setting instance.
+        $settingpage = $adminroot->locate($category);
+        $settingdata = $settingpage->settings->$settingname;
+        return $method->invokeArgs(new base(), [$settingdata, '']);
     }
 }

@@ -16,14 +16,6 @@
 
 namespace tool_admin_presets\local\setting;
 
-use ReflectionMethod;
-use tool_admin_presets\local\action\base;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->libdir . '/adminlib.php');
-
 /**
  * Tests for the admin_preset_setting class.
  *
@@ -67,7 +59,8 @@ class admin_preset_setting_test extends \advanced_testcase {
             $name = $settingname;
         }
         // Get the setting and save the value.
-        $setting = $this->get_admin_preset_setting($category, $name);
+        $generator = $this->getDataGenerator()->get_plugin_generator('tool_admin_presets');
+        $setting = $generator->get_admin_preset_setting($category, $name);
         $result = $setting->save_value(false, $settingvalue);
 
         // Check the result is the expected (saved when it has a different value and ignored when the value is the same).
@@ -148,7 +141,8 @@ class admin_preset_setting_test extends \advanced_testcase {
             $name = $settingname;
         }
         // Get the setting and save the value.
-        $setting = $this->get_admin_preset_setting($category, $name);
+        $generator = $this->getDataGenerator()->get_plugin_generator('tool_admin_presets');
+        $setting = $generator->get_admin_preset_setting($category, $name);
         if ($advsettingname) {
             $setting->set_attribute_value($advsettingname, $advsettingvalue);
         }
@@ -199,25 +193,5 @@ class admin_preset_setting_test extends \advanced_testcase {
                 'expectedsaved' => false,
             ],
         ];
-    }
-
-    /**
-     * Given a tree category and setting name, it gets the admin_preset_setting class.
-     *
-     * @param string $category Tree category name where the setting is located.
-     * @param string $settingname Setting name to get the class.
-     * @return admin_preset_setting
-     */
-    private function get_admin_preset_setting(string $category, string $settingname): admin_preset_setting {
-        $adminroot = admin_get_root();
-
-        // Set method accessibility.
-        $method = new ReflectionMethod(base::class, '_get_setting');
-        $method->setAccessible(true);
-
-        // Get the proper admin_preset_setting instance.
-        $settingpage = $adminroot->locate($category);
-        $settingdata = $settingpage->settings->$settingname;
-        return $method->invokeArgs(new base(), [$settingdata, '']);
     }
 }
