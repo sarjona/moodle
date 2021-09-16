@@ -33,7 +33,7 @@ class admin_preset_admin_setting_sitesettext extends admin_preset_admin_setting_
      * @param mixed $value
      * @return  integer
      */
-    public function save_value($name = false, $value = false) {
+    public function save_value($name = false, $value = null) {
 
         global $DB;
 
@@ -49,7 +49,7 @@ class admin_preset_admin_setting_sitesettext extends admin_preset_admin_setting_
         $actualvalue = $sitecourse->{$name};
 
         // If it's the same value skip.
-        if ($actualvalue == $this->value) {
+        if ($actualvalue == $value) {
             return false;
         }
 
@@ -60,7 +60,7 @@ class admin_preset_admin_setting_sitesettext extends admin_preset_admin_setting_
         }
 
         // Updating mdl_course.
-        $sitecourse->{$name} = $this->value;
+        $sitecourse->{$name} = $value;
         $DB->update_record('course', $sitecourse);
 
         return $this->to_log($plugin, $name, $this->value, $actualvalue);
