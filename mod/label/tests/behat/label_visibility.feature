@@ -20,8 +20,8 @@ Feature: Check label visibility works
       | student | C1 | student |
     Given I log in as "teacher"
     And I am on "Test" course homepage with editing mode on
-    When I add a "label" to section "1" and I fill the form with:
-      | Label text | Swanky label |
+    When I add a "Text area" to section "1" and I fill the form with:
+      | Text | Swanky label |
       | Availability | Hide from students |
     Then "Swanky label" activity should be hidden
     And I turn editing mode off
@@ -47,8 +47,8 @@ Feature: Check label visibility works
       | student | C1 | student |
     Given I log in as "teacher"
     And I am on "Test" course homepage with editing mode on
-    When I add a "label" to section "1" and I fill the form with:
-      | Label text | Swanky label |
+    When I add a "Text area" to section "1" and I fill the form with:
+      | Text | Swanky label |
       | Availability | Show on course page |
     Then "Swanky label" activity should be visible
     And I log out
@@ -72,8 +72,8 @@ Feature: Check label visibility works
       | student | C1 | student |
     Given I log in as "teacher"
     And I am on "Test" course homepage with editing mode on
-    When I add a "label" to section "1" and I fill the form with:
-      | Label text | Swanky label |
+    When I add a "Text area" to section "1" and I fill the form with:
+      | Text | Swanky label |
       | Availability | Show on course page |
     And I hide section "1"
     Then "Swanky label" activity should be dimmed

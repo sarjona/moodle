@@ -6,7 +6,7 @@ Feature: set label idnumber
   I should create label activity and set an ID number
 
   @javascript
-  Scenario: label ID number input box should be shown.
+  Scenario: The label ID number input box should be shown.
     Given the following "courses" exist:
       | fullname | shortname | category |
       | Test | C1 | 0 |
@@ -20,8 +20,8 @@ Feature: set label idnumber
       | student | C1 | student |
     Given I log in as "teacher"
     And I am on "Test" course homepage with editing mode on
-    When I add a "label" to section "1" and I fill the form with:
-      | Label text | Label with ID number set |
+    When I add a "Text area" to section "1" and I fill the form with:
+      | Text | Label with ID number set |
       | Availability | Show on course page |
       | ID number | C1LABEL1 |
     Then "Label with ID number set" activity should be visible
