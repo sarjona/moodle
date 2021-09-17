@@ -5,14 +5,15 @@ Feature: I can delete a preset
     Given I log in as "admin"
     And I am on site homepage
     And I navigate to "Admin presets" in site administration
-    And I click on "Export settings" "link"
+    And I click on "Export settings" "link_or_button"
     And I set the following fields to these values:
       | Name | My preset delete |
     And I press "Save changes"
 
   @javascript
   Scenario: Preset settings are delete
-    And I click on "delete" "link" in the "My preset delete" "table_row"
+    And I click on "Actions" "link_or_button" in the "My preset delete" "table_row"
+    And I click on "Delete" "link" in the "My preset delete" "table_row"
     And I should see "Delete preset: confirm"
     And I click on "Continue" "button"
     And I should see "Presets: list presets"
