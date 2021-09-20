@@ -2778,5 +2778,19 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2021091100.02);
     }
 
+    if ($oldversion < 2021091700.01) {
+        // Remove mod_assignment (unless it has manually been added back).
+        if (!file_exists($CFG->dirroot . '/mod/assignment/lib.php')) {
+            unset_all_config_for_plugin('assignment_offline');
+            unset_all_config_for_plugin('assignment_online');
+            unset_all_config_for_plugin('assignment_upload');
+            unset_all_config_for_plugin('assignment_uploadsingle');
+            unset_all_config_for_plugin('mod_assignment');
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2021091700.01);
+    }
+
     return true;
 }
