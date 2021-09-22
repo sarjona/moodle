@@ -478,7 +478,7 @@ class base {
         $nodes = ['categories' => [], 'pages' => [], 'settings' => []];
         $nodes = $this->_get_settings_elements($settings, false, false, $nodes);
 
-        $PAGE->requires->js_init_call('M.tool_admin_presets.init', null, true);
+        $PAGE->requires->js_call_amd('tool_admin_presets/tree', 'init');
 
         $levels = ['categories', 'pages', 'settings'];
         foreach ($levels as $level) {
@@ -490,9 +490,8 @@ class base {
                 $parents[] = $data[4];
             }
         }
-        $PAGE->requires->js_init_call('M.tool_admin_presets.addNodes',
-            [$ids, $nodes, $labels, $descriptions, $parents], true);
-        $PAGE->requires->js_init_call('M.tool_admin_presets.render', null, true);
+        $PAGE->requires->js_call_amd('tool_admin_presets/tree', 'addNodes', [$ids, $nodes, $labels, $descriptions, $parents]);
+        $PAGE->requires->js_call_amd('tool_admin_presets/tree', 'render');
     }
 
     /**
