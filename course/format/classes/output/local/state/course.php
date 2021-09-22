@@ -60,6 +60,7 @@ class course implements renderable {
             'sectionlist' => [],
             'editmode' => $format->show_editor(),
             'maxsections' => $format->get_max_sections(),
+            'highlighted' => $format->get_section_highlighted_name(),
         ];
 
         $sections = $modinfo->get_section_info_all();
