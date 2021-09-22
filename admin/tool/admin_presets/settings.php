@@ -34,10 +34,15 @@ if ($hassiteconfig) {
     $settings = new admin_settingpage('tool_admin_presets_settings', get_string('pluginname', 'tool_admin_presets'));
     $ADMIN->add('tools', $settings);
 
-    $sensiblesettingsdefault = 'recaptchapublickey@@none, recaptchaprivatekey@@none, googlemapkey@@none, ';
-    $sensiblesettingsdefault .= 'secretphrase@@none, cronremotepassword@@none, smtpuser@@none, ';
-    $sensiblesettingsdefault .= 'smtppass@none, proxypassword@@none, password@@quiz, ';
-    $sensiblesettingsdefault .= 'enrolpassword@@moodlecourse, allowedip@@none, blockedip@@none';
+    $sensiblesettingsdefault = 'recaptchapublickey@@none, recaptchaprivatekey@@none, googlemapkey3@@none, ';
+    $sensiblesettingsdefault .= 'secretphrase@@url, cronremotepassword@@none, smtpuser@@none, ';
+    $sensiblesettingsdefault .= 'smtppass@none, proxypassword@@none, quizpassword@@quiz, allowedip@@none, blockedip@@none, ';
+    $sensiblesettingsdefault .= 'dbpass@@logstore_database, messageinbound_hostpass@@none, ';
+    $sensiblesettingsdefault .= 'bind_pw@@auth_cas, pass@@auth_db, bind_pw@@auth_ldap, ';
+    $sensiblesettingsdefault .= 'dbpass@@enrol_database, bind_pw@@enrol_ldap, ';
+    $sensiblesettingsdefault .= 'server_password@@search_solr, ssl_keypassword@@search_solr, ';
+    $sensiblesettingsdefault .= 'alternateserver_password@@search_solr, alternatessl_keypassword@@search_solr, ';
+    $sensiblesettingsdefault .= 'test_password@@cachestore_redis, password@@mlbackend_python';
 
     $settings->add(new admin_setting_configtextarea('tool_admin_presets/sensiblesettings',
              get_string('sensiblesettings', 'tool_admin_presets'),
