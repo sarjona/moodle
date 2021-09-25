@@ -48,11 +48,10 @@ class export extends base {
      */
     public function show(): void {
 
-        global $CFG;
+        global $CFG, $PAGE;
 
         // Load site settings in the common format and do the js calls to populate the tree.
-        $settings = $this->_get_site_settings();
-        $this->_get_settings_branches($settings);
+        $PAGE->requires->js_call_amd('tool_admin_presets/tree', 'init', ['export', 0]);
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export&mode=execute';
         $this->moodleform = new export_form($url);
@@ -71,7 +70,7 @@ class export extends base {
         $this->moodleform = new export_form($url);
 
         // Reload site settings.
-        $sitesettings = $this->_get_site_settings();
+        $sitesettings = $this->manager->get_site_settings();
 
         if ($data = $this->moodleform->get_data()) {
 
@@ -191,7 +190,7 @@ class export extends base {
         }
 
         // We ride through the settings array.
-        $allsettings = $this->_get_settings_from_db($items);
+        $allsettings = $this->manager->get_settings_from_db($items);
         if ($allsettings) {
 
             $xmlwriter->begin_tag('ADMIN_SETTINGS');
