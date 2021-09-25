@@ -18,6 +18,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use tool_admin_presets\local\action\base;
 use tool_admin_presets\local\setting\admin_preset_setting;
+use tool_admin_presets\manager;
 
 global $CFG;
 require_once($CFG->libdir . '/adminlib.php');
@@ -222,12 +223,12 @@ class tool_admin_presets_generator extends \component_generator_base {
         $adminroot = admin_get_root();
 
         // Set method accessibility.
-        $method = new ReflectionMethod(base::class, '_get_setting');
+        $method = new ReflectionMethod(manager::class, 'get_setting');
         $method->setAccessible(true);
 
         // Get the proper admin_preset_setting instance.
         $settingpage = $adminroot->locate($category);
         $settingdata = $settingpage->settings->$settingname;
-        return $method->invokeArgs(new base(), [$settingdata, '']);
+        return $method->invokeArgs(new manager(), [$settingdata, '']);
     }
 }

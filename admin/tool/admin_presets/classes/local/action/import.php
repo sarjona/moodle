@@ -55,7 +55,7 @@ class import extends base {
 
         if ($data = $this->moodleform->get_data()) {
 
-            $sitesettings = $this->_get_site_settings();
+            $sitesettings = $this->manager->get_site_settings();
 
             // Getting the file.
             $xmlcontent = $this->moodleform->get_file_content('xmlfile');
@@ -116,12 +116,12 @@ class import extends base {
                             continue;
                         }
 
-                        // Cleaning the setting value.
-                        if (!$presetsetting = $this->_get_setting($sitesettings[$plugin][$name]->get_settingdata(),
-                                $value)) {
-                            debugging('Setting ' . $plugin . '/' . $name . ' not implemented', DEBUG_DEVELOPER);
-                            continue;
-                        }
+                    // Cleaning the setting value.
+                    if (!$presetsetting = $this->manager->get_setting($sitesettings[$plugin][$name]->get_settingdata(),
+                        $value)) {
+                        debugging('Setting ' . $plugin . '/' . $name . ' not implemented', DEBUG_DEVELOPER);
+                        continue;
+                    }
 
                         $settingsfound = true;
 

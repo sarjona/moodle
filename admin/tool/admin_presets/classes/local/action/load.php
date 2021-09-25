@@ -49,16 +49,16 @@ class load extends base {
 
         if ($this->moodleform->is_submitted() && $this->moodleform->is_validated() && ($data = $this->moodleform->get_data())) {
             // Standarized format: $array['plugin']['settingname'] = child class.
-            $siteavailablesettings = $this->_get_site_settings();
+            $siteavailablesettings = $this->manager->get_site_settings();
 
             // Get preset settings.
             if (!$items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $this->id])) {
                 throw new moodle_exception('errornopreset', 'tool_admin_presets');
             }
 
-            $presetdbsettings = $this->_get_settings_from_db($items);
+            $presetdbsettings = $this->manager->get_settings_from_db($items);
             // Standarized format $array['plugin']['settingname'] = child class.
-            $presetsettings = $this->_get_settings($presetdbsettings, false, []);
+            $presetsettings = $this->manager->get_settings($presetdbsettings, false, []);
 
             // Only for selected items.
             $applied = [];
@@ -190,7 +190,7 @@ class load extends base {
      * the preset available settings.
      */
     public function show(): void {
-        global $DB, $OUTPUT;
+        global $DB, $OUTPUT, $PAGE;
 
         $data = new stdClass();
         $data->id = $this->id;
@@ -204,32 +204,8 @@ class load extends base {
             throw new moodle_exception('errornopreset', 'tool_admin_presets');
         }
 
-        // Standarized format $array['pluginname']['settingname'].
-        // object('name' => 'settingname', 'value' => 'settingvalue').
-        $presetdbsettings = $this->_get_settings_from_db($items);
-
-        // Load site available settings to ensure that the settings exists on this release.
-        $siteavailablesettings = $this->_get_site_settings();
-
-        $notapplicable = [];
-        if ($presetdbsettings) {
-            foreach ($presetdbsettings as $plugin => $elements) {
-                foreach ($elements as $settingname => $element) {
-
-                    // If the setting doesn't exists in that release skip it.
-                    if (empty($siteavailablesettings[$plugin][$settingname])) {
-                        // Adding setting plugin.
-                        $presetdbsettings[$plugin][$settingname]->plugin = $plugin;
-
-                        $notapplicable[] = $presetdbsettings[$plugin][$settingname];
-                    }
-                }
-            }
-        }
-        // Standarized format $array['plugin']['settingname'] = child class.
-        $presetsettings = $this->_get_settings($presetdbsettings, false, []);
-
-        $this->_get_settings_branches($presetsettings);
+        // Load site settings in the common format and do the js calls to populate the tree.
+        $PAGE->requires->js_call_amd('tool_admin_presets/tree', 'init', ['load', $data->id]);
 
         // Print preset basic data.
         $list = new presets_list([$preset]);

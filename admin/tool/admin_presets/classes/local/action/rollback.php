@@ -75,7 +75,7 @@ class rollback extends base {
         confirm_sesskey();
 
         // Actual settings.
-        $sitesettings = $this->_get_site_settings();
+        $sitesettings = $this->manager->get_site_settings();
 
         // To store rollback results.
         $rollback = [];
@@ -103,7 +103,7 @@ class rollback extends base {
                 if (!empty($sitesettings[$change->plugin][$change->name])) {
 
                     $actualsetting = $sitesettings[$change->plugin][$change->name];
-                    $oldsetting = $this->_get_setting($actualsetting->get_settingdata(), $change->oldvalue);
+                    $oldsetting = $this->manager->get_setting($actualsetting->get_settingdata(), $change->oldvalue);
                     $oldsetting->set_text();
                     $contextdata = [
                         'plugin' => $oldsetting->get_settingdata()->plugin,
@@ -154,7 +154,7 @@ class rollback extends base {
                     // Getting the attribute item.
                     $actualsetting = $sitesettings[$change->plugin][$change->itemname];
 
-                    $oldsetting = $this->_get_setting($actualsetting->get_settingdata(), $actualsetting->get_value());
+                    $oldsetting = $this->manager->get_setting($actualsetting->get_settingdata(), $actualsetting->get_value());
                     $oldsetting->set_attribute_value($change->name, $change->oldvalue);
                     $oldsetting->set_text();
 
