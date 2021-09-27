@@ -127,17 +127,19 @@ class privacy_provider_test extends provider_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
+        $currentpresets = $DB->count_records('tool_admin_presets');
+
         // Create a preset.
         $generator = $this->getDataGenerator()->get_plugin_generator('tool_admin_presets');
         $generator->create_preset();
-        $this->assertEquals(1, $DB->count_records('tool_admin_presets'));
+        $this->assertEquals($currentpresets + 1, $DB->count_records('tool_admin_presets'));
 
         $usercontext = context_user::instance($USER->id);
 
         provider::delete_data_for_all_users_in_context($usercontext);
 
         // Confirm the presets haven't been removed.
-        $this->assertEquals(1, $DB->count_records('tool_admin_presets'));
+        $this->assertEquals($currentpresets + 1, $DB->count_records('tool_admin_presets'));
     }
 
     /**
@@ -150,17 +152,19 @@ class privacy_provider_test extends provider_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
+        $currentpresets = $DB->count_records('tool_admin_presets');
+
         // Create a preset.
         $generator = $this->getDataGenerator()->get_plugin_generator('tool_admin_presets');
         $generator->create_preset();
-        $this->assertEquals(1, $DB->count_records('tool_admin_presets'));
+        $this->assertEquals($currentpresets + 1, $DB->count_records('tool_admin_presets'));
 
         $usercontext = context_user::instance($USER->id);
         $contextlist = new \core_privacy\local\request\approved_contextlist($USER, 'tool_admin_presets', [$usercontext->id]);
         provider::delete_data_for_user($contextlist);
 
         // Confirm the presets haven't been removed.
-        $this->assertEquals(1, $DB->count_records('tool_admin_presets'));
+        $this->assertEquals($currentpresets + 1, $DB->count_records('tool_admin_presets'));
     }
 
 }

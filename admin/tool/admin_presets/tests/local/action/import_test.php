@@ -101,8 +101,8 @@ class import_test extends \advanced_testcase {
                 $this->assertEquals('http://demo.moodle', $preset->site);
                 $this->assertEquals('Ada Lovelace', $preset->author);
                 // Check the items have been created.
-                $items = $DB->get_records('tool_admin_presets_it');
-                $this->assertCount($currentitems + 4, $items);
+                $items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $presetid]);
+                $this->assertCount(4, $items);
                 $presetitems = [
                     'none' => [
                         'enablebadges' => 0,

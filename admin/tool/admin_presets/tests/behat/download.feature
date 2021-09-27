@@ -1,4 +1,4 @@
-@tool @tool_admin_presets @tool_admin_presets_download
+@tool @tool_admin_presets
 Feature: I can download a preset
 
   Background: Create a preset to download

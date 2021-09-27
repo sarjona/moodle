@@ -1,4 +1,4 @@
-@tool @tool_admin_presets @tool_admin_presets_import_file
+@tool @tool_admin_presets
 Feature: I can upload a preset file
 
   Background: Go to the Import settings page

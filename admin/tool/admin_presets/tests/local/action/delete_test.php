@@ -43,9 +43,10 @@ class delete_test extends \advanced_testcase {
         $presetid1 = $generator->create_preset(['name' => 'Preset 1', 'applypreset' => true]);
         $presetid2 = $generator->create_preset(['name' => 'Preset 2']);
 
-        $this->assertCount(2, $DB->get_records('tool_admin_presets'));
-        $this->assertCount(8, $DB->get_records('tool_admin_presets_it'));
-        $this->assertCount(2, $DB->get_records('tool_admin_presets_it_a'));
+        $currentpresets = $DB->count_records('tool_admin_presets');
+        $currentitems = $DB->count_records('tool_admin_presets_it');
+        $currentadvitems = $DB->count_records('tool_admin_presets_it_a');
+
         // Only preset1 has been applied.
         $this->assertCount(1, $DB->get_records('tool_admin_presets_app'));
         // Only the preset1 settings that have changed: enablebadges, mediawidth and maxanswers.
@@ -70,12 +71,12 @@ class delete_test extends \advanced_testcase {
         } finally {
             // Check the preset data has been removed.
             $presets = $DB->get_records('tool_admin_presets');
-            $this->assertCount(1, $presets);
+            $this->assertCount($currentpresets - 1, $presets);
             $preset = reset($presets);
-            $this->assertEquals($presetid2, $preset->id);
-            $this->assertCount(4, $DB->get_records('tool_admin_presets_it'));
+            $this->assertArrayHasKey($presetid2, $presets);
+            $this->assertCount($currentitems - 4, $DB->get_records('tool_admin_presets_it'));
             $this->assertCount(0, $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $presetid1]));
-            $this->assertCount(1, $DB->get_records('tool_admin_presets_it_a'));
+            $this->assertCount($currentadvitems - 1, $DB->get_records('tool_admin_presets_it_a'));
             $this->assertCount(0, $DB->get_records('tool_admin_presets_app'));
             $this->assertCount(0, $DB->get_records('tool_admin_presets_app_it'));
             $this->assertCount(0, $DB->get_records('tool_admin_presets_app_it_a'));
