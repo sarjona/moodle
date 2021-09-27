@@ -1,4 +1,4 @@
-@tool @tool_admin_presets @tool_admin_presets_import
+@tool @tool_admin_presets
 Feature: I can export and import site settings
 
   Background: Create a preset to load

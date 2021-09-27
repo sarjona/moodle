@@ -1,4 +1,4 @@
-@tool @tool_admin_presets @tool_admin_presets_revert
+@tool @tool_admin_presets
 Feature: I can revert changes after a load
 
   Background: Create a preset to revert from

@@ -1,4 +1,4 @@
-@tool @tool_admin_presets @tool_admin_presets_preview
+@tool @tool_admin_presets
 Feature: I can preview a preset
 
   Background: Create a preset to preview

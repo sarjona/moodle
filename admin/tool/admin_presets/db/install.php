@@ -99,9 +99,11 @@ function xmldb_tool_admin_presets_install() {
 
     helper::create_item($presetid, 'showdataretentionsummary', '1', 'tool_dataprivacy');
     helper::create_item($presetid, 'forum_maxattachments', '9');
+    // In that case, the indentation coding style can't follow the rules to guarantee the setting value is created properly.
     helper::create_item($presetid, 'customusermenuitems', 'grades,grades|/grade/report/mygrades.php|t/grades
-            messages,message|/message/index.php|t/message
-            preferences,moodle|/user/preferences.php|t/preferences');
+messages,message|/message/index.php|t/message
+preferences,moodle|/user/preferences.php|t/preferences'
+    );
 
     // TODO: Enable plugins.
 

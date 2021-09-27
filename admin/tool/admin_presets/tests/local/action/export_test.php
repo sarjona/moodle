@@ -90,8 +90,7 @@ class export_test extends \advanced_testcase {
                 $this->assertArrayHasKey($presetid, $presets);
             }
             // Check the items have been created.
-            $items = $DB->get_records('tool_admin_presets_it');
-            $this->assertCount($currentitems + $expecteditems, $items);
+            $this->assertCount($currentitems + $expecteditems, $DB->get_records('tool_admin_presets_it'));
             if ($expecteditems > 0) {
                 $paramnames = [];
                 foreach ($params as $name => $ignored) {
@@ -100,24 +99,26 @@ class export_test extends \advanced_testcase {
                     // Format: $paramnames[plugin][settingname] = settingvalue.
                     $paramnames[$name[1]][$name[0]] = get_config($plugin, $name[0]);
                 }
+                $items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $presetid]);
                 foreach ($items as $item) {
                     $this->assertArrayHasKey($item->name, $paramnames[$item->plugin]);
                     $this->assertEquals($paramnames[$item->plugin][$item->name], $item->value);
                 }
-            }
 
-            // Check the advanced attributes have been created.
-            $this->assertCount($currentadvitems + $expectedadvitems, $DB->get_records('tool_admin_presets_it_a'));
+                // Check the advanced attributes have been created.
+                $this->assertCount($currentadvitems + $expectedadvitems, $DB->get_records('tool_admin_presets_it_a'));
 
-            // Check the export event has been raised.
-            $events = $sink->get_events();
-            $sink->close();
-            $event = reset($events);
-            if ($expectedpreset > 0) {
-                // If preset has been created, an event should be raised.
-                $this->assertInstanceOf('\\tool_admin_presets\\event\\preset_exported', $event);
-            } else {
-                $this->assertFalse($event);
+                // Check the export event has been raised.
+                $events = $sink->get_events();
+                $sink->close();
+                $event = reset($events);
+                if ($expectedpreset > 0) {
+                    // If preset has been created, an event should be raised.
+                    $this->assertInstanceOf('\\tool_admin_presets\\event\\preset_exported', $event);
+                } else {
+                    $this->assertFalse($event);
+                }
+
             }
         }
     }

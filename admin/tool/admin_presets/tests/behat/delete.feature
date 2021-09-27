@@ -1,4 +1,4 @@
-@tool @tool_admin_presets @tool_admin_presets_delete
+@tool @tool_admin_presets
 Feature: I can delete a preset
 
   Background: Create a preset to delete
