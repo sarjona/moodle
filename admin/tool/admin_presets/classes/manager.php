@@ -113,7 +113,7 @@ class manager {
      *
      * Loads the DB $CFG->prefix.'config' values and the
      * $CFG->prefix.'config_plugins' values and redirects
-     * the flow through $this->_get_settings()
+     * the flow through $this->get_settings()
      *
      * @return array $settings Array format $array['plugin']['settingname'] = settings_types child class
      */
@@ -152,7 +152,7 @@ class manager {
      *
      * Settings without plugin are marked as 'none' in the plugin field
      *
-     * Returns an standarized settings array format, $this->_get_settings_branches
+     * Returns an standarized settings array format, $this->get_settings_branches
      * will get the html or js to display the settings tree
      *
      * @param array $dbsettings Standarized array,
@@ -365,8 +365,6 @@ class manager {
      * @param array $settings Array format $array['plugin']['settingname'] = settings_types child class
      */
     public function get_settings_branches(array $settings): array {
-
-        global $PAGE;
 
         // Nodes should be added in hierarchical order.
         $nodes = ['categories' => [], 'pages' => [], 'settings' => []];

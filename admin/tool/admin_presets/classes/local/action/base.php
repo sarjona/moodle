@@ -16,16 +16,11 @@
 
 namespace tool_admin_presets\local\action;
 
-defined('MOODLE_INTERNAL') || die();
-
 use context_system;
 use moodle_url;
 use tool_admin_presets\manager;
 use tool_admin_presets\output\presets_list;
 use tool_admin_presets\output\export_import;
-
-global $CFG;
-require_once($CFG->libdir . '/adminlib.php');
 
 /**
  * Admin tool presets main controller class.

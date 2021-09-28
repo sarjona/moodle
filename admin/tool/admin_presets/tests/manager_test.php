@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tool_admin_presets\local\action;
+namespace tool_admin_presets;
 
-use ReflectionMethod;
 use stdClass;
-use tool_admin_presets\manager;
 
 /**
  * Tests for the manager class.
@@ -34,8 +32,9 @@ class manager_test extends \advanced_testcase {
      * Test the behaviour of protected get_site_settings method.
      *
      * @covers ::get_site_settings
+     * @covers ::get_settings
      */
-    public function test_manager_test_get_site_settings(): void {
+    public function test_manager_get_site_settings(): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -43,11 +42,8 @@ class manager_test extends \advanced_testcase {
         // Login as admin, to access all the settings.
         $this->setAdminUser();
 
-        // Set method accessibility.
-        $method = new ReflectionMethod(manager::class, 'get_site_settings');
-        $method->setAccessible(true);
-
-        $result = $method->invokeArgs(new manager(), []);
+        $manager = new manager();
+        $result = $manager->get_site_settings();
 
         // Check fullname is set into the none category.
         $this->assertInstanceOf(
@@ -80,7 +76,7 @@ class manager_test extends \advanced_testcase {
         set_config('maxsizetodownload', 101, 'folder');
 
         // Check the new values are returned properly.
-        $result = $method->invokeArgs(new manager(), []);
+        $result = $manager->get_site_settings();
         // Site fullname.
         $this->assertInstanceOf(
                 '\tool_admin_presets\local\setting\admin_preset_admin_setting_sitesettext',
@@ -105,6 +101,7 @@ class manager_test extends \advanced_testcase {
      * Test the behaviour of protected get_setting method.
      *
      * @covers ::get_setting
+     * @covers ::get_settings_class
      */
     public function test_manager_get_setting(): void {
         $this->resetAfterTest();
@@ -112,23 +109,20 @@ class manager_test extends \advanced_testcase {
         // Login as admin, to access all the settings.
         $this->setAdminUser();
 
-        // Set method accessibility.
-        $method = new ReflectionMethod(manager::class, 'get_setting');
-        $method->setAccessible(true);
-
         $adminroot = admin_get_root();
 
         // Check the admin_preset_xxxxx class is created properly when it exists.
         $settingpage = $adminroot->locate('optionalsubsystems');
         $settingdata = $settingpage->settings->enablebadges;
-        $result = $method->invokeArgs(new manager(), [$settingdata, '']);
+        $manager = new manager();
+        $result = $manager->get_setting($settingdata, '');
         $this->assertInstanceOf('\tool_admin_presets\local\setting\admin_preset_admin_setting_configcheckbox', $result);
         $this->assertNotEquals('tool_admin_presets\local\setting\admin_preset_setting', get_class($result));
 
         // Check the mapped class is returned when no specific class exists and it exists in the mappings array.
         $settingpage = $adminroot->locate('h5psettings');
         $settingdata = $settingpage->settings->h5plibraryhandler;;
-        $result = $method->invokeArgs(new manager(), [$settingdata, '']);
+        $result = $manager->get_setting($settingdata, '');
         $this->assertInstanceOf('\tool_admin_presets\local\setting\admin_preset_admin_setting_configselect', $result);
         $this->assertNotEquals(
                 'tool_admin_presets\local\setting\admin_preset_admin_settings_h5plib_handler_select',
@@ -138,14 +132,14 @@ class manager_test extends \advanced_testcase {
         // Check the mapped class is returned when no specific class exists and it exists in the mappings array.
         $settingpage = $adminroot->locate('modsettingquiz');
         $settingdata = $settingpage->settings->quizbrowsersecurity;;
-        $result = $method->invokeArgs(new manager(), [$settingdata, '']);
+        $result = $manager->get_setting($settingdata, '');
         $this->assertInstanceOf('\mod_quiz\local\setting\admin_preset_mod_quiz_admin_setting_browsersecurity', $result);
         $this->assertNotEquals('tool_admin_presets\local\setting\admin_preset_setting', get_class($result));
 
         // Check the admin_preset_setting class is returned when no specific class exists.
         $settingpage = $adminroot->locate('managecustomfields');
         $settingdata = $settingpage->settings->customfieldsui;;
-        $result = $method->invokeArgs(new manager(), [$settingdata, '']);
+        $result = $manager->get_setting($settingdata, '');
         $this->assertInstanceOf('\tool_admin_presets\local\setting\admin_preset_setting', $result);
         $this->assertEquals('tool_admin_presets\local\setting\admin_preset_setting', get_class($result));
     }
