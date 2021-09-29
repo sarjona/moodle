@@ -76,6 +76,7 @@ class delete extends base {
             list($insql, $inparams) = $DB->get_in_or_equal($appids);
             $DB->delete_records_select('tool_admin_presets_app_it', "adminpresetapplyid $insql", $inparams);
             $DB->delete_records_select('tool_admin_presets_app_it_a', "adminpresetapplyid $insql", $inparams);
+            $DB->delete_records_select('tool_admin_presets_app_plug', "adminpresetapplyid $insql", $inparams);
 
             if (!$DB->delete_records('tool_admin_presets_app', ['adminpresetid' => $this->id])) {
                 throw new moodle_exception('errordeleting', 'tool_admin_presets');
@@ -94,6 +95,12 @@ class delete extends base {
             throw new moodle_exception('errordeleting', 'tool_admin_presets');
         }
 
+        // Delete plugins.
+        if (!$DB->delete_records('tool_admin_presets_plug', ['adminpresetid' => $this->id])) {
+            throw new moodle_exception('errordeleting', 'tool_admin_presets');
+        }
+
+        // Delete preset.
         if (!$DB->delete_records('tool_admin_presets', ['id' => $this->id])) {
             throw new moodle_exception('errordeleting', 'tool_admin_presets');
         }

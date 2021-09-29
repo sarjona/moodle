@@ -16,9 +16,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-use tool_admin_presets\local\action\base;
 use tool_admin_presets\local\setting\admin_preset_setting;
 use tool_admin_presets\manager;
+use tool_admin_presets\helper;
 
 global $CFG;
 require_once($CFG->libdir . '/adminlib.php');
@@ -76,16 +76,16 @@ class tool_admin_presets_generator extends \component_generator_base {
         $preset['id'] = $presetid;
 
         // Setting: enablebadges = 0.
-        $this->create_item($presetid, 'enablebadges', '0');
+        helper::add_item($presetid, 'enablebadges', '0');
 
         // Setting: allowemojipicker = 1.
-        $this->create_item($presetid, 'allowemojipicker', '1');
+        helper::add_item($presetid, 'allowemojipicker', '1');
 
         // Setting: mediawidth = 900.
-        $this->create_item($presetid, 'mediawidth', '900', 'mod_lesson');
+        helper::add_item($presetid, 'mediawidth', '900', 'mod_lesson');
 
         // Setting: maxanswers = 2 (with advanced disabled).
-        $this->create_item($presetid, 'maxanswers', '2', 'mod_lesson', 'maxanswers_adv', 0);
+        helper::add_item($presetid, 'maxanswers', '2', 'mod_lesson', 'maxanswers_adv', 0);
 
         // Check if the preset should be created as applied preset too, to fill in the rest of the tables.
         $applypreset = isset($data['applypreset']) && $data['applypreset'];
@@ -105,41 +105,6 @@ class tool_admin_presets_generator extends \component_generator_base {
         }
 
         return $presetid;
-    }
-
-    /**
-     * Helper method to create a preset setting item.
-     *
-     * @param int $presetid Preset identifier where the item will belong.
-     * @param string $name Item name.
-     * @param string $value Item value.
-     * @param string|null $plugin Item plugin.
-     * @param string|null $advname If the item is an advanced setting, the name of the advanced setting should be specified here.
-     * @param string|null $advvalue If the item is an advanced setting, the value of the advanced setting should be specified here.
-     * @return int The item identificator.
-     */
-    private function create_item(int $presetid, string $name, string $value, ?string $plugin = 'none', ?string $advname = null,
-            ?string $advvalue = null): int {
-        global $DB;
-
-        $presetitem = [
-            'adminpresetid' => $presetid,
-            'plugin' => $plugin,
-            'name' => $name,
-            'value' => $value,
-        ];
-        $itemid = $DB->insert_record('tool_admin_presets_it', $presetitem);
-
-        if (!empty($advname)) {
-            $presetadv = [
-                'itemid' => $itemid,
-                'name' => $advname,
-                'value' => $advvalue,
-            ];
-            $DB->insert_record('tool_admin_presets_it_a', $presetadv);
-        }
-
-        return $itemid;
     }
 
     /**

@@ -193,9 +193,26 @@ class rollback extends base {
             }
         }
 
-        // Delete application if no items nor attributes of the application remains.
+        // Plugins.
+        $plugins = $DB->get_records('tool_admin_presets_app_plug', ['adminpresetapplyid' => $this->id]);
+        foreach ($plugins as $plugin) {
+            $pluginclass = \core_plugin_manager::resolve_plugininfo_class($plugin->plugin);
+            $pluginclass::enable_plugin($plugin->name, (bool) $plugin->oldvalue);
+
+            // Output table.
+            $rollback[] = [
+                'plugin' => $plugin->plugin,
+                'visiblename' => get_string('pluginname', $plugin->plugin . '_' . $plugin->name),
+                'oldvisiblevalue' => $plugin->value,
+                'visiblevalue' => $plugin->oldvalue,
+            ];
+        }
+        $plugins = $DB->delete_records('tool_admin_presets_app_plug', ['adminpresetapplyid' => $this->id]);
+
+        // Delete application if no items nor attributes nor plugins of the application remains.
         if (!$DB->get_records('tool_admin_presets_app_it', ['adminpresetapplyid' => $this->id]) &&
-                !$DB->get_records('tool_admin_presets_app_it_a', ['adminpresetapplyid' => $this->id])) {
+                !$DB->get_records('tool_admin_presets_app_it_a', ['adminpresetapplyid' => $this->id]) &&
+                !$DB->get_records('tool_admin_presets_app_plug', ['adminpresetapplyid' => $this->id])) {
 
             $DB->delete_records('tool_admin_presets_app', ['id' => $this->id]);
         }

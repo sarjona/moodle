@@ -60,6 +60,7 @@ class load extends base {
             // Standarized format $array['plugin']['settingname'] = child class.
             $presetsettings = $this->manager->get_settings($presetdbsettings, false, []);
 
+            $adminpresetapplyid = null;
             // Only for selected items.
             $applied = [];
             $skipped = [];
@@ -158,6 +159,55 @@ class load extends base {
                     } else {
                         $skipped[] = $data;
                     }
+                }
+            }
+
+            // Set plugins visibility.
+            $plugins = $DB->get_records('tool_admin_presets_plug', ['adminpresetid' => $this->id]);
+            foreach ($plugins as $plugin) {
+                $pluginclass = \core_plugin_manager::resolve_plugininfo_class($plugin->plugin);
+                $enabledplugins = $pluginclass::get_enabled_plugins();
+                $oldvalue = array_key_exists($plugin->name, $enabledplugins);
+
+                $visiblename = $plugin->plugin . '_' . $plugin->name;
+                if (get_string_manager()->string_exists('pluginname', $plugin->plugin . '_' . $plugin->name)) {
+                    $visiblename = get_string('pluginname', $plugin->plugin . '_' . $plugin->name);
+                }
+                $data = [
+                    'plugin' => $plugin->plugin,
+                    'visiblename' => $visiblename,
+                    'visiblevalue' => $plugin->enabled,
+                ];
+
+                // Only change the plugin visibility if it's different to current value.
+                if (($plugin->enabled && !$oldvalue) || (!$plugin->enabled && $oldvalue)) {
+                    $pluginclass::enable_plugin($plugin->name, $plugin->enabled);
+
+                    // The preset application it's only saved when values differences are found.
+                    if (empty($adminpresetapplyid)) {
+                        // Save the preset application and store the preset applied id.
+                        $presetapplied = new stdClass();
+                        $presetapplied->adminpresetid = $this->id;
+                        $presetapplied->userid = $USER->id;
+                        $presetapplied->time = time();
+                        if (!$adminpresetapplyid = $DB->insert_record('tool_admin_presets_app', $presetapplied)) {
+                            throw new moodle_exception('errorinserting', 'tool_admin_presets');
+                        }
+                    }
+
+                    // Add plugin to aplied plugins table (for being able to restore in the future if required).
+                    $appliedplug = new stdClass();
+                    $appliedplug->adminpresetapplyid = $adminpresetapplyid;
+                    $appliedplug->plugin = $plugin->plugin;
+                    $appliedplug->name = $plugin->name;
+                    $appliedplug->value = $plugin->enabled;
+                    $appliedplug->oldvalue = $oldvalue;
+                    $DB->insert_record('tool_admin_presets_app_plug', $appliedplug);
+
+                    $data['oldvisiblevalue'] = $oldvalue;
+                    $applied[] = $data;
+                } else {
+                    $skipped[] = $data;
                 }
             }
 
