@@ -86,7 +86,7 @@ class import extends base {
             // Store it here for logging and other future id-oriented stuff.
             $this->id = $preset->id;
 
-            // Plugins settings.
+            // Settings.
             $xmladminsettings = $xml->ADMIN_SETTINGS[0];
             foreach ($xmladminsettings as $plugin => $settings) {
 
@@ -116,12 +116,12 @@ class import extends base {
                             continue;
                         }
 
-                    // Cleaning the setting value.
-                    if (!$presetsetting = $this->manager->get_setting($sitesettings[$plugin][$name]->get_settingdata(),
-                        $value)) {
-                        debugging('Setting ' . $plugin . '/' . $name . ' not implemented', DEBUG_DEVELOPER);
-                        continue;
-                    }
+                        // Cleaning the setting value.
+                        if (!$presetsetting = $this->manager->get_setting($sitesettings[$plugin][$name]->get_settingdata(),
+                            $value)) {
+                            debugging('Setting ' . $plugin . '/' . $name . ' not implemented', DEBUG_DEVELOPER);
+                            continue;
+                        }
 
                         $settingsfound = true;
 
@@ -162,8 +162,31 @@ class import extends base {
                 }
             }
 
+            // Plugins.
+            if ($xml->PLUGINS) {
+                $xmlplugins = $xml->PLUGINS[0];
+                foreach ($xmlplugins as $plugin => $plugins) {
+                    $pluginname = strtolower($plugin);
+                    foreach ($plugins->children() as $name => $plugin) {
+                        $pluginsfound = true;
+
+                        // New plugin.
+                        $entry = new stdClass();
+                        $entry->adminpresetid = $preset->id;
+                        $entry->plugin = $pluginname;
+                        $entry->name = strtolower($name);
+                        $entry->enabled = $plugin->__toString();
+
+                        // Inserting plugin.
+                        if (!$item->id = $DB->insert_record('tool_admin_presets_plug', $entry)) {
+                            throw new moodle_exception('errorinserting', 'tool_admin_presets');
+                        }
+                    }
+                }
+            }
+
             // If there are no valid or selected settings we should delete the admin preset record.
-            if (empty($settingsfound)) {
+            if (empty($settingsfound) && empty($pluginsfound)) {
                 $DB->delete_records('tool_admin_presets', ['id' => $preset->id]);
                 redirect($CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=import',
                         get_string('novalidsettings', 'tool_admin_presets'));

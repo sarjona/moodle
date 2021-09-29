@@ -35,11 +35,13 @@ class import_test extends \advanced_testcase {
      *
      * @param string $filecontents File content to import.
      * @param bool $expectedpreset Whether the preset should be created or not.
+     * @param bool $expectedsettings Whether settings will be created or not.
+     * @param bool $expectedplugins Whether plugins will be created or not.
      * @param bool $expecteddebugging Whether debugging message will be thrown or not.
      * @param string|null $expectedexception Expected exception class (if that's the case).
      */
-    public function test_import_execute(string $filecontents, bool $expectedpreset, bool $expecteddebugging = false,
-            ?string $expectedexception = null): void {
+    public function test_import_execute(string $filecontents, bool $expectedpreset, bool $expectedsettings = false,
+            bool $expectedplugins = false, bool $expecteddebugging = false, ?string $expectedexception = null): void {
         global $DB, $USER;
 
         $this->resetAfterTest();
@@ -97,38 +99,65 @@ class import_test extends \advanced_testcase {
                 $presetid = $generator->access_protected($action, 'id');
                 $this->assertArrayHasKey($presetid, $presets);
                 $preset = $presets[$presetid];
-                $this->assertEquals('Exported preset', $preset->name);
+                $this->assertEquals('Imported preset', $preset->name);
                 $this->assertEquals('http://demo.moodle', $preset->site);
                 $this->assertEquals('Ada Lovelace', $preset->author);
-                // Check the items have been created.
-                $items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $presetid]);
-                $this->assertCount(4, $items);
-                $presetitems = [
-                    'none' => [
-                        'enablebadges' => 0,
-                        'allowemojipicker' => 1,
-                    ],
-                    'mod_lesson' => [
-                        'mediawidth' => 900,
-                        'maxanswers' => 2,
-                    ],
-                ];
-                foreach ($items as $item) {
-                    $this->assertArrayHasKey($item->name, $presetitems[$item->plugin]);
-                    $this->assertEquals($presetitems[$item->plugin][$item->name], $item->value);
+
+                if ($expectedsettings) {
+                    // Check the items have been created.
+                    $items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $presetid]);
+                    $this->assertCount(4, $items);
+                    $presetitems = [
+                        'none' => [
+                            'enablebadges' => 0,
+                            'allowemojipicker' => 1,
+                        ],
+                        'mod_lesson' => [
+                            'mediawidth' => 900,
+                            'maxanswers' => 2,
+                        ],
+                    ];
+                    foreach ($items as $item) {
+                        $this->assertArrayHasKey($item->name, $presetitems[$item->plugin]);
+                        $this->assertEquals($presetitems[$item->plugin][$item->name], $item->value);
+                    }
+
+                    // Check the advanced attributes have been created.
+                    $advitems = $DB->get_records('tool_admin_presets_it_a');
+                    $this->assertCount($currentadvitems + 1, $advitems);
+                    $advitemfound = false;
+                    foreach ($advitems as $advitem) {
+                        if ($advitem->name == 'maxanswers_adv') {
+                            $this->assertEmpty($advitem->value);
+                            $advitemfound = true;
+                        }
+                    }
+                    $this->assertTrue($advitemfound);
                 }
 
-                // Check the advanced attributes have been created.
-                $advitems = $DB->get_records('tool_admin_presets_it_a');
-                $this->assertCount($currentadvitems + 1, $advitems);
-                $advitemfound = false;
-                foreach ($advitems as $advitem) {
-                    if ($advitem->name == 'maxanswers_adv') {
-                        $this->assertEmpty($advitem->value);
-                        $advitemfound = true;
+                if ($expectedplugins) {
+                    // Check the plugins have been created.
+                    $plugins = $DB->get_records('tool_admin_presets_plug', ['adminpresetid' => $presetid]);
+                    $this->assertCount(5, $plugins);
+                    $presetplugins = [
+                        'atto' => [
+                            'html' => 1,
+                        ],
+                        'block' => [
+                            'html' => 0,
+                            'activity_modules' => 1,
+                        ],
+                        'mod' => [
+                            'chat' => 0,
+                            'database' => 0,
+                        ],
+                    ];
+                    foreach ($plugins as $plugin) {
+                        $this->assertArrayHasKey($plugin->name, $presetplugins[$plugin->plugin]);
+                        $this->assertEquals($presetplugins[$plugin->plugin][$plugin->name], $plugin->enabled);
                     }
+
                 }
-                $this->assertTrue($advitemfound);
             } else {
                 // Check the preset nor the items are not created.
                 $this->assertCount($currentpresets, $DB->get_records('tool_admin_presets'));
@@ -160,28 +189,44 @@ class import_test extends \advanced_testcase {
                 'filecontents' => '',
                 'expectedpreset' => false,
             ],
-            'Import settings from a valid XML file' => [
+            'Import settings and plugins from a valid XML file' => [
+                'filecontents' => file_get_contents(__DIR__ . '/../../fixtures/import_settings_plugins.xml'),
+                'expectedpreset' => true,
+                'expectedsettings' => true,
+                'expectedplugins' => true,
+            ],
+            'Import only settings from a valid XML file' => [
                 'filecontents' => file_get_contents(__DIR__ . '/../../fixtures/import_settings.xml'),
                 'expectedpreset' => true,
+                'expectedsettings' => true,
+                'expectedplugins' => false,
             ],
             'Import settings from an invalid XML file' => [
                 'filecontents' => file_get_contents(__DIR__ . '/../../fixtures/invalid_xml_file.xml'),
                 'expectedpreset' => false,
+                'expectedsettings' => false,
+                'expectedplugins' => false,
                 'expecteddebugging' => false,
                 'expectedexception' => \Exception::class,
             ],
-            'Import unexisting category' => [
+            'Import unexisting settings category' => [
                 'filecontents' => file_get_contents(__DIR__ . '/../../fixtures/unexisting_category.xml'),
                 'expectedpreset' => false,
+                'expectedsettings' => false,
+                'expectedplugins' => false,
             ],
             'Import unexisting setting' => [
                 'filecontents' => file_get_contents(__DIR__ . '/../../fixtures/unexisting_setting.xml'),
                 'expectedpreset' => false,
+                'expectedsettings' => false,
+                'expectedplugins' => false,
                 'expecteddebugging' => true,
             ],
             'Import valid settings with one unexisting setting too' => [
                 'filecontents' => file_get_contents(__DIR__ . '/../../fixtures/import_settings_with_unexisting_setting.xml'),
                 'expectedpreset' => true,
+                'expectedsettings' => false,
+                'expectedplugins' => false,
                 'expecteddebugging' => true,
             ],
         ];

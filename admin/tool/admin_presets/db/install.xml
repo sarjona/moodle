@@ -104,7 +104,7 @@
             </INDEXES>
         </TABLE>
         <TABLE NAME="tool_admin_presets_app_it_a" COMMENT="Attributes of the applied items"
-               PREVIOUS="tool_admin_presets_app_it">
+               PREVIOUS="tool_admin_presets_app_it" NEXT="tool_admin_presets_plug">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true"
                        NEXT="adminpresetapplyid"/>
@@ -121,6 +121,50 @@
             <INDEXES>
                 <INDEX NAME="configlogid" UNIQUE="false" FIELDS="configlogid" NEXT="adminpresetapplyid"/>
                 <INDEX NAME="adminpresetapplyid" UNIQUE="false" FIELDS="adminpresetapplyid" PREVIOUS="configlogid"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="tool_admin_presets_plug"
+               COMMENT="Admin presets plugins status, to store information about whether they are enabled or not"
+               PREVIOUS="tool_admin_presets_app_it_a" NEXT="tool_admin_presets_app_plug">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true"
+                       NEXT="adminpresetid"/>
+                <FIELD NAME="adminpresetid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       PREVIOUS="id" NEXT="plugin"/>
+                <FIELD NAME="plugin" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" PREVIOUS="adminpresetid"
+                       NEXT="name"/>
+                <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="plugin"
+                       NEXT="enabled"/>
+                <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether this plugins is currently enabled." PREVIOUS="name"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="adminpresetid" UNIQUE="false" FIELDS="adminpresetid"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="tool_admin_presets_app_plug"
+               COMMENT="Admin presets plugins applied"
+               PREVIOUS="tool_admin_presets_plug">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true"
+                       NEXT="adminpresetapplyid"/>
+                <FIELD NAME="adminpresetapplyid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       PREVIOUS="id" NEXT="plugin"/>
+                <FIELD NAME="plugin" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" PREVIOUS="adminpresetapplyid"
+                       NEXT="name"/>
+                <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="plugin"
+                       NEXT="value"/>
+                <FIELD NAME="value" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="name"
+                       NEXT="oldvalue"/>
+                <FIELD NAME="oldvalue" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="value"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="adminpresetapplyid" UNIQUE="false" FIELDS="adminpresetapplyid"/>
             </INDEXES>
         </TABLE>
     </TABLES>

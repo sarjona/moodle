@@ -36,10 +36,13 @@ class helper {
     public static function create_preset(array $data): int {
         global $CFG, $USER, $DB;
 
+        $name = array_key_exists('name', $data) ? $data['name'] : '';
+        $comments = array_key_exists('comments', $data) ? $data['comments'] : '';
+
         $preset = [
             'userid' => $USER->id,
-            'name' => $data['name'],
-            'comments' => $data['comments'],
+            'name' => $name,
+            'comments' => $comments,
             'site' => $CFG->wwwroot,
             'author' => fullname($USER),
             'moodleversion' => $CFG->version,
@@ -53,7 +56,7 @@ class helper {
     }
 
     /**
-     * Helper method to create a preset setting item.
+     * Helper method to add a setting item to a preset.
      *
      * @param int $presetid Preset identifier where the item will belong.
      * @param string $name Item name.
@@ -63,7 +66,7 @@ class helper {
      * @param string|null $advvalue If the item is an advanced setting, the value of the advanced setting should be specified here.
      * @return int The item identificator.
      */
-    public static function create_item(int $presetid, string $name, string $value, ?string $plugin = 'none',
+    public static function add_item(int $presetid, string $name, string $value, ?string $plugin = 'none',
             ?string $advname = null, ?string $advvalue = null): int {
         global $DB;
 
@@ -85,5 +88,28 @@ class helper {
         }
 
         return $itemid;
+    }
+
+    /**
+     * Helper method to add a plugin to a preset.
+     *
+     * @param int $presetid Preset identifier where the item will belong.
+     * @param string $plugin Plugin type.
+     * @param string $name Plugin name.
+     * @param int $enabled Whether the plugin will be enabled or not.
+     * @return int The plugin identificator.
+     */
+    public static function add_plugin(int $presetid, string $plugin, string $name, int $enabled): int {
+        global $DB;
+
+        $pluginentry = [
+            'adminpresetid' => $presetid,
+            'plugin' => $plugin,
+            'name' => $name,
+            'enabled' => $enabled,
+        ];
+        $pluginid = $DB->insert_record('tool_admin_presets_plug', $pluginentry);
+
+        return $pluginid;
     }
 }

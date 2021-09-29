@@ -40,47 +40,107 @@ function xmldb_tool_admin_presets_install() {
     $presetid = helper::create_preset($data);
 
     // Add settings to the "Lite Moodle" preset.
-    helper::create_item($presetid, 'usecomments', '0');
-    helper::create_item($presetid, 'usetags', '0');
-    helper::create_item($presetid, 'enablenotes', '0');
-    helper::create_item($presetid, 'enableblogs', '0');
-    helper::create_item($presetid, 'enablebadges', '0');
-    helper::create_item($presetid, 'enableanalytics', '0');
-    helper::create_item($presetid, 'enabled', '0', 'core_competency');
+    helper::add_item($presetid, 'usecomments', '0');
+    helper::add_item($presetid, 'usetags', '0');
+    helper::add_item($presetid, 'enablenotes', '0');
+    helper::add_item($presetid, 'enableblogs', '0');
+    helper::add_item($presetid, 'enablebadges', '0');
+    helper::add_item($presetid, 'enableanalytics', '0');
+    helper::add_item($presetid, 'enabled', '0', 'core_competency');
 
-    helper::create_item($presetid, 'showdataretentionsummary', '0', 'tool_dataprivacy');
-    helper::create_item($presetid, 'forum_maxattachments', '3');
-    helper::create_item($presetid, 'customusermenuitems', 'preferences,moodle|/user/preferences.php|t/preferences');
+    helper::add_item($presetid, 'showdataretentionsummary', '0', 'tool_dataprivacy');
+    helper::add_item($presetid, 'forum_maxattachments', '3');
+    helper::add_item($presetid, 'customusermenuitems', 'preferences,moodle|/user/preferences.php|t/preferences');
 
-    // TODO: Modules: Hide chat, database, external tool, IMS content package, lesson, SCORM, survey, wiki, workshop.
+    // Modules: Hide chat, database, external tool (lti), IMS content package (imscp), lesson, SCORM, survey, wiki, workshop.
+    helper::add_plugin($presetid, 'mod', 'chat', false);
+    helper::add_plugin($presetid, 'mod', 'data', false);
+    helper::add_plugin($presetid, 'mod', 'lti', false);
+    helper::add_plugin($presetid, 'mod', 'imscp', false);
+    helper::add_plugin($presetid, 'mod', 'lesson', false);
+    helper::add_plugin($presetid, 'mod', 'scorm', false);
+    helper::add_plugin($presetid, 'mod', 'survey', false);
+    helper::add_plugin($presetid, 'mod', 'wiki', false);
+    helper::add_plugin($presetid, 'mod', 'workshop', false);
 
-    // TODO: Availability restrictions: Hide Grouping, User profile.
+    // Availability restrictions: Hide Grouping, User profile.
+    helper::add_plugin($presetid, 'availability', 'grouping', false);
+    helper::add_plugin($presetid, 'availability', 'profile', false);
 
-    // TODO: Blocks: Hide Activities, Administration, Blog menu, Blog tags, Calendar, Comments, Community finder,
-    // Course completion status, Course overview (legacy), Course/site summary, Courses, Flickr, Global search, Latest badges,
-    // Learning plans, Logged in user, Login, Main menu, Mentees, Navigation, Network servers, People, Private files,
-    // Recent blog entries, RSS feeds, Search forums, Section links, Self completion, Social activities, Tags, YouTube.
+    // Blocks: Hide Activities, Administration, Blog menu, Blog tags, Calendar, Comments, Course completion status,
+    // Course/site summary, Courses, Flickr, Global search, Latest badges, Learning plans, Logged in user, Login, Main menu,
+    // Mentees, Navigation, Network servers, Private files, Recent blog entries, RSS feeds, Search forums, Section links,
+    // Self completion, Social activities, Tags, YouTube.
+    helper::add_plugin($presetid, 'block', 'activity_modules', false);
+    helper::add_plugin($presetid, 'block', 'settings', false);
+    helper::add_plugin($presetid, 'block', 'blog_menu', false);
+    helper::add_plugin($presetid, 'block', 'blog_tags', false);
+    helper::add_plugin($presetid, 'block', 'calendar_month', false);
+    helper::add_plugin($presetid, 'block', 'comments', false);
+    helper::add_plugin($presetid, 'block', 'completionstatus', false);
+    helper::add_plugin($presetid, 'block', 'course_summary', false);
+    helper::add_plugin($presetid, 'block', 'course_list', false);
+    helper::add_plugin($presetid, 'block', 'tag_flickr', false);
+    helper::add_plugin($presetid, 'block', 'globalsearch', false);
+    helper::add_plugin($presetid, 'block', 'badges', false);
+    helper::add_plugin($presetid, 'block', 'lp', false);
+    helper::add_plugin($presetid, 'block', 'myprofile', false);
+    helper::add_plugin($presetid, 'block', 'login', false);
+    helper::add_plugin($presetid, 'block', 'site_main_menu', false);
+    helper::add_plugin($presetid, 'block', 'mentees', false);
+    helper::add_plugin($presetid, 'block', 'navigation', false);
+    helper::add_plugin($presetid, 'block', 'mnet_hosts', false);
+    helper::add_plugin($presetid, 'block', 'private_files', false);
+    helper::add_plugin($presetid, 'block', 'blog_recent', false);
+    helper::add_plugin($presetid, 'block', 'rss_client', false);
+    helper::add_plugin($presetid, 'block', 'search_forums', false);
+    helper::add_plugin($presetid, 'block', 'section_links', false);
+    helper::add_plugin($presetid, 'block', 'selfcompletion', false);
+    helper::add_plugin($presetid, 'block', 'social_activities', false);
+    helper::add_plugin($presetid, 'block', 'tags', false);
+    helper::add_plugin($presetid, 'block', 'tag_youtube', false);
+    helper::add_plugin($presetid, 'block', 'feedback', false);
 
-    // TODO: Course formats: Disable Social format.
+    // Course formats: Disable Social format.
+    helper::add_plugin($presetid, 'format', 'social', false);
 
-    // TODO: Data formats: Disable Javascript Object Notation (.json).
+    // Data formats: Disable Javascript Object Notation (.json).
+    helper::add_plugin($presetid, 'dataformat', 'json', false);
 
-    // TODO: Enrolments: Disable Cohort sync.
+    // Enrolments: Disable Cohort sync.
+    helper::add_plugin($presetid, 'enrol', 'cohort', false);
 
-    // TODO: Filter: Disable MathJax, Activity names auto-linking.
+    // Filter: Disable MathJax, Activity names auto-linking.
+    helper::add_plugin($presetid, 'filter', 'mathjaxloader', TEXTFILTER_DISABLED);
+    helper::add_plugin($presetid, 'filter', 'activitynames', TEXTFILTER_DISABLED);
 
-    // TODO: Question behaviours: Disable Adaptive mode (no penalties), Deferred feedback with CBM, Immediate feedback with CBM.
+    // Question behaviours: Disable Adaptive mode (no penalties), Deferred feedback with CBM, Immediate feedback with CBM.
+    helper::add_plugin($presetid, 'qbehaviour', 'adaptativenopenalty', false);
+    helper::add_plugin($presetid, 'qbehaviour', 'deferredcbm', false);
+    helper::add_plugin($presetid, 'qbehaviour', 'immediatecbm', false);
 
-    // TODO: Question types: Disable Calculated, Calculated multichoice, Calculated simple, Description, Drag and drop markers,
+    // Question types: Disable Calculated, Calculated multichoice, Calculated simple, Description, Drag and drop markers,
     // Drag and drop onto image, Embedded answers (Cloze), Essay, Numerical, Random short-answer matching.
+    helper::add_plugin($presetid, 'qtype', 'calculated', false);
+    helper::add_plugin($presetid, 'qtype', 'calculatedmulti', false);
+    helper::add_plugin($presetid, 'qtype', 'calculatedsimple', false);
+    helper::add_plugin($presetid, 'qtype', 'description', false);
+    helper::add_plugin($presetid, 'qtype', 'ddmarker', false);
+    helper::add_plugin($presetid, 'qtype', 'ddimageortext', false);
+    helper::add_plugin($presetid, 'qtype', 'multianswer', false);
+    helper::add_plugin($presetid, 'qtype', 'essay', false);
+    helper::add_plugin($presetid, 'qtype', 'numerical', false);
+    helper::add_plugin($presetid, 'qtype', 'randomsamatch', false);
 
-    // TODO: Repositories: Disable Server files, URL downloader, Wikimedia, YouTube videos.
+    // Repositories: Disable Server files, URL downloader, Wikimedia.
+    helper::add_plugin($presetid, 'repository', 'local', false);
+    helper::add_plugin($presetid, 'repository', 'url', false);
+    helper::add_plugin($presetid, 'repository', 'wikimedia', false);
 
-    // TODO: Text editors: Disable TinyMCE HTML editor.
+    // Text editors: Disable TinyMCE HTML editor.
+    helper::add_plugin($presetid, 'editor', 'tinymce', false);
 
-    // Create the "Full Moodle" preset.
-    // TODO: Do we really need to create "Full Moodle" or can be just explain administrators to "revert" Lite Moodle when they want
-    // to enable Full Moodle?
+    // Create the "Default Moodle" preset.
     // TODO: Confirm strings and move them to the lang file.
     $data = [
         'name' => 'Default Moodle',
@@ -89,22 +149,108 @@ function xmldb_tool_admin_presets_install() {
     $presetid = helper::create_preset($data);
 
     // Add settings to the "Full Moodle" preset.
-    helper::create_item($presetid, 'usecomments', '1');
-    helper::create_item($presetid, 'usetags', '1');
-    helper::create_item($presetid, 'enablenotes', '1');
-    helper::create_item($presetid, 'enableblogs', '1');
-    helper::create_item($presetid, 'enablebadges', '1');
-    helper::create_item($presetid, 'enableanalytics', '1');
-    helper::create_item($presetid, 'enabled', '1', 'core_competency');
+    helper::add_item($presetid, 'usecomments', '1');
+    helper::add_item($presetid, 'usetags', '1');
+    helper::add_item($presetid, 'enablenotes', '1');
+    helper::add_item($presetid, 'enableblogs', '1');
+    helper::add_item($presetid, 'enablebadges', '1');
+    helper::add_item($presetid, 'enableanalytics', '1');
+    helper::add_item($presetid, 'enabled', '1', 'core_competency');
 
-    helper::create_item($presetid, 'showdataretentionsummary', '1', 'tool_dataprivacy');
-    helper::create_item($presetid, 'forum_maxattachments', '9');
+    helper::add_item($presetid, 'showdataretentionsummary', '1', 'tool_dataprivacy');
+    helper::add_item($presetid, 'forum_maxattachments', '9');
     // In that case, the indentation coding style can't follow the rules to guarantee the setting value is created properly.
-    helper::create_item($presetid, 'customusermenuitems', 'grades,grades|/grade/report/mygrades.php|t/grades
+    helper::add_item($presetid, 'customusermenuitems', 'grades,grades|/grade/report/mygrades.php|t/grades
 messages,message|/message/index.php|t/message
 preferences,moodle|/user/preferences.php|t/preferences'
     );
 
-    // TODO: Enable plugins.
+    // Modules: Enable chat, database, external tool (lti), IMS content package (imscp), lesson, SCORM, survey, wiki, workshop.
+    helper::add_plugin($presetid, 'mod', 'chat', true);
+    helper::add_plugin($presetid, 'mod', 'data', true);
+    helper::add_plugin($presetid, 'mod', 'lti', true);
+    helper::add_plugin($presetid, 'mod', 'imscp', true);
+    helper::add_plugin($presetid, 'mod', 'lesson', true);
+    helper::add_plugin($presetid, 'mod', 'scorm', true);
+    helper::add_plugin($presetid, 'mod', 'survey', true);
+    helper::add_plugin($presetid, 'mod', 'wiki', true);
+    helper::add_plugin($presetid, 'mod', 'workshop', true);
+
+    // Availability restrictions: Enable Grouping, User profile.
+    helper::add_plugin($presetid, 'availability', 'grouping', true);
+    helper::add_plugin($presetid, 'availability', 'profile', true);
+
+    // Blocks: Enable Activities, Administration, Blog menu, Blog tags, Calendar, Comments, Course completion status,
+    // Course/site summary, Courses, Flickr, Global search, Latest badges, Learning plans, Logged in user, Login, Main menu,
+    // Mentees, Navigation, Network servers, Private files, Recent blog entries, RSS feeds, Search forums, Section links,
+    // Self completion, Social activities, Tags, YouTube.
+    helper::add_plugin($presetid, 'block', 'activity_modules', true);
+    helper::add_plugin($presetid, 'block', 'settings', true);
+    helper::add_plugin($presetid, 'block', 'blog_menu', true);
+    helper::add_plugin($presetid, 'block', 'blog_tags', true);
+    helper::add_plugin($presetid, 'block', 'calendar_month', true);
+    helper::add_plugin($presetid, 'block', 'comments', true);
+    helper::add_plugin($presetid, 'block', 'completionstatus', true);
+    helper::add_plugin($presetid, 'block', 'course_summary', true);
+    helper::add_plugin($presetid, 'block', 'course_list', true);
+    helper::add_plugin($presetid, 'block', 'tag_flickr', true);
+    helper::add_plugin($presetid, 'block', 'globalsearch', true);
+    helper::add_plugin($presetid, 'block', 'badges', true);
+    helper::add_plugin($presetid, 'block', 'lp', true);
+    helper::add_plugin($presetid, 'block', 'myprofile', true);
+    helper::add_plugin($presetid, 'block', 'login', true);
+    helper::add_plugin($presetid, 'block', 'site_main_menu', true);
+    helper::add_plugin($presetid, 'block', 'mentees', true);
+    helper::add_plugin($presetid, 'block', 'navigation', true);
+    helper::add_plugin($presetid, 'block', 'mnet_hosts', true);
+    helper::add_plugin($presetid, 'block', 'private_files', true);
+    helper::add_plugin($presetid, 'block', 'blog_recent', true);
+    helper::add_plugin($presetid, 'block', 'rss_client', true);
+    helper::add_plugin($presetid, 'block', 'search_forums', true);
+    helper::add_plugin($presetid, 'block', 'section_links', true);
+    helper::add_plugin($presetid, 'block', 'selfcompletion', true);
+    helper::add_plugin($presetid, 'block', 'social_activities', true);
+    helper::add_plugin($presetid, 'block', 'tags', true);
+    helper::add_plugin($presetid, 'block', 'tag_youtube', true);
+    helper::add_plugin($presetid, 'block', 'feedback', true);
+
+    // Course formats: Enable Social format.
+    helper::add_plugin($presetid, 'format', 'social', true);
+
+    // Data formats: Enable Javascript Object Notation (.json).
+    helper::add_plugin($presetid, 'dataformat', 'json', true);
+
+    // Enrolments: Enable Cohort sync.
+    helper::add_plugin($presetid, 'enrol', 'cohort', true);
+
+    // Filter: Enable MathJax, Activity names auto-linking.
+    helper::add_plugin($presetid, 'filter', 'mathjaxloader', TEXTFILTER_ON);
+    helper::add_plugin($presetid, 'filter', 'activitynames', TEXTFILTER_ON);
+
+    // Question behaviours: Enable Adaptive mode (no penalties), Deferred feedback with CBM, Immediate feedback with CBM.
+    helper::add_plugin($presetid, 'qbehaviour', 'adaptivenopenalty', true);
+    helper::add_plugin($presetid, 'qbehaviour', 'deferredcbm', true);
+    helper::add_plugin($presetid, 'qbehaviour', 'immediatecbm', true);
+
+    // Question types: Enable Calculated, Calculated multichoice, Calculated simple, Description, Drag and drop markers,
+    // Drag and drop onto image, Embedded answers (Cloze), Essay, Numerical, Random short-answer matching.
+    helper::add_plugin($presetid, 'qtype', 'calculated', true);
+    helper::add_plugin($presetid, 'qtype', 'calculatedmulti', true);
+    helper::add_plugin($presetid, 'qtype', 'calculatedsimple', true);
+    helper::add_plugin($presetid, 'qtype', 'description', true);
+    helper::add_plugin($presetid, 'qtype', 'ddmarker', true);
+    helper::add_plugin($presetid, 'qtype', 'ddimageortext', true);
+    helper::add_plugin($presetid, 'qtype', 'multianswer', true);
+    helper::add_plugin($presetid, 'qtype', 'essay', true);
+    helper::add_plugin($presetid, 'qtype', 'numerical', true);
+    helper::add_plugin($presetid, 'qtype', 'randomsamatch', true);
+
+    // Repositories: Enable Server files, URL downloader, Wikimedia.
+    helper::add_plugin($presetid, 'repository', 'local', true);
+    helper::add_plugin($presetid, 'repository', 'url', true);
+    helper::add_plugin($presetid, 'repository', 'wikimedia', true);
+
+    // Text editors: Enable TinyMCE HTML editor.
+    helper::add_plugin($presetid, 'editor', 'tinymce', true);
 
 }

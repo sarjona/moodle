@@ -139,6 +139,26 @@ class export extends base {
                 }
             }
 
+            // Store plugins visibility (enabled/disabled).
+            // TODO: For now all the plugins will be included (let's wait for the final tree version).
+            $manager = \core_plugin_manager::instance();
+            $types = $manager->get_plugin_types();
+            foreach ($types as $plugintype => $notused) {
+                $plugins = $manager->get_present_plugins($plugintype);
+                $enabled = $manager->get_enabled_plugins($plugintype);
+                if (!empty($plugins)) {
+                    foreach ($plugins as $pluginname => $plugin) {
+                        $entry = new stdClass();
+                        $entry->adminpresetid = $preset->id;
+                        $entry->plugin = $plugintype;
+                        $entry->name = $pluginname;
+                        $entry->enabled = (!empty($enabled) && array_key_exists($pluginname, $enabled));
+
+                        $DB->insert_record('tool_admin_presets_plug', $entry);
+                    }
+                }
+            }
+
             // If there are no valid or selected settings we should delete the admin preset record.
             if (!$settingsfound) {
                 $DB->delete_records('tool_admin_presets', ['id' => $preset->id]);
@@ -234,6 +254,31 @@ class export extends base {
             }
 
             $xmlwriter->end_tag('ADMIN_SETTINGS');
+        }
+
+        // We ride through the plugins array.
+        $data = $DB->get_records('tool_admin_presets_plug', ['adminpresetid' => $this->id]);
+        if ($data) {
+
+            $plugins = [];
+            foreach ($data as $plugin) {
+                $plugins[$plugin->plugin][] = $plugin;
+            }
+
+            $xmlwriter->begin_tag('PLUGINS');
+
+            foreach ($plugins as $plugintype => $plugintypes) {
+                $tagname = strtoupper($plugintype);
+                $xmlwriter->begin_tag($tagname);
+
+                foreach ($plugintypes as $plugin) {
+                    $xmlwriter->full_tag(strtoupper($plugin->name), $plugin->enabled);
+                }
+
+                $xmlwriter->end_tag(strtoupper($tagname));
+            }
+
+            $xmlwriter->end_tag('PLUGINS');
         }
 
         // End.
