@@ -91,16 +91,35 @@ class presets_list implements renderable, templatable {
                 $actionsmenu->set_alignment(\action_menu::TL, \action_menu::BL);
 
                 $loadlink = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'load', 'id' => $preset->id]);
-                $actionsmenu->add(new \action_menu_link_secondary($loadlink, new \pix_icon('i/preview', ''), get_string('load', 'tool_admin_presets')));
-                $downloadlink = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'export', 'mode' => 'download_xml', 'sesskey' => sesskey(), 'id' => $preset->id]);
-                $actionsmenu->add(new \action_menu_link_secondary($downloadlink, new \pix_icon('t/download', ''), get_string('download')));
-                $deletelink = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'delete', 'id' => $preset->id]);
-                $actionsmenu->add(new \action_menu_link_secondary($deletelink, new \pix_icon('i/delete', ''), get_string('delete')));
+                $actionsmenu->add(new \action_menu_link_secondary(
+                    $loadlink, new \pix_icon('i/preview', ''),
+                    get_string('show', 'tool_admin_presets')
+                ));
+                $downloadlink = new \moodle_url('/admin/tool/admin_presets/index.php',
+                    ['action' => 'export', 'mode' => 'download_xml', 'sesskey' => sesskey(), 'id' => $preset->id]
+                );
+                $actionsmenu->add(new \action_menu_link_secondary(
+                    $downloadlink,
+                    new \pix_icon('t/download', ''),
+                    get_string('download')
+                ));
+                $deletelink = new \moodle_url('/admin/tool/admin_presets/index.php',
+                    ['action' => 'delete', 'id' => $preset->id]
+                );
+                $actionsmenu->add(new \action_menu_link_secondary(
+                    $deletelink,
+                    new \pix_icon('i/delete', ''),
+                    get_string('delete')
+                ));
 
                 // Look for preset applications.
                 if ($DB->get_records('tool_admin_presets_app', ['adminpresetid' => $preset->id])) {
                     $rollbacklink = new \moodle_url('/admin/tool/admin_presets/index.php', ['action' => 'rollback', 'id' => $preset->id]);
-                    $actionsmenu->add(new \action_menu_link_secondary($rollbacklink, new \pix_icon('i/reload', ''), get_string('rollback', 'tool_admin_presets')));
+                    $actionsmenu->add(new \action_menu_link_secondary(
+                        $rollbacklink,
+                        new \pix_icon('i/reload', ''),
+                        get_string('showhistory', 'tool_admin_presets')
+                    ));
                 }
                 $data['actions'] = $actionsmenu->export_for_template($output);
             }

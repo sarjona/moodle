@@ -9,7 +9,7 @@ Feature: I should see pre-installed presets in my presets list
   Scenario: Lite Moodle preset is pre-installed
     Given "Lite Moodle" "table_row" should exist
     When I open the action menu in "Lite Moodle" "table_row"
-    And I choose "Load" in the open action menu
+    And I choose "Show" in the open action menu
     Then I should see "Load settings: select settings"
     And "Lite Moodle" "table_row" should exist
     And I should see "Users" in the "#settings_tree_div" "css_element"
@@ -34,7 +34,7 @@ Feature: I should see pre-installed presets in my presets list
     And I should not see "Development" in the "#settings_tree_div" "css_element"
     And I should not see "Moodle services" in the "#settings_tree_div" "css_element"
     And I should not see "Feedback settings" in the "#settings_tree_div" "css_element"
-    And I click on "Load selected settings" "button"
+    And I click on "Apply" "button"
     And I should see "Load settings: applied changes"
     And "Enable comments" "table_row" should exist
     And "Enable tags functionality" "table_row" should exist
@@ -49,12 +49,12 @@ Feature: I should see pre-installed presets in my presets list
     And "User menu items" "table_row" should exist
 
   @javascript
-  Scenario: Full Moodle preset is pre-installed
-    Given "Full Moodle" "table_row" should exist
-    When I open the action menu in "Full Moodle" "table_row"
-    And I choose "Load" in the open action menu
+  Scenario: Default Moodle preset is pre-installed
+    Given "Default Moodle" "table_row" should exist
+    When I open the action menu in "Default Moodle" "table_row"
+    And I choose "Show" in the open action menu
     Then I should see "Load settings: select settings"
-    And "Full Moodle" "table_row" should exist
+    And "Default Moodle" "table_row" should exist
     And I should see "Users" in the "#settings_tree_div" "css_element"
     And I should see "Plugins" in the "#settings_tree_div" "css_element"
     And I should see "Appearance" in the "#settings_tree_div" "css_element"
@@ -77,7 +77,7 @@ Feature: I should see pre-installed presets in my presets list
     And I should not see "Development" in the "#settings_tree_div" "css_element"
     And I should not see "Moodle services" in the "#settings_tree_div" "css_element"
     And I should not see "Feedback settings" in the "#settings_tree_div" "css_element"
-    And I click on "Load selected settings" "button"
+    And I click on "Apply" "button"
     And I should see "Load settings: applied changes"
     And I should see "All preset settings skipped, they are already loaded"
     And "Enable comments" "table_row" should exist

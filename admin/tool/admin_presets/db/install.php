@@ -83,7 +83,7 @@ function xmldb_tool_admin_presets_install() {
     // to enable Full Moodle?
     // TODO: Confirm strings and move them to the lang file.
     $data = [
-        'name' => 'Full Moodle',
+        'name' => 'Default Moodle',
         'comments' => 'The default Moodle installation with most of the features and plugins enabled',
     ];
     $presetid = helper::create_preset($data);
