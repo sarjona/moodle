@@ -9,6 +9,8 @@ Feature: I can upload a preset file
 
   @javascript @_file_upload
   Scenario: Preset file is upload
+    # TODO: This file contains settings that have been removed.
+    # TODO: Add some scenario to validate expected behaviour with valid xml file (the ones used for PHPUnit can be reused here).
     And I upload "admin/tool/admin_presets/tests/fixtures/import_file_behat.xml" file to "Select file" filemanager
     And I click on "Save changes" "button"
     Then I should see "Load settings: select settings"

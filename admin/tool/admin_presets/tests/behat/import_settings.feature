@@ -11,10 +11,10 @@ Feature: I can export and import site settings
 
   @javascript
   Scenario: Preset settings are applied
-    And I navigate to "Advanced features" in site administration
-    And I set the field "Enable portfolios" to "1"
-    And I set the field "Enable badges" to "0"
-    And I press "Save changes"
+    And the following config values are set as admin:
+      | enableportfolios | 1 |
+      | enablebadges | 0 |
+    # TODO: Use generators to set this settings to save time.
     And I navigate to "Plugins > Activity modules > Assignment > Assignment settings" in site administration
     And I set the field "Feedback plugin" to "File feedback"
     And I press "Save changes"
@@ -23,8 +23,8 @@ Feature: I can export and import site settings
     And I press "Save changes"
     And I navigate to "Admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
-    And I click on "Load" "link" in the "My preset" "table_row"
-    And I press "Load selected settings"
+    And I click on "Show" "link" in the "My preset" "table_row"
+    And I press "Apply"
     Then I should not see "All preset settings skipped, they are already loaded"
     And I should see "Settings applied"
     And I should see "Enable portfolios" in the ".admin_presets_applied" "css_element"
@@ -43,7 +43,7 @@ Feature: I can export and import site settings
   Scenario: Settings don't change if you import what you just exported
     And I navigate to "Admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
-    And I click on "Load" "link" in the "My preset" "table_row"
-    When I press "Load selected settings"
+    And I click on "Show" "link" in the "My preset" "table_row"
+    When I press "Apply"
     Then I should see "All preset settings skipped, they are already loaded"
     And I should not see "Settings applied"

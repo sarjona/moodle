@@ -23,12 +23,12 @@ Feature: I can revert changes after a load
     And I press "Save changes"
     And I navigate to "Admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
-    And I click on "Load" "link" in the "My preset" "table_row"
-    And I press "Load selected settings"
+    And I click on "Show" "link" in the "My preset" "table_row"
+    And I press "Apply"
     And I navigate to "Admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
-    And I click on "Revert" "link" in the "My preset" "table_row"
-    And I follow "Revert"
+    And I click on "Show version history" "link" in the "My preset" "table_row"
+    And I follow "Restore this version"
     Then I should see "Settings successfully restored"
     And I should see "Enable portfolios" in the ".admin_presets_applied" "css_element"
     And I should see "Enable badges" in the ".admin_presets_applied" "css_element"
