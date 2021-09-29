@@ -30,6 +30,7 @@ import CmItem from 'core_courseformat/local/content/section/cmitem';
 // Course actions is needed for actions that are not migrated to components.
 import courseActions from 'core_course/actions';
 import DispatchActions from 'core_courseformat/local/content/actions';
+import * as CourseEvents from 'core_course/events';
 
 export default class Component extends BaseComponent {
 
@@ -109,6 +110,12 @@ export default class Component extends BaseComponent {
             // Mark content as state ready.
             this.element.classList.add(this.classes.STATEDREADY);
         }
+        // Capture completion events.
+        this.addEventListener(
+            this.element,
+            CourseEvents.manualCompletionToggled,
+            this._completionHandler
+        );
     }
 
     /**
@@ -154,6 +161,18 @@ export default class Component extends BaseComponent {
         // need to store somewhare in case they are needed later.
         this.dettachedCms = {};
         this.dettachedSections = {};
+    }
+
+    /**
+     * Activity manual completion listener.
+     *
+     * @param {Event} event the custom ecent
+     */
+    _completionHandler({detail}) {
+        if (detail === undefined) {
+            return;
+        }
+        this.reactive.dispatch('cmCompletion', [detail.cmid], detail.completed);
     }
 
     /**

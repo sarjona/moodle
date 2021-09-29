@@ -181,6 +181,18 @@ export default class {
     }
 
     /**
+     * Mark or unmark course modules as completed.
+     *
+     * @param {StateManager} stateManager the current state manager
+     * @param {array} cmIds the list of course modules ids
+     * @param {bool} completed the new completion value
+     */
+    cmCompletion(stateManager, cmIds, completed) {
+        const newValue = (completed) ? 1 : 0;
+        this._setElementsValue(stateManager, 'cm', cmIds, 'completionstate', newValue);
+    }
+
+    /**
      * Lock or unlock course modules.
      *
      * @param {StateManager} stateManager the current state manager
