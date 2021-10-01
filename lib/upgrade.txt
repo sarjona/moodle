@@ -96,6 +96,9 @@ completely removed from Moodle core too.
   fixed units), to always include a non-breaking space between the number and unit, and to use
   consistent rounding (always 1 decimal place by default).
 * The persistent method get() now returns the correct type for each property defined in the persistent class.
+* The method enable_plugin() has been added to the core_plugininfo\base class and it has been implemented by all the plugininfo
+classes extending it. When possible, the enable_plugin() method will store these changes into the config_log table, to let admins
+check when and who has enabled/disabled plugins.
 
 === 3.11.2 ===
 * For security reasons, filelib has been updated so all requests now use emulated redirects.
