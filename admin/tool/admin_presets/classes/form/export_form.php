@@ -64,7 +64,7 @@ class export_form extends moodleform {
             get_string('adminsettings', 'tool_admin_presets'));
 
         $icon = $OUTPUT->pix_icon('i/loading_small', get_string('loading', 'tool_admin_presets'));
-        $mform->addElement('html', '<div id="settings_tree_div" class="ygtv-checkbox">' . $icon . '</div><br/>');
+        $mform->addElement('html', '<ul id="settings_tree_div" class="ygtv-checkbox" role="tree">' . $icon . '</ul><br/>');
 
         // Submit.
         $mform->addElement('submit', 'admin_presets_submit', get_string('savechanges'));
