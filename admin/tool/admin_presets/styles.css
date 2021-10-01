@@ -22,23 +22,90 @@
     margin-left: 5px;
 }
 
-#page-tool-admin_presets-index #settings_tree_div .ygtv-checkbox .ygtv-highlight0 .ygtvcontent {
+ul[role="tree"] {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    margin-left: 1.25em;
+}
+
+ul[role="tree"] li {
+    margin: 0;
+    padding: 0.125em;
+    padding-left: 1.25em;
+    list-style: none;
+}
+
+ul[role="tree"] a {
+    text-decoration: underline;
+    border-color: transparent;
+}
+
+[role="treeitem"] ul {
+    margin: 0;
+    padding: 0;
+    margin-left: 0.9em;
+}
+
+[role="treeitem"][aria-expanded="false"] > ul {
+    display: none;
+}
+
+[role="treeitem"][aria-expanded="true"] > ul {
+    display: block;
+}
+
+[role="treeitem"] > span::before {
+    content: url([[pix:t/collapsed]]);;
+    position: relative;
+    left: -1.25em;
+}
+
+[role="treeitem"][aria-expanded="false"].has-children > span::before {
+    content: url([[pix:t/collapsed]]);
+    position: relative;
+    left: -1.25em;
+}
+
+[role="treeitem"][aria-expanded="true"].has-children > span::before {
+    content: url([[pix:t/expanded]]);
+    position: relative;
+    left: -1.25em;
+}
+
+[role="treeitem"] {
+    width: 20em;
+    margin: 0;
+    border: 2px transparent solid;
+    display: block;
+    user-select: none;
+}
+
+/* disable default keyboard focus styling for treeitems
+   Keyboard focus is styled with the following CSS */
+[role="treeitem"]:focus {
+    outline: 0;
+}
+
+[role="treeitem"]:focus {
+    border-color: black;
+    background-color: #eee;
+}
+
+[role="treeitem"]:hover {
+    border-color: black;
+    background-color: #ddd;
+    cursor: pointer;
+}
+
+[role="treeitem"] > span.checkbox-unchecked {
     background: url([[pix:tool_admin_presets|check0]]) no-repeat;
-    padding-left: 1em;
+    width: 1em;
+    margin-left: 1em;
 }
 
-#page-tool-admin_presets-index #settings_tree_div .ygtv-checkbox .ygtv-highlight0 .ygtvfocus.ygtvcontent,
-.ygtv-checkbox .ygtv-highlight1 .ygtvfocus.ygtvcontent,
-.ygtv-checkbox .ygtv-highlight2 .ygtvfocus.ygtvcontent {
-    background-color: #c0e0e0;
-}
-
-#page-tool-admin_presets-index #settings_tree_div .ygtv-checkbox .ygtv-highlight1 .ygtvcontent {
+[role="treeitem"] > span.checkbox-checked {
     background: url([[pix:tool_admin_presets|check1]]) no-repeat;
-    padding-left: 1em;
-}
-
-#page-tool-admin_presets-index #settings_tree_div .ygtv-checkbox .ygtv-highlight2 .ygtvcontent {
-    background: url([[pix:tool|check2]]) no-repeat;
-    padding-left: 1em;
+    width: 1em;
+    margin-left: 1em;
 }

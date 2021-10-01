@@ -424,7 +424,7 @@ class manager {
             if (is_a($child, 'admin_category')) {
                 if ($child->children) {
                     $categorynode = $child->name . 'Node';
-                    $nodehtml = '<div class="catnode">' . $child->visiblename . '</div>';
+                    $nodehtml = $child->visiblename;
                     $nodes['categories'][$categorynode] = ['category', $categorynode, (string) $nodehtml, '', $jsparentnode];
 
                     // Not all admin_categories have admin_settingpages.
@@ -462,7 +462,7 @@ class manager {
 
                     // The page node only should be added if it have children.
                     if ($pagesettings) {
-                        $nodehtml = '<div class="catnode">' . $child->visiblename . '</div>';
+                        $nodehtml = $child->visiblename;
                         $nodes['pages'][$pagenode] = ['page', $pagenode, (string) $nodehtml, '', $jsparentnode];
                         $nodes['settings'] = array_merge($nodes['settings'], $pagesettings);
                     }

@@ -1,18 +1,3 @@
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope this it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * Show the tree of admins presets.
  *
@@ -22,129 +7,288 @@
  * @author     Jordan Kesraoui
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/yui', 'core/ajax'], (Y, Ajax) => {
+define(['core/ajax', 'core/tree', 'core/templates', 'jquery'], (Ajax, TreeAccessible, Templates, $) => {
 
-    let Tree = function() {
+    /**
+     * NodeTree Object.
+     * @param id {string} Id of the node.
+     * @param settingId {string} Id of the setting.
+     * @param label {string} Label of the setting.
+     * @param description {string} Description of the setting.
+     * @constructor
+     */
+    let NodeTree = function(id, settingId, label, description) {
+        this.id = id;
+        this.settingId = settingId;
+        this.label = label;
+        this.description = description;
+        this.parent = null;
+        this.displayed = false;
+        this.checked = true;
+        this.level = 1;
+        this.children = [];
+    };
+
+
+
+    /**
+     * Return if the node has children or not.
+     *
+     * @return {boolean}
+     */
+    NodeTree.prototype.hasChildren = function() {
+        return this.children.length > 0;
+    };
+
+    /**
+     * Return if the node is empty (without children and is category type).
+     * @return {boolean}
+     */
+    NodeTree.prototype.isEmpty = function() {
+        return this.settingId === 'category' && !this.hasChildren();
+    };
+
+
+    /**
+     * Accessible Tree of settings.
+     *
+     * @param rootNode {string} Element Id of the root of the tree.
+     * @constructor
+     */
+    let Tree = function(rootNode) {
         this.view = null;
-        this.nodes = null;
+        this.nodes = [];
+        this.accessibleview = null;
+        this.rootNode = document.getElementById(rootNode);
     };
 
+
     /**
-     * Init the tree.
+     * Initialise the tree.
      *
-     * @return {Promise} promise
+     * @param ids {array} Array of setting ids.
+     * @param nodeids {array} Array of node ids.
+     * @param labels {array} Array of settings labels.
+     * @param descriptions {array} Arrays of settings descriptions.
+     * @param parents {array} Arrays of setings parents.
      */
-    Tree.prototype.init = function() {
-        return new Promise((resolve) => {
-            Y.use('yui2-treeview', (Y2) => {
-                this.view = new Y2.YUI2.widget.TreeView("settings_tree_div");
-                this.nodes = [];
-                this.nodes.root = this.view.getRoot();
-                resolve(true);
-            });
+    Tree.prototype.init = function(ids, nodeids, labels, descriptions, parents) {
+        let nelements = ids.length;
+
+        this.rootNode.innerHTML = "";
+        let promises = [];
+        // Add all nodes to the Tree.
+        for (let i = 0; i < nelements; i++) {
+
+            // Search the parent of the node.
+            let parent = null;
+
+            // Create a new node.
+            let newNode = new NodeTree(
+                nodeids[i],
+                ids[i],
+                decodeURIComponent(labels[i]),
+                decodeURIComponent(descriptions[i])
+            );
+
+            this.nodes[newNode.id] = newNode;
+        }
+
+        // Associate parents and children.
+        for (let i = 0; i < nelements; i++) {
+            if (parents[i] === 'root') {
+                this.nodes[nodeids[i]].parent = null;
+            } else {
+                this.nodes[nodeids[i]].parent = this.nodes[parents[i]];
+                this.nodes[parents[i]].children.push(this.nodes[nodeids[i]]);
+            }
+        }
+
+        // Display all parent nodes.
+        for (var key in this.nodes) {
+            if (this.nodes.hasOwnProperty(key)) {
+                if (this.nodes[key].parent === null) {
+                    promises.push(this.display(key));
+                }
+            }
+        }
+
+        // Make the tree accessible.
+        Promise.all(promises).finally((values) => {
+            this.accessibleview = new TreeAccessible('#' + this.rootNode.getAttribute('id'));
         });
     };
 
     /**
-     * Creates tree branches.
+     * Apply the events click on the element's node and his checkbox.
      *
-     * @param {Array} ids
-     * @param {Array} nodeids
-     * @param {String} labels
-     * @param {String} descriptions
-     * @param {Array} parents
-     * @return {Promise} promise
+     * @param nodeId {string} Id of the node.
      */
-    Tree.prototype.addNodes = function(ids, nodeids, labels, descriptions, parents) {
-        return new Promise((resolve) => {
-            Y.use('yui2-treeview', (Y2) => {
-                let nelements = ids.length;
-                for (let i = 0; i < nelements; i++) {
+    Tree.prototype.applyEvent = function(nodeId) {
+        let node = this.nodes[nodeId];
+        // If the elements is displayed.
+        if (node.displayed) {
 
-                    let settingId = ids[i];
-                    let nodeId = nodeids[i];
-                    let label = decodeURIComponent(labels[i]);
-                    let description = decodeURIComponent(descriptions[i]);
-                    let parent = parents[i];
+            let elementNode = document.getElementById(nodeId);
 
-                    let newNode = new Y2.YUI2.widget.HTMLNode(label, this.nodes[parent]);
+            // Display all children node when is the node is clicked.
+            elementNode.addEventListener('focus', () => {
+                if (node.hasChildren()) {
 
-                    newNode.settingId = settingId;
-                    newNode.setNodesProperty('title', description);
-                    newNode.highlightState = 1;
+                    let promises = [];
+                    node.children.forEach((nodeChild) => {
+                        promises.push(this.display(nodeChild.id))
+                        //promises.push(this.children[index].display());
+                    });
 
-                    this.nodes[nodeId] = newNode;
-                    resolve(true);
+                    // Make the node accessible.
+                    Promise.all(promises).finally((values) => {
+                        this.accessibleview.initialiseNodes($('#' + nodeId));
+                    });
                 }
             });
-        });
+
+
+            // Change the value of mark checked when a click on the checkbox.
+            let checkboxElement = document.getElementById(nodeId + '_checkbox');
+            checkboxElement.addEventListener('click', (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                this.setChecked(nodeId, !node.checked);
+            });
+
+            // Change the value of mark checked when the enter key is pushed.
+            elementNode.addEventListener('keydown', (event) => {
+                if (event.key === "Enter") {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    this.setChecked(nodeId, !node.checked);
+                }
+            });
+        }
     };
 
     /**
-     * Render the tree.
+     * Display the Node in the DOM (create DOM element).
+     *
+     * @param nodeId {string} Id of the node.
+     * @return {Promise}
      */
-    Tree.prototype.render = function() {
-        Y.use('yui2-treeview', (Y2) => {
-            let categories = this.view.getNodesByProperty('settingId', 'category');
-            // Cleaning categories without children.
-            if (categories) {
-                for (let i = 0; i < categories.length; i++) {
-                    if (!categories[i].hasChildren()) {
-                        this.view.popNode(categories[i]);
-                    }
-                }
-            }
-            categories = this.view.getRoot().children;
-            if (categories) {
-                for (let j = 0; j < categories.length; j++) {
-                    if (!categories[j].hasChildren()) {
-                        this.view.popNode(categories[j]);
-                    }
-                }
-            }
-            this.view.setNodesProperty('propagateHighlightUp', true);
-            this.view.setNodesProperty('propagateHighlightDown', true);
-            this.view.subscribe('clickEvent', this.view.onEventToggleHighlight);
-            this.view.render();
-
-            // Listener to create one node for each selected setting.
-            Y2.YUI2.util.Event.on('id_admin_presets_submit', 'click', () => {
-
-                // We need the moodle form to add the checked settings.
-                let settingsPresetsForm = document.getElementById('id_admin_presets_submit').parentNode;
-
-                let hiLit = this.view.getNodesByProperty('highlightState', 1);
-                if (Y2.YUI2.lang.isNull(hiLit)) {
-                    Y2.YUI2.log("Nothing selected");
-
+    Tree.prototype.display = function(nodeId) {
+        return new Promise((resolve, reject) => {
+            let node = this.nodes[nodeId];
+            // If the elements is not yet displayed.
+            if (!node.displayed && !node.isEmpty()) {
+                let parentElement = null;
+                // Take the root node of the tree if the Node hasn't parent.
+                if (node.parent === null) {
+                    parentElement = this.rootNode;
                 } else {
+                    parentElement = document.getElementById(node.parent.id).getElementsByTagName('ul')[0];
+                    this.nodes[nodeId].level = this.nodes[node.parent.id].level + 1;
+                }
 
-                    // Only for debugging.
-                    let labels = [];
+                let haschildren = '';
+                if (node.hasChildren()) {
+                    haschildren = 'has-children';
+                }
+                let checked = 'checkbox-unchecked';
+                if (node.checked) {
+                    checked = 'checkbox-checked'
+                }
 
-                    for (let i = 0; i < hiLit.length; i++) {
 
-                        let treeNode = hiLit[i];
+                // Add the new node in the DOM.
+                let newNode = {
+                    "id": node.id,
+                    "level": node.level,
+                    "label": node.label,
+                    "has_children" : haschildren,
+                    "checked" : checked
+                };
 
-                        // Only settings not setting categories nor settings pages.
-                        if (treeNode.settingId !== 'category' && treeNode.settingId !== 'page') {
-                            labels.push(treeNode.settingId);
+                // Add the node in the DOM.
+                Templates.render('tool_admin_presets/tree_node', newNode)
+                    .then((html) => {
+                        parentElement.insertAdjacentHTML('beforeend', html);
 
-                            // If the node does not exists we add it.
-                            if (!document.getElementById(treeNode.settingId)) {
+                        // Mark the node displayed.
+                        this.nodes[nodeId].displayed = true;
 
-                                let settingInput = document.createElement('input');
-                                settingInput.setAttribute('type', 'hidden');
-                                settingInput.setAttribute('name', treeNode.settingId);
-                                settingInput.setAttribute('value', '1');
-                                settingsPresetsForm.appendChild(settingInput);
-                            }
-                        }
-                    }
+                        // Apply click event on the element.
+                        this.applyEvent(nodeId);
 
-                    Y2.YUI2.log("Checked settings:\n" + labels.join("\n"), "info");
+                        resolve(true);
+                    }).fail(function (ex) {
+                    reject(false);
+                    console.error(ex);
+                });
+            } else {
+                resolve(true);
+            }
+        });
+    };
+
+    /**
+     * Set the property checked on the node and his children.
+     *
+     * @param  nodeId {string} Id of the node.
+     * @param checked {boolean} Checking status.
+     */
+    Tree.prototype.setChecked = function(nodeId, checked) {
+        let node = this.nodes[nodeId];
+        this.nodes[nodeId].checked = checked;
+
+        // Change the checkbox apparence.
+        if (node.displayed) {
+            let checkboxElement = document.getElementById(nodeId + '_checkbox');
+            if (checked) {
+                checkboxElement.setAttribute('class', 'checkbox-checked');
+            } else {
+                checkboxElement.setAttribute('class', 'checkbox-unchecked');
+            }
+        }
+
+        // Modify all children.
+        if (node.hasChildren()) {
+            node.children.forEach((childNode) => {
+                this.setChecked(childNode.id, checked);
+            });
+        }
+    }
+
+    /**
+     * Submit the settings to the form.
+     *
+     * @param buttonId {string} Id of submit button element.
+     */
+    Tree.prototype.submit = function(buttonId) {
+        let button = document.getElementById(buttonId);
+
+        // Event on click on the submit button.
+        button.addEventListener('click', () => {
+            let settingsPresetsForm = document.getElementById(buttonId).parentNode;
+
+            // Remove all previous input created.
+            settingsPresetsForm.getElementsByTagName('input').forEach((node) => {
+                if (node.getAttribute('type') === 'hidden') {
+                    node.remove();
                 }
             });
+
+            // Create all hidden input with nodes checked.
+            for (var key in this.nodes) {
+                if (this.nodes.hasOwnProperty(key)) {
+                    let node = this.nodes[key];
+                    if (node.settingId !== 'category' && node.settingId !== 'page' && node.checked) {
+                        let settingInput = document.createElement('input');
+                        settingInput.setAttribute('type', 'hidden');
+                        settingInput.setAttribute('name', node.settingId);
+                        settingInput.setAttribute('value', '1');
+                        settingsPresetsForm.appendChild(settingInput);
+                    }
+                }
+            }
         });
     };
 
@@ -159,17 +303,15 @@ define(['core/yui', 'core/ajax'], (Y, Ajax) => {
                 }
             }], true, true)[0].done((response) => {
                     // Make the tree with settings retrieved.
-                    let tree = new Tree();
-                    tree.init().finally(() => {
-                        tree.addNodes(response.ids,
-                            response.nodes,
-                            response.labels,
-                            response.descriptions,
-                            response.parents
-                        ).finally(() => {
-                            tree.render();
-                        });
-                    });
+                    let tree = new Tree('settings_tree_div');
+                    tree.init(response.ids,
+                        response.nodes,
+                        response.labels,
+                        response.descriptions,
+                        response.parents);
+
+                    // Set the submit event.
+                    tree.submit('id_admin_presets_submit');
                 }
             );
         }

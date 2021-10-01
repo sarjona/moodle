@@ -45,7 +45,7 @@ class load_form extends moodleform {
 
         $class = 'ygtv-checkbox';
         $icon = $OUTPUT->pix_icon('i/loading_small', get_string('loading', 'tool_admin_presets'));
-        $mform->addElement('html', '<div id="settings_tree_div" class="' . $class . '">' . $icon . '</div>');
+        $mform->addElement('html', '<ul id="settings_tree_div" class="' . $class . '">' . $icon . '</ul>');
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
