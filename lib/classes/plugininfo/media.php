@@ -99,40 +99,38 @@ class media extends base {
         return array_combine($order, $order);
     }
 
+    public static function enable_plugin(string $pluginname, int $enabled): bool {
+        global $CFG;
+
+        $haschanged = false;
+        $plugins = [];
+        if (!empty($CFG->media_plugins_sortorder)) {
+            $plugins = array_flip(explode(',', $CFG->media_plugins_sortorder));
+        }
+        // Only set visibility if it's different from the current value.
+        if ($enabled && !array_key_exists($pluginname, $plugins)) {
+            $plugins[$pluginname] = $pluginname;
+            $haschanged = true;
+        } else if (!$enabled && array_key_exists($pluginname, $plugins)) {
+            unset($plugins[$pluginname]);
+            $haschanged = true;
+        }
+
+        if ($haschanged) {
+            add_to_config_log('media_plugins_sortorder', !$enabled, $enabled, $pluginname);
+            self::set_enabled_plugins(array_flip($plugins));
+        }
+
+        return $haschanged;
+    }
+
     /**
      * Sets the current plugin as enabled or disabled
      * When enabling tries to guess the sortorder based on default rank returned by the plugin.
      * @param bool $newstate
      */
     public function set_enabled($newstate = true) {
-        $enabled = self::get_enabled_plugins();
-        if (array_key_exists($this->name, $enabled) == $newstate) {
-            // Nothing to do.
-            return;
-        }
-        if ($newstate) {
-            // Enable media plugin.
-            $plugins = \core_plugin_manager::instance()->get_plugins_of_type('media');
-            if (!array_key_exists($this->name, $plugins)) {
-                // Can not be enabled.
-                return;
-            }
-            $rank = $this->get_rank();
-            $position = 0;
-            // Insert before the first enabled plugin which default rank is smaller than the default rank of this one.
-            foreach ($enabled as $playername) {
-                if (($player = $plugins[$playername]) && ($rank > $player->get_rank())) {
-                    break;
-                }
-                $position++;
-            }
-            array_splice($enabled, $position, 0, [$this->name]);
-            self::set_enabled_plugins($enabled);
-        } else {
-            // Disable media plugin.
-            unset($enabled[$this->name]);
-            self::set_enabled_plugins($enabled);
-        }
+        self::enable_plugin($this->name, $newstate);
     }
 
     /**
