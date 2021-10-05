@@ -95,7 +95,15 @@ export default class extends Tree {
      * @param {JQuery} item  the jQuery object
      */
     toggleGroup(item) {
-        item.find(this.selectors.COLLAPSE).get(0).click();
+        const toggler = item.find(this.selectors.COLLAPSE);
+        let collapsibleId = toggler.data('target') ?? toggler.attr('href');
+        if (!collapsibleId) {
+            return;
+        }
+        collapsibleId = collapsibleId.replace('#', '');
+
+        // Bootstrap 4 uses jQuery to interact with collapsibles.
+        $(`#${collapsibleId}`).collapse('toggle');
     }
 
     /**
