@@ -80,9 +80,6 @@ define(['core/ajax', 'core/tree', 'core/templates', 'jquery'], (Ajax, TreeAccess
         // Add all nodes to the Tree.
         for (let i = 0; i < nelements; i++) {
 
-            // Search the parent of the node.
-            let parent = null;
-
             // Create a new node.
             let newNode = new NodeTree(
                 nodeids[i],
@@ -114,7 +111,7 @@ define(['core/ajax', 'core/tree', 'core/templates', 'jquery'], (Ajax, TreeAccess
         }
 
         // Make the tree accessible.
-        Promise.all(promises).finally((values) => {
+        Promise.all(promises).finally(() => {
             this.accessibleview = new TreeAccessible('#' + this.rootNode.getAttribute('id'));
         });
     };
@@ -137,12 +134,12 @@ define(['core/ajax', 'core/tree', 'core/templates', 'jquery'], (Ajax, TreeAccess
 
                     let promises = [];
                     node.children.forEach((nodeChild) => {
-                        promises.push(this.display(nodeChild.id))
+                        promises.push(this.display(nodeChild.id));
                         //promises.push(this.children[index].display());
                     });
 
                     // Make the node accessible.
-                    Promise.all(promises).finally((values) => {
+                    Promise.all(promises).finally(() => {
                         this.accessibleview.initialiseNodes($('#' + nodeId));
                     });
                 }
@@ -194,7 +191,7 @@ define(['core/ajax', 'core/tree', 'core/templates', 'jquery'], (Ajax, TreeAccess
                 }
                 let checked = 'checkbox-unchecked';
                 if (node.checked) {
-                    checked = 'checkbox-checked'
+                    checked = 'checkbox-checked';
                 }
 
 
@@ -221,7 +218,7 @@ define(['core/ajax', 'core/tree', 'core/templates', 'jquery'], (Ajax, TreeAccess
                         resolve(true);
                     }).fail(function (ex) {
                     reject(false);
-                    console.error(ex);
+                    window.console.log(ex);
                 });
             } else {
                 resolve(true);
@@ -255,7 +252,7 @@ define(['core/ajax', 'core/tree', 'core/templates', 'jquery'], (Ajax, TreeAccess
                 this.setChecked(childNode.id, checked);
             });
         }
-    }
+    };
 
     /**
      * Submit the settings to the form.
