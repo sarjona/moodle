@@ -152,8 +152,7 @@ class manager {
      *
      * Settings without plugin are marked as 'none' in the plugin field
      *
-     * Returns an standarized settings array format, $this->get_settings_branches
-     * will get the html or js to display the settings tree
+     * Returns an standarized settings array format.
      *
      * @param array $dbsettings Standarized array,
      * format $array['plugin']['name'] = obj('name'=>'settingname', 'value'=>'settingvalue')
@@ -357,119 +356,5 @@ class manager {
         }
 
         return $settings;
-    }
-
-    /**
-     * Gets the javascript to populate the settings tree
-     *
-     * @param array $settings Array format $array['plugin']['settingname'] = settings_types child class
-     */
-    public function get_settings_branches(array $settings): array {
-
-        // Nodes should be added in hierarchical order.
-        $nodes = ['categories' => [], 'pages' => [], 'settings' => []];
-        $nodes = $this->get_settings_elements($settings, false, false, $nodes);
-
-        $levels = ['categories', 'pages', 'settings'];
-        foreach ($levels as $level) {
-            foreach ($nodes[$level] as $data) {
-                $ids[] = $data[0];
-                $nodes[] = $data[1];
-                $labels[] = $data[2];
-                $descriptions[] = $data[3];
-                $parents[] = $data[4];
-            }
-        }
-        return [
-            'ids' => $ids,
-            'nodes' => $nodes,
-            'labels' => $labels,
-            'descriptions' => $descriptions,
-            'parents' => $parents
-        ];
-    }
-
-    /**
-     * Gets the html code to select the settings to export/import/load
-     *
-     * @param array $allsettings Array format $array['plugin']['settingname'] = settings_types child class
-     * @param object|bool $admintree The admin tree branche object or false if we are in the root
-     * @param object|bool $jsparentnode Name of the javascript parent category node
-     * @param array $nodes Tree nodes
-     * @return array Code to output
-     */
-    public function get_settings_elements(array $allsettings, $admintree = false, $jsparentnode = false,
-            array &$nodes = []): array {
-
-        if (empty($this->adminroot)) {
-            $this->adminroot = admin_get_root(false, true);
-        }
-
-        // If there are no children, load admin tree and iterate through.
-        if (!$admintree) {
-            $this->adminroot = admin_get_root(false, true);
-            $admintree = $this->adminroot->children;
-        }
-
-        // If there are no parentnode specified the parent becomes the tree root.
-        if (!$jsparentnode) {
-            $jsparentnode = 'root';
-        }
-
-        // Iterates through children.
-        foreach ($admintree as $key => $child) {
-            $pagesettings = [];
-
-            // We must search category children.
-            if (is_a($child, 'admin_category')) {
-                if ($child->children) {
-                    $categorynode = $child->name . 'Node';
-                    $nodehtml = $child->visiblename;
-                    $nodes['categories'][$categorynode] = ['category', $categorynode, (string) $nodehtml, '', $jsparentnode];
-
-                    // Not all admin_categories have admin_settingpages.
-                    $this->get_settings_elements($allsettings, $child->children, $categorynode, $nodes);
-                }
-
-                // Settings page.
-            } else if (is_a($child, 'admin_settingpage') || is_a($child, 'admin_externalpage')) {
-                // Only if there are settings.
-                if (property_exists($child, 'settings')) {
-
-                    // The name of that page tree node.
-                    $pagenode = $child->name . 'Node';
-
-                    foreach ($child->settings as $values) {
-                        $settingname = $values->name;
-
-                        // IF no plugin was specified mark as 'none'.
-                        if (!$plugin = $values->plugin) {
-                            $plugin = 'none';
-                        }
-
-                        if (empty($allsettings[$plugin][$settingname])) {
-                            continue;
-                        }
-
-                        // Getting setting data.
-                        $setting = $allsettings[$plugin][$settingname];
-                        $settingid = $setting->get_id();
-
-                        // String to add the setting to js tree.
-                        $pagesettings[$settingid] = [$settingid, $settingid, $setting->get_text(),
-                                $setting->get_description(), $pagenode];
-                    }
-
-                    // The page node only should be added if it have children.
-                    if ($pagesettings) {
-                        $nodehtml = $child->visiblename;
-                        $nodes['pages'][$pagenode] = ['page', $pagenode, (string) $nodehtml, '', $jsparentnode];
-                        $nodes['settings'] = array_merge($nodes['settings'], $pagesettings);
-                    }
-                }
-            }
-        }
-
-        return $nodes;
     }
 }

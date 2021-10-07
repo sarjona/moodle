@@ -27,11 +27,10 @@
 }}
 
 {{#appliedchanges.show}}
-    <h3 class="admin_presets_success">{{#str}}rollbackresults, tool_admin_presets{{/str}}</h3>
+    <div class="alert alert-success">{{#str}}rollbackresults, tool_admin_presets{{/str}}</div>
     {{#appliedchanges}}{{> tool_admin_presets/local/tables/old_and_new_value_settings_table}}{{/appliedchanges}}
 {{/appliedchanges.show}}
 {{#skippedchanges.show}}
-    <h3 class="admin_presets_error">{{#str}}rollbackfailures, tool_admin_presets{{/str}}</h3>
+    <div class="alert alert-info">{{#str}}rollbackfailures, tool_admin_presets{{/str}}</div>
     {{#skippedchanges}}{{> tool_admin_presets/local/tables/old_and_new_value_settings_table}}{{/skippedchanges}}
 {{/skippedchanges.show}}
-

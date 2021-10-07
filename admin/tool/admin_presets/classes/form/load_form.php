@@ -39,16 +39,11 @@ class load_form extends moodleform {
 
         $mform = &$this->_form;
 
-        // Moodle settings table.
-        $mform->addElement('header', 'general',
-            get_string('adminsettings', 'tool_admin_presets'));
-
-        $class = 'ygtv-checkbox';
-        $icon = $OUTPUT->pix_icon('i/loading_small', get_string('loading', 'tool_admin_presets'));
-        $mform->addElement('html', '<ul id="settings_tree_div" class="' . $class . '">' . $icon . '</ul>');
-
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
+
+        $mform->addElement('html',
+                '<div class="adminpreset_appdescription">' . get_string('applypresetdescription', 'tool_admin_presets') . '</div>');
 
         $buttonarray = [];
         $buttonarray[] = $mform->createElement('submit', 'admin_presets_submit',

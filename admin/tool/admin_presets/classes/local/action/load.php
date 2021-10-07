@@ -57,7 +57,7 @@ class load extends base {
             }
 
             $presetdbsettings = $this->manager->get_settings_from_db($items);
-            // Standarized format $array['plugin']['settingname'] = child class.
+            // Standarized format is $array['plugin']['settingname'] = child class.
             $presetsettings = $this->manager->get_settings($presetdbsettings, false, []);
 
             $adminpresetapplyid = null;
@@ -65,32 +65,18 @@ class load extends base {
             $applied = [];
             $skipped = [];
 
-            foreach ($_POST as $varname => $ignored) {
+            // Set settings values.
+            foreach ($presetsettings as $plugin => $pluginsettings) {
+                foreach ($pluginsettings as $settingname => $presetsetting) {
+                    unset($updatesetting);
 
-                unset($updatesetting);
-
-                if (strstr($varname, '@@') != false) {
-
-                    // Format: [0] => setting [1] => plugin.
-                    $name = explode('@@', $varname);
-
-                    // Just to be sure.
-                    if (empty($presetsettings[$name[1]][$name[0]])) {
-                        continue;
-                    }
-                    if (empty($siteavailablesettings[$name[1]][$name[0]])) {
-                        continue;
-                    }
-
-                    // New and old values.
-                    $presetsetting = $presetsettings[$name[1]][$name[0]];
-                    $sitesetting = $siteavailablesettings[$name[1]][$name[0]];
+                    // Current value (which will become old value if the setting is legit to be applied).
+                    $sitesetting = $siteavailablesettings[$plugin][$settingname];
 
                     // Wrong setting, set_value() method has previously cleaned the value.
-                    if ($presetsetting->get_value() === false) {
-                        debugging($presetsetting->get_settingdata()->plugin . '/' .
-                            $presetsetting->get_settingdata()->name .
-                            ' setting has a wrong value!', DEBUG_DEVELOPER);
+                    if ($sitesetting->get_value() === false) {
+                        debugging($presetsetting->get_settingdata()->plugin . '/' . $presetsetting->get_settingdata()->name .
+                                ' setting has a wrong value!', DEBUG_DEVELOPER);
                         continue;
                     }
 
@@ -102,7 +88,7 @@ class load extends base {
                     // If one of the setting attributes values is different, setting must also be updated.
                     if ($presetsetting->get_attributes_values()) {
 
-                        $siteattributesvalues = $sitesetting->get_attributes_values();
+                        $siteattributesvalues = $presetsetting->get_attributes_values();
                         foreach ($presetsetting->get_attributes_values() as $attributename => $attributevalue) {
 
                             if ($attributevalue !== $siteattributesvalues[$attributename]) {
@@ -154,9 +140,8 @@ class load extends base {
                         // Added to changed values.
                         $data['oldvisiblevalue'] = $sitesetting->get_visiblevalue();
                         $applied[] = $data;
-
-                        // Unnecessary changes (actual setting value).
                     } else {
+                        // Unnecessary changes (actual setting value).
                         $skipped[] = $data;
                     }
                 }
@@ -167,7 +152,7 @@ class load extends base {
             foreach ($plugins as $plugin) {
                 $pluginclass = \core_plugin_manager::resolve_plugininfo_class($plugin->plugin);
                 $enabledplugins = $pluginclass::get_enabled_plugins();
-                $oldvalue = array_key_exists($plugin->name, $enabledplugins);
+                $oldvalue = $enabledplugins && array_key_exists($plugin->name, $enabledplugins);
 
                 $visiblename = $plugin->plugin . '_' . $plugin->name;
                 if (get_string_manager()->string_exists('pluginname', $plugin->plugin . '_' . $plugin->name)) {
@@ -253,9 +238,6 @@ class load extends base {
         if (!$items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $data->id])) {
             throw new moodle_exception('errornopreset', 'tool_admin_presets');
         }
-
-        // Load site settings in the common format and do the js calls to populate the tree.
-        $PAGE->requires->js_call_amd('tool_admin_presets/tree', 'init', ['load', $data->id]);
 
         // Print preset basic data.
         $list = new presets_list([$preset]);

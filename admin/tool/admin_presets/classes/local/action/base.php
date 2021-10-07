@@ -143,11 +143,11 @@ class base {
         );
 
         $text = null;
+        $title = $titlestr;
         if ($this->action == 'base') {
-            $title = $titlestr;
             $text = get_string('plugindescription', 'tool_admin_presets');
         } else {
-            $title = $actionstr . ': ' . $modestr;
+            $title = $title . ': ' . $modestr;
         }
 
         $PAGE->navbar->add($title);

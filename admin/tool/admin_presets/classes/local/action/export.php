@@ -50,9 +50,6 @@ class export extends base {
 
         global $CFG, $PAGE;
 
-        // Load site settings in the common format and do the js calls to populate the tree.
-        $PAGE->requires->js_call_amd('tool_admin_presets/tree', 'init', ['export', 0]);
-
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export&mode=execute';
         $this->moodleform = new export_form($url);
     }
@@ -68,9 +65,6 @@ class export extends base {
 
         $url = $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export&mode=execute';
         $this->moodleform = new export_form($url);
-
-        // Reload site settings.
-        $sitesettings = $this->manager->get_site_settings();
 
         if ($data = $this->moodleform->get_data()) {
 
@@ -92,45 +86,27 @@ class export extends base {
             // Store it here for logging and other future id-oriented stuff.
             $this->id = $preset->id;
 
-            // We must ensure that there are settings selected.
+            // Store settings.
             $settingsfound = false;
-            foreach ($_POST as $varname => $value) {
-
-                unset($setting);
-
-                if (strstr($varname, '@@') != false) {
-
-                    // Avoid sensible data.
-                    if (!empty($data->excludesensiblesettings) && !empty($this->sensiblesettings[$varname])) {
-                        continue;
-                    }
-
-                    $name = explode('@@', $varname);
+            $sitesettings = $this->manager->get_site_settings();
+            foreach ($sitesettings as $plugin => $pluginsettings) {
+                foreach ($pluginsettings as $settingname => $sitesetting) {
                     $setting = new stdClass();
                     $setting->adminpresetid = $preset->id;
-                    $setting->plugin = $name[1];
-                    $setting->name = $name[0];
-                    $pluginexists = array_key_exists($setting->plugin, $sitesettings);
-                    $settingexists = $pluginexists && array_key_exists($setting->name, $sitesettings[$setting->plugin]);
-                    if (!$settingexists) {
-                        // Ignore it if the plugin or the setting doesn't exist.
-                        continue;
-                    }
-
-                    $setting->value = $sitesettings[$setting->plugin][$setting->name]->get_value();
-
+                    $setting->plugin = $plugin;
+                    $setting->name = $settingname;
+                    $setting->value = $sitesetting->get_value();
                     if (!$setting->id = $DB->insert_record('tool_admin_presets_it', $setting)) {
                         throw new moodle_exception('errorinserting', 'tool_admin_presets');
                     }
 
                     // Setting attributes must also be exported.
-                    if ($attributes = $sitesettings[$setting->plugin][$setting->name]->get_attributes_values()) {
-                        foreach ($attributes as $attributename => $valueattr) {
-
+                    if ($attributes = $sitesetting->get_attributes_values()) {
+                        foreach ($attributes as $attname => $attvalue) {
                             $attr = new stdClass();
                             $attr->itemid = $setting->id;
-                            $attr->name = $attributename;
-                            $attr->value = $valueattr;
+                            $attr->name = $attname;
+                            $attr->value = $attvalue;
 
                             $DB->insert_record('tool_admin_presets_it_a', $attr);
                         }
@@ -140,7 +116,7 @@ class export extends base {
             }
 
             // Store plugins visibility (enabled/disabled).
-            // TODO: For now all the plugins will be included (let's wait for the final tree version).
+            $pluginsfound = false;
             $manager = \core_plugin_manager::instance();
             $types = $manager->get_plugin_types();
             foreach ($types as $plugintype => $notused) {
@@ -155,12 +131,13 @@ class export extends base {
                         $entry->enabled = (!empty($enabled) && array_key_exists($pluginname, $enabled));
 
                         $DB->insert_record('tool_admin_presets_plug', $entry);
+                        $pluginsfound = true;
                     }
                 }
             }
 
-            // If there are no valid or selected settings we should delete the admin preset record.
-            if (!$settingsfound) {
+            // If there are no settings nor plugins, the admin preset record should be removed.
+            if (!$settingsfound && !$pluginsfound) {
                 $DB->delete_records('tool_admin_presets', ['id' => $preset->id]);
                 redirect(
                     $CFG->wwwroot . '/admin/tool/admin_presets/index.php?action=export',
