@@ -32,10 +32,9 @@ use tool_admin_presets\helper;
 function xmldb_tool_admin_presets_install() {
 
     // Create the "Lite Moodle" preset.
-    // TODO: Confirm strings and move them to the lang file.
     $data = [
-        'name' => 'Lite Moodle',
-        'comments' => 'Minimalist version with only a few of the most common plugins and features enabled.',
+        'name' => get_string('litepreset', 'tool_admin_presets'),
+        'comments' => get_string('litepresetdescription', 'tool_admin_presets'),
     ];
     $presetid = helper::create_preset($data);
 
@@ -141,10 +140,9 @@ function xmldb_tool_admin_presets_install() {
     helper::add_plugin($presetid, 'editor', 'tinymce', false);
 
     // Create the "Default Moodle" preset.
-    // TODO: Confirm strings and move them to the lang file.
     $data = [
-        'name' => 'Default Moodle',
-        'comments' => 'The default Moodle installation with most of the features and plugins enabled',
+        'name' => get_string('defaultpreset', 'tool_admin_presets'),
+        'comments' => get_string('defaultpresetdescription', 'tool_admin_presets'),
     ];
     $presetid = helper::create_preset($data);
 

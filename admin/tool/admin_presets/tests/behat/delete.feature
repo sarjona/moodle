@@ -5,7 +5,7 @@ Feature: I can delete a preset
     Given I log in as "admin"
     And the following config values are set as admin:
       | enablebadges | 1 |
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     And I click on "Export settings" "link_or_button"
     And I set the following fields to these values:
       | Name | My preset to be deleted |
@@ -31,7 +31,7 @@ Feature: I can delete a preset
     Given I open the action menu in "Lite Moodle" "table_row"
     And I choose "Show" in the open action menu
     And I click on "Apply" "button"
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     When I open the action menu in "Lite Moodle" "table_row"
     And I choose "Delete" in the open action menu
     Then I should see "This preset has been previously applied, if you delete it you can not return to the previous state"

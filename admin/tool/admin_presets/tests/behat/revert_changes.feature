@@ -3,7 +3,7 @@ Feature: I can revert changes after a load
 
   Background: Create a preset to revert from
     Given I log in as "admin"
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     And I click on "Export settings" "link_or_button"
     And I set the following fields to these values:
       | Name | My preset revert |
@@ -21,11 +21,11 @@ Feature: I can revert changes after a load
     And I navigate to "Plugins > Blocks > Course overview" in site administration
     And I set the field "Custom field" to "1"
     And I press "Save changes"
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
     And I click on "Show" "link" in the "My preset" "table_row"
     And I press "Apply"
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
     And I click on "Show version history" "link" in the "My preset" "table_row"
     And I follow "Restore this version"
