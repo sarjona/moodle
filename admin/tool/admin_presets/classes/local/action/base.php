@@ -139,13 +139,25 @@ class base {
         $PAGE->set_heading($SITE->fullname);
 
         $PAGE->navbar->add(get_string('pluginname', 'tool_admin_presets'),
-            new moodle_url($CFG->wwwroot . '/admin/tool/admin_presets/index.php'));
+            new moodle_url($CFG->wwwroot . '/admin/tool/admin_presets/index.php')
+        );
 
-        $PAGE->navbar->add($actionstr . ': ' . $modestr);
+        $text = null;
+        if ($this->action == 'base') {
+            $title = $titlestr;
+            $text = get_string('plugindescription', 'tool_admin_presets');
+        } else {
+            $title = $actionstr . ': ' . $modestr;
+        }
+
+        $PAGE->navbar->add($title);
 
         echo $OUTPUT->header();
 
-        echo $OUTPUT->heading($actionstr . ': ' . $modestr, 1);
+        echo $OUTPUT->heading($title, 1);
+        if ($text) {
+            echo $text;
+        }
     }
 
     public function log(): void {

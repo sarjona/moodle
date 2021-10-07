@@ -31,15 +31,14 @@ use tool_admin_presets\helper;
  */
 function xmldb_tool_admin_presets_install() {
 
-    // Create the "Lite Moodle" preset.
-    // TODO: Confirm strings and move them to the lang file.
+    // Create the "Lite" site admin preset.
     $data = [
-        'name' => 'Lite Moodle',
-        'comments' => 'Minimalist version with only a few of the most common plugins and features enabled.',
+        'name' => get_string('litepreset', 'tool_admin_presets'),
+        'comments' => get_string('litepresetdescription', 'tool_admin_presets'),
     ];
     $presetid = helper::create_preset($data);
 
-    // Add settings to the "Lite Moodle" preset.
+    // Add settings to the "Lite" site admin preset.
     helper::add_item($presetid, 'usecomments', '0');
     helper::add_item($presetid, 'usetags', '0');
     helper::add_item($presetid, 'enablenotes', '0');
@@ -115,7 +114,7 @@ function xmldb_tool_admin_presets_install() {
     helper::add_plugin($presetid, 'filter', 'activitynames', TEXTFILTER_DISABLED);
 
     // Question behaviours: Disable Adaptive mode (no penalties), Deferred feedback with CBM, Immediate feedback with CBM.
-    helper::add_plugin($presetid, 'qbehaviour', 'adaptativenopenalty', false);
+    helper::add_plugin($presetid, 'qbehaviour', 'adaptivenopenalty', false);
     helper::add_plugin($presetid, 'qbehaviour', 'deferredcbm', false);
     helper::add_plugin($presetid, 'qbehaviour', 'immediatecbm', false);
 
@@ -140,15 +139,14 @@ function xmldb_tool_admin_presets_install() {
     // Text editors: Disable TinyMCE HTML editor.
     helper::add_plugin($presetid, 'editor', 'tinymce', false);
 
-    // Create the "Default Moodle" preset.
-    // TODO: Confirm strings and move them to the lang file.
+    // Create the "Full" site admin preset.
     $data = [
-        'name' => 'Default Moodle',
-        'comments' => 'The default Moodle installation with most of the features and plugins enabled',
+        'name' => get_string('fullpreset', 'tool_admin_presets'),
+        'comments' => get_string('fullpresetdescription', 'tool_admin_presets'),
     ];
     $presetid = helper::create_preset($data);
 
-    // Add settings to the "Full Moodle" preset.
+    // Add settings to the "Full" site admin preset.
     helper::add_item($presetid, 'usecomments', '1');
     helper::add_item($presetid, 'usetags', '1');
     helper::add_item($presetid, 'enablenotes', '1');
