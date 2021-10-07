@@ -3,7 +3,7 @@ Feature: I can export and import site settings
 
   Background: Create a preset to load
     Given I log in as "admin"
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     And I click on "Export settings" "link_or_button"
     And I set the following fields to these values:
       | Name | My preset |
@@ -21,7 +21,7 @@ Feature: I can export and import site settings
     And I navigate to "Plugins > Blocks > Course overview" in site administration
     And I set the field "Custom field" to "1"
     And I press "Save changes"
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
     And I click on "Show" "link" in the "My preset" "table_row"
     And I press "Apply"
@@ -41,7 +41,7 @@ Feature: I can export and import site settings
 
   @javascript
   Scenario: Settings don't change if you import what you just exported
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
     And I click on "Actions" "link_or_button" in the "My preset" "table_row"
     And I click on "Show" "link" in the "My preset" "table_row"
     When I press "Apply"

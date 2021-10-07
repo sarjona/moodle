@@ -3,15 +3,15 @@ Feature: I should see pre-installed presets in my presets list
 
   Background:
     Given I log in as "admin"
-    And I navigate to "Admin presets" in site administration
+    And I navigate to "Site admin presets" in site administration
 
   @javascript
-  Scenario: Lite Moodle preset is pre-installed
-    Given "Lite Moodle" "table_row" should exist
-    When I open the action menu in "Lite Moodle" "table_row"
+  Scenario: Lite site admin preset is pre-installed
+    Given "Lite" "table_row" should exist
+    When I open the action menu in "Lite" "table_row"
     And I choose "Show" in the open action menu
     Then I should see "Load settings: select settings"
-    And "Lite Moodle" "table_row" should exist
+    And "Lite" "table_row" should exist
     And I should see "Users" in the "#settings_tree_div" "css_element"
     And I should see "Plugins" in the "#settings_tree_div" "css_element"
     And I should see "Appearance" in the "#settings_tree_div" "css_element"
@@ -49,12 +49,12 @@ Feature: I should see pre-installed presets in my presets list
     And "User menu items" "table_row" should exist
 
   @javascript
-  Scenario: Default Moodle preset is pre-installed
-    Given "Default Moodle" "table_row" should exist
-    When I open the action menu in "Default Moodle" "table_row"
+  Scenario: Full site admin preset is pre-installed
+    Given "Full" "table_row" should exist
+    When I open the action menu in "Full" "table_row"
     And I choose "Show" in the open action menu
     Then I should see "Load settings: select settings"
-    And "Default Moodle" "table_row" should exist
+    And "Full" "table_row" should exist
     And I should see "Users" in the "#settings_tree_div" "css_element"
     And I should see "Plugins" in the "#settings_tree_div" "css_element"
     And I should see "Appearance" in the "#settings_tree_div" "css_element"
