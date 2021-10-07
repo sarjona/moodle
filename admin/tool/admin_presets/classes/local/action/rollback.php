@@ -199,10 +199,15 @@ class rollback extends base {
             $pluginclass = \core_plugin_manager::resolve_plugininfo_class($plugin->plugin);
             $pluginclass::enable_plugin($plugin->name, (bool) $plugin->oldvalue);
 
+            $visiblename = $plugin->plugin . '_' . $plugin->name;
+            if (get_string_manager()->string_exists('pluginname', $plugin->plugin . '_' . $plugin->name)) {
+                $visiblename = get_string('pluginname', $plugin->plugin . '_' . $plugin->name);
+            }
+
             // Output table.
             $rollback[] = [
                 'plugin' => $plugin->plugin,
-                'visiblename' => get_string('pluginname', $plugin->plugin . '_' . $plugin->name),
+                'visiblename' => $visiblename,
                 'oldvisiblevalue' => $plugin->value,
                 'visiblevalue' => $plugin->oldvalue,
             ];

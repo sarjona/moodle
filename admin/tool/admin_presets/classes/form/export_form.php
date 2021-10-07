@@ -59,14 +59,11 @@ class export_form extends moodleform {
             get_string('autohidesensiblesettings', 'tool_admin_presets'));
         $mform->setDefault('excludesensiblesettings', 1);
 
-        // Moodle settings table.
-        $mform->addElement('header', 'general',
-            get_string('adminsettings', 'tool_admin_presets'));
-
-        $icon = $OUTPUT->pix_icon('i/loading_small', get_string('loading', 'tool_admin_presets'));
-        $mform->addElement('html', '<ul id="settings_tree_div" class="ygtv-checkbox" role="tree">' . $icon . '</ul><br/>');
-
         // Submit.
-        $mform->addElement('submit', 'admin_presets_submit', get_string('savechanges'));
+        $buttonarray = [];
+        $buttonarray[] = $mform->createElement('submit', 'admin_presets_submit', get_string('savechanges'));
+        $buttonarray[] = $mform->createElement('cancel');
+        $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
+        $mform->closeHeaderBefore('buttonar');
     }
 }
