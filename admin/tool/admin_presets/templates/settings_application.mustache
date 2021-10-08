@@ -27,14 +27,25 @@
 }}
 
 {{#appliedchanges.show}}
-    <div class="alert alert-success">{{#str}}settingsappliednotification, tool_admin_presets{{/str}}</div>
-    <h2>{{#str}}settingsapplied, tool_admin_presets{{/str}}</h2>
+    {{#appliedchanges.message}}
+        {{> core/notification_success}}
+    {{/appliedchanges.message}}
+
+    {{#appliedchanges.heading}}
+        <h2>{{{.}}}</h2>
+    {{/appliedchanges.heading}}
+
     {{#appliedchanges}}{{> tool_admin_presets/local/tables/old_and_new_value_settings_table}}{{/appliedchanges}}
 {{/appliedchanges.show}}
 {{^appliedchanges.show}}
-    <div class="alert alert-info">{{#str}}nothingloaded, tool_admin_presets{{/str}}</div>
+    {{#appliedchanges.message}}
+        {{> core/notification_info}}
+    {{/appliedchanges.message}}
 {{/appliedchanges.show}}
 {{#skippedchanges.show}}
-    <h2>{{#str}}settingsnotapplied, tool_admin_presets{{/str}}</h2>
+    {{#appliedchanges.heading}}
+        <h2>{{{.}}}</h2>
+    {{/appliedchanges.heading}}
+
     {{#skippedchanges}}{{> tool_admin_presets/local/tables/actual_value_settings_table}}{{/skippedchanges}}
 {{/skippedchanges.show}}

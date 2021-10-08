@@ -115,6 +115,7 @@ $string['settingsapplied'] = 'Settings applied';
 $string['settingsappliednotification'] = 'Settings for this preset has been applied successfully. In the preset menu now there is a new option, "Show version history", to restore the previous settings before this preset was applied.';
 $string['settingsnotapplicable'] = 'Settings not applicable to this Moodle version';
 $string['settingsnotapplied'] = 'Settings skipped, they are all already loaded';
+$string['settingstobeapplied'] = 'Settings to be applied';
 $string['show'] = 'Show';
 $string['showhistory'] = 'Show version history';
 $string['site'] = 'Site';
