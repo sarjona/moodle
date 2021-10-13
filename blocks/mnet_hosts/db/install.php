@@ -15,25 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Disable the wiki module for new installs
+ * Mnet hosts block installation.
  *
- * @package mod_wiki
+ * @package    block_mnet_hosts
  * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
-
 
 /**
- * Code run after the mod_wiki module database tables have been created.
  * Disables this plugin for new installs
  * @return bool
  */
-
-function xmldb_wiki_install() {
+function xmldb_block_mnet_hosts_install() {
     global $DB;
 
-    // Hide the module.
-    return $DB->set_field('modules', 'visible', '0', ['name' => 'wiki']);
-    // Should not need to modify course modinfo because this is a new install.
+    // Disable mnet_hosts on new installs by default.
+    return $DB->set_field('block', 'visible', 0, ['name' => 'mnet_hosts']);
 }

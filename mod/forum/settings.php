@@ -52,7 +52,7 @@ if ($ADMIN->fulltree) {
 
     // Default number of attachments allowed per post in all forums
     $settings->add(new admin_setting_configtext('forum_maxattachments', get_string('maxattachments', 'forum'),
-                       get_string('configmaxattachments', 'forum'), 9, PARAM_INT));
+                       get_string('configmaxattachments', 'forum'), 3, PARAM_INT));
 
     // Default Subscription mode setting.
     $options = forum_get_subscriptionmode_options();

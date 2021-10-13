@@ -25,5 +25,6 @@
 function xmldb_block_feedback_install() {
     global $DB;
 
+    // Disable socialactivities on new installs by default.
+    return $DB->set_field('block', 'visible', 0, ['name' => 'feedback']);
 }
-

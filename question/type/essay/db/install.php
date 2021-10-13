@@ -15,25 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Installation file for the wikimedia repository
+ * Disable the calculated question type for new installs
  *
- * @package    repository_wikimedia
- * @category   repository
+ * @package    qtype_essay
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 /**
- * Create a default instance of the wikimedia repository
- *
- * @return bool A status indicating success or failure
+ * Disables this plugin for new installs
+ * @return bool
  */
-function xmldb_repository_wikimedia_install() {
-    global $CFG;
-    $result = true;
-    require_once($CFG->dirroot.'/repository/lib.php');
-    $wikimediaplugin = new repository_type('wikimedia', array(), true);
-    if(!$id = $wikimediaplugin->create(true)) {
-        $result = false;
-    }
-    return $result;
+function xmldb_qtype_essay_install() {
+
+    $class = core_plugin_manager::resolve_plugininfo_class('qtype');
+    $class::enable_plugin('essay', false);
+
+    return true;
 }

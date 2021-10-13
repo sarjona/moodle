@@ -30,9 +30,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Stub for database installation.
+ * Stub for imscp installation.
  */
 function xmldb_imscp_install() {
-    global $CFG;
+    global $DB;
 
+    // Hide the module.
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'imscp']);
 }

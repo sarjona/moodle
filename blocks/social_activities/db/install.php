@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,13 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-function xmldb_repository_local_install() {
-    global $CFG;
-    $result = true;
-    require_once($CFG->dirroot.'/repository/lib.php');
-    $local_plugin = new repository_type('local', array(), true);
-    if(!$id = $local_plugin->create(true)) {
-        $result = false;
-    }
-    return $result;
+/**
+ * Social activities block installation.
+ *
+ * @package    block_social_activities
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/**
+ * Disables this plugin for new installs
+ * @return bool
+ */
+function xmldb_block_social_activities_install() {
+    global $DB;
+
+    // Disable social_activities on new installs by default.
+    return $DB->set_field('block', 'visible', 0, ['name' => 'social_activities']);
 }

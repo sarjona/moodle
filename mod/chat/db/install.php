@@ -15,19 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Mathjax filter post install hook
+ * Disable the chat module for new installs
  *
- * @package    filter
- * @subpackage mathjaxloader
- * @copyright  2014 onwards Andrew Davis (andyjdavis)
+ * @package mod_chat
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
-function xmldb_filter_mathjaxloader_install() {
-    global $CFG;
-    require_once("$CFG->libdir/filterlib.php");
 
-    filter_set_global_state('mathjaxloader', TEXTFILTER_ON, -1);
+/**
+ * Code run after the mod_chat module database tables have been created.
+ * Disables this plugin for new installs
+ * @return bool
+ */
+function xmldb_chat_install() {
+    global $DB;
+
+    // Hide the module.
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'chat']);
+    // Should not need to modify course modinfo because this is a new install.
 }

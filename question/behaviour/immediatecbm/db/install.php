@@ -15,25 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Disable the wiki module for new installs
+ * Disable the immediatecbm question behaviour for new installs
  *
- * @package mod_wiki
+ * @package    qbehaviour_immediatecbm
  * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
-
 /**
- * Code run after the mod_wiki module database tables have been created.
  * Disables this plugin for new installs
  * @return bool
  */
+function xmldb_qbehaviour_immediatecbm_install() {
 
-function xmldb_wiki_install() {
-    global $DB;
+    $class = core_plugin_manager::resolve_plugininfo_class('qbehaviour');
+    $class::enable_plugin('immediatecbm', false);
 
-    // Hide the module.
-    return $DB->set_field('modules', 'visible', '0', ['name' => 'wiki']);
-    // Should not need to modify course modinfo because this is a new install.
+    return true;
 }

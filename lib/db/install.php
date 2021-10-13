@@ -119,7 +119,7 @@ function xmldb_main_install() {
     $defaults = array(
         'rolesactive'           => '0', // marks fully set up system
         'auth'                  => 'email',
-        'enrol_plugins_enabled' => 'manual,guest,self,cohort',
+        'enrol_plugins_enabled' => 'manual,guest,self',
         'theme'                 => theme_config::DEFAULT_THEME,
         'filter_multilang_converted' => 1,
         'siteidentifier'        => random_string(32).get_host_from_url($CFG->wwwroot),
@@ -129,7 +129,7 @@ function xmldb_main_install() {
         'sessiontimeout'        => 8 * 60 * 60, // Must be present during roles installation.
         'stringfilters'         => '', // These two are managed in a strange way by the filters.
         'filterall'             => 0, // setting page, so have to be initialised here.
-        'texteditors'           => 'atto,tinymce,textarea',
+        'texteditors'           => 'atto,textarea',
         'antiviruses'           => '',
         'media_plugins_sortorder' => 'videojs,youtube',
         'upgrade_extracreditweightsstepignored' => 1, // New installs should not run this upgrade step.

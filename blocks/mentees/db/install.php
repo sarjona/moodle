@@ -15,25 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Installation for the URL repository
+ * Mentees block installation.
  *
- * @package    repository_url
- * @category   repository
+ * @package    block_mentees
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * Create a default instance of the URL repository
- *
- * @return bool A status indicating success or failure
+ * Disables this plugin for new installs
+ * @return bool
  */
-function xmldb_repository_url_install() {
-    global $CFG;
-    $result = true;
-    require_once($CFG->dirroot.'/repository/lib.php');
-    $urlplugin = new repository_type('url', array(), true);
-    if(!$id = $urlplugin->create(true)) {
-        $result = false;
-    }
-    return $result;
+function xmldb_block_mentees_install() {
+    global $DB;
+
+    // Disable mentees on new installs by default.
+    return $DB->set_field('block', 'visible', 0, ['name' => 'mentees']);
 }

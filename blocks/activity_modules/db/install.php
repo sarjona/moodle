@@ -15,25 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Disable the wiki module for new installs
+ * Activity modules block installation.
  *
- * @package mod_wiki
+ * @package    block_activity_modules
  * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
-
 
 /**
- * Code run after the mod_wiki module database tables have been created.
  * Disables this plugin for new installs
  * @return bool
  */
-
-function xmldb_wiki_install() {
+function xmldb_block_activity_modules_install() {
     global $DB;
 
-    // Hide the module.
-    return $DB->set_field('modules', 'visible', '0', ['name' => 'wiki']);
-    // Should not need to modify course modinfo because this is a new install.
+    // Disable activity_modules on new installs by default.
+    return $DB->set_field('block', 'visible', 0, ['name' => 'activity_modules']);
 }

@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Disable the wiki module for new installs
+ * Disable the workshop module for new installs
  *
- * @package mod_wiki
+ * @package mod_workshop
  * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,15 +25,14 @@ defined('MOODLE_INTERNAL') || die();
 
 
 /**
- * Code run after the mod_wiki module database tables have been created.
+ * Code run after the mod_workshop module database tables have been created.
  * Disables this plugin for new installs
  * @return bool
  */
-
-function xmldb_wiki_install() {
+function xmldb_workshop_install() {
     global $DB;
 
     // Hide the module.
-    return $DB->set_field('modules', 'visible', '0', ['name' => 'wiki']);
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'workshop']);
     // Should not need to modify course modinfo because this is a new install.
 }
