@@ -99,4 +99,6 @@ function xmldb_survey_install() {
         $DB->insert_record('survey_questions', $record, false);
     }
 
+    // Hide the module.
+    $DB->set_field('modules', 'visible', '0', ['name' => 'survey']);
 }

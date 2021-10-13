@@ -25,16 +25,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Stub for database installation.
+ * Stub for lti installation.
  */
 function xmldb_lti_install() {
-    global $CFG, $OUTPUT;
+    global $DB;
 
-    // Create the private key.
-    require_once($CFG->dirroot . '/mod/lti/upgradelib.php');
-
-    $warning = mod_lti_verify_private_key();
-    if (!empty($warning)) {
-        echo $OUTPUT->notification($warning, 'notifyproblem');
-    }
+    // Hide the module.
+    $DB->set_field('modules', 'visible', '0', ['name' => 'lti']);
 }

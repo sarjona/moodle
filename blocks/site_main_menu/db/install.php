@@ -15,26 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Post installation and migration code.
+ * Site main menu block installation.
  *
- * This file replaces:
- *   - STATEMENTS section in db/install.xml
- *   - lib.php/modulename_install() post installation hook
- *   - partially defaults.php
- *
- * @package mod_imscp
- * @copyright  2009 Petr Skoda  {@link http://skodak.org}
+ * @package    block_site_main_menu
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
- * Stub for imscp installation.
+ * Disables this plugin for new installs
+ * @return bool
  */
-function xmldb_imscp_install() {
+function xmldb_block_site_main_menu_install() {
     global $DB;
 
-    // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'imscp']);
+    // Disable site_main_menu on new installs by default.
+    $DB->set_field('block', 'visible', 0, ['name' => 'site_main_menu']);
 }
+

@@ -15,26 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Post installation and migration code.
+ * Disable the numerical question type for new installs
  *
- * This file replaces:
- *   - STATEMENTS section in db/install.xml
- *   - lib.php/modulename_install() post installation hook
- *   - partially defaults.php
- *
- * @package mod_imscp
- * @copyright  2009 Petr Skoda  {@link http://skodak.org}
+ * @package    qtype_numerical
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Stub for imscp installation.
+ * Disables this plugin for new installs
+ * @return bool
  */
-function xmldb_imscp_install() {
-    global $DB;
+function xmldb_qtype_numerical_install() {
 
-    // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'imscp']);
+    $class = core_plugin_manager::resolve_plugininfo_class('qtype');
+    $class::enable_plugin('numerical', false);
+
+    return true;
 }

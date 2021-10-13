@@ -40,7 +40,7 @@ class editor extends base {
         global $CFG;
 
         if (empty($CFG->texteditors)) {
-            return array('atto'=>'atto', 'tinymce'=>'tinymce', 'textarea'=>'textarea');
+            return array('atto' => 'atto', 'textarea' => 'textarea');
         }
 
         $enabled = array();

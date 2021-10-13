@@ -15,17 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Filter post install hook
+ * Login block installation.
  *
- * @package    filter_activitynames
- * @copyright  2012 Petr Skoda {@link http://skodak.org}
+ * @package    block_login
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function xmldb_filter_activitynames_install() {
-    global $CFG;
-    require_once("$CFG->libdir/filterlib.php");
+/**
+ * Disables this plugin for new installs
+ * @return bool
+ */
+function xmldb_block_login_install() {
+    global $DB;
 
-    filter_set_global_state('activitynames', TEXTFILTER_ON, 1);
+    // Disable login on new installs by default.
+    $DB->set_field('block', 'visible', 0, ['name' => 'login']);
 }
 

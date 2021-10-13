@@ -89,7 +89,7 @@ if ($hassiteconfig) {
         $privacysettings->add(new admin_setting_configcheckbox('tool_dataprivacy/showdataretentionsummary',
             new lang_string('showdataretentionsummary', 'tool_dataprivacy'),
             new lang_string('showdataretentionsummary_desc', 'tool_dataprivacy'),
-            1));
+            0));
     }
 }
 

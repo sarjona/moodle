@@ -15,19 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Mathjax filter post install hook
+ * Section links block installation.
  *
- * @package    filter
- * @subpackage mathjaxloader
- * @copyright  2014 onwards Andrew Davis (andyjdavis)
+ * @package    block_section_links
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Disables this plugin for new installs
+ * @return bool
+ */
+function xmldb_block_section_links_install() {
+    global $DB;
 
-function xmldb_filter_mathjaxloader_install() {
-    global $CFG;
-    require_once("$CFG->libdir/filterlib.php");
-
-    filter_set_global_state('mathjaxloader', TEXTFILTER_ON, -1);
+    // Disable section_links on new installs by default.
+    $DB->set_field('block', 'visible', 0, ['name' => 'section_links']);
 }
+

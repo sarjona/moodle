@@ -15,25 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Installation file for the wikimedia repository
+ * Learning Plans block installation.
  *
- * @package    repository_wikimedia
- * @category   repository
+ * @package    block_lp
+ * @copyright  2021 Amaia Anabitarte <amaia@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * Create a default instance of the wikimedia repository
- *
- * @return bool A status indicating success or failure
+ * Disables this plugin for new installs
+ * @return bool
  */
-function xmldb_repository_wikimedia_install() {
-    global $CFG;
-    $result = true;
-    require_once($CFG->dirroot.'/repository/lib.php');
-    $wikimediaplugin = new repository_type('wikimedia', array(), true);
-    if(!$id = $wikimediaplugin->create(true)) {
-        $result = false;
-    }
-    return $result;
+function xmldb_block_lp_install() {
+    global $DB;
+
+    // Disable lp on new installs by default.
+    $DB->set_field('block', 'visible', 0, ['name' => 'lp']);
 }
+
