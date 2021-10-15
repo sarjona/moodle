@@ -18,6 +18,15 @@ Feature: Activity navigation
       | student1  | C1      | student         |
       | teacher1  | C1      | editingteacher  |
       | student1  | C2      | student         |
+    And I enable "chat" "mod" plugin
+    And I enable "data" "mod" plugin
+    And I enable "imscp" "mod" plugin
+    And I enable "lesson" "mod" plugin
+    And I enable "lti" "mod" plugin
+    And I enable "scorm" "mod" plugin
+    And I enable "survey" "mod" plugin
+    And I enable "wiki" "mod" plugin
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
       | activity   | name         | intro                       | course | idnumber  | section |
       | assign     | Assignment 1 | Test assignment description | C1     | assign1   | 0       |

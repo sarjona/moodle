@@ -16,7 +16,8 @@ Feature: In a lesson activity, students can review the answers they gave to ques
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
-    Given the following "activities" exist:
+    And I enable "lesson" "mod" plugin
+    And the following "activities" exist:
       | activity   | name             | intro                     | course | section | idnumber |
       | lesson     | Test lesson name | Test lesson description   | C1     | 1       | lesson1  |
     And I log in as "teacher1"

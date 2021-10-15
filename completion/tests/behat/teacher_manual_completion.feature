@@ -16,6 +16,7 @@ Feature: Allow teachers to manually mark users as complete when configured
       | user     | course | role           |
       | student1 | CC1    | student        |
       | teacher1 | CC1    | editingteacher |
+    And I enable "completionstatus" "block" plugin
     And I log in as "admin"
     And I am on "Completion course" course homepage
     And completion tracking is "Enabled" in current course

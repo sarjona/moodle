@@ -25,13 +25,17 @@ Feature: Adding random questions to a quiz based on category and tags
       | questioncategory     | qtype | name            | user     | questiontext    |
       | Questions Category 1 | essay | question 1 name | admin    | Question 1 text |
       | Questions Category 1 | essay | question 2 name | teacher1 | Question 2 text |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "core_question > Tags" exist:
       | question        | tag |
       | question 1 name | foo |
       | question 2 name | bar |
 
   Scenario: Available tags are shown in the autocomplete tag field
-    Given I am on the "Quiz 1" "mod_quiz > Edit" page logged in as "teacher1"
+    Given the following config values are set as admin:
+      | usetags | 1 |
+    And I am on the "Quiz 1" "mod_quiz > Edit" page logged in as "teacher1"
     When I open the "last" add to quiz menu
     And I follow "a random question"
     And I open the autocomplete suggestions list
@@ -39,7 +43,9 @@ Feature: Adding random questions to a quiz based on category and tags
     And "bar" "autocomplete_suggestions" should exist
 
   Scenario: A random question can be added to the quiz
-    Given I am on the "Quiz 1" "mod_quiz > Edit" page logged in as "teacher1"
+    Given the following config values are set as admin:
+      | usetags | 1 |
+    And I am on the "Quiz 1" "mod_quiz > Edit" page logged in as "teacher1"
     When I open the "last" add to quiz menu
     And I follow "a random question"
     And I set the field "Tags" to "foo"

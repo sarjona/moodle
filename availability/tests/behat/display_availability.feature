@@ -34,6 +34,7 @@ Feature: display_availability
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
+    And I enable "profile" "availability" plugin
 
   @javascript
   Scenario: Activity availability display

@@ -16,6 +16,7 @@ Feature: Display and choose from the available activities in course
       | teacher | C | editingteacher |
     And the following config values are set as admin:
       | enablemoodlenet | 0 | tool_moodlenet |
+    And I enable "lesson" "mod" plugin
     And I log in as "teacher"
     And I am on "Course" course homepage with editing mode on
 

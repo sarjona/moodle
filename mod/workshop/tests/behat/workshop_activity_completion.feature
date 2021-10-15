@@ -18,6 +18,7 @@ Feature: View activity completion information in the Workshop activity
       | student1 | C1 | student        |
       | student2 | C1 | student        |
       | teacher1 | C1 | editingteacher |
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
         | activity | name          | intro                     | course | submissiontypefile | completion | completionview |
         | workshop | Music history | Test workshop description | C1     | 1                  | 2          | 1              |

@@ -14,6 +14,7 @@ Feature: Content-Item support
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "lti" "mod" plugin
     And I log in as "admin"
     And I navigate to "Plugins > Activity modules > External tool > Manage tools" in site administration
     # Create tool type that supports deep linking.

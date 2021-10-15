@@ -16,6 +16,7 @@ Feature: availability_profile
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
+    And I enable "profile" "availability" plugin
 
   @javascript
   Scenario: Test condition

@@ -55,6 +55,7 @@ Feature: Access to preferences page
     Given I log in as "admin"
     And I am on site homepage
     And I turn editing mode on
+    And I enable "mentees" "block" plugin
     And I add the "Mentees" block
     And I navigate to "Users > Permissions > Define roles" in site administration
     And I click on "Add a new role" "button"

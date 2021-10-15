@@ -4,6 +4,9 @@ Feature: The logged in user block allows users to view their profile information
   As a teacher
   I can add the logged in user block to a course and view my information
 
+  Background:
+    Given I enable "myprofile" "block" plugin
+
   Scenario: View the logged in user block by a user in a course
     Given the following "users" exist:
       | username | firstname | lastname | email                | idnumber |
@@ -14,6 +17,7 @@ Feature: The logged in user block allows users to view their profile information
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "myprofile" "block" plugin
     When I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Logged in user" block

@@ -16,6 +16,7 @@ Feature: In Dashboard, a student can see their current status on all lessons wit
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity | name             | intro                   | deadline   | retake | course | idnumber |
       | lesson   | Test lesson name | Test lesson description | 1893481200 | 1      | C1     | lesson1  |

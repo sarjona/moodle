@@ -22,6 +22,7 @@ Feature: availability_grouping
     And the following "group members" exist:
       | user     | group |
       | student1 | GI1   |
+    And I enable "grouping" "availability" plugin
 
   @javascript
   Scenario: Test condition

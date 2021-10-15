@@ -18,6 +18,7 @@ Feature: In Dashboard, teacher can see the number of student attempts to lessons
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And I log in as "teacher1"
 
   Scenario: number of student attempts

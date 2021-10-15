@@ -6,7 +6,8 @@ Feature: Upload users to a cohort
 
   @javascript @skip_chrome_zerosize
   Scenario: Upload users and assign them to a course with cohort enrolment method enabled
-    Given the following "cohorts" exist:
+    Given I enable "cohort" "enrol" plugin
+    And the following "cohorts" exist:
       | name | idnumber |
       | Cohort 1 | ASD |
       | Cohort 2 | DSA |

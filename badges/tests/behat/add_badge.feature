@@ -5,7 +5,9 @@ Feature: Add badges to the system
   I need to manage badges in the system
 
   Background:
-    Given I am on homepage
+    Given the following config values are set as admin:
+      | enablebadges | 1 |
+    And I am on homepage
     And I log in as "admin"
 
   @javascript

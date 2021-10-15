@@ -16,7 +16,8 @@ Feature: Set end of lesson reached as a completion condition for a lesson
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
-    Given the following "activity" exists:
+    And I enable "lesson" "mod" plugin
+    And the following "activity" exists:
       | activity      | lesson                  |
       | course        | C1                      |
       | idnumber      | 0001                    |

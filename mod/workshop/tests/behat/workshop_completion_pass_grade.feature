@@ -19,6 +19,7 @@ Feature: Workshop submission and assessment with pass grade activity completion
       | student3 | c1     | student        |
       | student4 | c1     | student        |
       | teacher1 | c1     | editingteacher |
+    And I enable "workshop" "mod" plugin
     And the following "activity" exists:
       | activity                  | workshop                  |
       | name                      | TestWorkshop              |

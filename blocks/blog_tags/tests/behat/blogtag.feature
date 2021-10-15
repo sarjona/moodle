@@ -13,6 +13,9 @@ Feature: Adding blog tag block
     And the following "courses" exist:
       | fullname  | shortname |
       | Course 1  | c1        |
+    And the following config values are set as admin:
+      | usetags | 1 |
+      | enableblogs | 1 |
     And the following "tags" exist:
       | name         | isstandard  |
       | Neverusedtag | 1           |
@@ -20,6 +23,7 @@ Feature: Adding blog tag block
       | user     | course | role           |
       | teacher1 | c1     | editingteacher |
       | student1 | c1     | student        |
+    And I enable "blog_tags" "block" plugin
     When I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Blog tags" block

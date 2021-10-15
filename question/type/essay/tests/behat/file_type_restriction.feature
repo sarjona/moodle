@@ -16,6 +16,8 @@ I need to limit the submittable file types
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
+    And I enable "essay" "qtype" plugin
+    And I enable "private_files" "block" plugin
     And the following "question categories" exist:
       | contextlevel | reference | name           |
       | Course       | C1        | Test questions |
@@ -28,7 +30,7 @@ I need to limit the submittable file types
     And quiz "Quiz 1" contains the following questions:
       | question | page |
       | TF1      | 1    |
-    Given I am on the "Quiz 1" "mod_quiz > edit" page logged in as teacher1
+    And I am on the "Quiz 1" "mod_quiz > edit" page logged in as teacher1
     And I click on "Edit question TF1" "link"
     And I set the field "Allow attachments" to "1"
     And I set the field "Response format" to "No online text"
@@ -36,11 +38,13 @@ I need to limit the submittable file types
     And I set the field "filetypeslist[filetypes]" to ".txt"
     And I press "Save changes"
     Then I log out
+    And I log in as "student1"
+    And I turn editing mode on
+    And I add the "Private files" block
 
   @javascript @_file_upload
   Scenario: Preview an Essay question and submit a response with a correct filetype.
-    When I log in as "student1"
-    And I follow "Manage private files"
+    When I follow "Manage private files"
     And I upload "lib/tests/fixtures/empty.txt" file to "Files" filemanager
     And I press "Save changes"
     And I am on the "Quiz 1" "quiz activity" page
@@ -57,8 +61,7 @@ I need to limit the submittable file types
 
   @javascript @_file_upload
   Scenario: Preview an Essay question and try to submit a response with an incorrect filetype.
-    When I log in as "student1"
-    And I follow "Manage private files"
+    When I follow "Manage private files"
     And I upload "lib/tests/fixtures/upload_users.csv" file to "Files" filemanager
     And I press "Save changes"
     And I am on the "Quiz 1" "quiz activity" page

@@ -8,6 +8,9 @@ Feature: Enable Block comments on the frontpage and view comments
     Given the following "users" exist:
       | username | firstname | lastname | email | idnumber |
       | teacher1 | Teacher | 1 | teacher1@example.com | T1 |
+    And the following config values are set as admin:
+      | usecomments | 1 |
+    And I enable "comments" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

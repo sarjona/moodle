@@ -20,6 +20,7 @@ Feature: Enable Block Completion in a course using activity completion
       | activity   | course | idnumber   | name             | intro                 |
       | page       | C1     | page1      | Test page name   | Test page description |
       | assign     | C1     | assign1    | Test assign name | Test page description |
+    And I enable "completionstatus" "block" plugin
 
   Scenario: Add the block to a the course and add course completion items
     Given I log in as "teacher1"

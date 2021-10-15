@@ -5,7 +5,9 @@ Feature: Users can flag tags and manager can reset flags
   I need to be able to flag the tag as inappropriate
 
   Background:
-    Given the following "users" exist:
+    Given the following config values are set as admin:
+      | usetags | 1 |
+    And the following "users" exist:
       | username | firstname | lastname | email                | interests                 |
       | manager1 | Manager   | 1        | manager1@example.com |                           |
       | user1    | User      | 1        | user1@example.com    | Nicetag, Badtag, Sweartag |
@@ -14,6 +16,7 @@ Feature: Users can flag tags and manager can reset flags
     And the following "system role assigns" exist:
       | user     | course               | role    |
       | manager1 | Acceptance test site | manager |
+    And I enable "tags" "block" plugin
     And the following "tags" exist:
       | name         | isstandard |
       | Neverusedtag | 1          |

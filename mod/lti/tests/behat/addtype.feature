@@ -14,6 +14,7 @@ Feature: Add preconfigured tools via teacher interface
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "lti" "mod" plugin
 
   @javascript
   Scenario: Add a tool from a cartridge

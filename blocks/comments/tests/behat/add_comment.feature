@@ -16,6 +16,9 @@ Feature: Add a comment to the comments block
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And the following config values are set as admin:
+      | usecomments | 1 |
+    And I enable "comments" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Comments" block

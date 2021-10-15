@@ -24,6 +24,8 @@ Feature: Adding questions to a quiz from the question bank
       | questioncategory | qtype     | name             | user     | questiontext     | idnumber |
       | Test questions   | essay     | question 01 name | admin    | Question 01 text |          |
       | Test questions   | essay     | question 02 name | teacher1 | Question 02 text | qidnum   |
+    And the following config values are set as admin:
+      | usetags | 1 |
 
   Scenario: The questions can be filtered by tag
     Given I log in as "teacher1"

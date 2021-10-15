@@ -12,6 +12,8 @@ Feature: Managers can create and manage tag collections
     And the following "system role assigns" exist:
       | user     | course               | role    |
       | manager1 | Acceptance test site | manager |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "tags" exist:
       | name | isstandard |
       | Tag0 | 1          |

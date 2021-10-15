@@ -7,6 +7,9 @@ Feature: Adding and configuring Flickr block
   @javascript
   Scenario: Adding Flickr block to the tags site page
     Given I log in as "admin"
+    And I enable "tag_flickr" "block" plugin
+    And the following config values are set as admin:
+      | usetags | 1 |
     And I turn editing mode on
     # TODO MDL-57120 site "Tags" link not accessible without navigation block.
     And I add the "Navigation" block if not present

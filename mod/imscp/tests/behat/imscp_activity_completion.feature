@@ -16,6 +16,7 @@ Feature: View activity completion information in the IMS content package activit
       | user | course | role           |
       | student1 | C1 | student        |
       | teacher1 | C1 | editingteacher |
+    And I enable "imscp" "mod" plugin
 
   Scenario: View automatic completion items
     Given I log in as "teacher1"

@@ -5,7 +5,9 @@ Feature: Users can edit tags to add description or rename
   I need to be able to edit tags
 
   Background:
-    Given the following "users" exist:
+    Given the following config values are set as admin:
+      | usetags | 1 |
+    And the following "users" exist:
       | username | firstname | lastname | email                | interests         |
       | manager1 | Manager   | 1        | manager1@example.com |                   |
       | user1    | User      | 1        | user1@example.com    | Cat,Dog,Turtle    |

@@ -22,6 +22,7 @@ Feature: Lesson reset
       | name    | course | idnumber |
       | Group 1 | C1     | G1       |
       | Group 2 | C1     | G2       |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity | name             | intro                   | course | idnumber |
       | lesson   | Test lesson name | Test lesson description | C1     | lesson1  |

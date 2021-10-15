@@ -15,6 +15,9 @@ Feature: Restrict which blocks can be added to Dashboard
     And the following "course enrolments" exist:
       | user | course | role |
       | student1 | C1 | student |
+    And I enable "comments" "block" plugin
+    And I enable "course_list" "block" plugin
+    And I enable "tags" "block" plugin
 
   Scenario: The comments block can be added to Dashboard by default
     And I log in as "student1"

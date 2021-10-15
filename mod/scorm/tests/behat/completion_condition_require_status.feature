@@ -16,6 +16,7 @@ Feature: Scorm multi-sco completion
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
+    And I enable "scorm" "mod" plugin
 
   @javascript
   Scenario: Test completion with a single sco completion.

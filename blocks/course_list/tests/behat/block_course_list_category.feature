@@ -24,6 +24,7 @@ Feature: Enable the course_list block on a category page and view it's contents
       | teacher1 | C1 | editingteacher |
       | teacher1 | C2 | editingteacher |
       | teacher1 | C3 | editingteacher |
+    And I enable "course_list" "block" plugin
 
   Scenario: Add the course list block on category page and navigate to the course listing
     Given I log in as "admin"

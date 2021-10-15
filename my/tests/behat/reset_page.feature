@@ -16,6 +16,9 @@ Feature: Reset dashboard page to default
       | user | course | role |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And I enable "news_items" "block" plugin
+    And I enable "comments" "block" plugin
+    And I enable "badges" "block" plugin
     And I log in as "student1"
 
   Scenario: Add blocks to page and reset
@@ -24,7 +27,7 @@ Feature: Reset dashboard page to default
     And I add the "Comments" block
     And I press "Reset page to default"
     Then I should not see "Latest announcements"
-    And I should see "Latest badges"
+    And I should see "Timeline"
     And I should see "Calendar"
     And I should not see "Upcoming events"
     And I should not see "Comments"

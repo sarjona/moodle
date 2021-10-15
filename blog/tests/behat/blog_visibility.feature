@@ -16,6 +16,8 @@ Feature: Blogs can be set to be only visible by the author.
       | user      | course | role    |
       | testuser  | C1     | student |
       | testuser2 | C1     | student |
+    And the following config values are set as admin:
+      | enableblogs | 1 |
     And I log in as "admin"
     And I am on site homepage
     And I navigate to "Appearance > Blog" in site administration

@@ -14,6 +14,7 @@ Feature: Test creating a Numerical question
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
+    And I enable "numerical" "qtype" plugin
     And the following "language customisations" exist:
       | component       | stringid | value |
       | core_langconfig | decsep   | #     |

@@ -14,6 +14,11 @@ Feature: Enable Block Badges on the frontpage and view awarded badges
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
+    And the following config values are set as admin:
+      | enabled | 1 | core_competency |
+    And I enable "badges" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

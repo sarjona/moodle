@@ -6,6 +6,7 @@ Feature: Content bank use editor feature
 
   Background:
     Given I log in as "admin"
+    And I enable "private_files" "block" plugin
     And I am on site homepage
     And I turn editing mode on
     And I add the "Navigation" block if not present
@@ -21,6 +22,7 @@ Feature: Content bank use editor feature
 
   Scenario: Users can see the Add button if there is content type available for creation
     Given I follow "Dashboard" in the user menu
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/filltheblanks.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
@@ -40,6 +42,7 @@ Feature: Content bank use editor feature
 
   Scenario: Users can edit content if they have the required permission
     Given I follow "Dashboard" in the user menu
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/filltheblanks.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"

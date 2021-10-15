@@ -5,7 +5,8 @@ Feature: In a report, admin can see loglive data
   I need to view loglive report and see if the live update feature works
 
   Background:
-    Given the following "courses" exist:
+    Given I enable "data" "mod" plugin
+    And the following "courses" exist:
       | fullname | shortname | category | groupmode |
       | Course 1 | C1        | 0        | 1         |
     And the following "users" exist:
@@ -23,7 +24,7 @@ Feature: In a report, admin can see loglive data
     And the following config values are set as admin:
       | loglegacy | 1 | logstore_legacy |
     And I am on "Course 1" course homepage with editing mode on
-    And I add a "Database" to section "3" and I fill the form with:
+    And I add a "Database" to section "4" and I fill the form with:
       | Name | Test name |
       | Description | Test database description |
 
@@ -48,7 +49,7 @@ Feature: In a report, admin can see loglive data
     And I follow "Course module created"
     And I switch to "action" window
     And I am on "Course 1" course homepage
-    And I add a "Database" to section "3" and I fill the form with:
+    And I add a "Database" to section "4" and I fill the form with:
       | Name | Test name2 |
       | Description | Test database description |
     And I switch to the main window
@@ -69,7 +70,7 @@ Feature: In a report, admin can see loglive data
     And I follow "course_add mod"
     And I switch to "action" window
     And I am on "Course 1" course homepage
-    And I add a "Database" to section "3" and I fill the form with:
+    And I add a "Database" to section "4" and I fill the form with:
       | Name | Test name2 |
       | Description | Test database description |
     And I switch to the main window

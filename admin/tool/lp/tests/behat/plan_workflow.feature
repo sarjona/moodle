@@ -20,6 +20,8 @@ Feature: Manage plan workflow
       | user1 | usermanageowndraftplan | System |  |
       | user2 | usermanageownplan | System |  |
       | manager1 | manageplan | System |  |
+    And the following config values are set as admin:
+      | enabled | 1 | core_competency |
     And the following lp "frameworks" exist:
       | shortname | idnumber |
       | Test-Framework | ID-FW1 |
@@ -37,6 +39,7 @@ Feature: Manage plan workflow
       | Test-Plan1 | Test-Comp2 |
       | Test-Plan2 | Test-Comp1 |
       | Test-Plan2 | Test-Comp2 |
+    And I enable "lp" "block" plugin
     And the following "blocks" exist:
       | blockname               | contextlevel | reference | pagetypepattern | defaultregion |
       | lp                      | System       | 1         | my-index        | content       |

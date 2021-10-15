@@ -5,6 +5,7 @@ Feature: Enrol multiple cohorts
     Given the following "users" exist:
       | username    | firstname | lastname | email                   |
       | teacher001  | Teacher   | 001      | teacher001@example.com  |
+    And I enable "cohort" "enrol" plugin
     And the following "cohorts" exist:
       | name         | idnumber | visible |
       | Alpha1       | A1       | 1       |

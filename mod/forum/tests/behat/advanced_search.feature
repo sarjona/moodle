@@ -18,6 +18,8 @@ Feature: The forum search allows users to perform advanced searches for forum po
       | teacher1 | C1 | editingteacher |
       | teacher2 | C1 | editingteacher |
       | student1 | C1 | student |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "tags" exist:
       | name         | isstandard  |
       | SearchedTag  | 1           |

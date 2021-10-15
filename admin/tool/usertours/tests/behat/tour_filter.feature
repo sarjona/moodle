@@ -152,6 +152,7 @@ Feature: Apply tour filters to a tour
       | fullname | shortname | format | enablecompletion |
       | Course 1 | C1        | topics | 1                |
       | Course 2 | C2        | topics | 1                |
+    And I enable "wiki" "mod" plugin
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
     And I add a "Wiki" to section "1" and I fill the form with:

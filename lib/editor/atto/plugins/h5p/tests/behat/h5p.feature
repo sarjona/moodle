@@ -3,7 +3,8 @@ Feature: Add h5ps to Atto
   To write rich text - I need to add h5ps.
 
   Background:
-    Given the following "courses" exist:
+    Given I enable "private_files" "block" plugin
+    And the following "courses" exist:
       | shortname | fullname |
       | C1        | Course 1 |
     And the following "users" exist:
@@ -36,6 +37,8 @@ Feature: Add h5ps to Atto
   @javascript
   Scenario: Insert an h5p file
     Given I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
@@ -95,6 +98,8 @@ Feature: Add h5ps to Atto
   @javascript @external
   Scenario: Edit H5P content
     Given I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "lib/editor/atto/tests/fixtures/drag.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
@@ -129,6 +134,8 @@ Feature: Add h5ps to Atto
   @javascript
   Scenario: Enable/disable H5P options
     Given I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
@@ -212,6 +219,8 @@ Feature: Add h5ps to Atto
       | user | course | role |
       | student1 | C1 | student |
     And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"

@@ -14,6 +14,7 @@ Feature: Duplicate activities
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "data" "mod" plugin
     And the following "activities" exist:
       | activity | name               | intro                     | course | idnumber   | section |
       | data     | Test database name | Test database description | C1     | database1  | 1       |

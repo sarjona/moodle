@@ -16,6 +16,7 @@ Feature: Workshop should remember collapsed/expanded sections in view page.
       | user     | course | role           |
       | teacher1 | c1     | editingteacher |
       | student1 | c1     | student        |
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
       | activity | name       | intro                  | course | idnumber  |
       | workshop | Workshop 1 | Workshop 1 description | c1     | workshop1 |

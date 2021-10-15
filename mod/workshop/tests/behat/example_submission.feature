@@ -16,6 +16,7 @@ Feature: Provide example submission
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | c1     | editingteacher |
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
       | activity | name         | intro                     | course | idnumber  | useexamples |
       | workshop | TestWorkshop | Test workshop description | c1     | workshop1 | 1           |

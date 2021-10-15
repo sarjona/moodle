@@ -8,6 +8,7 @@ Feature: Login from a block
     Given the following "users" exist:
       | username | password | firstname | lastname | email |
       | testuser | testpass | Test      | User     | student1@example.com |
+    And I enable "login" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

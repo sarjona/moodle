@@ -16,6 +16,10 @@ Feature: Add blocks to dashboard page
       | user | course | role |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
+    And I enable "news_items" "block" plugin
+    And I enable "badges" "block" plugin
     And I log in as "student1"
 
   Scenario: Add blocks to page
@@ -23,6 +27,6 @@ Feature: Add blocks to dashboard page
     And I add the "Latest announcements" block
     And I turn editing mode off
     Then I should see "Latest announcements" in the "Latest announcements" "block"
-    And I should see "Latest badges" in the "Latest badges" "block"
+    And I should see "Timeline" in the "Timeline" "block"
     And I should see "Calendar" in the "Calendar" "block"
     And I should not see "Upcoming events"

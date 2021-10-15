@@ -112,7 +112,8 @@ Feature: We can set the grade to pass value
     Then I should see "The grade to pass can not be greater than the maximum possible grade 4"
 
   Scenario: Set a valid grade to pass for workshop activity
-    Given the following "activities" exist:
+    Given I enable "workshop" "mod" plugin
+    And the following "activities" exist:
       | activity   | name              | intro         | course | section | idnumber  |
       | workshop   | Test Workshop 1   | Test workshop | C1     | 1       | workshop1 |
     And I am on "Course 1" course homepage with editing mode on
@@ -142,7 +143,8 @@ Feature: We can set the grade to pass value
     And the field "Assessment grade to pass" matches value "15"
 
   Scenario: Set an invalid grade to pass for workshop activity
-    Given the following "activities" exist:
+    Given I enable "workshop" "mod" plugin
+    And the following "activities" exist:
       | activity   | name              | intro            | course | section | idnumber  |
       | workshop   | Test Workshop 1   | Test workshop    | C1     | 1       | workshop1 |
     And I am on "Course 1" course homepage with editing mode on
@@ -179,7 +181,8 @@ Feature: We can set the grade to pass value
     And the field "Grade to pass" matches value "8.00"
 
   Scenario: Set a valid grade to pass for lesson activity
-    Given the following "activities" exist:
+    Given I enable "lesson" "mod" plugin
+    And the following "activities" exist:
       | activity   | name          | intro       | course | section | idnumber  |
       | lesson     | Test Lesson 1 | Test        | C1     | 1       | lesson1   |
     And I am on "Course 1" course homepage with editing mode on
@@ -200,7 +203,8 @@ Feature: We can set the grade to pass value
     And the field "Grade to pass" matches value "80"
 
   Scenario: Set a valid grade to pass for database activity
-    Given the following "activities" exist:
+    Given I enable "data" "mod" plugin
+    And the following "activities" exist:
       | activity   | name            | intro       | course | section | idnumber  |
       | data       | Test Database 1 | Test        | C1     | 1       | data1     |
     And I am on "Course 1" course homepage with editing mode on

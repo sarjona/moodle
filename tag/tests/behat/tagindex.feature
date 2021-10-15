@@ -5,7 +5,9 @@ Feature: Browsing tagged items
   I need to be able to browse tagged items
 
   Background:
-    Given the following "users" exist:
+    Given the following config values are set as admin:
+      | usetags | 1 |
+    And the following "users" exist:
       | username | firstname | lastname | email             | interests |
       | user1    | User      | 1        | user1@example.com | Cat       |
       | user2    | User      | 2        | user1@example.com | Cat, Dog  |

@@ -16,6 +16,8 @@ Feature: Edited glossary entries handle tags correctly
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "activity" exists:
       | course   | C1                       |
       | activity | glossary                 |

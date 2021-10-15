@@ -296,6 +296,7 @@ Feature: Group assignment submissions
       | assign                | user      | onlinetext                          |
       | Test assignment name  | student1  | I'm the student's first submission  |
 
+    And I enable "activity_modules" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Activities" block

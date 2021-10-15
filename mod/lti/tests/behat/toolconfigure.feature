@@ -16,6 +16,7 @@ Feature: Configure tool types
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lti" "mod" plugin
     And I log in as "admin"
     And I navigate to "Plugins > Activity modules > External tool > Manage tools" in site administration
 

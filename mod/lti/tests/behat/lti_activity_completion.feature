@@ -16,6 +16,7 @@ Feature: View activity completion information in the LTI activity
       | user | course | role           |
       | student1 | C1 | student        |
       | teacher1 | C1 | editingteacher |
+    And I enable "lti" "mod" plugin
     And the following "activities" exist:
       | activity | name          | course | idnumber | completion | completionview | completionusegrade |
       | lti      | Music history | C1     | lti1     | 2          | 1              | 1                  |

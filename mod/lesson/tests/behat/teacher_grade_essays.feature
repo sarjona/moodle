@@ -33,6 +33,7 @@ Feature: In a lesson activity, a non editing teacher can grade essay questions
       | student1 | G1 |
       | student2 | G2 |
       | student3 | G3 |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity | name             | intro                    | course | idnumber | section |
       | lesson   | Test lesson name | Test lesson description  | C1     | lesson1   | 1      |

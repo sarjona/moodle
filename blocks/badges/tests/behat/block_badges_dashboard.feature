@@ -14,6 +14,9 @@ Feature: Enable Block Badges on the dashboard and view awarded badges
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
+    And I enable "badges" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     # Issue badge 1 of 2
@@ -34,4 +37,6 @@ Feature: Enable Block Badges on the dashboard and view awarded badges
     And I press "Award badge"
     And I log out
     When I log in as "teacher1"
+    And I turn editing mode on
+    And I add the "Latest badges" block
     Then I should see "Badge 1" in the "Latest badges" "block"

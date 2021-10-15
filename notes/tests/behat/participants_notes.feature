@@ -20,6 +20,8 @@ Feature: Add notes to course participants
       | student1 | C1 | student |
       | student2 | C1 | student |
       | student3 | C1 | student |
+    And the following config values are set as admin:
+      | enablenotes | 1 |
     # TODO MDL-57120 "Notes" and site "Participants" links are not accessible without navigation block.
     Given I log in as "admin"
     And I am on site homepage

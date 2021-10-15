@@ -8,6 +8,7 @@ Feature: Block removal via modal
     Given the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
+    And I enable "search_forums" "block" plugin
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Search forums" block

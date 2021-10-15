@@ -8,6 +8,7 @@ Feature: Test duplicating a quiz containing an Assay question
     And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1        | 0        |
+    And I enable "essay" "qtype" plugin
     And the following "question categories" exist:
       | contextlevel | reference | name           |
       | Course       | C1        | Test questions |

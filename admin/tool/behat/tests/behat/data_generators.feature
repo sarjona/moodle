@@ -162,6 +162,15 @@ Feature: Set up contextual data for tests
     Given the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1 |
+    And I enable "chat" "mod" plugin
+    And I enable "data" "mod" plugin
+    And I enable "imscp" "mod" plugin
+    And I enable "lesson" "mod" plugin
+    And I enable "lti" "mod" plugin
+    And I enable "scorm" "mod" plugin
+    And I enable "survey" "mod" plugin
+    And I enable "wiki" "mod" plugin
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
       | activity   | name                   | intro                         | course | idnumber    |
       | assign     | Test assignment name   | Test assignment description   | C1     | assign1     |

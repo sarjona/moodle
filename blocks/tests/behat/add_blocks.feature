@@ -18,8 +18,8 @@ Feature: Add blocks
       | student2 | C1 | student |
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
-    When I add the "Blog menu" block
-    Then I should see "View my entries about this course"
+    When I add the "Calendar" block
+    Then I should see "Hide course events"
 
   @javascript
   Scenario: Add a block to a course with Javascript enabled

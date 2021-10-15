@@ -4,6 +4,18 @@ Feature: Block activity modules
   As a manager
   I can add activities block in a course or on the frontpage
 
+  Background:
+    Given I enable "chat" "mod" plugin
+    And I enable "data" "mod" plugin
+    And I enable "lti" "mod" plugin
+    And I enable "imscp" "mod" plugin
+    And I enable "scorm" "mod" plugin
+    And I enable "lesson" "mod" plugin
+    And I enable "survey" "mod" plugin
+    And I enable "wiki" "mod" plugin
+    And I enable "workshop" "mod" plugin
+    And I enable "activity_modules" "block" plugin
+
   Scenario: Add activities block on the frontpage
     Given the following "activities" exist:
       | activity   | name                        | intro                              | course               | idnumber    |

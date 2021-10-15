@@ -29,6 +29,7 @@ Feature: Verify that all form fields values can be get and set
       | student2 | G1 |
       | student2 | G2 |
       | student3 | G2 |
+    And I enable "wiki" "mod" plugin
     And the following "activities" exist:
       | activity | course | idnumber | name | intro | firstpagetitle | wikimode | visible |
       | wiki | C1 | wiki1 | Test this one | Test this one | Test this one | collaborative | 0 |
@@ -147,6 +148,7 @@ Feature: Verify that all form fields values can be get and set
 
   @javascript
   Scenario: with JS enabled all form fields getters and setters works as expected
+    Given I enable "lesson" "mod" plugin
     Then I am on "Course 1" course homepage
     And I navigate to "Users > Groups" in current page administration
     # Select (multi-select & AJAX) - Checking "I set the field" and "select box should contain".

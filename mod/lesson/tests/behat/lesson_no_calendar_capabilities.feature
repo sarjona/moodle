@@ -14,7 +14,8 @@ Feature: Lesson with no calendar capabilites
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
-    Given the following "activity" exists:
+    And I enable "lesson" "mod" plugin
+    And the following "activity" exists:
       | activity      | lesson                  |
       | course        | C1                      |
       | idnumber      | 0001                    |

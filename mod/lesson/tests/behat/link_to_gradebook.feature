@@ -16,6 +16,7 @@ Feature: link to gradebook on the end of lesson page
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And I log in as "teacher1"
     And the following "activities" exist:
       | activity   | name        | intro                   | course | idnumber    |

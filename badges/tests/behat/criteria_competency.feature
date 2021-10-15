@@ -5,7 +5,12 @@ Feature: Award badges based on competency completion
   I need to add competency completion criteria to badges in the system
 
   Background: Setup the competency framework and the course
-    Given the following "users" exist:
+    Given the following config values are set as admin:
+      | enabled | 1 | core_competency |
+      | pushcourseratingstouserplans | 1 | core_competency |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
+    And the following "users" exist:
       | username | firstname | lastname | email           |
       | user1    | First     | User     | first@example.com  |
     And the following "courses" exist:

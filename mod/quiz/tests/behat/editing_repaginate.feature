@@ -17,6 +17,7 @@ Feature: Edit quiz page - pagination
     And the following "activities" exist:
       | activity   | name   | intro              | course | idnumber |
       | quiz       | Quiz 1 | Quiz 1 description | C1     | quiz1    |
+    And I enable "essay" "qtype" plugin
 
     When I log in as "teacher1"
     And I am on the "Quiz 1" "mod_quiz > Edit" page

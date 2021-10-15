@@ -17,6 +17,7 @@ Feature: Pass grade activity completion in the lesson activity
       | student2 | C1     | student        |
       | student3 | C1     | student        |
       | teacher1 | C1     | editingteacher |
+    And I enable "lesson" "mod" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Settings" in current page administration

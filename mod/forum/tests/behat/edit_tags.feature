@@ -20,6 +20,8 @@ Feature: Edited forum posts handle tags correctly
       | course   | C1              |
       | activity | forum           |
       | name     | Test forum name |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And I am on the "Course 1" Course page logged in as teacher1
     And I add a new discussion to "Test forum name" forum with:
       | Subject | Teacher post subject |

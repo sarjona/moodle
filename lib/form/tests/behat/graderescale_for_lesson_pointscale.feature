@@ -16,6 +16,7 @@ Feature: Using the lesson activities which support point scale
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activity" exists:
       | course      | C1                     |
       | activity    | lesson                 |

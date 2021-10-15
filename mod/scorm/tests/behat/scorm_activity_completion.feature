@@ -16,6 +16,7 @@ Feature: View activity completion in the SCORM activity
       | user | course | role           |
       | student1 | C1 | student        |
       | teacher1 | C1 | editingteacher |
+    And I enable "scorm" "mod" plugin
     And the following "activity" exists:
       | activity                 | scorm                                                         |
       | course                   | C1                                                            |

@@ -22,6 +22,7 @@ Feature: Workshop submission and assessment
       | student3 | c1     | student        |
       | student4 | c1     | student        |
       | teacher1 | c1     | editingteacher |
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
       | activity | name         | intro                     | course | idnumber  | submissiontypetext | submissiontypefile |
       | workshop | TestWorkshop | Test workshop description | c1     | workshop1 | 2                  | 1                  |

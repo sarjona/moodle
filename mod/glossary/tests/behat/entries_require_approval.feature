@@ -60,7 +60,9 @@ Feature: A teacher can choose whether glossary entries require approval
 
   @javascript
   Scenario: View pending approval glossary items
-    Given I am on the "Test glossary name" "glossary activity" page logged in as student1
+    Given the following config values are set as admin:
+      | usetags | 1 |
+    And I am on the "Test glossary name" "glossary activity" page logged in as student1
     When I add a glossary entry with the following data:
       | Concept | Just a test concept |
       | Definition | Concept definition |

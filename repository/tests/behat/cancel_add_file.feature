@@ -6,10 +6,13 @@ Feature: A selected file can be cancelled
 
   @javascript @_bug_phantomjs
   Scenario: Cancel a selected recent file from being added to a folder
-    Given the following "courses" exist:
+    Given I enable "private_files" "block" plugin
+    And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
     And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files"
     And I upload "lib/tests/fixtures/empty.txt" file to "Files" filemanager
     And I press "Save changes"

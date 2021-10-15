@@ -18,6 +18,7 @@ Feature: Exporting workshop submissions and assessments to a portfolio
       | student1 | c1     | student        |
       | student2 | c1     | student        |
       | teacher1 | c1     | editingteacher |
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
       | activity | name         | intro                     | course | idnumber  | submissiontypefile |
       | workshop | TestWorkshop | Test workshop description | c1     | workshop1 | 1                  |

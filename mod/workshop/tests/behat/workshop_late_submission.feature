@@ -18,6 +18,7 @@ Feature: Workshop 'Late submissions are allowed' task
       | student1 | c1     | student        |
       | student2 | c1     | student        |
       | teacher1 | c1     | editingteacher |
+    And I enable "workshop" "mod" plugin
     And the following "activities" exist:
       | activity | name          | intro                                              | course | idnumber  | latesubmissions | submisstionstart | submissionend |
       | workshop | TestWorkshop1 | TW3 with Submission deadline in future (1 Jan 2030)| c1     | workshop1 | 1               | 1514904308       | 1893369600    |

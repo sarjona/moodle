@@ -43,6 +43,7 @@ Feature: Course paged mode
     Given the following "courses" exist:
       | fullname | shortname | category | format | coursedisplay | numsections | startdate |
       | Course 1 | C1        | 0        | <courseformat> | 1     | 3           | 0         |
+    And I enable "chat" "mod" plugin
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
     And I click on <section1> "link" in the <section1> "section"

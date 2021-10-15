@@ -17,6 +17,7 @@ Feature: The section links block allows users to quickly navigate around a moodl
     And the following "activities" exist:
       | activity   | name              | intro          | course | section | idnumber | assignsubmission_file_enabled |
       | assign     | Test assignment 1 | Offline text   | C1     | 5       | assign1  | 0                             |
+    And I enable "section_links" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
 

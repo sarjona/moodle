@@ -13,6 +13,8 @@ Feature: Users can view the list of data activities and their formatted descript
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
+    And I enable "data" "mod" plugin
+    And I enable "activity_modules" "block" plugin
     And the following "activities" exist:
       | activity | name            | intro                                                                     | course | idnumber |
       | data     | Test database 1 | This is an intro without an image                                         | C1     | data1    |

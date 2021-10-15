@@ -6,6 +6,7 @@ Feature: Create/edit tool configuration that has Deep Linking support
 
   Background:
     Given I log in as "admin"
+    And I enable "lti" "mod" plugin
     And I navigate to "Plugins > Activity modules > External tool > Manage tools" in site administration
 
   Scenario: Verifying ContentItemSelectionRequest selection support in external tool registration

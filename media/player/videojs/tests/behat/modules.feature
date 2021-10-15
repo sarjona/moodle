@@ -31,6 +31,7 @@ Feature: Embed videos without the media filter
 
   @javascript
   Scenario: Add a video as content to a lesson. Make sure media filters work
+    Given I enable "lesson" "mod" plugin
     When I add a "Lesson" to section "1"
     And I set the following fields to these values:
       | Name | Lesson with video |

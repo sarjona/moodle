@@ -35,7 +35,10 @@ Feature: Importing glossary entries
 
   @javascript @block_tags
   Scenario: Importing glossary entries and checking Tags block
-    Given I log in as "teacher1"
+    Given the following config values are set as admin:
+      | usetags | 1 |
+    And I enable "tags" "block" plugin
+    And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Tags" block
     And I am on the "Glossary 1" "glossary activity" page

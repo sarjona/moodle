@@ -16,6 +16,7 @@ Feature: An incorrect response to an answer with multiple attempts show appropri
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity   | name               | intro                     | course | section | idnumber |
       | lesson     | Test lesson name   | Test lesson description   | C1     | 1       | lesson1  |

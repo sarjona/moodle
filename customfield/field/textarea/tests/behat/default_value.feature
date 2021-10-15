@@ -9,6 +9,7 @@ Feature: Default value for the textarea custom field can contain images
       | username | firstname | lastname | email                |
       | teacher  | Teacher   | 1        | teacher1@example.com |
       | manager  | Manager   | 1        | manager1@example.com |
+    And I enable "private_files" "block" plugin
     And the following "courses" exist:
       | fullname | shortname | format |
       | Course 1 | C1        | topics |
@@ -23,6 +24,8 @@ Feature: Default value for the textarea custom field can contain images
       | Category for test | core_course | course | 0      |
     # Upload an image into the private files.
     And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files"
     And I upload "lib/tests/fixtures/gd-logo.png" file to "Files" filemanager
     And I click on "Save changes" "button"

@@ -4,6 +4,7 @@ Feature: Allow to mark course as completed without cron for activity completion 
   I need to be able update completion state without cron
 
   Background:
+    Given I enable "completionstatus" "block" plugin
     Given the following "courses" exist:
       | fullname          | shortname | category |
       | Completion course | CC1       | 0        |

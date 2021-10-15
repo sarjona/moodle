@@ -4,7 +4,10 @@ Feature: Add links to Atto
 
   @javascript
   Scenario: Insert a links
-    Given I log in as "admin"
+    Given I enable "private_files" "block" plugin
+    And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "lib/editor/atto/tests/fixtures/moodle-logo.png" file to "Files" filemanager
     And I click on "Save changes" "button"

@@ -16,6 +16,10 @@ Feature: Students can use the recent blog entries block to view recent entries o
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And the following config values are set as admin:
+      | enableblogs | 1 |
+    And I enable "blog_menu" "block" plugin
+    And I enable "blog_recent" "block" plugin
     And the "multilang" filter is "on"
     And the "multilang" filter applies to "content and headings"
     And I log in as "teacher1"

@@ -9,6 +9,9 @@ Feature: Add or remove items from the TinyMCE editor toolbar
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
     And I log in as "admin"
+    And I enable "data" "mod" plugin
+    And I navigate to "Plugins > Text editors > Manage editors" in site administration
+    And I click on "Enable" "link" in the "TinyMCE HTML editor" "table_row"
     And I follow "Preferences" in the user menu
     And I follow "Editor preferences"
     And I set the field "Text editor" to "TinyMCE HTML editor"

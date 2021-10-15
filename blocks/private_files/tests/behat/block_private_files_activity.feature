@@ -17,6 +17,7 @@ Feature: The private files block allows users to store files privately in moodle
     And the following "activities" exist:
       | activity | course | idnumber | name           | intro                 |
       | page    | C1      | page1    | Test page name | Test page description |
+    And I enable "private_files" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I am on the "Test page name" "page activity" page

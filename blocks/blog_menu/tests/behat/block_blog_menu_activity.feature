@@ -18,6 +18,9 @@ Feature: Enable Block blog menu in an activity
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And the following config values are set as admin:
+      | enableblogs | 1 |
+    And I enable "blog_menu" "block" plugin
     Given the following "activity" exists:
       | activity                      | assign                          |
       | name                          | Test assignment 1               |

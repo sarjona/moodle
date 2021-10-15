@@ -11,6 +11,7 @@ Feature: The private files block allows users to store files privately in moodle
     And the following "users" exist:
       | username | firstname | lastname | email |
       | teacher1 | Teacher | 1 | teacher1@example.com |
+    And I enable "private_files" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

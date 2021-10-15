@@ -14,6 +14,7 @@ Feature: A teacher can set three types of survey activity
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "survey" "mod" plugin
     And the following "activities" exist:
       | activity | name             | intro                    | course | idnumber  | section |
       | survey   | Test survey name | Test survey description  | C1     | survey1   | 1       |

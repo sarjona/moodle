@@ -6,6 +6,8 @@ Feature: Manage analytics models
 
   Background:
     Given the following config values are set as admin:
+      | enableanalytics | 1 |
+    And the following config values are set as admin:
       | onlycli  | 0 | analytics |
     And the following "users" exist:
       | username | firstname | lastname | email                |

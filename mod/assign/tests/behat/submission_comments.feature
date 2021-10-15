@@ -18,6 +18,8 @@ Feature: In an assignment, students can comment in their submissions
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And the following config values are set as admin:
+      | usecomments | 1 |
 
   Scenario: Student comments an assignment submission
     Given the following "activities" exist:

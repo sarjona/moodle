@@ -14,6 +14,9 @@ Feature: Teachers can reset wiki pages, tags and files
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "wiki" "mod" plugin
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "activity" exists:
       | activity      | wiki                  |
       | course        | C1                    |

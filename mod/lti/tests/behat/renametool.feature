@@ -14,6 +14,7 @@ Feature: Rename external tools via inline editing
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "lti" "mod" plugin
 
   @javascript
   Scenario: Add a tool and inline edit

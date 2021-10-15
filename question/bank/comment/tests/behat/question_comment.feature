@@ -22,6 +22,8 @@ Feature: A Teacher can comment in a question
     And the following "questions" exist:
       | questioncategory | qtype     | name           | questiontext              |
       | Test questions   | truefalse | First question | Answer the first question |
+    And the following config values are set as admin:
+      | usecomments | 1 |
 
   @javascript
   Scenario: Add a comment in question
@@ -83,6 +85,7 @@ Feature: A Teacher can comment in a question
       | capability                  | permission |
       | moodle/question:commentmine | Allow      |
       | moodle/question:commentall  | Prevent    |
+    And I enable "essay" "qtype" plugin
     And I log out
     Then I log in as "teacher1"
     And I am on the "Test quiz" "quiz activity" page

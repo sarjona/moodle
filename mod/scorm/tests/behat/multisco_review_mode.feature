@@ -13,6 +13,7 @@ Feature: Scorm multi-sco review mode.
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "scorm" "mod" plugin
 
   @javascript
   Scenario: Test review mode with a single sco completion.

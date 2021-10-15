@@ -40,6 +40,7 @@ Feature: Access visible and hidden cohorts
     And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1        | CAT1     |
+    And I enable "cohort" "enrol" plugin
     And the following "course enrolments" exist:
       | user    | course | role           |
       | teacher | C1     | editingteacher |

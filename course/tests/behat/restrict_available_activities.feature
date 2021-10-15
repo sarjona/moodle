@@ -22,6 +22,7 @@ Feature: Restrict activities availability
     When I add a "Glossary" to section "1" and I fill the form with:
       | Name | Test glossary name |
       | Description | Test glossary description |
+    And I enable "chat" "mod" plugin
     And I add a "Chat" to section "1" and I fill the form with:
       | Name of this chat room | Test chat name |
       | Description | Test chat description |

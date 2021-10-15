@@ -18,6 +18,7 @@ Feature: Lesson user override
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity | name             | intro                   | course | idnumber |
       | lesson   | Test lesson name | Test lesson description | C1     | lesson1  |

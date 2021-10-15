@@ -20,6 +20,8 @@ Feature: A teacher can manage tags on questions in the question bank
     And the following "questions" exist:
       | questioncategory | qtype | name                       | questiontext                  |
       | Test questions   | essay | Test question to be tagged | Write about whatever you want |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Question bank > Questions" in current page administration

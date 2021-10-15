@@ -2,6 +2,9 @@
 Feature: Atto collapse button
   To access all the tools in Atto, I need to toggle the toolbar
 
+  Background:
+    Given I enable "mathjaxloader" "filter" plugin
+
   @javascript
   Scenario: Toggle toolbar
     Given I log in as "admin"
