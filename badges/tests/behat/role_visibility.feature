@@ -16,6 +16,8 @@ Feature: Test role visibility for the badge administration page
       | user     | course | role    |
       | teacher1 | C1     | editingteacher |
       | manager1 | C1     | manager        |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
 
   @javascript @_file_upload
   Scenario: Check the default roles are visible

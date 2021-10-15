@@ -8,6 +8,11 @@ Feature: Select file feature
     Given the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
+    And I enable "private_files" "block" plugin
+    And I log in as "admin"
+    And I follow "Dashboard" in the user menu
+    And I turn editing mode on
+    And I add the "Private files" block
 
   @javascript
   Scenario: Select a file from the "Recent files" repository using "icons" view

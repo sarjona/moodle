@@ -44,6 +44,7 @@ Feature: View structural changes in recent activity block
       | GG2      | G2    |
       | GG3      | G1    |
       | GG3      | G2    |
+    And I enable "grouping" "availability" plugin
 
   Scenario: Check that Added module information is displayed respecting view capability
     Given the following "activities" exist:

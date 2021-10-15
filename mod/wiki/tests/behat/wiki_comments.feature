@@ -18,6 +18,9 @@ Feature: Users can comment on wiki pages
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And I enable "wiki" "mod" plugin
+    And the following config values are set as admin:
+      | usecomments | 1 |
     And the following "activity" exists:
       | activity       | wiki                  |
       | course         | C1                    |

@@ -53,6 +53,7 @@ Feature: In an assignment, teachers grade multiple students on one page
       | student2 | C1 | student |
     And the following config values are set as admin:
       | enableoutcomes | 1 |
+      | usecomments | 1 |
     When I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Outcomes" in current page administration

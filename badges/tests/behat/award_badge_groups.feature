@@ -30,6 +30,8 @@ Feature: Award badges with separate groups
       | teacher1 | CB |
       | student2 | CA |
       | teacher2 | CA |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Settings" in current page administration

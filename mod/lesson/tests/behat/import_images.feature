@@ -16,6 +16,7 @@ Feature: In a lesson activity, teacher can import embedded images in questions a
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activity" exists:
       | course   | C1               |
       | activity | lesson           |

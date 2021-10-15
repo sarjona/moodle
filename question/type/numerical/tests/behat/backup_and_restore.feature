@@ -8,6 +8,7 @@ Feature: Test duplicating a quiz containing a Numerical question
     And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1        | 0        |
+    And I enable "numerical" "qtype" plugin
     And the following "question categories" exist:
       | contextlevel | reference | name           |
       | Course       | C1        | Test questions |

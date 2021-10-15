@@ -5,7 +5,9 @@ Feature: Manage competencies linked to evidence of prior learning
   I need to link and unlink competencies from evidence of prior learning
 
   Background:
-    Given the following lp "frameworks" exist:
+    Given the following config values are set as admin:
+      | enabled | 1 | core_competency |
+    And the following lp "frameworks" exist:
       | shortname | idnumber |
       | Test-Framework | ID-FW1 |
     And the following lp "competencies" exist:

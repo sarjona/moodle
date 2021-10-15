@@ -3,7 +3,12 @@ Feature: Add media to Atto
   To write rich text - I need to add media.
 
   Background:
-    Given I log in as "admin"
+    Given I enable "private_files" "block" plugin
+    And the following config values are set as admin:
+      | enableblogs | 1 |
+    And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I change window size to "large"
     And I follow "Manage private files..."
     And I upload "lib/editor/atto/tests/fixtures/moodle-logo.webm" file to "Files" filemanager

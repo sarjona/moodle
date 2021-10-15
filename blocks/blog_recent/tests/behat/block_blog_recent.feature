@@ -14,6 +14,7 @@ Feature: Feature: Users can use the recent blog entries block to view recent blo
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "blog_recent" "block" plugin
 
   Scenario: Add the recent blogs block to a course when blogs are disabled
     Given I log in as "admin"
@@ -27,6 +28,8 @@ Feature: Feature: Users can use the recent blog entries block to view recent blo
 
   Scenario: Add the recent blogs block to a course when there are not any blog posts
     Given I log in as "teacher1"
+    And the following config values are set as admin:
+      | enableblogs | 1 |
     And I am on "Course 1" course homepage with editing mode on
     When I add the "Recent blog entries" block
     Then I should see "No recent entries" in the "Recent blog entries" "block"

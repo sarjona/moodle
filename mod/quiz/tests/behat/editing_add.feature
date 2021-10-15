@@ -17,6 +17,9 @@ Feature: Edit quiz page - adding things
     And the following "activities" exist:
       | activity   | name   | intro                           | course | idnumber |
       | quiz       | Quiz 1 | Quiz 1 for testing the Add menu | C1     | quiz1    |
+    And the following config values are set as admin:
+      | usetags | 1 |
+    And I enable "essay" "qtype" plugin
     And I am on the "Quiz 1" "mod_quiz > Edit" page logged in as "teacher1"
     And I should see "Editing quiz: Quiz 1"
 

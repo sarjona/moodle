@@ -16,6 +16,7 @@ Feature: Enable Block Completion in a course
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
+    And I enable "completionstatus" "block" plugin
 
   Scenario: Add the block to a the course where completion is disabled
     Given I log in as "teacher1"

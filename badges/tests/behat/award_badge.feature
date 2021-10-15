@@ -26,6 +26,8 @@ Feature: Award badges
       | intro                               | Submit your online text |
       | completion                          | 1                       |
       | assignsubmission_onlinetext_enabled | 1                       |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
 
   @javascript
   Scenario: Award badge on other badges as criteria

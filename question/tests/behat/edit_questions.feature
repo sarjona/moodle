@@ -58,6 +58,8 @@ Feature: A teacher can edit questions in the question bank
     Given the following "questions" exist:
       | questioncategory | qtype       | name            | questiontext    |
       | Test questions   | missingtype | Broken question | Write something |
+    And the following config values are set as admin:
+      | usetags | 1 |
     When I reload the page
     Then "Edit question" "link" should not exist in the "Broken question" "table_row"
     And "Duplicate" "link" should not exist in the "Broken question" "table_row"

@@ -27,6 +27,9 @@ Feature: edit_availability
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
+    And the following config values are set as admin:
+      | enableavailability | 1 |
+    And I enable "grouping" "availability" plugin
 
   Scenario: Confirm the 'enable availability' option is working
     Given the following config values are set as admin:

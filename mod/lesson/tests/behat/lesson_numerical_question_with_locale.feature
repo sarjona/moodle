@@ -16,6 +16,7 @@ Feature: In a lesson activity, I need to edit pages in the lesson taking into ac
     And the following "language customisations" exist:
       | component       | stringid | value |
       | core_langconfig | decsep   | #     |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity   | name                   | intro                         | course | idnumber    | section | modattempts |
       | lesson     | Test lesson name       | Test lesson description       | C1     | lesson1     | 1       | 1           |

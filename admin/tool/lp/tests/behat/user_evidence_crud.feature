@@ -8,6 +8,8 @@ Feature: Manage evidence of prior learning
     Given the following "users" exist:
       | username | firstname | lastname | email |
       |user1 | User | 1 | user1@example.com |
+    And the following config values are set as admin:
+      | enabled | 1 | core_competency |
     When I log in as "user1"
     And I follow "Profile" in the user menu
     And I follow "Learning plans"

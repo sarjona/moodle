@@ -9,6 +9,7 @@ Feature: H5P file upload to content bank for non admins
       | username | firstname | lastname | email                |
       | teacher1 | Teacher   | 1        | teacher1@example.com |
       | teacher2 | Teacher   | 2        | teacher2@example.com |
+    And I enable "private_files" "block" plugin
     And the following "categories" exist:
       | name  | category | idnumber |
       | Cat 1 | 0        | CAT1     |
@@ -20,6 +21,8 @@ Feature: H5P file upload to content bank for non admins
       | teacher1 | C1     | editingteacher |
       | teacher2 | C1     | editingteacher |
     And I log in as "teacher1"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/filltheblanks.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
@@ -115,6 +118,8 @@ Feature: H5P file upload to content bank for non admins
   Scenario: Teachers can not see existing contents when libraries are not installed
     Given I log out
     And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/filltheblanks.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"

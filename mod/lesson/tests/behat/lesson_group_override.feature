@@ -29,6 +29,7 @@ Feature: Lesson group override
       | student1 | G1 |
       | student2 | G2 |
       | student3 | G1 |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity | name             | intro                   | groupmode  | course | idnumber |
       | lesson   | Test lesson name | Test lesson description | 1          | C1     | lesson1  |

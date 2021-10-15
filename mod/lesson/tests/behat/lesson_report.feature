@@ -16,6 +16,7 @@ Feature: In a lesson activity, teachers can review student attempts
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity   | name             | intro | course | section | idnumber    | retake |
       | lesson     | Test lesson name | Test  | C1     | 1       | lesson1     | 1      |

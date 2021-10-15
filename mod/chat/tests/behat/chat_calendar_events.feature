@@ -16,6 +16,7 @@ Feature: Chat calendar entries
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "chat" "mod" plugin
 
   Scenario: Create a chat activity and do not publish the start date to the calendar
     Given the following "activities" exist:

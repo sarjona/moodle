@@ -5,6 +5,7 @@ Feature: Set completion of other courses as criteria for completion of current c
   I want to select the prerequisite courses in completion settings
 
   Background:
+    Given I enable "completionstatus" "block" plugin
     Given the following "courses" exist:
       | fullname | shortname | category | enablecompletion |
       | Course 1 | C1        | 0        | 1                |

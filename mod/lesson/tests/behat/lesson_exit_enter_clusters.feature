@@ -15,6 +15,7 @@ Feature: In a lesson activity, students can exit and re-enter the activity when 
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity   | name                | intro                       | course | idnumber    |
       | lesson     | Lesson with cluster | Cluster lesson description  | C1     | lesson1     |

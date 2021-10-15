@@ -8,6 +8,7 @@ Feature: Submission types
     Given the following "courses" exist:
       | fullname | shortname |
       | Test     | TEST      |
+    And I enable "workshop" "mod" plugin
     And I log in as "admin"
 
   @javascript

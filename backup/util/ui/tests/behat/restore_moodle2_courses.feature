@@ -15,6 +15,7 @@ Feature: Restore Moodle 2 course backups
       | activity | course | idnumber | name | intro | section |
       | assign | C3 | assign1 | Test assign name | Assign description | 1 |
       | data | C3 | data1 | Test database name | Database description | 2 |
+    And I enable "activity_modules" "block" plugin
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
     And I add a "Forum" to section "1" and I fill the form with:
@@ -94,6 +95,7 @@ Feature: Restore Moodle 2 course backups
     And I press "Save and display"
     And I should see "1 January - 7 January"
     And I should see "Test forum name"
+    And I enable "social" "format" plugin
     And I navigate to "Settings" in current page administration
     And I expand all fieldsets
     And the field "id_format" matches value "Weekly format"

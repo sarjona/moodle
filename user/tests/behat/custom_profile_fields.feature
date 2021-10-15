@@ -258,6 +258,7 @@ Feature: Custom profile fields should be visible and editable by those with the 
       | moodle/user:viewalldetails  | Allow      | parent | User         | userwithinformation |
       | moodle/user:viewdetails     | Allow      | parent | User         | userwithinformation |
       | moodle/user:editprofile     | Allow      | parent | User         | userwithinformation |
+    And I enable "mentees" "block" plugin
     Given I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

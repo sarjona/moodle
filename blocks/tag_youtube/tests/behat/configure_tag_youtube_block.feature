@@ -6,6 +6,8 @@ Feature: Adding and configuring YouTube block
 
   Background:
     Given I log in as "admin"
+    And the following config values are set as admin:
+      | usetags | 1 |
     And I navigate to "Plugins > Blocks > Manage blocks" in site administration
     And I click on "Show" "icon" in the "YouTube" "table_row"
 

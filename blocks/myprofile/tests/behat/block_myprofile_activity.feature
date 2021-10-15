@@ -4,6 +4,9 @@ Feature: The logged in user block allows users to view their profile information
   As a teacher
   I can add the logged in user block to an activity and view my information
 
+  Background:
+    Given I enable "myprofile" "block" plugin
+
   Scenario: View the logged in user block by a user in an activity
     Given the following "users" exist:
       | username | firstname | lastname | email | idnumber |

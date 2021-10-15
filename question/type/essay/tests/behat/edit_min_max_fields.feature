@@ -13,6 +13,7 @@ I need to choose the appropriate minimum and/or maximum number of words for inpu
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
+    And I enable "essay" "qtype" plugin
     And the following "question categories" exist:
       | contextlevel | reference | name           |
       | Course       | C1        | Test questions |

@@ -14,6 +14,7 @@ Feature: Preview a drag-drop marker question
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
+    And I enable "ddmarker" "qtype" plugin
     And the following "question categories" exist:
       | contextlevel | reference | name           |
       | Course       | C1        | Test questions |

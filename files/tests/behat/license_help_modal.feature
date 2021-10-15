@@ -4,10 +4,15 @@ Feature: View licence links
   As a user
   I need to be able to navigate to a page containing licence terms from the file manager
 
+  Background:
+    Given I enable "private_files" "block" plugin
+    And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
+
   @javascript
   Scenario: Uploading a file displays licence list modal
-    Given I log in as "admin"
-    And I follow "Manage private files..."
+    Given I follow "Manage private files..."
     And I follow "Add..."
     And I follow "Upload a file"
     And I click on "Help with Choose licence" "icon" in the "File picker" "dialogue"
@@ -15,8 +20,7 @@ Feature: View licence links
 
   @javascript @_file_upload
   Scenario: Altering a file should display licence list modal
-    Given I log in as "admin"
-    And I follow "Manage private files..."
+    Given I follow "Manage private files..."
     And I upload "lib/tests/fixtures/empty.txt" file to "Files" filemanager
     And I press "Save changes"
     And I follow "Manage private files..."
@@ -26,8 +30,7 @@ Feature: View licence links
 
   @javascript @_file_upload
   Scenario: Recent files should display licence list modal
-    Given I log in as "admin"
-    And I follow "Manage private files..."
+    Given I follow "Manage private files..."
     And I upload "lib/tests/fixtures/empty.txt" file to "Files" filemanager
     And I press "Save changes"
     And I follow "Manage private files..."
@@ -39,8 +42,7 @@ Feature: View licence links
 
   @javascript @_file_upload
   Scenario: Private files should display licence list modal
-    Given I log in as "admin"
-    And I follow "Manage private files..."
+    Given I follow "Manage private files..."
     And I upload "lib/tests/fixtures/empty.txt" file to "Files" filemanager
     And I press "Save changes"
     And I follow "Manage private files..."

@@ -14,6 +14,9 @@ Feature: Enable Block blog menu in a course
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And the following config values are set as admin:
+      | enableblogs | 1 |
+    And I enable "blog_menu" "block" plugin
 
   Scenario: Add the block to a the course when blogs are disabled
     Given I log in as "admin"

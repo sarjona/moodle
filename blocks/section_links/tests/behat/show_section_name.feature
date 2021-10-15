@@ -18,6 +18,7 @@ Feature: The Section links block can be configured to display section name in ad
       | student1 | C1     | student        |
     And the following config values are set as admin:
       | showsectionname | 1 | block_section_links |
+    And I enable "section_links" "block" plugin
     And I log in as "admin"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Section links" block

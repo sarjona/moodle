@@ -11,6 +11,8 @@ Feature: Backpack badges
     And the following "users" exist:
       | username | firstname | lastname | email                |
       | student1 | Student   | 1        | student1@example.com |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
     And I log in as "admin"
     And I navigate to "Badges > Badges settings" in site administration
     And I set the field "Badge issuer name" to "Test Badge Site"

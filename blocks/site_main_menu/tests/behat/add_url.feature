@@ -4,6 +4,11 @@ Feature: Add URL to main menu block
   As a admin
   I need to add URLs to the main menu block and check it works.
 
+  Background:
+    Given I enable "site_main_menu" "block" plugin
+    And the following config values are set as admin:
+      | enablebadges | 1 |
+
   @javascript
   Scenario: Add a URL in menu block and ensure it appears
     Given I log in as "admin"

@@ -22,6 +22,8 @@ Feature: Edited book chapters handle tags correctly
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And the following config values are set as admin:
+      | usetags | 1 |
 
   Scenario: Book chapter edition of custom tags works as expected
     Given I am on the "Test book" "book activity" page logged in as teacher1

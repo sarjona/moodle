@@ -8,6 +8,8 @@ Feature: Delete a blog entry
     Given the following "users" exist:
       | username | firstname | lastname | email |
       | testuser | Test | User | moodle@example.com |
+    And the following config values are set as admin:
+      | enableblogs | 1 |
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

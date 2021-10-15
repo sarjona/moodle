@@ -8,6 +8,7 @@ Feature: The search forums block allows users to search for forum posts on front
     Given the following "users" exist:
       | username | firstname | lastname | email | idnumber |
       | student1 | Student | 1 | student1@example.com | S1 |
+    And I enable "search_forums" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

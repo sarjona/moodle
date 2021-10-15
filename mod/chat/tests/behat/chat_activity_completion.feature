@@ -16,6 +16,7 @@ Feature: View activity completion information in the chat activity
       | user | course | role           |
       | student1 | C1 | student        |
       | teacher1 | C1 | editingteacher |
+    And I enable "chat" "mod" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Settings" in current page administration

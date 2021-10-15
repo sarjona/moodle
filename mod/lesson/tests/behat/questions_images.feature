@@ -9,6 +9,7 @@ Feature: In a lesson activity, teacher can add embedded images in questions answ
       | username | firstname | lastname | email |
       | teacher1 | Teacher | 1 | teacher1@example.com |
       | student1 | Student | 1 | student1@example.com |
+    And I enable "private_files" "block" plugin
     And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
@@ -16,11 +17,14 @@ Feature: In a lesson activity, teacher can add embedded images in questions answ
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activity" exists:
       | course   | C1               |
       | activity | lesson           |
       | name     | Test lesson name |
     And I log in as "teacher1"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files"
     And I upload "mod/lesson/tests/fixtures/moodle_logo.jpg" file to "Files" filemanager
     And I click on "Save changes" "button"

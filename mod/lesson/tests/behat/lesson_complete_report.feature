@@ -15,6 +15,7 @@ Feature: Teachers can review student progress on all lessons in a course by view
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity   | name             | intro                   | course | idnumber    | retake |
       | lesson     | Test lesson name | Test lesson description | C1     | lesson1     | 1      |

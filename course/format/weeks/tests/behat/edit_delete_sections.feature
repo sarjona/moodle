@@ -11,6 +11,7 @@ Feature: Sections can be edited and deleted in weeks format
     And the following "courses" exist:
       | fullname | shortname | format | coursedisplay | numsections | startdate |
       | Course 1 | C1        | weeks  | 0             | 5           | 957139200 |
+    And I enable "chat" "mod" plugin
     And the following "activities" exist:
       | activity   | name                   | intro                         | course | idnumber    | section |
       | assign     | Test assignment name   | Test assignment description   | C1     | assign1     | 0       |

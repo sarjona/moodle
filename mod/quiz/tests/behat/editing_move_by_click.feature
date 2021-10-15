@@ -30,6 +30,7 @@ Feature: Edit quiz page - drag-and-drop
       | Question A | 1    |
       | Question B | 1    |
       | Question C | 2    |
+    And I enable "description" "qtype" plugin
     And I log in as "teacher1"
     And I am on the "Quiz 1" "mod_quiz > Edit" page
 

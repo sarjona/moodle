@@ -14,6 +14,7 @@ Feature: The questions in the question bank can be filtered by tags
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "essay" "qtype" plugin
     And the following "question categories" exist:
       | contextlevel | reference | name           |
       | Course       | C1        | Test questions |
@@ -21,6 +22,8 @@ Feature: The questions in the question bank can be filtered by tags
       | questioncategory | qtype     | name            | user     | questiontext    |
       | Test questions   | essay     | question 1 name | admin    | Question 1 text |
       | Test questions   | essay     | question 2 name | teacher1 | Question 2 text |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Question bank > Questions" in current page administration

@@ -19,6 +19,7 @@ Feature: A teacher can set a wiki to be collaborative or individual
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And I enable "wiki" "mod" plugin
     And the following "activity" exists:
       | course         | C1                      |
       | activity       | wiki                    |

@@ -15,6 +15,8 @@ Feature: In a course administration page, navigate through report page, test for
       | user | course | role |
       | admin | C1 | editingteacher |
       | student1 | C1 | student |
+    And the following config values are set as admin:
+      | enabled | 1 | core_competency |
 
   @javascript
   Scenario: Selector should be available in the course competency page

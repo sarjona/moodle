@@ -14,6 +14,7 @@ Feature: Display the IMS content package description in the IMSCP and optionally
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "imscp" "mod" plugin
 
   @javascript @_file_upload
   Scenario: Description is displayed in the IMS content package

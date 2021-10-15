@@ -55,7 +55,10 @@ Feature: Teachers can override the grade for any question
 
   @javascript @_switch_window @_file_upload @_bug_phantomjs
   Scenario: Comment on a response to an essay question attempt.
+    Given I enable "private_files" "block" plugin
     When I log in as "teacher1"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files"
     And I upload "mod/quiz/tests/fixtures/moodle_logo.jpg" file to "Files" filemanager
     And I click on "Save changes" "button"

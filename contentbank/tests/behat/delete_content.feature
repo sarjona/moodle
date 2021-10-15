@@ -5,7 +5,11 @@ Feature: Delete H5P file from the content bank
   I need to be able to delete any H5P content from the content bank
 
   Background:
-    Given I log in as "admin"
+    Given I enable "private_files" "block" plugin
+    And I log in as "admin"
+    And I enable "private_files" "block" plugin
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/filltheblanks.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
@@ -53,6 +57,8 @@ Feature: Delete H5P file from the content bank
       | manager     | manager       | System    |               |
     And I log out
     And I log in as "manager"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/find-the-words.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"

@@ -4,6 +4,9 @@ Feature: The logged in user block allows users to view their profile information
   As a user
   I can add the logged in user block and configure it to show my information
 
+  Background:
+    Given I enable "myprofile" "block" plugin
+
   Scenario: Configure the logged in user block to show / hide the users country
     Given the following "users" exist:
       | username | firstname | lastname | email                | country   |

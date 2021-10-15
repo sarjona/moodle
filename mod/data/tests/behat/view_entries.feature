@@ -10,6 +10,8 @@ Feature: Users can view and search database entries
       | student1 | Bob       | 1        | student1@example.com |
       | student2 | Alice     | 2        | student2@example.com |
       | teacher1 | Teacher   | 1        | teacher1@example.com |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "tags" exist:
       | name | isstandard |
       | Tag1 | 1          |
@@ -21,6 +23,7 @@ Feature: Users can view and search database entries
       | teacher1 | C1     | editingteacher |
       | student1 | C1     | student        |
       | student2 | C1     | student        |
+    And I enable "data" "mod" plugin
     And the following "activities" exist:
       | activity | name               | intro          | course | idnumber |
       | data     | Test database name | Database intro | C1     | data1    |

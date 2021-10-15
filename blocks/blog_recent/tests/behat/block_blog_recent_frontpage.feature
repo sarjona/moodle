@@ -8,6 +8,9 @@ Feature: Feature: Students can use the recent blog entries block to view recent 
     Given the following "users" exist:
       | username | firstname | lastname | email | idnumber |
       | student1 | Student | 1 | student1@example.com | S1 |
+    And the following config values are set as admin:
+      | enableblogs | 1 |
+    And I enable "blog_recent" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

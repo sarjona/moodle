@@ -24,6 +24,7 @@ Feature: Teachers can edit course custom fields
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
+    And I enable "private_files" "block" plugin
 
   Scenario: Display custom fields on course edit form
     When I log in as "teacher1"
@@ -73,6 +74,8 @@ Feature: Teachers can edit course custom fields
   @javascript @_file_upload
   Scenario: Use images in the custom field description
     When I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files"
     And I upload "lib/tests/fixtures/gd-logo.png" file to "Files" filemanager
     And I click on "Save changes" "button"

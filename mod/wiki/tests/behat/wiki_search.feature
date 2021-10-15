@@ -18,6 +18,7 @@ Feature: Users can search wikis
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
       | student2 | C1 | student |
+    And I enable "wiki" "mod" plugin
 
   @javascript
   Scenario: Searching collaborative wiki

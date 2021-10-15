@@ -144,7 +144,10 @@ Feature: Inline editing H5P content
 
   @javascript
   Scenario: Add H5P activity using private user file
-    Given I log in as "teacher1"
+    Given I enable "private_files" "block" plugin
+    And I log in as "teacher1"
+    And I turn editing mode on
+    And I add the "Private files" block
     # Upload the H5P to private user files.
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/greeting-card-887.h5p" file to "Files" filemanager

@@ -6,6 +6,8 @@ Feature: Manage plearning plan templates
 
   Background:
     Given I log in as "admin"
+    And the following config values are set as admin:
+      | enabled | 1 | core_competency |
     And I change window size to "small"
     And I am on site homepage
 

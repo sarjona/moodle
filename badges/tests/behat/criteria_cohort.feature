@@ -4,6 +4,11 @@ Feature: Award badges based on cohort
   As an admin
   I need to add cohort criteria to badges in the system
 
+  Background:
+    Given the following config values are set as admin:
+      | enablebadges | 1 |
+    And I enable "cohort" "enrol" plugin
+
   @javascript
   Scenario: Award cohort membership badge for a member of a single cohort.
     Given the following "cohorts" exist:

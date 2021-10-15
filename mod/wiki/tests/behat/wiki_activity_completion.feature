@@ -16,6 +16,7 @@ Feature: View activity completion information in the Wiki activity
       | user | course | role           |
       | student1 | C1 | student        |
       | teacher1 | C1 | editingteacher |
+    And I enable "wiki" "mod" plugin
     And the following "activity" exists:
       | activity       | wiki          |
       | course         | C1            |

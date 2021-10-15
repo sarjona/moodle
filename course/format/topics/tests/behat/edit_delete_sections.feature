@@ -11,6 +11,7 @@ Feature: Sections can be edited and deleted in topics format
     And the following "courses" exist:
       | fullname | shortname | format | coursedisplay | numsections |
       | Course 1 | C1        | topics | 0             | 5           |
+    And I enable "chat" "mod" plugin
     And the following "activities" exist:
       | activity   | name                   | intro                         | course | idnumber    | section |
       | assign     | Test assignment name   | Test assignment description   | C1     | assign1     | 0       |

@@ -14,6 +14,7 @@ Feature: Setting grades to pass via workshop editing form
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | c1     | editingteacher |
+    And I enable "workshop" "mod" plugin
 
   Scenario: Adding a new workshop with grade to pass field set
     Given the following "activities" exist:

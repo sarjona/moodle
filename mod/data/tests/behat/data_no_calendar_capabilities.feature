@@ -14,6 +14,7 @@ Feature: Database with no calendar capabilites
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "data" "mod" plugin
     And I log in as "admin"
     And I am on "Course 1" course homepage
     And I navigate to "Users > Permissions" in current page administration

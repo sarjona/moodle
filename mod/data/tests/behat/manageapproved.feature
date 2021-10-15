@@ -16,6 +16,7 @@ Feature: Users can edit approved entries in database activities
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "data" "mod" plugin
 
   @javascript
   Scenario: Students can manage their approved entries to a database

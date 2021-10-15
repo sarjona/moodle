@@ -8,14 +8,18 @@ Feature: Teachers can embed images into instructions and conclusion fields
     Given the following "users" exist:
       | username | firstname | lastname | email                |
       | teacher1 | Teacher   | One      | teacher1@example.com |
+    And I enable "private_files" "block" plugin
     And the following "courses" exist:
       | fullname | shortname |
       | Course 1 | C1        |
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
+    And I enable "workshop" "mod" plugin
     And I log in as "teacher1"
     # Upload an image into the private files.
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files"
     And I upload "mod/workshop/tests/fixtures/moodlelogo.png" file to "Files" filemanager
     And I click on "Save changes" "button"

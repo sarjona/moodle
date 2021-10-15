@@ -13,6 +13,8 @@ Feature: Tinymce with enable/disable function.
       | activity | name | intro                                                                                                 | course | idnumber |
       | label    | L1   | <a href="../lib/editor/tests/fixtures/disable_control_example.php">Control Enable/Disable Tinymce</a> | C1     | label1   |
     And I log in as "admin"
+    And I navigate to "Plugins > Text editors > Manage editors" in site administration
+    And I click on "Enable" "link" in the "TinyMCE HTML editor" "table_row"
     And I follow "Preferences" in the user menu
     And I follow "Editor preferences"
     And I set the field "Text editor" to "TinyMCE HTML editor"

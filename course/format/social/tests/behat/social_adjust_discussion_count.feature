@@ -8,6 +8,7 @@ Feature: Change number of discussions displayed
     Given the following "users" exist:
       | username | firstname | lastname | email |
       | teacher1 | Teacher | 1 | teacher1@example.com |
+    And I enable "social" "format" plugin
     And the following "courses" exist:
       | fullname | shortname | category | format |
       | Course 1 | C1 | 0 | social |

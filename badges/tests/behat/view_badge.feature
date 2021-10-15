@@ -8,6 +8,8 @@ Feature: Display badges
     Given the following "users" exist:
       | username | firstname | lastname | email |
       | student1 | Student | 1 | student1@example.com |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
     # Create system badge and define a criterion.
     And I log in as "admin"
     And I navigate to "Badges > Add a new badge" in site administration

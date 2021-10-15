@@ -16,6 +16,7 @@ Feature: Edit activities in social activities block
       | user | course | role |
       | user1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "social_activities" "block" plugin
 
   @javascript
   Scenario: Edit name of activity in-place in social activities block

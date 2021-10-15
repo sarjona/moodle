@@ -14,6 +14,7 @@ Feature: The private files block allows users to store files privately in moodle
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "private_files" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add the "Private files" block

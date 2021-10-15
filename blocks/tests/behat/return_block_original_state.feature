@@ -12,6 +12,9 @@ Feature: The context of a block can always be returned to it's original state.
       | activity   | name           | intro         | course | section | idnumber |
       | assign     | Assignment1    | Description   | C1     | 1       | assign1 |
       | assign     | Assignment2    | Description   | C1     | 1       | assign1 |
+    And the following config values are set as admin:
+      | usetags | 1 |
+    And I enable "tags" "block" plugin
     And I log in as "admin"
     When I am on "Course 1" course homepage with editing mode on
     And I add the "Tags" block

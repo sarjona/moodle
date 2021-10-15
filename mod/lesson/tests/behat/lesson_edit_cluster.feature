@@ -16,6 +16,7 @@ Feature: In a lesson activity, teacher can edit a cluster page
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activities" exist:
       | activity | name                | intro                    | course | idnumber | section |
       | lesson   | Lesson with cluster | Test lesson description  | C1     | lesson1  | 1       |

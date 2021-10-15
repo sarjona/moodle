@@ -26,6 +26,7 @@ Feature: Course activity controls works as expected
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "section_links" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     When I follow <targetpage>
@@ -98,6 +99,7 @@ Feature: Course activity controls works as expected
       | activity  | name                   | intro                         | course | idnumber     | section |
       | forum     | Test forum name 1      | Test forum description 1      | C1     | 0001         | 1       |
       | forum     | Test forum name 2      | Test forum description 2      | C1     | 0002         | 1       |
+    And I enable "section_links" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     When I follow <targetpage>
@@ -129,6 +131,7 @@ Feature: Course activity controls works as expected
     And I show section "1"
     And <belowpage> "section" <should_see_other_sections> exist
     And section "1" should be visible
+    And I enable "section_links" "block" plugin
     And I add the "Section links" block
     And <belowpage> "section" <should_see_other_sections> exist
     And I should see "1 2 3 4 5" in the "Section links" "block"

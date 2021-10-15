@@ -25,6 +25,8 @@ Feature: Editing random questions already in a quiz based on category and tags
       | questioncategory     | qtype | name            | user     | questiontext    |
       | Questions Category 1 | essay | question 1 name | admin    | Question 1 text |
       | Questions Category 1 | essay | question 2 name | teacher1 | Question 2 text |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "core_question > Tags" exist:
       | question        | tag   |
       | question 1 name | easy  |

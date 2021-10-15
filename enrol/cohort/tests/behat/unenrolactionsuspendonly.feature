@@ -9,6 +9,7 @@ Feature: Unenrol action to disable course enrolment
       | student002  | Student   | 002      | student002@example.com  |
       | student003  | Student   | 003      | student003@example.com  |
       | student004  | Student   | 004      | student004@example.com  |
+    And I enable "cohort" "enrol" plugin
     And the following "cohorts" exist:
       | name                 | idnumber | visible |
       | System cohort        | CVO      | 1       |

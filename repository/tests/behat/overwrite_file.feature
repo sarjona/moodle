@@ -9,6 +9,7 @@ Feature: Overwrite file feature
     Given the following "users" exist:
       | username | firstname | lastname | email |
       | teacher1 | Terry | Teacher | teacher1@example.com |
+    And I enable "private_files" "block" plugin
     And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
@@ -16,6 +17,8 @@ Feature: Overwrite file feature
       | user | course | role |
       | teacher1 | C1 | editingteacher |
     When I log in as "teacher1"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files"
     And I upload "lib/tests/fixtures/empty.txt" file to "Files" filemanager
     Then I should see "1" elements in "Files" filemanager

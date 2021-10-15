@@ -14,6 +14,7 @@ Feature: In a lesson activity a student should
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And the following "activity" exists:
       | activity    | lesson                      |
       | name        | Test lesson name            |

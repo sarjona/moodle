@@ -6,6 +6,8 @@ Feature: Manage plearning plan
 
   Background:
     Given I log in as "admin"
+    And the following config values are set as admin:
+      | enabled | 1 | core_competency |
     And I am on site homepage
     When I follow "Profile" in the user menu
     Then I should see "Learning plans"

@@ -18,6 +18,7 @@ Feature: Enable Block Completion in a course using manual completion by others
       | teacher1 | C1     | editingteacher |
       | teacher2 | C1     | teacher        |
       | student1 | C1     | student        |
+    And I enable "completionstatus" "block" plugin
 
   Scenario: Add the block to a the course and mark a student complete.
     Given I log in as "teacher1"

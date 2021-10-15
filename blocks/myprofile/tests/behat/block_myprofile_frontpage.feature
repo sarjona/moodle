@@ -8,6 +8,7 @@ Feature: The logged in user block allows users to view their profile information
     Given the following "users" exist:
       | username | firstname | lastname | email                | idnumber |
       | teacher1 | Teacher   | One      | teacher1@example.com | T1       |
+    And I enable "myprofile" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

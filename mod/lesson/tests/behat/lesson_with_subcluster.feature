@@ -16,6 +16,7 @@ Feature: In a lesson activity, students can see questions in random order and a 
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And I log in as "teacher1"
 
   Scenario: Lesson with subcluster

@@ -43,7 +43,8 @@ Feature: Atto Autosave
 
   @javascript
   Scenario: Do not restore a draft if files have been modified
-    Given I log in as "teacher1"
+    Given I enable "private_files" "block" plugin
+    And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Settings" in current page administration
     And I set the field "Course summary" to "This is my draft"
@@ -51,6 +52,8 @@ Feature: Atto Autosave
     And I wait "5" seconds
     And I log out
     And I log in as "teacher2"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "lib/editor/atto/tests/fixtures/moodle-logo.png" file to "Files" filemanager
     And I click on "Save changes" "button"

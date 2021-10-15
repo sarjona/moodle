@@ -52,6 +52,7 @@ Feature: The student can navigate to their grades page and user grade report.
 
   Scenario: Change Grades settings to go to a custom url.
     Given the following config values are set as admin:
+      | enablebadges           | 1                    |
       | grade_mygrades_report  | external             |
       | gradereport_mygradeurl | /badges/mybadges.php |
     And I log in as "student1"
@@ -61,6 +62,7 @@ Feature: The student can navigate to their grades page and user grade report.
 
   Scenario: Log in as a parent and view a childs grades.
     When I log in as "admin"
+    And I enable "mentees" "block" plugin
     And I am on site homepage
     And I turn editing mode on
     And I add the "Mentees" block

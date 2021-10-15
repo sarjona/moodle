@@ -18,6 +18,9 @@ Feature: Add and configure blocks throughout the site
     And the following "system role assigns" exist:
       | user | course | role |
       | manager1 | Acceptance test site | manager |
+    And the following config values are set as admin:
+      | usecomments | 1 |
+    And I enable "comments" "block" plugin
     # Allow at least one role assignment in the block context:
     And I log in as "admin"
     And I navigate to "Users > Permissions > Define roles" in site administration
@@ -51,13 +54,13 @@ Feature: Add and configure blocks throughout the site
   Scenario: Blocks on the dashboard page can have roles assigned to them
     Given I log in as "manager1"
     When I turn editing mode on
-    Then I should see "Assign roles in Private files block"
+    Then I should see "Assign roles in Calendar block"
 
   Scenario: Blocks on courses can have roles assigned to them
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
-    And I add the "Search forums" block
-    Then I should see "Assign roles in Search forums block"
+    And I add the "Calendar" block
+    Then I should see "Assign roles in Calendar block"
 
   @javascript
   Scenario: Blocks can safely be customised

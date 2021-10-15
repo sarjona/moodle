@@ -4,6 +4,9 @@ Feature: Edit activities in main menu block
   As an admin
   I need to add and edit activities there
 
+  Background:
+    Given I enable "site_main_menu" "block" plugin
+
   @javascript
   Scenario: Edit name of acitivity in-place in site main menu block
     Given the following "activity" exists:
@@ -11,6 +14,7 @@ Feature: Edit activities in main menu block
       | course   | Acceptance test site |
       | name     | My forum name        |
       | idnumber | forum                |
+    And I enable "site_main_menu" "block" plugin
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on

@@ -11,6 +11,9 @@ Feature: Enable Block comments on the dashboard and view comments
     And the following "users" exist:
       | username | firstname | lastname | email |
       | teacher1 | Teacher | Frist | teacher1@example.com |
+    And the following config values are set as admin:
+      | usecomments | 1 |
+    And I enable "comments" "block" plugin
 
   Scenario: Add the comments block on the dashboard and add comments with Javascript disabled
     When I log in as "teacher1"

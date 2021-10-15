@@ -16,6 +16,7 @@ Feature: Users can be required to specify certain fields when adding entries to 
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "data" "mod" plugin
     And the following "activities" exist:
       | activity | name               | intro | course | idnumber |
       | data     | Test database name | n     | C1     | data1    |

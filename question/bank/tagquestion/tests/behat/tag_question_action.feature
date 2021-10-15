@@ -15,6 +15,8 @@ Feature: Use the qbank plugin manager page for tagquestion
     And the following "questions" exist:
       | questioncategory | qtype     | name           | questiontext              |
       | Test questions   | truefalse | First question | Answer the first question |
+    And the following config values are set as admin:
+      | usetags | 1 |
 
   Scenario: Enable/disable tagquestion column from the base view
     Given I log in as "admin"

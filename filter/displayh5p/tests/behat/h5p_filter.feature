@@ -52,6 +52,10 @@ Feature: Render H5P content using filters
   @javascript
   Scenario: Render a local H5P file as admin
     Given I log in as "admin"
+    And I navigate to "Plugins > Repositories > Manage repositories" in site administration
+    And I set the field "Action" in the "Server files" "table_row" to "Enabled and visible"
+    And I wait until the page is ready
+    And I click on "Save" "button"
     And I am on "Course 1" course homepage with editing mode on
     And I add a "File" to section "1"
     And I set the following fields to these values:
@@ -85,7 +89,13 @@ Feature: Render H5P content using filters
 
   @javascript
   Scenario: Render a local H5P file as teacher
-    Given I log in as "teacher1"
+    Given I log in as "admin"
+    And I navigate to "Plugins > Repositories > Manage repositories" in site administration
+    And I set the field "Action" in the "Server files" "table_row" to "Enabled and visible"
+    And I wait until the page is ready
+    And I click on "Save" "button"
+    And I log out
+    And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add a "File" to section "1"
     And I set the following fields to these values:
@@ -109,7 +119,13 @@ Feature: Render H5P content using filters
 
   @javascript
   Scenario: Render a local H5P file with existing libraries
-    Given I log in as "teacher1"
+    Given I log in as "admin"
+    And I navigate to "Plugins > Repositories > Manage repositories" in site administration
+    And I set the field "Action" in the "Server files" "table_row" to "Enabled and visible"
+    And I wait until the page is ready
+    And I click on "Save" "button"
+    And I log out
+    And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add a "File" to section "1"
     And I set the following fields to these values:
@@ -167,8 +183,11 @@ Feature: Render H5P content using filters
 
   @javascript
   Scenario: Render local H5P file with a disabled main library
-    Given I log in as "admin"
+    Given I enable "private_files" "block" plugin
+    And I log in as "admin"
 # Upload H5P file to private files.
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"

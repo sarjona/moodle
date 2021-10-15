@@ -26,6 +26,10 @@ Feature: Students can use the recent blog entries block to view recent entries o
       | intro                         | Offline text      |
       | section                       | 1                 |
       | assignsubmission_file_enabled | 0                 |
+    And the following config values are set as admin:
+      | enableblogs | 1 |
+    And I enable "blog_recent" "block" plugin
+    And I enable "blog_menu" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I follow "Test assignment 1"

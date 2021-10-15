@@ -14,6 +14,8 @@ Feature: Tagging courses
       | fullname  | shortname |
       | Course 1  | c1        |
       | Course 2  | c2        |
+    And the following config values are set as admin:
+      | usetags | 1 |
     And the following "tags" exist:
       | name         | isstandard  |
       | Neverusedtag | 1           |

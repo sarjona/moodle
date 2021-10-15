@@ -4,6 +4,11 @@ Feature: Editing choice block
   As a teacher or admin
   I need to add remove block from the choice page
 
+  Background:
+    Given the following config values are set as admin:
+      | enableblogs | 1 |
+    And I enable "blog_menu" "block" plugin
+
   # This tests that the hacky block editing is not borked by legacy forms in choice activity.
   Scenario: Add a choice activity as admin and check blog menu block should contain link.
     Given the following "courses" exist:

@@ -14,6 +14,7 @@ Feature: There is a choice of formats for editing a wiki page
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "wiki" "mod" plugin
     And the following "activity" exists:
       | activity       | wiki           |
       | course         | C1             |

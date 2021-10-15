@@ -14,6 +14,7 @@ Feature: Test exporting Description questions
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
+    And I enable "description" "qtype" plugin
     And the following "question categories" exist:
       | contextlevel | reference | name           |
       | Course       | C1        | Test questions |

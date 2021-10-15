@@ -16,6 +16,7 @@ Feature: Edited wiki pages may be previewed before saving
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "wiki" "mod" plugin
     And the following "activity" exists:
       | activity      | wiki                  |
       | course        | C1                    |

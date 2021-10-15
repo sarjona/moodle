@@ -36,13 +36,16 @@ Feature: Inline editing H5P content anywhere
     Given the following "permission overrides" exist:
       | capability                 | permission | role           | contextlevel | reference |
       | moodle/h5p:updatelibraries | Allow      | editingteacher | System       |           |
+    And I enable "private_files" "block" plugin
     And I log in as "teacher1"
+    And I am on "Course 1" course homepage with editing mode on
+    And I add the "Private files" block
+    And I turn editing mode off
     # Upload the H5P to private user files.
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/greeting-card-887.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"
     # Add H5P content to the page.
-    And I am on "Course 1" course homepage
     And I am on the "PageName1" "page activity" page
     And I navigate to "Settings" in current page administration
     And I click on "Insert H5P" "button" in the "#fitem_id_page" "css_element"

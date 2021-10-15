@@ -9,6 +9,7 @@ Feature: Confirm content bank events are triggered
     And I navigate to "H5P > Manage H5P content types" in site administration
     And I upload "h5p/tests/fixtures/filltheblanks.h5p" file to "H5P content type" filemanager
     And I click on "Upload H5P content types" "button" in the "#fitem_id_uploadlibraries" "css_element"
+    And I enable "private_files" "block" plugin
     And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1        | 0        |
@@ -16,6 +17,8 @@ Feature: Confirm content bank events are triggered
       | contextlevel | reference | contenttype     | user  | contentname | filepath                                   |
       | Course       | C1        | contenttype_h5p | admin | Existing    | /h5p/tests/fixtures/filltheblanks.h5p      |
     And I follow "Dashboard" in the user menu
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/filltheblanks.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"

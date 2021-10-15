@@ -14,6 +14,8 @@ Feature: Block appearances
     And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
+    And I enable "survey" "mod" plugin
+    And I enable "comments" "block" plugin
     And the following "activities" exist:
       | activity | name             | description              | course | idnumber | section |
       | survey   | Test survey name | Test survey description  | C1     | survey1  | 1       |
@@ -40,7 +42,7 @@ Feature: Block appearances
       | Display on page types | Any page |
     And I press "Save changes"
 
-  Scenario: Block settings can be modified so that a block apprears on any page
+  Scenario: Block settings can be modified so that a block appears on any page
     When I click on "Test survey name" "link" in the "region-main" "region"
     Then I should see "Comments" in the "Comments" "block"
     And I am on "Course 1" course homepage

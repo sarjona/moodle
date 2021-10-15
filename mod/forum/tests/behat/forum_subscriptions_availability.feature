@@ -34,6 +34,7 @@ Feature: As a teacher I need to see an accurate list of subscribed users
     And the following "grouping groups" exist:
       | grouping | group |
       | GG1      | G1    |
+    And I enable "grouping" "availability" plugin
     And I log in as "teacher"
     And I am on "Course 1" course homepage with editing mode on
 

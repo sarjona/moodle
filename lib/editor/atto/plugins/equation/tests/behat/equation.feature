@@ -2,6 +2,9 @@
 Feature: Atto equation editor
   To teach maths to students, I need to write equations
 
+  Background:
+    Given I enable "mathjaxloader" "filter" plugin
+
   @javascript
   Scenario: Create an equation
     Given I log in as "admin"

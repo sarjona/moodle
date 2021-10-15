@@ -16,6 +16,7 @@ Feature: View activity completion in the database activity
       | user | course | role           |
       | student1 | C1 | student        |
       | teacher1 | C1 | editingteacher |
+    And I enable "data" "mod" plugin
     And the following "activity" exists:
       | activity                 | data          |
       | course                   | C1            |

@@ -9,6 +9,8 @@ Feature: Award badges based on user profile field
     Given the following "users" exist:
       | username | firstname | lastname | email           |
       | user1    | First     | User     | first@example.com  |
+    And the following config values are set as admin:
+      | enablebadges | 1 |
     And I log in as "admin"
     And I navigate to "Badges > Add a new badge" in site administration
     And I set the following fields to these values:

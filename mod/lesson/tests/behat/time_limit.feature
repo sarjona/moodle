@@ -17,6 +17,7 @@ Feature: A teacher can set a time limit for a lesson
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "lesson" "mod" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I add a "Lesson" to section "1" and I fill the form with:

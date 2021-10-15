@@ -8,6 +8,7 @@ Feature: Adding and configuring Mentees blocks
   Scenario: Configuring the Mentees block with Javascript on
     Given I log in as "admin"
     And I am on site homepage
+    And I enable "mentees" "block" plugin
     When I turn editing mode on
     And I add the "Mentees" block
     And I configure the "(new Mentees block)" block

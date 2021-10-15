@@ -17,6 +17,7 @@ Feature: Pass grade activity completion information in the LTI activity
       | student2 | C1     | student        |
       | student3 | C1     | student        |
       | teacher1 | C1     | editingteacher |
+    And I enable "lti" "mod" plugin
     And the following "activities" exist:
       | activity | name          | course | idnumber |
       | lti      | Music history | C1     | lti1     |

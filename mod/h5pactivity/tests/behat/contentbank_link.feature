@@ -84,7 +84,10 @@ Feature: Content bank link in the activity settings form
 
   @javascript
   Scenario: The content bank link should go to the course Content bank if the file is referenced but to another repository
-    Given I log in as "admin"
+    Given I enable "private_files" "block" plugin
+    And I log in as "admin"
+    And I turn editing mode on
+    And I add the "Private files" block
     And I follow "Manage private files..."
     And I upload "h5p/tests/fixtures/guess-the-answer.h5p" file to "Files" filemanager
     And I click on "Save changes" "button"

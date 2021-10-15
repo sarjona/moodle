@@ -16,6 +16,7 @@ Feature: The search forums block allows users to search for forum posts on cours
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
+    And I enable "search_forums" "block" plugin
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to "Settings" in current page administration

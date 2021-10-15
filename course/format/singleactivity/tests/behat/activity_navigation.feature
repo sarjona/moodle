@@ -16,6 +16,7 @@ Feature: Activity navigation in a single activity course
       | user      | course  | role            |
       | student1  | C1      | student         |
       | teacher1  | C1      | editingteacher  |
+    And I enable "chat" "mod" plugin
     And the following "activities" exist:
       | activity   | name         | intro                       | course | idnumber  | section |
       | assign     | Assignment 1 | Test assignment description | C1     | assign1   | 0       |
