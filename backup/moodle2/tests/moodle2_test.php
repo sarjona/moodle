@@ -39,6 +39,14 @@ require_once($CFG->libdir . '/completionlib.php');
 class core_backup_moodle2_testcase extends advanced_testcase {
 
     /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\availability::enable_plugin('grouping', 1);
+    }
+
+    /**
      * Tests the availability field on modules and sections is correctly
      * backed up and restored.
      */
@@ -124,6 +132,8 @@ class core_backup_moodle2_testcase extends advanced_testcase {
         $this->setAdminUser();
         $CFG->enableavailability = true;
         $CFG->enablecompletion = true;
+        \core\plugininfo\availability::enable_plugin('grouping', 1);
+        \core\plugininfo\availability::enable_plugin('profile', 1);
 
         // Extract backup file.
         $backupid = 'abc';
@@ -269,6 +279,8 @@ class core_backup_moodle2_testcase extends advanced_testcase {
         $this->setAdminUser();
         $CFG->enableavailability = true;
         $CFG->enablecompletion = true;
+        \core\plugininfo\availability::enable_plugin('grouping', 1);
+        \core\plugininfo\availability::enable_plugin('profile', 1);
 
         // Create a course with completion enabled and 2 forums.
         $generator = $this->getDataGenerator();

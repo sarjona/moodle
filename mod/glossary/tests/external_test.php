@@ -38,6 +38,18 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 class mod_glossary_external_testcase extends externallib_advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = 1;
+    }
+
+    /**
      * Test get_glossaries_by_courses
      */
     public function test_get_glossaries_by_courses() {

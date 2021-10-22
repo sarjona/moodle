@@ -708,6 +708,7 @@ class core_calendar_local_api_testcase extends advanced_testcase {
     public function test_get_legacy_events_with_disabled_module() {
         global $DB;
 
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
         $this->setAdminUser();
 
         $course = $this->getDataGenerator()->create_course();

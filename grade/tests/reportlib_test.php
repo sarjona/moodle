@@ -70,6 +70,7 @@ class reportlib_test extends advanced_testcase {
         global $DB;
 
         $this->resetAfterTest(true);
+        \core\plugininfo\mod::enable_plugin('data', 1);
 
         $student = $this->getDataGenerator()->create_user();
         $this->setUser($student);

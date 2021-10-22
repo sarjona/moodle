@@ -49,7 +49,10 @@ require_once($CFG->libdir . '/badgeslib.php');
 class core_badges_privacy_testcase extends provider_testcase {
 
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->enablebadges = true;
     }
 
     public function test_get_contexts_for_userid_for_badge_editing() {

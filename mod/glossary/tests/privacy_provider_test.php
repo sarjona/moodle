@@ -61,7 +61,10 @@ class mod_glossary_privacy_provider_testcase extends \core_privacy\tests\provide
     protected function setUp(): void {
         $this->resetAfterTest();
 
-        global $DB;
+        global $DB, $CFG;
+
+        $CFG->usetags = 1;
+
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();
         $this->course = $course;
@@ -231,7 +234,10 @@ class mod_glossary_privacy_provider_testcase extends \core_privacy\tests\provide
      * Test for provider::delete_data_for_user().
      */
     public function test_delete_data_for_user() {
-        global $DB;
+        global $DB, $CFG;
+
+        $CFG->usetags = 1;
+
         $generator = $this->getDataGenerator();
 
         // Create another student who will add an entry to the first glossary.
@@ -315,7 +321,10 @@ class mod_glossary_privacy_provider_testcase extends \core_privacy\tests\provide
      * Test for provider::delete_data_for_users().
      */
     public function test_delete_data_for_users() {
-        global $DB;
+        global $DB, $CFG;
+
+        $CFG->usetags = 1;
+
         $generator = $this->getDataGenerator();
 
         $student2 = $generator->create_user();

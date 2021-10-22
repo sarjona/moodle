@@ -34,6 +34,18 @@ defined('MOODLE_INTERNAL') || die();
 class community_of_inquiry_activities_completed_by_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enableanalytics = true;
+    }
+
+    /**
      * availability_levels
      *
      * @return array

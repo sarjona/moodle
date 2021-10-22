@@ -1366,7 +1366,10 @@ FALSE#42 is the Ultimate Answer.#You gave the right answer.}";
     }
 
     public function test_export_question_with_tags_and_idnumber() {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = 1;
 
         // Create a question with tags.
         $generator = $this->getDataGenerator()->get_plugin_generator('core_question');

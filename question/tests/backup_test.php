@@ -100,10 +100,11 @@ class core_question_backup_testcase extends advanced_testcase {
      * This function tests backup and restore of question tags and course level question tags.
      */
     public function test_backup_question_tags() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest();
         $this->setAdminUser();
+        $CFG->usetags = 1;
 
         // Create a new course category and and a new course in that.
         $category1 = $this->getDataGenerator()->create_category();

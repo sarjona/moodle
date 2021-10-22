@@ -27,7 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
-
 // Used to create a wiki page to tag.
 require_once($CFG->dirroot . '/mod/wiki/locallib.php');
 
@@ -39,7 +38,10 @@ class core_tag_events_testcase extends advanced_testcase {
      * This is executed before running any test in this file.
      */
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = true;
     }
 
     /**

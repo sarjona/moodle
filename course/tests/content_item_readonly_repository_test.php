@@ -78,6 +78,7 @@ class content_item_readonly_repository_testcase extends \advanced_testcase {
      */
     public function test_find_all() {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
         global $DB;
 
         // We'll compare our results to those which are course-specific.

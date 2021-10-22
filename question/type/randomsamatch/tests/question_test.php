@@ -37,6 +37,16 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  */
 class qtype_randomsamatch_question_test extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('randomsamatch', 1);
+    }
+
     public function test_get_expected_data() {
         $question = test_question_maker::make_question('randomsamatch');
         $question->start_attempt(new question_attempt_step(), 1);

@@ -50,6 +50,7 @@ class mod_workshop_porfolio_caller_testcase extends advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
         $course = $this->getDataGenerator()->create_course();
         $workshop = $this->getDataGenerator()->create_module('workshop', ['course' => $course]);
         $this->cm = get_coursemodule_from_instance('workshop', $workshop->id, $course->id, false, MUST_EXIST);

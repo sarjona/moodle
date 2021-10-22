@@ -36,6 +36,18 @@ require_once(__DIR__ . '/fixtures/test_timesplitting_upcoming_seconds.php');
 class analytics_analysis_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enableanalytics = true;
+    }
+
+    /**
      * Test fill_firstanalyses_cache.
      * @return null
      */

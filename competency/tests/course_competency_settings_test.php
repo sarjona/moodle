@@ -38,6 +38,15 @@ use core_competency\course_competency_settings;
  */
 class core_competency_course_competency_settings_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_who_can_change_settings() {
         global $CFG, $DB;
 

@@ -37,6 +37,16 @@ defined('MOODLE_INTERNAL') || die();
 class mod_lti_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
+    }
+
+    /**
      * Test for provider::get_metadata().
      */
     public function test_get_metadata() {

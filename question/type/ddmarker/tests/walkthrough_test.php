@@ -40,6 +40,16 @@ require_once($CFG->dirroot . '/question/type/ddmarker/tests/helper.php');
 class qtype_ddmarker_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('ddmarker', 1);
+    }
+
+    /**
      * Get an expectation that the output contains a marker.
      * @param unknown $choice which choice.
      * @param unknown $infinite whether there are infinitely many of that choice.

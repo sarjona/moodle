@@ -36,6 +36,16 @@ require_once($CFG->dirroot . '/mod/chat/lib.php');
  */
 class mod_chat_events_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
+    }
+
     public function test_message_sent() {
         global $DB;
         $this->resetAfterTest();

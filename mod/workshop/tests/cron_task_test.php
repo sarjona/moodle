@@ -38,6 +38,16 @@ require_once($CFG->dirroot.'/mod/workshop/lib.php');
 class mod_workshop_cron_task_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
+    }
+
+    /**
      * Test that the phase is automatically switched after the submissions deadline.
      */
     public function test_phase_switching() {

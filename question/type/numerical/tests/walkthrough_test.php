@@ -38,6 +38,17 @@ require_once($CFG->dirroot . '/question/type/numerical/tests/helper.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_numerical_walkthrough_test extends qbehaviour_walkthrough_test_base {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('numerical', 1);
+    }
+
     public function test_interactive_currency() {
 
         // Create a gapselect question.

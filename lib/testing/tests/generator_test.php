@@ -35,6 +35,17 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_test_generator_testcase extends advanced_testcase {
+
+    /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = true;
+    }
+
     public function test_get_plugin_generator_good_case() {
         $generator = $this->getDataGenerator()->get_plugin_generator('core_question');
         $this->assertInstanceOf('core_question_generator', $generator);
@@ -184,6 +195,7 @@ class core_test_generator_testcase extends advanced_testcase {
     public function test_create_module() {
         global $CFG, $SITE, $DB;
 
+        \core\plugininfo\mod::enable_plugin('data', 1);
         $this->setAdminUser();
 
         if (!file_exists("$CFG->dirroot/mod/page/")) {

@@ -33,12 +33,23 @@ require_once(__DIR__ . '/fixtures/testable_assign.php');
 class mod_assign_external_testcase extends externallib_advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usecomments = 1;
+    }
+
+    /**
      * Test get_grades
      */
     public function test_get_grades() {
         global $DB, $USER;
 
-        $this->resetAfterTest(true);
         // Create a course and assignment.
         $coursedata['idnumber'] = 'idnumbercourse';
         $coursedata['fullname'] = 'Lightwork Course';
@@ -365,7 +376,6 @@ class mod_assign_external_testcase extends externallib_advanced_testcase {
     public function test_get_submissions() {
         global $DB, $USER;
 
-        $this->resetAfterTest(true);
         // Create a course and assignment.
         $coursedata['idnumber'] = 'idnumbercourse1';
         $coursedata['fullname'] = 'Lightwork Course 1';
@@ -2622,7 +2632,6 @@ class mod_assign_external_testcase extends externallib_advanced_testcase {
      */
     public function test_get_participant_relative_dates(array $courseconfig, array $assignconfig, array $enrolconfig,
             array $expectedproperties) {
-        $this->resetAfterTest();
 
         set_config('enablecourserelativedates', true); // Enable relative dates at site level.
 
@@ -2806,7 +2815,6 @@ class mod_assign_external_testcase extends externallib_advanced_testcase {
         global $CFG;
 
         $CFG->enablecompletion = 1;
-        $this->resetAfterTest();
 
         $this->setAdminUser();
         // Setup test data.

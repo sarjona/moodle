@@ -33,6 +33,18 @@ require_once($CFG->dirroot . '/notes/externallib.php');
 class core_notes_externallib_testcase extends externallib_advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablenotes = true;
+    }
+
+    /**
      * Test create_notes
      */
     public function test_create_notes() {

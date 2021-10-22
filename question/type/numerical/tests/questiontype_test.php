@@ -48,6 +48,8 @@ class qtype_numerical_test extends advanced_testcase {
     protected $qtype;
 
     protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('numerical', 1);
         $this->qtype = new qtype_numerical();
     }
 

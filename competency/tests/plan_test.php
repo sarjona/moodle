@@ -37,6 +37,15 @@ use core_competency\plan;
  */
 class core_competency_plan_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_can_manage_user() {
         $this->resetAfterTest(true);
 

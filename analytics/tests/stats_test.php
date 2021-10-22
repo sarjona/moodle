@@ -40,7 +40,10 @@ class analytics_stats_testcase extends advanced_testcase {
      * Set up the test environment.
      */
     public function setUp(): void {
+        global $CFG;
 
+        $this->resetAfterTest();
+        $CFG->enableanalytics = true;
         $this->setAdminUser();
     }
 

@@ -33,6 +33,16 @@
  */
 class mod_imscp_generator_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('imscp', 1);
+    }
+
     public function test_create_instance() {
         global $DB, $CFG, $USER;
         $this->resetAfterTest();

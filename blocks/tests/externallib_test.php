@@ -126,11 +126,10 @@ class core_block_externallib_testcase extends externallib_advanced_testcase {
         // We need to execute the return values cleaning process to simulate the web service server.
         $result = external_api::clean_returnvalue(core_block_external::get_course_blocks_returns(), $result);
 
-        // Expect 4 default blocks.
-        $this->assertCount(4, $result['blocks']);
+        // Expect 2 default blocks.
+        $this->assertCount(2, $result['blocks']);
 
-        $expectedblocks = array('navigation', 'settings', 'search_forums', 'course_list',
-                                'calendar_upcoming', 'recent_activity');
+        $expectedblocks = array('navigation', 'settings', 'calendar_upcoming', 'recent_activity');
         foreach ($result['blocks'] as $block) {
             if (!in_array($block['name'], $expectedblocks)) {
                 $this->fail("Unexpected block found: " . $block['name']);
@@ -386,19 +385,12 @@ class core_block_externallib_testcase extends externallib_advanced_testcase {
         $result = core_block_external::get_dashboard_blocks($user->id);
         // We need to execute the return values cleaning process to simulate the web service server.
         $result = external_api::clean_returnvalue(core_block_external::get_dashboard_blocks_returns(), $result);
-        // Expect all default blocks defined in blocks_add_default_system_blocks() plus sticky one.
-        $this->assertCount(count($alldefaultblocks) + 1, $result['blocks']);
-        $found = false;
+        // Expect all default blocks defined in blocks_add_default_system_blocks().
+        $this->assertCount(count($alldefaultblocks), $result['blocks']);
         foreach ($result['blocks'] as $block) {
-            if ($block['name'] == 'myprofile') {
-                $this->assertEquals('side-pre', $block['region']);
-                $found = true;
-                continue;
-            }
             // Check that the block is in the expected blocks array.
             $this->assertContains($block['name'], $alldefaultblocks);
         }
-        $this->assertTrue($found);
     }
 
     /**
@@ -423,7 +415,6 @@ class core_block_externallib_testcase extends externallib_advanced_testcase {
         $currentpage = my_get_page($user->id, MY_PAGE_PRIVATE);
         $page->set_subpage($currentpage->id);
         $page->blocks->load_blocks();
-        $page->blocks->add_block('myprofile', 'content', 0, false);
 
         $this->setAdminUser();
 
@@ -431,19 +422,12 @@ class core_block_externallib_testcase extends externallib_advanced_testcase {
         $result = core_block_external::get_dashboard_blocks($user->id);
         // We need to execute the return values cleaning process to simulate the web service server.
         $result = external_api::clean_returnvalue(core_block_external::get_dashboard_blocks_returns(), $result);
-        // Expect all default blocks defined in blocks_add_default_system_blocks() plus the one we added.
-        $this->assertCount(count($alldefaultblocks) + 1, $result['blocks']);
-        $found = false;
+        // Expect all default blocks defined in blocks_add_default_system_blocks().
+        $this->assertCount(count($alldefaultblocks), $result['blocks']);
         foreach ($result['blocks'] as $block) {
-            if ($block['name'] == 'myprofile') {
-                $this->assertEquals('content', $block['region']);
-                $found = true;
-                continue;
-            }
             // Check that the block is in the expected blocks array.
             $this->assertContains($block['name'], $alldefaultblocks);
         }
-        $this->assertTrue($found);
     }
 
     /**

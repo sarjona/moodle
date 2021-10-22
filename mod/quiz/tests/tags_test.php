@@ -32,6 +32,17 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_quiz_tags_testcase extends advanced_testcase {
+
+    /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = true;
+    }
+
     public function test_restore_random_question_by_tag() {
         global $CFG, $USER, $DB;
 
@@ -39,6 +50,7 @@ class mod_quiz_tags_testcase extends advanced_testcase {
         require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
         $this->resetAfterTest();
+        $CFG->usetags = true;
         $this->setAdminUser();
 
         $backupid = 'abc';

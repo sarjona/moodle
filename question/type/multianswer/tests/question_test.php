@@ -35,6 +35,17 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multianswer_question_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('multianswer', 1);
+    }
+
     public function test_get_expected_data() {
         $question = test_question_maker::make_question('multianswer');
         $this->assertEquals(array('sub1_answer' => PARAM_RAW_TRIMMED,

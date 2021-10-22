@@ -51,6 +51,7 @@ class core_competency_privacy_testcase extends provider_testcase {
     public function setUp(): void {
         global $PAGE;
         $this->resetAfterTest();
+        set_config('enabled', true, 'core_competency');
 
         // We need this or exporters (core\external\exporter) do not receive the right renderer.
         $PAGE->get_renderer('core');

@@ -43,6 +43,16 @@ require_once($CFG->dirroot . '/question/type/ddimageortext/classes/privacy/provi
 class qtype_ddimageortext_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
     // Include the privacy helper which has assertions on it.
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('ddimageortext', 1);
+    }
+
     public function test_get_metadata() {
         $collection = new \core_privacy\local\metadata\collection('qtype_ddimageortext');
         $actual = \qtype_ddimageortext\privacy\provider::get_metadata($collection);

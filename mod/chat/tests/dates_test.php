@@ -30,11 +30,22 @@ namespace mod_chat;
 use advanced_testcase;
 use cm_info;
 use core\activity_dates;
+use core\plugininfo\mod;
 
 /**
  * Class for unit testing mod_chat\dates.
  */
 class dates_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
+    }
 
     /**
      * Data provider for get_dates_for_module().

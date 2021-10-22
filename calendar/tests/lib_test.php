@@ -47,6 +47,8 @@ class core_calendar_lib_testcase extends advanced_testcase {
      */
     public function test_get_events_with_disabled_module() {
         global $DB;
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+
         $this->setAdminUser();
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();

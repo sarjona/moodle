@@ -39,6 +39,16 @@ require_once($CFG->dirroot . '/mod/imscp/lib.php');
  */
 class mod_imscp_lib_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('imscp', 1);
+    }
+
     public function test_export_contents() {
         global $DB, $USER;
 

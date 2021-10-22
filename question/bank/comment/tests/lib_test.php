@@ -31,6 +31,16 @@ require_once($CFG->dirroot . '/question/bank/comment/lib.php');
 class qbank_comment_lib_test extends \advanced_testcase {
 
     /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usecomments = true;
+    }
+
+    /**
      * Test the comment validation callback.
      */
     public function test_qbank_comment_comment_validate() {

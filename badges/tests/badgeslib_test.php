@@ -47,6 +47,7 @@ class badgeslib_test extends advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest(true);
         $CFG->enablecompletion = true;
+        $CFG->enablebadges = true;
         $user = $this->getDataGenerator()->create_user();
         $fordb = new stdClass();
         $fordb->id = null;

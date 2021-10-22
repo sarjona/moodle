@@ -42,9 +42,10 @@ class core_notes_events_testcase extends advanced_testcase {
     private $noterecord;
 
     public function setUp(): void {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest();
+        $CFG->enablenotes = true;
         $this->setAdminUser();
 
         $course = $this->getDataGenerator()->create_course();

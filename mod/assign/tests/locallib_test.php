@@ -400,9 +400,10 @@ class mod_assign_locallib_testcase extends advanced_testcase {
      * grading table.
      */
     public function test_gradingtable_group_submissions_rendering() {
-        global $PAGE;
+        global $PAGE, $CFG;
 
         $this->resetAfterTest();
+        $CFG->usecomments = 1;
         $course = $this->getDataGenerator()->create_course();
         $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
 
@@ -2278,6 +2279,8 @@ class mod_assign_locallib_testcase extends advanced_testcase {
         global $CFG;
 
         $this->resetAfterTest();
+
+        \core\plugininfo\availability::enable_plugin('grouping', 1 );
 
         $course = $this->getDataGenerator()->create_course();
         $grouping = $this->getDataGenerator()->create_grouping(array('courseid' => $course->id));

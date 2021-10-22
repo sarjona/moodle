@@ -190,7 +190,10 @@ class core_question_external_testcase extends externallib_advanced_testcase {
         $usetagnames,
         $expectedquestionindexes
     ) {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = true;
 
         $context = context_system::instance();
         $categories = [];

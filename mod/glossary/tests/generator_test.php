@@ -54,9 +54,10 @@ class mod_glossary_generator_testcase extends advanced_testcase {
     }
 
     public function test_create_content() {
-        global $DB;
+        global $DB, $CFG;
         $this->resetAfterTest();
         $this->setAdminUser();
+        $CFG->usetags = 1;
 
         $course = $this->getDataGenerator()->create_course();
         $glossary = $this->getDataGenerator()->create_module('glossary', array('course' => $course));

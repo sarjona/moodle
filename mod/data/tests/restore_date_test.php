@@ -38,6 +38,17 @@ require_once($CFG->dirroot . '/rating/lib.php');
 class mod_data_restore_date_testcase extends restore_date_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
+        $this->setAdminUser();
+    }
+
+    /**
      * Test restore dates.
      */
     public function test_restore_dates() {

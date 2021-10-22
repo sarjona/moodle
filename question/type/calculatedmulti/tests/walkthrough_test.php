@@ -38,6 +38,16 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  */
 class qtype_calculatedmulti_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('calculatedmulti', 1);
+    }
+
     public function test_interactive_single_response() {
 
         // Create a gapselect question.

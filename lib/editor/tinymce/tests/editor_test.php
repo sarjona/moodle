@@ -36,6 +36,16 @@ defined('MOODLE_INTERNAL') || die();
  */
 class editor_tinymce_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\editor::enable_plugin('tiny_mce', 1);
+    }
+
     public function test_autoloading() {
         // Note: This test core_frankestyle calssloader.
         $this->assertTrue(class_exists('editor_tinymce_plugin'));

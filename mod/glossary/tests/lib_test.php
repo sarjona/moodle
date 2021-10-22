@@ -369,9 +369,10 @@ class mod_glossary_lib_testcase extends advanced_testcase {
     }
 
     public function test_mod_glossary_get_tagged_entries() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest();
+        $CFG->usetags = 1;
         $this->setAdminUser();
 
         // Setup test data.

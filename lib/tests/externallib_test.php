@@ -34,6 +34,8 @@ class core_externallib_testcase extends advanced_testcase {
 
     public function setUp(): void {
         $this->DB = null;
+
+        $this->resetAfterTest();
     }
 
     public function tearDown(): void {
@@ -135,6 +137,7 @@ class core_externallib_testcase extends advanced_testcase {
         $settings->set_raw(false);
         $settings->set_filter(true);
 
+        \core\plugininfo\filter::enable_plugin('mathjaxloader', 1);
         $test = '$$ \pi $$';
         $testformat = FORMAT_MARKDOWN;
         $correct = array('<span class="filter_mathjaxloader_equation"><p><span class="nolink">$$ \pi $$</span></p>

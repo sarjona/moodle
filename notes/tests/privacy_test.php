@@ -42,6 +42,18 @@ use \core_privacy\local\request\approved_userlist;
 class core_notes_privacy_testcase extends \core_privacy\tests\provider_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablenotes = true;
+    }
+
+    /**
      * Test for provider::get_contexts_for_userid().
      */
     public function test_get_contexts_for_userid() {

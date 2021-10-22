@@ -55,6 +55,8 @@ class core_completionlib_testcase extends advanced_testcase {
 
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;
+        \core\plugininfo\mod::enable_plugin('data', 1);
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
 
         // Create a course with activities.
         $this->course = $this->getDataGenerator()->create_course(array('enablecompletion' => true));
@@ -1160,6 +1162,8 @@ class core_completionlib_testcase extends advanced_testcase {
     public function test_get_activities() {
         global $CFG;
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
 
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;

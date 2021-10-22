@@ -98,6 +98,7 @@ abstract class question_attempt_upgrader_test_base extends advanced_testcase {
     protected $loader;
 
     protected function setUp(): void {
+        $this->resetAfterTest();
         parent::setUp();
         $logger = new dummy_question_engine_assumption_logger();
         $this->loader = new test_question_engine_upgrade_question_loader($logger);

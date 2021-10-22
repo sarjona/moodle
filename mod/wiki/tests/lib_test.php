@@ -43,6 +43,19 @@ require_once($CFG->libdir . '/completionlib.php');
 class mod_wiki_lib_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
+        $CFG->usetags = 1;
+    }
+
+    /**
      * Test wiki_view.
      *
      * @return void

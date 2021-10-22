@@ -32,6 +32,18 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 
 class core_tag_external_testcase extends externallib_advanced_testcase {
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = true;
+    }
+
+    /**
      * Test update_categories
      */
     public function test_update_tags() {

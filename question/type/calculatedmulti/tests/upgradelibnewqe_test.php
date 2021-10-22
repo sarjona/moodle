@@ -38,6 +38,17 @@ require_once($CFG->dirroot . '/question/engine/upgrade/tests/helper.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_calculatedmulti_attempt_upgrader_test extends question_attempt_upgrader_test_base {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('calculatedmulti', 1);
+    }
+
     public function test_calculatedmulti_adaptive_qsession96() {
         $quiz = (object) array(
             'id' => '4',

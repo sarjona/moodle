@@ -38,6 +38,20 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qformat_xml_test extends question_testcase {
+
+    /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = 1;
+        \core\plugininfo\qtype::enable_plugin('description', 1);
+        \core\plugininfo\qtype::enable_plugin('essay', 1);
+        \core\plugininfo\qtype::enable_plugin('multianswer', 1);
+    }
+
     public function assert_same_xml($expectedxml, $xml) {
         $this->assertEquals(str_replace("\r\n", "\n", $expectedxml),
                 str_replace("\r\n", "\n", $xml));

@@ -51,6 +51,7 @@ class mod_survey_privacy_testcase extends provider_testcase {
         global $PAGE;
         $this->resetAfterTest();
         $PAGE->get_renderer('core');
+        \core\plugininfo\mod::enable_plugin('survey', 1);
     }
 
     public function test_get_contexts_for_userid() {

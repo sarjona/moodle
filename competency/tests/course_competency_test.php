@@ -36,6 +36,15 @@ use core_competency\course_competency;
  */
 class core_competency_course_competency_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_get_courses_with_competency_and_user() {
         global $CFG, $DB;
 

@@ -46,6 +46,11 @@ class core_block_privacy_testcase extends provider_testcase {
 
     public function setUp(): void {
         $this->resetAfterTest();
+
+        \core\plugininfo\block::enable_plugin('login', 1);
+        \core\plugininfo\block::enable_plugin('mentees', 1);
+        \core\plugininfo\block::enable_plugin('myprofile', 1);
+        \core\plugininfo\block::enable_plugin('private_files', 1);
     }
 
     public function test_get_contexts_for_userid() {

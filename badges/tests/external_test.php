@@ -46,8 +46,9 @@ class core_badges_external_testcase extends externallib_advanced_testcase {
      * Set up for every test
      */
     public function setUp(): void {
-        global $DB;
+        global $DB, $CFG;
         $this->resetAfterTest();
+        $CFG->enablebadges = true;
         $this->setAdminUser();
 
         // Setup test data.

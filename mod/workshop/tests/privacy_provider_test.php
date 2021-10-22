@@ -125,6 +125,7 @@ class mod_workshop_privacy_provider_testcase extends provider_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
 
         $this->generator = $this->getDataGenerator();
         $this->workshopgenerator = $this->generator->get_plugin_generator('mod_workshop');

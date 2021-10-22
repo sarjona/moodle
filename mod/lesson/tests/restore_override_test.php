@@ -38,11 +38,22 @@ require_once($CFG->libdir . "/phpunit/classes/restore_date_testcase.php");
 class mod_lesson_restore_override_testcase extends restore_date_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+    }
+
+    /**
      * Test restore overrides.
      */
     public function test_restore_overrides() {
         global $DB, $USER;
-        $this->resetAfterTest();
+
+        $this->setAdminUser();
 
         $course = $this->getDataGenerator()->create_course();
         $lessongen = $this->getDataGenerator()->get_plugin_generator('mod_lesson');

@@ -40,7 +40,10 @@ class analytics_prediction_actions_testcase extends advanced_testcase {
      * Common startup tasks
      */
     public function setUp(): void {
-        global $DB;
+        global $DB, $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enableanalytics = true;
 
         $this->setAdminUser();
         $target = \core_analytics\manager::get_target('test_target_shortname');

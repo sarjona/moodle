@@ -45,6 +45,7 @@ class mod_workshop_internal_api_testcase extends advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
         $this->course = $this->getDataGenerator()->create_course();
         $workshop = $this->getDataGenerator()->create_module('workshop', array('course' => $this->course));
         $cm = get_coursemodule_from_instance('workshop', $workshop->id, $this->course->id, false, MUST_EXIST);
@@ -431,6 +432,7 @@ class mod_workshop_internal_api_testcase extends advanced_testcase {
         global $DB, $CFG;
 
         $this->resetAfterTest();
+        \core\plugininfo\availability::enable_plugin('grouping', 1);
 
         // Use existing sample course from setUp.
         $courseid = $this->workshop->course->id;

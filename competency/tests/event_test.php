@@ -39,6 +39,16 @@ use core_competency\url;
 class core_competency_event_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        set_config('enabled', true, 'core_competency');
+    }
+
+    /**
      * Test the competency framework created event.
      *
      */

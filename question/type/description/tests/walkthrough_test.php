@@ -33,6 +33,16 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
 
 class qtype_description_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('description', 1);
+    }
+
     public function test_informationitem_feedback_description() {
 
         // Create a description question.

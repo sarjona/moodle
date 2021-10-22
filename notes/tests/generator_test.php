@@ -33,6 +33,18 @@ defined('MOODLE_INTERNAL') || die();
  */
 class core_notes_generator_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablenotes = true;
+    }
+
     /** Test create_instance method */
     public function test_create_instance() {
         global $DB;

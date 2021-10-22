@@ -48,6 +48,8 @@ class tool_lpmigrate_framework_processor_testcase extends advanced_testcase {
      */
     public function setUp(): void {
         $this->resetAfterTest(true);
+        set_config('enabled', 1, 'core_competency');
+
         $dg = $this->getDataGenerator();
         $lpg = $dg->get_plugin_generator('core_competency');
 

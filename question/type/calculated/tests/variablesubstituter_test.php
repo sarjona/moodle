@@ -38,6 +38,17 @@ require_once($CFG->dirroot . '/question/type/calculated/questiontype.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_calculated_variable_substituter_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('calculated', 1);
+    }
+
     public function test_simple_expression() {
         $vs = new qtype_calculated_variable_substituter(array('a' => 1, 'b' => 2), '.');
         $this->assertEquals(3, $vs->calculate('{a} + {b}'));

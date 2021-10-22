@@ -32,6 +32,15 @@ require_once($CFG->dirroot.'/group/lib.php');
 
 class enrol_cohort_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->enable_plugin();
+    }
+
     protected function enable_plugin() {
         $enabled = enrol_get_plugins(true);
         $enabled['cohort'] = true;

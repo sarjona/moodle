@@ -36,6 +36,16 @@ require_once($CFG->libdir . "/phpunit/classes/restore_date_testcase.php");
 class qtype_essay_restore_testcase extends restore_date_testcase  {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('essay', 1);
+    }
+
+    /**
      * Test missing qtype_essay_options creation.
      *
      * Old backup files may contain essays with no qtype_essay_options record.

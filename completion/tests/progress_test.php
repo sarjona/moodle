@@ -51,6 +51,8 @@ class core_completion_progress_testcase extends advanced_testcase {
     public function test_course_progress_percentage_with_just_activities() {
         global $DB;
 
+        \core\plugininfo\mod::enable_plugin('data', 1);
+
         // Add a course that supports completion.
         $course = $this->getDataGenerator()->create_course(array('enablecompletion' => 1));
 
@@ -89,6 +91,8 @@ class core_completion_progress_testcase extends advanced_testcase {
      */
     public function test_course_progress_percentage_with_activities_and_course() {
         global $DB;
+
+        \core\plugininfo\mod::enable_plugin('data', 1);
 
         // Add a course that supports completion.
         $course = $this->getDataGenerator()->create_course(array('enablecompletion' => 1));

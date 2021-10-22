@@ -32,6 +32,14 @@ require_once($CFG->dirroot.'/grade/querylib.php');
 
 class core_grade_querylib_testcase extends advanced_testcase {
 
+    /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
+    }
+
     public function test_grade_get_gradable_activities() {
         $this->resetAfterTest(true);
 

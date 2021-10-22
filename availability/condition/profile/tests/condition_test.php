@@ -49,6 +49,7 @@ class availability_profile_condition_testcase extends advanced_testcase {
         global $DB, $CFG;
 
         $this->resetAfterTest();
+        \core\plugininfo\availability::enable_plugin('profile', 1);
 
         // Add a custom profile field type.
         $this->profilefield = $this->getDataGenerator()->create_custom_profile_field(array(

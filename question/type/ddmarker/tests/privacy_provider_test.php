@@ -43,6 +43,16 @@ require_once($CFG->dirroot . '/question/type/ddmarker/classes/privacy/provider.p
 class qtype_ddmarker_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
     // Include the privacy helper which has assertions on it.
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('ddmarker', 1);
+    }
+
     public function test_get_metadata() {
         $collection = new \core_privacy\local\metadata\collection('qtype_ddmarker');
         $actual = \qtype_ddmarker\privacy\provider::get_metadata($collection);

@@ -48,7 +48,12 @@ require_once($CFG->dirroot . '/comment/lib.php');
 class core_blog_privacy_testcase extends provider_testcase {
 
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->enableblogs = true;
+        $CFG->enablenotes = true;
+        $CFG->usetags = true;
     }
 
     public function test_get_contexts_for_userid() {

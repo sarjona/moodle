@@ -376,6 +376,9 @@ class core_calendar_container_testcase extends advanced_testcase {
      * is enrolled in the course.
      */
     public function test_event_factory_unenrolled_user() {
+
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+
         $user = $this->getDataGenerator()->create_user();
         // Create the course we will be using.
         $course = $this->getDataGenerator()->create_course();
@@ -434,9 +437,13 @@ class core_calendar_container_testcase extends advanced_testcase {
         // Create the course we will be using.
         $course = $this->getDataGenerator()->create_course();
         $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $enabledplugins = core\plugininfo\mod::get_enabled_plugins();
 
         foreach (core_component::get_plugin_list('mod') as $modname => $unused) {
             try {
+                if (!in_array($modname, $enabledplugins)) {
+                    \core\plugininfo\mod::enable_plugin($modname, 1);
+                }
                 $generator = $this->getDataGenerator()->get_plugin_generator('mod_'.$modname);
             } catch (coding_exception $e) {
                 // Module generator is not implemented.

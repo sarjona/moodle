@@ -42,10 +42,11 @@ class core_blog_lib_testcase extends advanced_testcase {
     private $postid;
 
     protected function setUp(): void {
-        global $DB;
+        global $DB, $CFG;
         parent::setUp();
 
         $this->resetAfterTest();
+        $CFG->enableblogs = true;
 
         // Create default course.
         $course = $this->getDataGenerator()->create_course(array('category' => 1, 'shortname' => 'ANON'));

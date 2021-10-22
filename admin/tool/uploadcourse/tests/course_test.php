@@ -403,9 +403,10 @@ class tool_uploadcourse_course_testcase extends advanced_testcase {
     }
 
     public function test_data_saved() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest(true);
+        $CFG->usetags = 1;
         $this->setAdminUser(); // To avoid warnings related to 'moodle/course:setforcedlanguage' capability check.
 
         set_config('downloadcoursecontentallowed', 1);

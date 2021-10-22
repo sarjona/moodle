@@ -110,6 +110,7 @@ class modinfolib_test extends advanced_testcase {
         $oldcfgenablecompletion = $CFG->enablecompletion;
         set_config('enableavailability', 1);
         set_config('enablecompletion', 1);
+        \core\plugininfo\availability::enable_plugin('profile', 1);
         $this->setAdminUser();
 
         // Generate the course and pre-requisite module.

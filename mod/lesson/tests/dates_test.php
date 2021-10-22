@@ -40,6 +40,16 @@ use core\activity_dates;
 class dates_test extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+    }
+
+    /**
      * Data provider for get_dates_for_module().
      * @return array[]
      */

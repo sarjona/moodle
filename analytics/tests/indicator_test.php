@@ -38,6 +38,18 @@ require_once(__DIR__ . '/fixtures/test_indicator_min.php');
 class analytics_indicator_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enableanalytics = true;
+    }
+
+    /**
      * test_validate_calculated_value
      *
      * @param string $indicatorclass

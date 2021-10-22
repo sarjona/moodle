@@ -47,6 +47,7 @@ class mod_wiki_search_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
         $this->setAdminUser();
         set_config('enableglobalsearch', true);
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
 
         $this->wikicollabpageareaid = \core_search\manager::generate_areaid('mod_wiki', 'collaborative_page');
 

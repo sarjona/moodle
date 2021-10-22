@@ -34,6 +34,17 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class comment_context_freeze_testcase extends advanced_testcase {
+
+    /**
+     * Tests set up
+     */
+    protected function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usecomments = true;
+    }
+
     /**
      * Creates a comment by a student.
      *

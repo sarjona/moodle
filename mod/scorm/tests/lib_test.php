@@ -49,6 +49,7 @@ class mod_scorm_lib_testcase extends externallib_advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
 
         // Setup test data.
         $this->course = $this->getDataGenerator()->create_course();

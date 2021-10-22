@@ -31,6 +31,16 @@ use stdClass;
 class stateactions_test extends \advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\format::enable_plugin('social', 1);
+    }
+
+    /**
      * Helper method to create an activity into a section and add it to the $sections and $activities arrays.
      *
      * @param int $courseid Course identifier where the activity will be added.

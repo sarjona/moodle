@@ -38,6 +38,16 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  */
 class qtype_multianswer_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('multianswer', 1);
+    }
+
     protected function get_contains_subq_status(question_state $state) {
         return new question_pattern_expectation('~' .
                 preg_quote($state->default_string(true), '~') . '<br />~');

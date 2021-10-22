@@ -39,7 +39,10 @@ class dataset_manager_testcase extends advanced_testcase {
      * @return null
      */
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest(true);
+        $CFG->enableanalytics = true;
 
         $this->sharedtoprows = array(
             array('var1', 'var2'),

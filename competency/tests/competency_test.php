@@ -36,6 +36,15 @@ use core_competency\competency;
  */
 class core_competency_competency_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_get_framework_depth() {
         $this->resetAfterTest();
 

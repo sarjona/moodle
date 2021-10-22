@@ -36,6 +36,17 @@ require_once($CFG->dirroot . '/question/type/multianswer/question.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multianswer_test_helper extends question_test_helper {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('multianswer', 1);
+    }
+
     public function get_test_questions() {
         return array('twosubq', 'fourmc', 'numericalzero', 'dollarsigns', 'multiple');
     }

@@ -45,6 +45,7 @@ class qbehaviour_deferredcbm_type_test extends qbehaviour_walkthrough_test_base 
 
     public function setUp(): void {
         parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('deferredcbm', 1);
         $this->behaviourtype = question_engine::get_behaviour_type('deferredcbm');
     }
 

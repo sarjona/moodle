@@ -33,15 +33,23 @@ require_once($CFG->dirroot . '/files/externallib.php');
 
 class core_files_externallib_testcase extends advanced_testcase {
 
+    /**
+     * Setup testcase.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
+
+        // Set the current user to be the administrator.
+        $this->setAdminUser();
+    }
+
     /*
      * Test core_files_external::upload().
      */
-
     public function test_upload() {
         global $USER;
 
-        $this->resetAfterTest();
-        $this->setAdminUser();
         $context = context_user::instance($USER->id);
         $contextid = $context->id;
         $component = "user";
@@ -106,8 +114,6 @@ class core_files_externallib_testcase extends advanced_testcase {
     public function test_upload_param_component() {
         global $USER;
 
-        $this->resetAfterTest();
-        $this->setAdminUser();
         $context = context_user::instance($USER->id);
         $contextid = $context->id;
         $component = "backup";
@@ -131,8 +137,6 @@ class core_files_externallib_testcase extends advanced_testcase {
     public function test_upload_param_area() {
         global $USER;
 
-        $this->resetAfterTest();
-        $this->setAdminUser();
         $context = context_user::instance($USER->id);
         $contextid = $context->id;
         $component = "user";
@@ -159,10 +163,6 @@ class core_files_externallib_testcase extends advanced_testcase {
     public function test_get_files() {
         global $USER, $DB;
 
-        $this->resetAfterTest();
-
-        // Set the current user to be the administrator.
-        $this->setAdminUser();
         $USER->email = 'test@example.com';
 
         // Create a course.
@@ -300,9 +300,6 @@ class core_files_externallib_testcase extends advanced_testcase {
     public function test_delete_draft_files() {
         global $USER;
 
-        $this->resetAfterTest();
-        $this->setAdminUser();
-
         // Add files to user draft area.
         $draftitemid = file_get_unused_draft_itemid();
         $context = context_user::instance($USER->id);
@@ -352,9 +349,6 @@ class core_files_externallib_testcase extends advanced_testcase {
      */
     public function test_get_unused_draft_itemid() {
         global $USER;
-
-        $this->resetAfterTest();
-        $this->setAdminUser();
 
         // Add files to user draft area.
         $result = core_files\external\get\unused_draft::execute();

@@ -39,6 +39,16 @@ require_once($CFG->dirroot . '/mod/scorm/locallib.php');
 class mod_scorm_validatepackage_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
+    }
+
+    /**
      * Convenience to take a fixture test file and create a stored_file.
      *
      * @param string $filepath

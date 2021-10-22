@@ -3662,9 +3662,10 @@ class mod_forum_lib_testcase extends advanced_testcase {
     }
 
     public function test_mod_forum_get_tagged_posts() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest();
+        $CFG->usetags = 1;
         $this->setAdminUser();
 
         // Setup test data.

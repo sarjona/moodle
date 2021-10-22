@@ -42,14 +42,22 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 class core_completion_externallib_testcase extends externallib_advanced_testcase {
 
     /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablecompletion = true;
+        \core\plugininfo\mod::enable_plugin('data', 1);
+    }
+
+    /**
      * Test update_activity_completion_status_manually
      */
     public function test_update_activity_completion_status_manually() {
         global $DB, $CFG;
 
-        $this->resetAfterTest(true);
-
-        $CFG->enablecompletion = true;
         $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course(array('enablecompletion' => 1));
         $data = $this->getDataGenerator()->create_module('data', array('course' => $course->id),
@@ -94,9 +102,6 @@ class core_completion_externallib_testcase extends externallib_advanced_testcase
     public function test_get_activities_completion_status() {
         global $DB, $CFG, $PAGE;
 
-        $this->resetAfterTest(true);
-
-        $CFG->enablecompletion = true;
         $student = $this->getDataGenerator()->create_user();
         $teacher = $this->getDataGenerator()->create_user();
 
@@ -315,10 +320,8 @@ class core_completion_externallib_testcase extends externallib_advanced_testcase
      */
     public function test_override_activity_completion_status() {
         global $DB, $CFG;
-        $this->resetAfterTest(true);
 
         // Create course with teacher and student enrolled.
-        $CFG->enablecompletion = true;
         $course  = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
         $student = $this->getDataGenerator()->create_user();
         $teacher = $this->getDataGenerator()->create_user();
@@ -378,10 +381,8 @@ class core_completion_externallib_testcase extends externallib_advanced_testcase
      */
     public function test_override_status_user_without_capability() {
         global $DB, $CFG;
-        $this->resetAfterTest(true);
 
         // Create course with teacher and student enrolled.
-        $CFG->enablecompletion = true;
         $course  = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
         $student = $this->getDataGenerator()->create_user();
         $teacher = $this->getDataGenerator()->create_user();
@@ -416,9 +417,6 @@ class core_completion_externallib_testcase extends externallib_advanced_testcase
         require_once($CFG->dirroot.'/completion/criteria/completion_criteria_role.php');
         require_once($CFG->dirroot.'/completion/criteria/completion_criteria_course.php');
 
-        $this->resetAfterTest(true);
-
-        $CFG->enablecompletion = true;
         $student = $this->getDataGenerator()->create_user();
         $teacher = $this->getDataGenerator()->create_user();
 
@@ -540,9 +538,6 @@ class core_completion_externallib_testcase extends externallib_advanced_testcase
         global $DB, $CFG;
         require_once($CFG->dirroot.'/completion/criteria/completion_criteria_self.php');
 
-        $this->resetAfterTest(true);
-
-        $CFG->enablecompletion = true;
         $student = $this->getDataGenerator()->create_user();
         $teacher = $this->getDataGenerator()->create_user();
 

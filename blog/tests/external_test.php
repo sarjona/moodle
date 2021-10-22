@@ -49,6 +49,8 @@ class core_blog_external_testcase extends advanced_testcase {
         parent::setUp();
 
         $this->resetAfterTest();
+        $CFG->enableblogs = true;
+        $CFG->usetags = true;
 
         // Create default course.
         $course = $this->getDataGenerator()->create_course(array('category' => 1, 'shortname' => 'ANON'));

@@ -306,7 +306,10 @@ class random_question_loader_testcase extends advanced_testcase {
             $usetagnames,
             $expectedquestionindexes
     ) {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = true;
 
         $categories = [];
         $questions = [];
@@ -522,7 +525,10 @@ class random_question_loader_testcase extends advanced_testcase {
             $usetagnames,
             $expectedcount
     ) {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = true;
 
         $categories = [];
         $questions = [];

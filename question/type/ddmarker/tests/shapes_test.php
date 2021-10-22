@@ -36,7 +36,17 @@ require_once($CFG->dirroot . '/question/type/ddmarker/shapes.php');
  * @copyright 2012 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_ddmarker_shapes_test extends basic_testcase {
+class qtype_ddmarker_shapes_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('ddmarker', 1);
+    }
 
     public function test_polygon_valdiation_test_ok() {
         $shape = new qtype_ddmarker_shape_polygon('10, 10; 20, 10; 20, 20; 10, 20');

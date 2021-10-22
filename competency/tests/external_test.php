@@ -100,6 +100,7 @@ class core_competency_external_testcase extends externallib_advanced_testcase {
         global $DB, $CFG;
 
         $this->resetAfterTest(true);
+        set_config('enabled', true, 'core_competency');
 
         // Create some users.
         $creator = $this->getDataGenerator()->create_user();

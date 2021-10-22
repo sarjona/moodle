@@ -49,6 +49,15 @@ defined('MOODLE_INTERNAL') || die();
  */
 class core_competency_generator_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_create_framework() {
         $this->resetAfterTest(true);
 

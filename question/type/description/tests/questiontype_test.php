@@ -42,6 +42,8 @@ class qtype_description_test extends advanced_testcase {
     protected $qtype;
 
     protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('description', 1);
         $this->qtype = new qtype_description();
     }
 

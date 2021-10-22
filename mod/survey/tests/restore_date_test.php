@@ -36,6 +36,16 @@ require_once($CFG->libdir . "/phpunit/classes/restore_date_testcase.php");
  */
 class mod_survey_restore_date_testcase extends restore_date_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\mod::enable_plugin('survey', 1);
+    }
+
     public function test_restore_dates() {
         global $DB;
 

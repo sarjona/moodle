@@ -36,7 +36,17 @@ require_once($CFG->dirroot . '/question/type/ddimageortext/tests/helper.php');
  * @copyright 2009 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_ddimageortext_question_test extends basic_testcase {
+class qtype_ddimageortext_question_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('ddimageortext', 1);
+    }
 
     public function test_get_question_summary() {
         $dd = test_question_maker::make_question('ddimageortext');

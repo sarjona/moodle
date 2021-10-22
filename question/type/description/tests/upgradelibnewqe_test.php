@@ -39,6 +39,16 @@ require_once($CFG->dirroot . '/question/engine/upgrade/tests/helper.php');
  */
 class qtype_description_attempt_upgrader_test extends question_attempt_upgrader_test_base {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('description', 1);
+    }
+
     public function test_description_deferredfeedback_history80() {
         $quiz = (object) array(
             'id' => '278',

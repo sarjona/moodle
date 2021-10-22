@@ -38,6 +38,8 @@ class mod_data_import_test extends advanced_testcase {
      * Set up function.
      */
     protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
         parent::setUp();
 
         global $CFG;

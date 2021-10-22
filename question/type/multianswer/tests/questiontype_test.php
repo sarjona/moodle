@@ -44,6 +44,8 @@ class qtype_multianswer_test extends advanced_testcase {
     protected $qtype;
 
     protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('multianswer', 1);
         $this->qtype = new qtype_multianswer();
     }
 

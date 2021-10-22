@@ -42,6 +42,16 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 class mod_chat_external_testcase extends externallib_advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
+    }
+
+    /**
      * Test login user
      */
     public function test_login_user() {

@@ -691,6 +691,7 @@ class tree_testcase extends \advanced_testcase {
     public function test_unique_sql_parameter_behaviour() {
         global $DB;
         $this->resetAfterTest();
+        \core\plugininfo\availability::enable_plugin('grouping', 1);
         $generator = $this->getDataGenerator();
 
         // Create a test course with multiple groupings and groups and a student in each of them.

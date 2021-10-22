@@ -47,6 +47,7 @@ class block_recentlyaccesseditems_externallib_testcase extends externallib_advan
     public function test_get_recent_items() {
 
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
         $generator = $this->getDataGenerator();
 
         // Add courses.

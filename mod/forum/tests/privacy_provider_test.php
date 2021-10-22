@@ -57,7 +57,10 @@ class mod_forum_privacy_provider_testcase extends \core_privacy\tests\provider_t
      * Test setUp.
      */
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest(true);
+        $CFG->usetags = 1;
     }
 
     /**
@@ -1268,7 +1271,9 @@ class mod_forum_privacy_provider_testcase extends \core_privacy\tests\provider_t
      * Ensure that all user data is deleted for a specific context.
      */
     public function test_delete_data_for_user() {
-        global $DB;
+        global $DB, $CFG;
+
+        $CFG->usetags = 1;
 
         $fs = get_file_storage();
         $course = $this->getDataGenerator()->create_course();
@@ -1483,7 +1488,9 @@ class mod_forum_privacy_provider_testcase extends \core_privacy\tests\provider_t
      * Ensure that user data for specific users is deleted from a specified context.
      */
     public function test_delete_data_for_users() {
-        global $DB;
+        global $DB, $CFG;
+
+        $CFG->usetags = 1;
 
         $fs = get_file_storage();
         $course = $this->getDataGenerator()->create_course();

@@ -39,6 +39,16 @@ require_once($CFG->libdir . '/completionlib.php');
 class custom_completion_test extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+    }
+
+    /**
      * Data provider for get_state().
      *
      * @return array[]

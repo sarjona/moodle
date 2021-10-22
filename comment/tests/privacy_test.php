@@ -39,7 +39,10 @@ use \core_privacy\tests\provider_testcase;
 class core_comment_privacy_testcase extends provider_testcase {
 
     protected function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usecomments = true;
     }
 
     /**

@@ -381,7 +381,10 @@ class mod_forum_builders_exported_posts_testcase extends advanced_testcase {
      * Test the build function loads tags.
      */
     public function test_build_loads_tags() {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = 1;
 
         $datagenerator = $this->getDataGenerator();
         $user1 = $datagenerator->create_user();

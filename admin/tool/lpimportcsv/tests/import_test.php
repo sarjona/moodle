@@ -38,6 +38,7 @@ class tool_lpimportcsv_import_testcase extends advanced_testcase {
 
     public function test_import_framework() {
         $this->resetAfterTest(true);
+        set_config('enabled', 1, 'core_competency');
         $this->setAdminUser();
 
         $importer = new framework_importer(file_get_contents(__DIR__ . '/fixtures/example.csv'));

@@ -46,9 +46,10 @@ class mod_lesson_privacy_testcase extends provider_testcase {
 
     public function setUp(): void {
         global $PAGE;
-        $this->setAdminUser();  // The data generator complains without this.
         $this->resetAfterTest();
         $PAGE->get_renderer('core');
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+        $this->setAdminUser();  // The data generator complains without this.
     }
 
     public function test_get_contexts_for_userid() {
