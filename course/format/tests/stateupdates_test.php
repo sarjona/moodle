@@ -30,6 +30,16 @@ use stdClass;
 class stateupdates_test extends \advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\format::enable_plugin('social', 1);
+    }
+
+    /**
      * Test for add_course_put.
      *
      * @dataProvider add_course_put_provider

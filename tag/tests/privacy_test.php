@@ -42,6 +42,18 @@ use \core_privacy\local\request\approved_userlist;
 class core_tag_privacy_testcase extends provider_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = true;
+    }
+
+    /**
      * Check the exporting of tags for a user id in a context.
      */
     public function test_export_tags() {

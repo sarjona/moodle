@@ -38,6 +38,16 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  */
 class qtype_randomsamatch_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('randomsamatch', 1);
+    }
+
     public function test_deferred_feedback_unanswered() {
 
         // Create a randomsamatch question.

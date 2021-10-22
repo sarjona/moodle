@@ -86,6 +86,7 @@ class mod_data_external_testcase extends externallib_advanced_testcase {
     public function setUp(): void {
         global $DB;
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
         $this->setAdminUser();
 
         // Setup test data.
@@ -487,7 +488,10 @@ class mod_data_external_testcase extends externallib_advanced_testcase {
      * Test get_entries
      */
     public function test_get_entries() {
-        global $DB;
+        global $DB, $CFG;
+
+        $CFG->usetags = 1;
+
         list($entry11, $entry12, $entry13, $entry14, $entry21) = self::populate_database_with_entries();
 
         // First of all, expect to see only my group entries (not other users in other groups ones).

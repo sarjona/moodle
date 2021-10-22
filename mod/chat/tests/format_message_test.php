@@ -39,6 +39,16 @@ class mod_chat_format_message_testcase extends advanced_testcase {
     const USER_CURRENT = 1;
     const USER_OTHER = 2;
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
+    }
+
     public function chat_format_message_manually_provider() {
         $dateregexp = '\d{2}:\d{2}';
         return [

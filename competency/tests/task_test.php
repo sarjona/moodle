@@ -36,6 +36,15 @@ use core_competency\plan;
  */
 class core_competency_task_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_sync_plans_from_cohorts_task() {
         global $DB;
 

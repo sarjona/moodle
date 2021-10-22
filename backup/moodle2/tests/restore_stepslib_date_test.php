@@ -121,7 +121,11 @@ class restore_stepslib_date_testcase extends restore_date_testcase {
      * badge data.
      */
     public function test_badge_date_restore() {
-        global $DB, $USER;
+        global $DB, $USER, $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablebadges = true;
+
         // Create a course.
         $course = $this->getDataGenerator()->create_course(['startdate' => time()]);
         // Create a badge.

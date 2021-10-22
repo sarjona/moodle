@@ -35,6 +35,17 @@ require_once($CFG->dirroot . '/mod/lesson/lib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
 class mod_lesson_lib_testcase extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+    }
+
     /**
      * Test for lesson_get_group_override_priorities().
      */

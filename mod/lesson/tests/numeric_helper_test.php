@@ -35,6 +35,17 @@ use mod_lesson\local\numeric\helper;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
 class mod_lesson_numeric_type_helper_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+    }
+
     /**
      * Test the lesson_unformat_numeric_value function.
      *

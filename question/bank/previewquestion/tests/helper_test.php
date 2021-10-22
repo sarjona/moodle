@@ -60,8 +60,9 @@ class qbank_preview_helper_test extends \advanced_testcase {
      * This is executed before running any test in this file.
      */
     public function setUp(): void {
-        global $USER;
+        global $USER, $CFG;
         $this->resetAfterTest();
+        $CFG->usecomments = 1;
         $this->setAdminUser();
         $generator = $this->getDataGenerator();
         $questiongenerator = $generator->get_plugin_generator('core_question');

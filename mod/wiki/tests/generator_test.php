@@ -33,6 +33,19 @@
  */
 class mod_wiki_generator_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
+        $CFG->usetags = 1;
+    }
+
     public function test_create_instance() {
         global $DB;
         $this->resetAfterTest();

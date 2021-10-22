@@ -49,6 +49,7 @@ class mod_scorm_external_testcase extends externallib_advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
 
         $CFG->enablecompletion = 1;
         // Setup test data.

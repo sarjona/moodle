@@ -37,6 +37,15 @@ use core_competency\user_competency_course;
  */
 class core_competency_hooks_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_hook_course_deleted() {
         $this->resetAfterTest();
         $dg = $this->getDataGenerator();

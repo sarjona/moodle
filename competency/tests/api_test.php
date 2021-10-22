@@ -42,6 +42,16 @@ use core_competency\plan;
  */
 class core_competency_api_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+        set_config('pushcourseratingstouserplans', true, 'core_competency');
+    }
+
     public function test_get_framework_related_contexts() {
         $this->resetAfterTest(true);
         $dg = $this->getDataGenerator();

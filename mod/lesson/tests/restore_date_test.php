@@ -37,6 +37,16 @@ require_once($CFG->libdir . "/phpunit/classes/restore_date_testcase.php");
 class mod_lesson_restore_date_testcase extends restore_date_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+    }
+
+    /**
      * Creates an attempt for the given userwith a correct or incorrect answer and optionally finishes it.
      *
      * TODO This api can be better extracted to a generator.
@@ -108,6 +118,8 @@ class mod_lesson_restore_date_testcase extends restore_date_testcase {
      */
     public function test_restore_dates() {
         global $DB, $USER;
+
+        $this->setAdminUser();
 
         // Create lesson data.
         $record = ['available' => 100, 'deadline' => 100, 'timemodified' => 100];

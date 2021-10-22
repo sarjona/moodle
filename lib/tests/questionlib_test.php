@@ -50,7 +50,11 @@ class core_questionlib_testcase extends advanced_testcase {
      * This is executed before running any test in this file.
      */
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
+
+        $CFG->usetags = true;
     }
 
     /**
@@ -149,6 +153,8 @@ class core_questionlib_testcase extends advanced_testcase {
      */
     public function test_altering_tag_instance_context() {
         global $CFG, $DB;
+
+        $CFG->usetags = true;
 
         // Set to admin user.
         $this->setAdminUser();

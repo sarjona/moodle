@@ -44,6 +44,7 @@ class workshop_accumulative_strategy_testcase extends advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
         $this->setAdminUser();
         $course = $this->getDataGenerator()->create_course();
         $workshop = $this->getDataGenerator()->create_module('workshop', array('strategy' => 'accumulative', 'course' => $course));

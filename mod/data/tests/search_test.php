@@ -103,9 +103,11 @@ class mod_data_search_test extends advanced_testcase {
      */
     protected function setUp(): void {
         global $DB, $CFG;
+
         parent::setUp();
 
         $this->resetAfterTest(true);
+        \core\plugininfo\mod::enable_plugin('data', 1);
 
         set_config('enableglobalsearch', true);
 
@@ -258,7 +260,10 @@ class mod_data_search_test extends advanced_testcase {
     }
 
     public function test_advanced_search_tags() {
-        $this->resetAfterTest();
+        global $CFG;
+
+        $CFG->usetags = 1;
+
         $this->setAdminUser();
 
         // Setup test data.

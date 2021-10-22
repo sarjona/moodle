@@ -563,6 +563,8 @@ class core_calendar_event_vault_testcase extends advanced_testcase {
      */
     public function test_get_action_events_by_timesort_with_suspended_user() {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();

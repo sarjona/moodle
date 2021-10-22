@@ -36,6 +36,15 @@ use core_competency\external\performance_helper;
  */
 class core_competency_performance_helper_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_get_context_from_competency() {
         global $DB;
 

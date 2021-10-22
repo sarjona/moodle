@@ -37,6 +37,22 @@ require_once($CFG->libdir . '/completionlib.php');
 class core_completion_bulk_update_testcase extends advanced_testcase {
 
     /**
+     * Tests set up
+     */
+    protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
+        \core\plugininfo\mod::enable_plugin('data', 1);
+        \core\plugininfo\mod::enable_plugin('imscp', 1);
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+        \core\plugininfo\mod::enable_plugin('lti', 1);
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
+        \core\plugininfo\mod::enable_plugin('survey', 1);
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
+    }
+
+    /**
      * Provider for test_bulk_form_submit_single
      * @return array
      */
@@ -116,8 +132,8 @@ class core_completion_bulk_update_testcase extends advanced_testcase {
             $validatedata = $submitdata;
         }
 
-        $this->resetAfterTest();
         $this->setAdminUser();
+
         list($course, $cms) = $this->create_course_and_modules([$modname]);
 
         // Submit the bulk completion form with the provided data and make sure it returns the same data.

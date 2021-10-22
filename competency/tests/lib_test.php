@@ -39,6 +39,15 @@ global $CFG;
  */
 class core_competency_lib_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_comment_add_user_competency() {
         global $DB, $PAGE;
         $this->resetAfterTest();

@@ -37,6 +37,7 @@ class mod_chat_lib_testcase extends advanced_testcase {
 
     public function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
     }
 
     /*

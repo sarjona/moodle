@@ -38,7 +38,10 @@ require_once($CFG->dirroot . '/question/editlib.php');
 class quiz_question_bank_view_testcase extends advanced_testcase {
 
     public function test_viewing_question_bank_should_not_load_individual_questions() {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = 1;
         $this->setAdminUser();
         $generator = $this->getDataGenerator();
         /** @var core_question_generator $questiongenerator */

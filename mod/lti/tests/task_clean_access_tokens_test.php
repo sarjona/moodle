@@ -42,6 +42,7 @@ class mod_lti_clean_access_tokens_testcase extends advanced_testcase {
      */
     public function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
     }
 
     /**

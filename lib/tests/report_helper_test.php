@@ -87,6 +87,7 @@ class report_helper_test extends \advanced_testcase {
         global $PAGE;
 
         $this->resetAfterTest();
+        set_config('enabled', 1, 'core_competency');
 
         $user = $this->getDataGenerator()->create_user();
 

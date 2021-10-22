@@ -514,6 +514,7 @@ class core_analytics_targets_testcase extends advanced_testcase {
       */
     public function test_core_target_course_competencies_analysable() {
 
+        set_config('enabled', 1, 'core_competency');
         $data = $this->setup_competencies_environment();
 
         $analysable = new \core_analytics\course($data['course']);
@@ -530,6 +531,7 @@ class core_analytics_targets_testcase extends advanced_testcase {
      */
     public function test_core_target_course_competencies_calculate() {
 
+        set_config('enabled', 1, 'core_competency');
         $data = $this->setup_competencies_environment();
 
         $target = new \core_course\analytics\target\course_competencies();

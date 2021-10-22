@@ -41,11 +41,13 @@ class mod_scorm_locallib_testcase extends advanced_testcase {
 
     public function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
     }
 
     public function test_scorm_update_calendar() {
         global $DB;
 
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
         $this->setAdminUser();
 
         // Create a course.

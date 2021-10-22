@@ -54,8 +54,10 @@ class mod_data_privacy_provider_testcase extends \core_privacy\tests\provider_te
      */
     protected function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
 
-        global $DB;
+        global $DB, $CFG;
+        $CFG->usetags = 1;
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();
         $params = [
@@ -221,7 +223,8 @@ class mod_data_privacy_provider_testcase extends \core_privacy\tests\provider_te
      * Test for provider::export_user_data().
      */
     public function test_export_for_context() {
-        global $DB;
+        global $DB, $CFG;
+
         $cm = get_coursemodule_from_instance('data', $this->datamodule->id);
         $cmcontext = context_module::instance($cm->id);
         $records = $DB->get_records_select('data_records', 'userid = :userid ORDER BY id', ['userid' => $this->student->id]);

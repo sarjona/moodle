@@ -34,7 +34,17 @@ require_once($CFG->dirroot . '/filter/activitynames/filter.php'); // Include the
  * @copyright 2018 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class filter_activitynames_filter_testcase extends advanced_testcase {
+class filter_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\filter::enable_plugin('activitynames', 1);
+    }
 
     public function test_links() {
         $this->resetAfterTest(true);

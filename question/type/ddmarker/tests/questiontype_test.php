@@ -42,6 +42,8 @@ class qtype_ddmarker_test extends advanced_testcase {
     protected $qtype;
 
     protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('ddmarker', 1);
         $this->qtype = question_bank::get_qtype('ddmarker');;
     }
 

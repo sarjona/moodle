@@ -36,6 +36,17 @@ require_once($CFG->libdir . "/phpunit/classes/restore_date_testcase.php");
  */
 class mod_imscp_restore_date_testcase extends restore_date_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('imscp', 1);
+        $this->setAdminUser();
+    }
+
     public function test_restore_dates() {
         global $DB;
 

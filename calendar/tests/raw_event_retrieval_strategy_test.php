@@ -43,6 +43,8 @@ class core_calendar_raw_event_retrieval_strategy_testcase extends advanced_testc
         global $DB;
 
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+
         $retrievalstrategy = new raw_event_retrieval_strategy();
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();

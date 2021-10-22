@@ -1012,6 +1012,8 @@ class core_calendar_externallib_testcase extends externallib_advanced_testcase {
      */
     public function test_get_calendar_action_events_by_timesort_suspended_course() {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
@@ -1040,6 +1042,10 @@ class core_calendar_externallib_testcase extends externallib_advanced_testcase {
      */
     public function test_get_calendar_action_events_by_timesort_for_other_users() {
         $this->resetAfterTest();
+
+        core\plugininfo\mod::enable_plugin('lesson', 1);
+        core\plugininfo\availability::enable_plugin('profile', 1);
+
         // Create test users.
         $user1 = $this->getDataGenerator()->create_user(['email' => 'student1@localhost.com']);
         $user2 = $this->getDataGenerator()->create_user(['email' => 'student2@localhost.com']);

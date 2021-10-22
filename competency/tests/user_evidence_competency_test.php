@@ -36,6 +36,15 @@ use core_competency\user_evidence_competency;
  */
 class core_competency_user_evidence_competency_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_get_user_competencies_by_userevidenceid() {
         global $CFG, $DB;
 

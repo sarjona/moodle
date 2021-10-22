@@ -35,7 +35,10 @@ class core_tag_taglib_testcase extends advanced_testcase {
      * This is executed before running any test in this file.
      */
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usetags = true;
     }
 
     /**

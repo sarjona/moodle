@@ -35,6 +35,16 @@ require_once($CFG->dirroot . '/files/externallib.php');
 class core_user_externallib_testcase extends externallib_advanced_testcase {
 
     /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = true;
+    }
+
+    /**
      * Test get_users
      */
     public function test_get_users() {

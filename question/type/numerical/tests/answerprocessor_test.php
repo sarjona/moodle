@@ -34,6 +34,16 @@ class testable_qtype_numerical_answer_processor extends qtype_numerical_answer_p
 }
 
 class qtype_numerical_answer_processor_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('numerical', 1);
+    }
     public function test_parse_response() {
         $ap = new testable_qtype_numerical_answer_processor(
                 array('m' => 1, 'cm' => 100), false, '.', ',');

@@ -37,6 +37,16 @@ require_once($CFG->libdir . "/phpunit/classes/restore_date_testcase.php");
 class mod_wiki_restore_date_testcase extends restore_date_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
+    }
+
+    /**
      * Test restore dates.
      */
     public function test_restore_dates() {

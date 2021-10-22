@@ -36,6 +36,7 @@ class mod_data_events_testcase extends advanced_testcase {
      */
     public function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
     }
 
     /**

@@ -47,6 +47,16 @@ class mod_lti_lib_testcase extends advanced_testcase {
     }
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
+    }
+
+    /**
      * Test lti_view
      * @return void
      */

@@ -48,6 +48,8 @@ class mod_scorm_event_testcase extends advanced_testcase {
     protected $eventcm;
 
     protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
         $this->setAdminUser();
         $this->eventcourse = $this->getDataGenerator()->create_course();
         $this->eventuser = $this->getDataGenerator()->create_user();

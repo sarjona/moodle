@@ -37,10 +37,21 @@ require_once($CFG->dirroot . '/repository/url/lib.php');
 class repository_url_lib_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+
+        $type = new repository_type('url', [], 1);
+        $type->create();
+    }
+
+    /**
      * Check that the url escaper performs as expected
      */
     public function test_escape_url() {
-        $this->resetAfterTest();
 
         $repoid = $this->getDataGenerator()->create_repository('url')->id;
 

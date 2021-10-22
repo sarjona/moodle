@@ -60,8 +60,11 @@ class qbank_comment_backup_restore_test extends \advanced_testcase {
      * Set up
      */
     protected function setUp(): void {
+        global $CFG;
+
         parent::setUp();
         $this->resetAfterTest();
+        $CFG->usecomments = 1;
         $this->setAdminUser();
 
         // Set up custom fields.
@@ -138,8 +141,6 @@ class qbank_comment_backup_restore_test extends \advanced_testcase {
      */
     public function test_backup_restore() {
         global $DB;
-        $this->resetAfterTest();
-        $this->setAdminUser();
 
         $courseshortname = $this->course->shortname;
         $coursefullname = $this->course->fullname;

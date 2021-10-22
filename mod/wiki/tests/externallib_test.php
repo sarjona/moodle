@@ -46,9 +46,11 @@ class mod_wiki_external_testcase extends externallib_advanced_testcase {
      * Set up for every test
      */
     public function setUp(): void {
-        global $DB;
+        global $DB, $CFG;
         $this->resetAfterTest();
+        $CFG->usetags = 1;
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
 
         // Setup test data.
         $this->course = $this->getDataGenerator()->create_course();

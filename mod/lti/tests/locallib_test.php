@@ -62,6 +62,23 @@ require_once($CFG->dirroot . '/mod/lti/servicelib.php');
  */
 class mod_lti_locallib_testcase extends advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
+
+        // Create the private key.
+        require_once($CFG->dirroot . '/mod/lti/upgradelib.php');
+        mod_lti_verify_private_key();
+
+    }
+
     public function test_split_custom_parameters() {
         $this->resetAfterTest();
 
@@ -1440,7 +1457,6 @@ MwIDAQAB
      * Test lti_sign_jwt().
      */
     public function test_lti_sign_jwt() {
-        $this->resetAfterTest();
 
         $this->setAdminUser();
 

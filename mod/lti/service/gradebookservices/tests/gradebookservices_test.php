@@ -28,7 +28,15 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Unit tests for lti gradebookservices.
  */
-class mod_lti_gradebookservices_testcase extends advanced_testcase {
+class gradebookservices_test extends advanced_testcase {
+
+    /**
+     * Basic setup for these tests.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest(true);
+        \core\plugininfo\mod::enable_plugin('lti', 1);
+    }
 
     /**
      * Test saving a graded LTI with resource and tag info (as a result of
@@ -39,7 +47,6 @@ class mod_lti_gradebookservices_testcase extends advanced_testcase {
         global $CFG;
         require_once($CFG->dirroot . '/mod/lti/locallib.php');
 
-        $this->resetAfterTest();
         $this->setAdminUser();
 
         // Create a tool type, associated with that proxy.
@@ -67,7 +74,6 @@ class mod_lti_gradebookservices_testcase extends advanced_testcase {
      * that can be retrieved using the gradebook service API.
      */
     public function test_lti_add_standalone_lineitem() {
-        $this->resetAfterTest();
         $this->setAdminUser();
 
         $course = $this->getDataGenerator()->create_course();
@@ -90,7 +96,6 @@ class mod_lti_gradebookservices_testcase extends advanced_testcase {
         global $CFG;
         require_once($CFG->dirroot . '/mod/lti/locallib.php');
 
-        $this->resetAfterTest();
         $this->setAdminUser();
 
         // Create a tool type, associated with that proxy.
@@ -122,7 +127,6 @@ class mod_lti_gradebookservices_testcase extends advanced_testcase {
         global $CFG;
         require_once($CFG->dirroot . '/mod/lti/locallib.php');
 
-        $this->resetAfterTest();
         $this->setAdminUser();
 
         // Create a tool type, associated with that proxy.
@@ -154,7 +158,6 @@ class mod_lti_gradebookservices_testcase extends advanced_testcase {
      * Test if a user can be graded in a course.
      */
     public function test_is_user_gradable_in_course() {
-        $this->resetAfterTest();
 
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();

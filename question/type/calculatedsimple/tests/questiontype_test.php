@@ -39,6 +39,7 @@ require_once($CFG->dirroot . '/question/type/calculatedsimple/edit_calculatedsim
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_calculatedsimple_test extends advanced_testcase {
+
     public static $includecoverage = array(
         'question/type/questiontypebase.php',
         'question/type/calculatedsimple/questiontype.php',
@@ -49,6 +50,8 @@ class qtype_calculatedsimple_test extends advanced_testcase {
     protected $qtype;
 
     protected function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('calculatedsimple', 1);
         $this->qtype = new qtype_calculatedsimple();
     }
 

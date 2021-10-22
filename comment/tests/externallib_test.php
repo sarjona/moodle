@@ -45,7 +45,11 @@ class core_comment_externallib_testcase extends externallib_advanced_testcase {
      * Tests set up
      */
     protected function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
+        $CFG->usecomments = true;
+        \core\plugininfo\mod::enable_plugin('data', 1);
     }
 
     /**
@@ -57,8 +61,6 @@ class core_comment_externallib_testcase extends externallib_advanced_testcase {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/comment/lib.php');
-
-        $CFG->usecomments = true;
 
         $student1 = $this->getDataGenerator()->create_user();
         $student2 = $this->getDataGenerator()->create_user();

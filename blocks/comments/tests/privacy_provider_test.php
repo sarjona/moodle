@@ -52,10 +52,13 @@ class block_comments_privacy_provider_testcase extends \core_privacy\tests\provi
     protected $course2;
 
     protected function setUp(): void {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest();
         $this->setAdminUser();
+
+        $CFG->usecomments = true;
+        \core\plugininfo\block::enable_plugin('comments', 1);
 
         // Create courses.
         $generator = $this->getDataGenerator();

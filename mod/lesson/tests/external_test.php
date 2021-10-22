@@ -72,6 +72,7 @@ class mod_lesson_external_testcase extends externallib_advanced_testcase {
     public function setUp(): void {
         global $DB;
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
         $this->setAdminUser();
 
         // Setup test data.
@@ -101,6 +102,7 @@ class mod_lesson_external_testcase extends externallib_advanced_testcase {
     public function test_mod_lesson_get_lessons_by_courses() {
         global $DB, $CFG;
         require_once($CFG->libdir . '/externallib.php');
+
 
         // Create additional course.
         $course2 = self::getDataGenerator()->create_course();

@@ -39,6 +39,15 @@ require_once($CFG->dirroot.'/group/lib.php');
 class enrol_cohort_lib_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        \core\plugininfo\enrol::enable_plugin('cohort', 1);
+    }
+
+    /**
      * Test that a new group with the name of the cohort is created.
      */
     public function test_enrol_cohort_create_new_group() {

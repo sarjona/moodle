@@ -38,6 +38,17 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_calculatedmulti_question_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('calculatedmulti', 1);
+    }
+
     public function test_is_complete_response() {
         $question = test_question_maker::make_question('calculated');
 

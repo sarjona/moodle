@@ -34,6 +34,16 @@ require_once($CFG->dirroot . '/mod/workshop/lib.php');
 class mod_workshop_lib_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
+    }
+
+    /**
      * Test calendar event provide action open.
      */
     public function test_workshop_core_calendar_provide_event_action_open() {

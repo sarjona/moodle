@@ -30,6 +30,17 @@ require_once($CFG->dirroot . '/question/type/numerical/question.php');
 
 
 class qtype_numerical_answer_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('numerical', 1);
+    }
+
     public function test_within_tolerance_nominal() {
         $answer = new qtype_numerical_answer(13, 7.0, 1.0, '', FORMAT_MOODLE, 1.0);
 

@@ -55,6 +55,18 @@ require_once(__DIR__ . '/../../course/lib.php');
 class core_analytics_prediction_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enableanalytics = true;
+    }
+
+    /**
      * Purge all the mlbackend outputs.
      *
      * This is done automatically for mlbackends using the web server dataroot but

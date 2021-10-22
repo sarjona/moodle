@@ -52,6 +52,16 @@ class mod_scorm_testcase extends provider_testcase {
     protected $context;
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('scorm', 1);
+    }
+
+    /**
      * Test getting the context for the user ID related to this plugin.
      */
     public function test_get_contexts_for_userid() {

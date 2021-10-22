@@ -32,6 +32,15 @@ defined('MOODLE_INTERNAL') || die();
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_availability_component_testcase extends advanced_testcase {
+
+    /**
+     * Set up for every test
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\availability::enable_plugin('grouping', 1);
+        \core\plugininfo\availability::enable_plugin('profile', 1);
+    }
     /**
      * Tests loading a class from /availability/classes.
      */

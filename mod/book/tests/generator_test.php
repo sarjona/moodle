@@ -50,8 +50,9 @@ class mod_book_generator_testcase extends advanced_testcase {
     }
 
     public function test_create_chapter() {
-        global $DB;
+        global $DB, $CFG;
         $this->resetAfterTest();
+        $CFG->usetags = 1;
         $this->setAdminUser();
 
         $course = $this->getDataGenerator()->create_course();

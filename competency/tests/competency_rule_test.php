@@ -41,6 +41,15 @@ use core_competency\competency_rule_points;
  */
 class core_competency_competency_rule_testcase extends externallib_advanced_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        set_config('enabled', true, 'core_competency');
+    }
+
     public function test_rule_all_matching() {
         $this->resetAfterTest(true);
 

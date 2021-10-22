@@ -38,6 +38,7 @@ class ltiservice_gradebookservices_privacy_provider_testcase extends provider_te
      */
     public function setUp(): void {
         $this->resetAfterTest(true);
+        \core\plugininfo\mod::enable_plugin('lti', 1);
     }
 
     /**

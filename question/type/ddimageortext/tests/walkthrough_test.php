@@ -39,6 +39,16 @@ require_once($CFG->dirroot . '/question/type/ddimageortext/tests/helper.php');
 class qtype_ddimageortext_walkthrough_test extends qbehaviour_walkthrough_test_base {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('ddimageortext', 1);
+    }
+
+    /**
      * Get an expectation that the output contains an item ready to drag.
      * @param int $dragitemno the item number.
      * @param int $choice which choice this is.

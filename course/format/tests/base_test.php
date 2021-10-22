@@ -36,6 +36,16 @@ class base_test extends advanced_testcase {
         require_once($CFG->dirroot . '/course/format/tests/fixtures/format_theunittest_output_course_format_invalidoutput.php');
     }
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\format::enable_plugin('social', 1);
+    }
+
     public function test_available_hook() {
         global $DB;
         $this->resetAfterTest();

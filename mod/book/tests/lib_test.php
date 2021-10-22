@@ -48,6 +48,9 @@ class mod_book_lib_testcase extends advanced_testcase {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/course/externallib.php');
 
+        $CFG->usecomments = 1;
+        $CFG->usetags = 1;
+
         $user = $this->getDataGenerator()->create_user();
         $teacher = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course(array('enablecomment' => 1));
@@ -432,10 +435,12 @@ class mod_book_lib_testcase extends advanced_testcase {
     }
 
     public function test_mod_book_get_tagged_chapters() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest();
         $this->setAdminUser();
+
+        $CFG->usetags = 1;
 
         // Setup test data.
         $bookgenerator = $this->getDataGenerator()->get_plugin_generator('mod_book');

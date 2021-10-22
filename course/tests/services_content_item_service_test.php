@@ -111,6 +111,8 @@ class services_content_item_service_testcase extends \advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
+        \core\plugininfo\mod::enable_plugin('lti', 1);
+
         // Create a user in a course.
         $course = $this->getDataGenerator()->create_course();
         $user = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');

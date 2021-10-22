@@ -40,6 +40,16 @@ require_once($CFG->dirroot . "/mod/workshop/tests/fixtures/testable.php");
 class mod_workshop_restore_date_testcase extends restore_date_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
+    }
+
+    /**
      * Test restore dates.
      */
     public function test_restore_dates() {

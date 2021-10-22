@@ -79,6 +79,7 @@ class tool_lp_external_testcase extends externallib_advanced_testcase {
         global $DB, $CFG;
 
         $this->resetAfterTest(true);
+        set_config('enabled', 1, 'core_competency');
 
         // Create some users.
         $creator = $this->getDataGenerator()->create_user();

@@ -44,6 +44,7 @@ class mod_lesson_events_testcase extends advanced_testcase {
      */
     public function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
 
         $this->setAdminUser();
         $this->course = $this->getDataGenerator()->create_course();

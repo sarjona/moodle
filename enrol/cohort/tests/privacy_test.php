@@ -38,6 +38,15 @@ use enrol_cohort\privacy\provider;
 class enrol_cohort_privacy_testcase extends \core_privacy\tests\provider_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        \core\plugininfo\enrol::enable_plugin('cohort', 1);
+    }
+
+    /**
      * Test getting the context for the user ID related to this plugin.
      */
     public function test_get_contexts_for_userid() {

@@ -40,6 +40,9 @@ class availability_grouping_condition_testcase extends advanced_testcase {
     public function setUp(): void {
         // Load the mock info class so that it can be used.
         global $CFG;
+
+        $this->resetAfterTest();
+        \core\plugininfo\availability::enable_plugin('grouping', 1);
         require_once($CFG->dirroot . '/availability/tests/fixtures/mock_info.php');
     }
 

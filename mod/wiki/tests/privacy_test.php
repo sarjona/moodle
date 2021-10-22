@@ -74,6 +74,7 @@ class mod_wiki_privacy_testcase extends provider_testcase {
     public function setUp(): void {
         global $DB;
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
 
         $dg = $this->getDataGenerator();
         $course = $dg->create_course();

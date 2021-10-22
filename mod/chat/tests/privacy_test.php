@@ -51,6 +51,7 @@ class mod_chat_privacy_testcase extends provider_testcase {
         global $PAGE;
         $this->resetAfterTest();
         $PAGE->get_renderer('core');
+        \core\plugininfo\mod::enable_plugin('chat', 1);
     }
 
     public function test_get_contexts_for_userid() {

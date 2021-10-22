@@ -35,7 +35,18 @@ require_once($CFG->dirroot . '/question/type/calculated/questiontype.php');
  * @copyright  2014 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_calculated_formula_validation_testcase extends basic_testcase {
+class qtype_calculated_formula_validation_testcase extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\qtype::enable_plugin('calculated', 1);
+    }
+
     protected function assert_nonempty_string($actual) {
         $this->assertIsString($actual);
         $this->assertNotEquals('', $actual);

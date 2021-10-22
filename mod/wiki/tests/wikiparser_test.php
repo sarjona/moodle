@@ -36,8 +36,26 @@ defined('MOODLE_INTERNAL') || die;
 global $CFG;
 require_once($CFG->dirroot . '/mod/wiki/parser/parser.php');
 
+/**
+ * Provides the unit tests for wiki parser.
+ *
+ * @package     mod_wiki
+ * @category    test
+ * @copyright   2009 Marc Alier, Jordi Piguillem marc.alier@upc.edu
+ * @copyright   2009 Universitat Politecnica de Catalunya http://www.upc.edu
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class mod_wiki_wikiparser_test extends advanced_testcase {
 
-class mod_wiki_wikiparser_test extends basic_testcase {
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('wiki', 1);
+    }
 
     /**
      * URL inside the clickable text of some link should not be turned into a new link via the url_tag_rule.

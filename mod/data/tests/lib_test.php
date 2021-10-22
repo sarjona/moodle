@@ -43,6 +43,19 @@ class mod_data_lib_testcase extends advanced_testcase {
     protected $DB = null;
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
+        $CFG->usetags = 1;
+    }
+
+    /**
      * Tear Down to reset DB.
      */
     public function tearDown(): void {

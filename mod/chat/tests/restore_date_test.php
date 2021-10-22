@@ -36,9 +36,20 @@ require_once($CFG->libdir . "/phpunit/classes/restore_date_testcase.php");
  */
 class mod_chat_restore_date_testcase extends restore_date_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('chat', 1);
+    }
+
     public function test_restore_dates() {
         global $DB;
 
+        $this->setAdminUser();
         list($course, $chat) = $this->create_course_and_module('chat');
         $result = mod_chat_external::login_user($chat->id);
         $result = external_api::clean_returnvalue(mod_chat_external::login_user_returns(), $result);

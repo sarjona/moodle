@@ -42,6 +42,7 @@ class ltiservice_gradebookservices_cleanup_task_testcase extends advanced_testca
      */
     public function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
     }
 
     /**

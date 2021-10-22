@@ -52,6 +52,7 @@ class mod_workshop_events_testcase extends advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
 
         // Create a workshop activity.
         $this->course = $this->getDataGenerator()->create_course();

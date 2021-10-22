@@ -37,6 +37,10 @@ defined('MOODLE_INTERNAL') || die();
 class mod_forum_generator_testcase extends advanced_testcase {
 
     public function setUp(): void {
+        global $CFG;
+
+        $CFG->usetags = 1;
+
         // We must clear the subscription caches. This has to be done both before each test, and after in case of other
         // tests using these functions.
         \mod_forum\subscriptions::reset_forum_cache();
@@ -173,9 +177,10 @@ class mod_forum_generator_testcase extends advanced_testcase {
     }
 
     public function test_create_content() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest(true);
+        $CFG->usetags = 1;
 
         // Create a bunch of users
         $user1 = self::getDataGenerator()->create_user();

@@ -56,6 +56,8 @@ class mod_forum_exporters_post_testcase extends advanced_testcase {
         $this->resetAfterTest();
 
         $CFG->enableportfolios = true;
+        $CFG->usetags = 1;
+
         $filestorage = get_file_storage();
         $renderer = $PAGE->get_renderer('core');
         $datagenerator = $this->getDataGenerator();

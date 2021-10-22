@@ -44,8 +44,13 @@ class block_comments_events_testcase extends advanced_testcase {
      * Setup test data.
      */
     public function setUp(): void {
+        global $CFG;
+
         $this->resetAfterTest();
         $this->setAdminUser();
+
+        $CFG->usecomments = true;
+        \core\plugininfo\block::enable_plugin('comments', 1);
 
         // Create course and wiki.
         $this->course = $this->getDataGenerator()->create_course();

@@ -35,7 +35,18 @@ require_once($CFG->dirroot.'/mod/lti/servicelib.php');
  * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_lti_servicelib_testcase extends basic_testcase {
+class mod_lti_servicelib_testcase extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
+    }
+
     /**
      * Test that lti_parse_message_id never fails with good and bad XML.
      *

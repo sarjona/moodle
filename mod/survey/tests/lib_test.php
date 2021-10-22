@@ -48,6 +48,16 @@ class mod_survey_lib_testcase extends advanced_testcase {
     }
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('survey', 1);
+    }
+
+    /**
      * Test survey_view
      * @return void
      */

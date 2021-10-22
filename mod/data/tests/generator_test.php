@@ -35,6 +35,17 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_data_generator_testcase extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('data', 1);
+    }
+
     public function test_generator() {
         global $DB;
 
@@ -129,9 +140,9 @@ class mod_data_generator_testcase extends advanced_testcase {
     }
 
     public function test_create_entry() {
-        global $DB;
+        global $DB, $CFG;
 
-        $this->resetAfterTest(true);
+        $CFG->usetags = 1;
 
         $this->setAdminUser();
         $this->assertEquals(0, $DB->count_records('data'));

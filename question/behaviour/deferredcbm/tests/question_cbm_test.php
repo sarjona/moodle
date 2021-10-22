@@ -39,6 +39,16 @@ require_once(__DIR__ . '/../../../engine/lib.php');
  */
 class qbehaviour_deferredcbm_cbm_test extends basic_testcase {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('deferredcbm', 1);
+    }
+
     public function test_adjust_fraction() {
         $this->assertEqualsWithDelta( 1,   question_cbm::adjust_fraction( 1,    question_cbm::LOW), 0.0000001);
         $this->assertEqualsWithDelta( 2,   question_cbm::adjust_fraction( 1,    question_cbm::MED), 0.0000001);

@@ -36,14 +36,21 @@ defined('MOODLE_INTERNAL') || die();
 class core_block_tag_youtube_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+    }
+
+    /**
      * Testing the tag youtube block's initial state after a new installation.
      *
      * @return void
      */
     public function test_after_install() {
         global $DB;
-
-        $this->resetAfterTest(true);
 
         // Assert that tag_youtube entry exists and that its visible attribute is set to 0 (disabled).
         $this->assertTrue($DB->record_exists('block', array('name' => 'tag_youtube', 'visible' => 0)));

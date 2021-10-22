@@ -42,6 +42,16 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 class mod_imscp_external_testcase extends externallib_advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('imscp', 1);
+    }
+
+    /**
      * Test view_imscp
      */
     public function test_view_imscp() {

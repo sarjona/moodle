@@ -69,6 +69,7 @@ class mod_workshop_external_testcase extends externallib_advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
 
         // Setup test data.
         $course = new stdClass();

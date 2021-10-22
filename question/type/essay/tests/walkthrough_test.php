@@ -37,6 +37,16 @@ require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
  */
 class qtype_essay_walkthrough_testcase extends qbehaviour_walkthrough_test_base {
 
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        parent::setUp();
+        \core\plugininfo\qtype::enable_plugin('essay', 1);
+    }
+
     protected function check_contains_textarea($name, $content = '', $height = 10) {
         $fieldname = $this->quba->get_field_prefix($this->slot) . $name;
 

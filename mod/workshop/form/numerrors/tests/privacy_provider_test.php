@@ -44,6 +44,7 @@ class workshopform_numerrors_privacy_provider_testcase extends provider_testcase
     public function test_export_assessment_form() {
         global $DB;
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('workshop', 1);
         $this->setAdminUser();
 
         $this->generator = $this->getDataGenerator();

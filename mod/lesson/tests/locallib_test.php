@@ -40,6 +40,16 @@ require_once($CFG->dirroot.'/mod/lesson/locallib.php');
 class mod_lesson_locallib_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lesson', 1);
+    }
+
+    /**
      * Test duplicating a lesson page element.
      */
     public function test_duplicate_page() {

@@ -39,6 +39,18 @@ require_once(__DIR__ . '/fixtures/test_target_course_level_shortname.php');
 class analytics_manager_testcase extends advanced_testcase {
 
     /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enableanalytics = true;
+    }
+
+    /**
      * test_deleted_context
      */
     public function test_deleted_context() {

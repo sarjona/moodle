@@ -30,7 +30,19 @@ require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/course/tests/fixtures/course_capability_assignment.php');
 require_once($CFG->dirroot . '/enrol/imsenterprise/tests/imsenterprise_test.php');
 
-class core_course_courselib_testcase extends advanced_testcase {
+class courselib_test extends advanced_testcase {
+
+    /**
+     * Test set up.
+     *
+     * This is executed before running any test in this file.
+     */
+    public function setUp(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->usetags = 1;
+    }
 
     /**
      * Set forum specific test values for calling create_module().
@@ -317,6 +329,8 @@ class core_course_courselib_testcase extends advanced_testcase {
     private function create_module_asscociated_blog($course, $modulecontext) {
         global $DB, $CFG;
 
+        $CFG->enableblogs = true;
+
         // Create default group.
         $group = new stdClass();
         $group->courseid = $course->id;
@@ -443,6 +457,7 @@ class core_course_courselib_testcase extends advanced_testcase {
         global $DB, $CFG;
 
         $this->resetAfterTest(true);
+        \core\plugininfo\availability::enable_plugin('profile', 1);
 
         $this->setAdminUser();
 
@@ -1616,9 +1631,11 @@ class core_course_courselib_testcase extends advanced_testcase {
      * @dataProvider provider_course_delete_module
      */
     public function test_course_delete_module($type, $options) {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest(true);
+        $CFG->enableblogs = 1;
+        $CFG->usetags = 1;
         $this->setAdminUser();
 
         // Create course and modules.
@@ -3066,7 +3083,7 @@ class core_course_courselib_testcase extends advanced_testcase {
      */
     public function test_course_get_tagged_course_modules() {
         global $DB;
-        $this->resetAfterTest();
+
         $course3 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
         $course1 = $this->getDataGenerator()->create_course();
@@ -3180,19 +3197,20 @@ class core_course_courselib_testcase extends advanced_testcase {
     public function test_course_get_user_navigation_options_for_frontpage() {
         global $CFG, $SITE, $DB;
         $this->resetAfterTest();
+
         $context = context_system::instance();
         $course = clone $SITE;
         $this->setAdminUser();
 
         $navoptions = course_get_user_navigation_options($context, $course);
-        $this->assertTrue($navoptions->blogs);
-        $this->assertTrue($navoptions->notes);
+        $this->assertFalse($navoptions->blogs);
+        $this->assertFalse($navoptions->notes);
         $this->assertTrue($navoptions->participants);
-        $this->assertTrue($navoptions->badges);
+        $this->assertFalse($navoptions->badges);
         $this->assertTrue($navoptions->tags);
         $this->assertFalse($navoptions->search);
         $this->assertTrue($navoptions->calendar);
-        $this->assertTrue($navoptions->competencies);
+        $this->assertFalse($navoptions->competencies);
 
         // Enable global search now.
         $CFG->enableglobalsearch = 1;
@@ -3210,10 +3228,10 @@ class core_course_courselib_testcase extends advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
         $navoptions = course_get_user_navigation_options($context, $course);
-        $this->assertTrue($navoptions->blogs);
+        $this->assertFalse($navoptions->blogs);
         $this->assertFalse($navoptions->notes);
         $this->assertFalse($navoptions->participants);
-        $this->assertTrue($navoptions->badges);
+        $this->assertFalse($navoptions->badges);
         $this->assertTrue($navoptions->tags);
         $this->assertTrue($navoptions->search);
         $this->assertTrue($navoptions->calendar);
@@ -3230,10 +3248,10 @@ class core_course_courselib_testcase extends advanced_testcase {
         $this->setAdminUser();
 
         $navoptions = course_get_user_navigation_options($context);
-        $this->assertTrue($navoptions->blogs);
-        $this->assertTrue($navoptions->notes);
+        $this->assertFalse($navoptions->blogs);
+        $this->assertFalse($navoptions->notes);
         $this->assertTrue($navoptions->participants);
-        $this->assertTrue($navoptions->badges);
+        $this->assertFalse($navoptions->badges);
     }
 
     /**
@@ -3252,22 +3270,23 @@ class core_course_courselib_testcase extends advanced_testcase {
         $this->setUser($user);
 
         $navoptions = course_get_user_navigation_options($context);
-        $this->assertTrue($navoptions->blogs);
+        $this->assertFalse($navoptions->blogs);
         $this->assertFalse($navoptions->notes);
         $this->assertTrue($navoptions->participants);
-        $this->assertTrue($navoptions->badges);
+        $this->assertFalse($navoptions->badges);
 
-        // Disable some options.
-        $CFG->badges_allowcoursebadges = 0;
-        $CFG->enableblogs = 0;
+        // Enable some options.
+        $CFG->enablebadges = 1;
+        $CFG->badges_allowcoursebadges = 1;
+        $CFG->enableblogs = 1;
         // Disable view participants capability.
         assign_capability('moodle/course:viewparticipants', CAP_PROHIBIT, $roleid, $context);
 
         $navoptions = course_get_user_navigation_options($context);
-        $this->assertFalse($navoptions->blogs);
+        $this->assertTrue($navoptions->blogs);
         $this->assertFalse($navoptions->notes);
         $this->assertFalse($navoptions->participants);
-        $this->assertFalse($navoptions->badges);
+        $this->assertTrue($navoptions->badges);
     }
 
     /**
@@ -3323,7 +3342,7 @@ class core_course_courselib_testcase extends advanced_testcase {
         $this->assertTrue($adminoptions->tags);
         $this->assertTrue($adminoptions->gradebook);
         $this->assertFalse($adminoptions->outcomes);
-        $this->assertTrue($adminoptions->badges);
+        $this->assertFalse($adminoptions->badges);
         $this->assertTrue($adminoptions->import);
         $this->assertTrue($adminoptions->reset);
         $this->assertTrue($adminoptions->roles);
@@ -3354,7 +3373,7 @@ class core_course_courselib_testcase extends advanced_testcase {
         $this->assertFalse($adminoptions->tags);
         $this->assertFalse($adminoptions->gradebook);
         $this->assertFalse($adminoptions->outcomes);
-        $this->assertTrue($adminoptions->badges);
+        $this->assertFalse($adminoptions->badges);
         $this->assertFalse($adminoptions->import);
         $this->assertFalse($adminoptions->reset);
         $this->assertFalse($adminoptions->roles);
@@ -3455,6 +3474,7 @@ class core_course_courselib_testcase extends advanced_testcase {
         require_once($CFG->dirroot.'/completion/criteria/completion_criteria_date.php');
 
         $this->resetAfterTest(true);
+        \core\plugininfo\mod::enable_plugin('data', 1);
 
         $this->setAdminUser();
 

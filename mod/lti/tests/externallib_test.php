@@ -47,6 +47,7 @@ class mod_lti_external_testcase extends externallib_advanced_testcase {
      */
     public function setUp(): void {
         $this->resetAfterTest();
+        \core\plugininfo\mod::enable_plugin('lti', 1);
     }
 
     /**
