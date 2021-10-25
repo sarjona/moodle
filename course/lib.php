@@ -4134,7 +4134,7 @@ function course_get_user_administration_options($course, $context) {
     $options->files = ($course->legacyfiles == 2 && has_capability('moodle/course:managefiles', $context));
 
     if (!$isfrontpage) {
-        $options->tags = has_capability('moodle/course:tag', $context);
+        $options->tags = !empty($CFG->usetags) && has_capability('moodle/course:tag', $context);
         $options->gradebook = has_capability('moodle/grade:manage', $context);
         $options->outcomes = !empty($CFG->enableoutcomes) && has_capability('moodle/course:update', $context);
         $options->badges = !empty($CFG->enablebadges);
