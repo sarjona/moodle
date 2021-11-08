@@ -34,6 +34,11 @@ define('FILE_CONTROLLED_LINK', 8);
 
 define('RENAME_SUFFIX', '_2');
 
+/** The states a repository can be in, stored in visible field. */
+define('REPOSITORY_ON', 1);
+define('REPOSITORY_OFF',0);
+define('REPOSITORY_DISABLED', -1);
+
 /**
  * This class is used to manage repository plugins
  *

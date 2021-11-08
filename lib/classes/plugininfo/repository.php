@@ -40,27 +40,50 @@ class repository extends base {
         return $DB->get_records_menu('repository', null, 'type ASC', 'type, type AS val');
     }
 
+
+    /**
+     * Enable or disable a plugin.
+     * When possible, the change will be stored into the config_log table, to let admins check when/who has modified it.
+     *
+     * @param string $pluginname The plugin name to enable/disable.
+     * @param int $enabled Whether the pluginname should be enabled and visible (1), enabled but hidden (0) or disabled (-1).
+     *
+     * @return bool Whether $pluginname has been updated or not.
+     */
     public static function enable_plugin(string $pluginname, int $enabled): bool {
         global $DB;
 
         $haschanged = false;
-        $repositorytype = \repository::get_type_by_typename($pluginname);
-        if (empty($repositorytype)) {
-            throw new \moodle_exception('invalidplugin', 'repository', '', $pluginname);
-        }
 
-        // The visibility will be only changed if the repository exists in database. Otherwise, this method won't do anything.
+        // Enabled repositories exist in 'repository' table.
+        // Visible = REPOSITORY_ON ==> Enabled and visible.
+        // Visible = REPOSITORY_OFF ==> Enabled but hidden.
+        // Disabled repositories don't exist in 'repository' table.
         if ($plugin = $DB->get_record('repository', ['type' => $pluginname])) {
+            // The plugin is enabled.
             $oldvalue = $plugin->visible;
-            // Only set visibility if it's different from the current value.
-            if ($oldvalue != $enabled) {
-                $haschanged = true;
-                $repositorytype->update_visibility($enabled);
-
-                // Include this information into config changes table.
-                add_to_config_log('repository_visibility', $oldvalue, $enabled, $pluginname);
-                \core_plugin_manager::reset_caches();
+            $repositorytype = \repository::get_type_by_typename($pluginname);
+            if ($enabled == REPOSITORY_DISABLED) {
+                $haschanged = $repositorytype->delete();
+                $enabled = '';
+            } else if ($oldvalue != $enabled) {
+                $haschanged = $repositorytype->update_visibility($enabled);
             }
+        } else {
+            // Not all repositories have their own 'repository' record created. Disabled repositories don't have one.
+            // Make changes only when we want to enable repository.
+            $oldvalue = '';
+            if ($enabled == REPOSITORY_ON || $enabled == REPOSITORY_OFF)     {
+                $type = new \repository_type($pluginname, [], $enabled);
+                if (!$haschanged = $type->create()) {
+                    throw new \moodle_exception('invalidplugin', 'repository', '', $pluginname);
+                }
+            }
+        }
+        if ($haschanged) {
+            // Include this information into config changes table.
+            add_to_config_log('repository_visibility', $oldvalue, $enabled, $pluginname);
+            \core_plugin_manager::reset_caches();
         }
 
         return $haschanged;
