@@ -977,7 +977,7 @@ class moodle_page {
         require_once($CFG->libdir.'/outputfragmentrequirementslib.php');
 
         // Check that the requirements manager has not already been switched.
-        if (get_class($this->_requires) == 'fragment_requirements_manager') {
+        if (get_class($this->__get('requires')) == 'fragment_requirements_manager') {
             throw new coding_exception('JavaScript collection has already been started.');
         }
         // The header needs to have been called to flush out the generic JavaScript for the page. This allows only
