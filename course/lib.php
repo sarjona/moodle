@@ -563,12 +563,17 @@ function get_array_of_activities($courseid) {
  * Returns the localised human-readable names of all used modules
  *
  * @param bool $plural if true returns the plural forms of the names
+ * @param bool $resetvalue Wether to reset the values and recalculte returned modnames and recalculate them or not.
  * @return array where key is the module name (component name without 'mod_') and
  *     the value is the human-readable string. Array sorted alphabetically by value
  */
-function get_module_types_names($plural = false) {
+function get_module_types_names($plural = false, bool $resetvalue = false) {
     static $modnames = null;
     global $DB, $CFG;
+
+    if ($resetvalue) {
+        $modnames = null;
+    }
     if ($modnames === null) {
         $modnames = array(0 => array(), 1 => array());
         if ($allmods = $DB->get_records("modules")) {

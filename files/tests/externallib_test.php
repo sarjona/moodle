@@ -38,7 +38,6 @@ class core_files_externallib_testcase extends advanced_testcase {
      */
     public function setUp(): void {
         $this->resetAfterTest();
-        \core\plugininfo\mod::enable_plugin('data', 1);
 
         // Set the current user to be the administrator.
         $this->setAdminUser();
@@ -164,6 +163,10 @@ class core_files_externallib_testcase extends advanced_testcase {
         global $USER, $DB;
 
         $USER->email = 'test@example.com';
+
+        \core\plugininfo\mod::enable_plugin('data', 1);
+        // Reset $modulenames static variable to ensure that is using the just enabled data module.
+        get_module_types_names(false, true);
 
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
