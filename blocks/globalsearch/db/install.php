@@ -30,6 +30,5 @@ function xmldb_block_globalsearch_install() {
     global $DB;
 
     // Disable global_search on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'globalsearch']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'globalsearch']);
 }
-

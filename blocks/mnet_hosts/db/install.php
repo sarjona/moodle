@@ -30,6 +30,5 @@ function xmldb_block_mnet_hosts_install() {
     global $DB;
 
     // Disable mnet_hosts on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'mnet_hosts']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'mnet_hosts']);
 }
-

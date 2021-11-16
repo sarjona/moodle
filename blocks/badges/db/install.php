@@ -30,6 +30,5 @@ function xmldb_block_badges_install() {
     global $DB;
 
     // Disable badges on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'badges']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'badges']);
 }
-

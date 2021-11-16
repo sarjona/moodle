@@ -30,6 +30,5 @@ function xmldb_block_login_install() {
     global $DB;
 
     // Disable login on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'login']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'login']);
 }
-

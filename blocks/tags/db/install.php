@@ -30,6 +30,5 @@ function xmldb_block_tags_install() {
     global $DB;
 
     // Disable tags on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'tags']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'tags']);
 }
-

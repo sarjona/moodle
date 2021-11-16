@@ -33,11 +33,6 @@ function xmldb_scorm_install() {
     global $DB;
 
     // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'scorm']);
-
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'scorm']);
     // Should not need to modify course modinfo because this is a new install.
-
-    return true;
 }
-
-

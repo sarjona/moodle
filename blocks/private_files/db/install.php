@@ -30,6 +30,5 @@ function xmldb_block_private_files_install() {
     global $DB;
 
     // Disable private_files on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'private_files']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'private_files']);
 }
-

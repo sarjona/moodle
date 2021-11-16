@@ -30,6 +30,5 @@ function xmldb_block_blog_tags_install() {
     global $DB;
 
     // Disable blog_tags on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'blog_tags']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'blog_tags']);
 }
-

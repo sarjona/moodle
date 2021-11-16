@@ -30,6 +30,5 @@ function xmldb_block_search_forums_install() {
     global $DB;
 
     // Disable search_forums on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'search_forums']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'search_forums']);
 }
-

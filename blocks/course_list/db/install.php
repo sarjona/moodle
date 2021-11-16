@@ -30,6 +30,5 @@ function xmldb_block_course_list_install() {
     global $DB;
 
     // Disable course_list on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'course_list']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'course_list']);
 }
-

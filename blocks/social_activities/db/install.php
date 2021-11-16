@@ -30,6 +30,5 @@ function xmldb_block_social_activities_install() {
     global $DB;
 
     // Disable social_activities on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'social_activities']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'social_activities']);
 }
-

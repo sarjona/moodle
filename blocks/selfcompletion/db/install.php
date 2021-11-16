@@ -30,6 +30,5 @@ function xmldb_block_selfcompletion_install() {
     global $DB;
 
     // Disable selfcompletion on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'selfcompletion']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'selfcompletion']);
 }
-

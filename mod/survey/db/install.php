@@ -100,5 +100,5 @@ function xmldb_survey_install() {
     }
 
     // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'survey']);
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'survey']);
 }

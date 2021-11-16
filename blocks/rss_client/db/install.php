@@ -30,6 +30,5 @@ function xmldb_block_rss_client_install() {
     global $DB;
 
     // Disable rss_client on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'rss_client']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'rss_client']);
 }
-

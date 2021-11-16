@@ -30,6 +30,5 @@ function xmldb_block_section_links_install() {
     global $DB;
 
     // Disable section_links on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'section_links']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'section_links']);
 }
-

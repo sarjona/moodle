@@ -30,6 +30,5 @@ function xmldb_block_course_summary_install() {
     global $DB;
 
     // Disable course_summary on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'course_summary']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'course_summary']);
 }
-

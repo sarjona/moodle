@@ -31,5 +31,5 @@ function xmldb_lti_install() {
     global $DB;
 
     // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'lti']);
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'lti']);
 }

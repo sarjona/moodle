@@ -33,11 +33,6 @@ function xmldb_data_install() {
     global $DB;
 
     // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'data']);
-
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'data']);
     // Should not need to modify course modinfo because this is a new install.
-
-    return true;
 }
-
-

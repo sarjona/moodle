@@ -30,6 +30,5 @@ function xmldb_block_tag_flickr_install() {
     global $DB;
 
     // Disable tag_flickr on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'tag_flickr']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'tag_flickr']);
 }
-

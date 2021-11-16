@@ -30,6 +30,5 @@ function xmldb_block_mentees_install() {
     global $DB;
 
     // Disable mentees on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'mentees']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'mentees']);
 }
-

@@ -30,6 +30,5 @@ function xmldb_block_lp_install() {
     global $DB;
 
     // Disable lp on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'lp']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'lp']);
 }
-

@@ -30,6 +30,5 @@ function xmldb_block_site_main_menu_install() {
     global $DB;
 
     // Disable site_main_menu on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'site_main_menu']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'site_main_menu']);
 }
-

@@ -30,6 +30,5 @@ function xmldb_block_myprofile_install() {
     global $DB;
 
     // Disable myprofile on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'myprofile']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'myprofile']);
 }
-

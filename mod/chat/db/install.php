@@ -33,11 +33,6 @@ function xmldb_chat_install() {
     global $DB;
 
     // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'chat']);
-
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'chat']);
     // Should not need to modify course modinfo because this is a new install.
-
-    return true;
 }
-
-

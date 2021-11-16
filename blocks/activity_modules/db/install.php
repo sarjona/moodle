@@ -30,6 +30,5 @@ function xmldb_block_activity_modules_install() {
     global $DB;
 
     // Disable activity_modules on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'activity_modules']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'activity_modules']);
 }
-

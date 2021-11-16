@@ -36,5 +36,5 @@ function xmldb_imscp_install() {
     global $DB;
 
     // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'imscp']);
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'imscp']);
 }

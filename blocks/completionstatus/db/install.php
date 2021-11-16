@@ -30,6 +30,5 @@ function xmldb_block_completionstatus_install() {
     global $DB;
 
     // Disable completionstatus on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'completionstatus']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'completionstatus']);
 }
-

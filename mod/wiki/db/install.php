@@ -34,6 +34,6 @@ function xmldb_wiki_install() {
     global $DB;
 
     // Hide the module.
-    $DB->set_field('modules', 'visible', '0', ['name' => 'wiki']);
-
+    return $DB->set_field('modules', 'visible', '0', ['name' => 'wiki']);
+    // Should not need to modify course modinfo because this is a new install.
 }

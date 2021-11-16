@@ -30,6 +30,5 @@ function xmldb_block_blog_menu_install() {
     global $DB;
 
     // Disable blog_menu on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'blog_menu']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'blog_menu']);
 }
-

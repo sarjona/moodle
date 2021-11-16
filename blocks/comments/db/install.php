@@ -30,6 +30,5 @@ function xmldb_block_comments_install() {
     global $DB;
 
     // Disable comments on new installs by default.
-    $DB->set_field('block', 'visible', 0, ['name' => 'comments']);
+    return $DB->set_field('block', 'visible', 0, ['name' => 'comments']);
 }
-
