@@ -38,11 +38,13 @@ class admin_preset_admin_setting_configselect extends admin_preset_setting {
             $this->settingdata->load_choices();
         }
 
-        foreach ($this->settingdata->choices as $key => $choice) {
+        if (!is_null($this->settingdata->choices)) {
+            foreach ($this->settingdata->choices as $key => $choice) {
 
-            if ($key == $value) {
-                $this->value = $value;
-                return true;
+                if ($key == $value) {
+                    $this->value = $value;
+                    return true;
+                }
             }
         }
 

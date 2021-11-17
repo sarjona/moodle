@@ -143,4 +143,98 @@ class manager_test extends \advanced_testcase {
         $this->assertInstanceOf('\tool_admin_presets\local\setting\admin_preset_setting', $result);
         $this->assertEquals('tool_admin_presets\local\setting\admin_preset_setting', get_class($result));
     }
+
+    /**
+     * Test the behaviour of apply_preset() method when the given presetid doesn't exist.
+     *
+     * @covers ::apply_preset
+     */
+    public function test_apply_preset_unexisting_preset(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        // Create some presets.
+        $generator = $this->getDataGenerator()->get_plugin_generator('tool_admin_presets');
+        $presetid = $generator->create_preset();
+
+        // Unexisting preset identifier.
+        $unexistingid = $presetid * 2;
+
+        $manager = new manager();
+        $this->expectException(\moodle_exception::class);
+        $manager->apply_preset($unexistingid);
+    }
+
+    /**
+     * Test the behaviour of apply_preset() method.
+     *
+     * @covers ::apply_preset
+     */
+    public function test_apply_preset(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        // Create a preset.
+        $generator = $this->getDataGenerator()->get_plugin_generator('tool_admin_presets');
+        $presetid = $generator->create_preset();
+
+        $currentpresets = $DB->count_records('tool_admin_presets');
+        $currentitems = $DB->count_records('tool_admin_presets_it');
+        $currentadvitems = $DB->count_records('tool_admin_presets_it_a');
+        $currentplugins = $DB->count_records('tool_admin_presets_plug');
+        $currentapppresets = $DB->count_records('tool_admin_presets_app');
+        $currentappitems = $DB->count_records('tool_admin_presets_app_it');
+        $currentappadvitems = $DB->count_records('tool_admin_presets_app_it_a');
+        $currentappplugins = $DB->count_records('tool_admin_presets_app_plug');
+
+        // Set the config values (to confirm they change after applying the preset).
+        set_config('enablebadges', 1);
+        set_config('allowemojipicker', 1);
+        set_config('mediawidth', '640', 'mod_lesson');
+        set_config('maxanswers', '5', 'mod_lesson');
+        set_config('maxanswers_adv', '1', 'mod_lesson');
+        set_config('enablecompletion', 1);
+        set_config('usecomments', 0);
+
+        // Create the load class and execute it.
+        $manager = new manager();
+        $manager->apply_preset($presetid);
+
+        // Check the preset applied has been added to database.
+        $this->assertCount($currentapppresets + 1, $DB->get_records('tool_admin_presets_app'));
+        // Applied items: enablebadges@none, mediawitdh@mod_lesson and maxanswers@@mod_lesson.
+        $this->assertCount($currentappitems + 3, $DB->get_records('tool_admin_presets_app_it'));
+        // Applied advanced items: maxanswers_adv@mod_lesson.
+        $this->assertCount($currentappadvitems + 1, $DB->get_records('tool_admin_presets_app_it_a'));
+        // Applied plugins: enrol_guest and mod_glossary.
+        $this->assertCount($currentappplugins + 2, $DB->get_records('tool_admin_presets_app_plug'));
+        // Check no new preset has been created.
+        $this->assertCount($currentpresets, $DB->get_records('tool_admin_presets'));
+        $this->assertCount($currentitems, $DB->get_records('tool_admin_presets_it'));
+        $this->assertCount($currentadvitems, $DB->get_records('tool_admin_presets_it_a'));
+        $this->assertCount($currentplugins, $DB->get_records('tool_admin_presets_plug'));
+
+        // Check the setting values have changed accordingly with the ones defined in the preset.
+        $this->assertEquals(0, get_config('core', 'enablebadges'));
+        $this->assertEquals(900, get_config('mod_lesson', 'mediawidth'));
+        $this->assertEquals(2, get_config('mod_lesson', 'maxanswers'));
+        $this->assertEquals(0, get_config('mod_lesson', 'maxanswers_adv'));
+
+        // These settings will never change.
+        $this->assertEquals(1, get_config('core', 'allowemojipicker'));
+        $this->assertEquals(1, get_config('core', 'enablecompletion'));
+        $this->assertEquals(0, get_config('core', 'usecomments'));
+
+        // Check the plugins visibility have changed accordingly with the ones defined in the preset.
+        $enabledplugins = \core\plugininfo\enrol::get_enabled_plugins();
+        $this->assertArrayNotHasKey('guest', $enabledplugins);
+        $this->assertArrayHasKey('manual', $enabledplugins);
+        $enabledplugins = \core\plugininfo\mod::get_enabled_plugins();
+        $this->assertArrayNotHasKey('glossary', $enabledplugins);
+        $this->assertArrayHasKey('assign', $enabledplugins);
+        $enabledplugins = \core\plugininfo\qtype::get_enabled_plugins();
+        $this->assertArrayHasKey('truefalse', $enabledplugins);
+    }
 }
