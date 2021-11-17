@@ -139,4 +139,17 @@ class helper {
 
         return $pluginid;
     }
+
+    /**
+     * Apply default preset, if it's defined in $CFG.
+     */
+    public static function change_default_preset(): void {
+        global $CFG, $DB;
+
+        if (!empty($CFG->defaultadminpreset) && $CFG->defaultadminpreset == 'lite') {
+            if ($preset = $DB->get_record('tool_admin_presets', ['name' => get_string('litepreset', 'tool_admin_presets')])) {
+                static::apply_preset($preset->id);
+            }
+        }
+    }
 }
