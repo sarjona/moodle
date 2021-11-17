@@ -525,4 +525,7 @@ function install_cli_database(array $options, $interactive) {
 
     // Redirect to site registration on first login.
     set_config('registrationpending', 1);
+
+    // Apply default preset, if it is defined in $CFG.
+    \tool_admin_presets\helper::change_default_preset();
 }
