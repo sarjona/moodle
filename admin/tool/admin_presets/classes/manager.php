@@ -16,6 +16,7 @@
 
 namespace tool_admin_presets;
 
+use moodle_exception;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -357,4 +358,211 @@ class manager {
 
         return $settings;
     }
+
+    /**
+     * Apply settings from a preset.
+     *
+     * @param int $presetid The preset identifier to apply.
+     * @param bool $simulate Whether this is a simulation or not.
+     * @param int|null $adminpresetapplyid The identifier of the adminpresetapply or null if it hasn't been created previously.
+     * @return array List with the adminpresetapplyid, an array with the applied settings and another with the skipped ones.
+     */
+    public function apply_settings(int $presetid, bool $simulate = false, ?int $adminpresetapplyid = null): array {
+        global $DB, $USER;
+
+        if (!$items = $DB->get_records('tool_admin_presets_it', ['adminpresetid' => $presetid])) {
+            throw new moodle_exception('errornopreset', 'tool_admin_presets');
+        }
+
+        $presetdbsettings = $this->get_settings_from_db($items);
+        // Standarized format: $array['plugin']['settingname'] = child class.
+        $presetsettings = $this->get_settings($presetdbsettings, false, []);
+
+        // Standarized format: $array['plugin']['settingname'] = child class.
+        $siteavailablesettings = $this->get_site_settings();
+
+        $applied = [];
+        $skipped = [];
+
+        // Set settings values.
+        foreach ($presetsettings as $plugin => $pluginsettings) {
+            foreach ($pluginsettings as $settingname => $presetsetting) {
+                unset($updatesetting);
+
+                // Current value (which will become old value if the setting is legit to be applied).
+                $sitesetting = $siteavailablesettings[$plugin][$settingname];
+
+                // Wrong setting, set_value() method has previously cleaned the value.
+                if ($sitesetting->get_value() === false) {
+                    debugging($presetsetting->get_settingdata()->plugin . '/' . $presetsetting->get_settingdata()->name .
+                            ' setting has a wrong value!', DEBUG_DEVELOPER);
+                    continue;
+                }
+
+                // If the new value is different the setting must be updated.
+                if ($presetsetting->get_value() != $sitesetting->get_value()) {
+                    $updatesetting = true;
+                }
+
+                // If one of the setting attributes values is different, setting must also be updated.
+                if ($presetsetting->get_attributes_values()) {
+
+                    $siteattributesvalues = $presetsetting->get_attributes_values();
+                    foreach ($presetsetting->get_attributes_values() as $attributename => $attributevalue) {
+
+                        if ($attributevalue !== $siteattributesvalues[$attributename]) {
+                            $updatesetting = true;
+                        }
+                    }
+                }
+
+                $visiblepluginname = $presetsetting->get_settingdata()->plugin;
+                if ($visiblepluginname == 'none') {
+                    $visiblepluginname = 'core';
+                }
+                $data = [
+                    'plugin' => $visiblepluginname,
+                    'visiblename' => $presetsetting->get_settingdata()->visiblename,
+                    'visiblevalue' => $presetsetting->get_visiblevalue(),
+                ];
+
+                // Saving data.
+                if (!empty($updatesetting)) {
+
+                    // The preset application it's only saved when values differences are found.
+                    if (empty($applieditem)) {
+                        // Save the preset application and store the preset applied id.
+                        $presetapplied = new stdClass();
+                        $presetapplied->adminpresetid = $presetid;
+                        $presetapplied->userid = $USER->id;
+                        $presetapplied->time = time();
+                        if (!$simulate && !$adminpresetapplyid = $DB->insert_record('tool_admin_presets_app', $presetapplied)) {
+                            throw new moodle_exception('errorinserting', 'tool_admin_presets');
+                        }
+                    }
+
+                    // Implemented this way because the config_write method of admin_setting class does not return the
+                    // config_log inserted id.
+                    $applieditem = new stdClass();
+                    $applieditem->adminpresetapplyid = $adminpresetapplyid;
+                    if (!$simulate && $applieditem->configlogid = $presetsetting->save_value()) {
+                        $DB->insert_record('tool_admin_presets_app_it', $applieditem);
+                    }
+
+                    // For settings with multiple values.
+                    if (!$simulate && $attributeslogids = $presetsetting->save_attributes_values()) {
+                        foreach ($attributeslogids as $attributelogid) {
+                            $applieditemattr = new stdClass();
+                            $applieditemattr->adminpresetapplyid = $applieditem->adminpresetapplyid;
+                            $applieditemattr->configlogid = $attributelogid;
+                            $applieditemattr->itemname = $presetsetting->get_settingdata()->name;
+                            $DB->insert_record('tool_admin_presets_app_it_a', $applieditemattr);
+                        }
+                    }
+
+                    // Added to changed values.
+                    $data['oldvisiblevalue'] = $sitesetting->get_visiblevalue();
+                    $applied[] = $data;
+                } else {
+                    // Unnecessary changes (actual setting value).
+                    $skipped[] = $data;
+                }
+            }
+        }
+        return [$adminpresetapplyid, $applied, $skipped];
+    }
+
+    /**
+     * Apply plugins from a preset.
+     *
+     * @param int $presetid The preset identifier to apply.
+     * @param bool $simulate Whether this is a simulation or not.
+     * @param int|null $adminpresetapplyid The identifier of the adminpresetapply or null if it hasn't been created previously.
+     * @return array List with the adminpresetapplyid, an array with the applied settings and another with the skipped ones.
+     */
+    public function apply_plugins(int $presetid, bool $simulate = false, ?int $adminpresetapplyid = null): array {
+        global $DB, $USER;
+
+        $applied = [];
+        $skipped = [];
+
+        $strenabled = get_string('enabled', 'tool_admin_presets');
+        $strdisabled = get_string('disabled', 'tool_admin_presets');
+
+        $plugins = $DB->get_records('tool_admin_presets_plug', ['adminpresetid' => $presetid]);
+        foreach ($plugins as $plugin) {
+            $pluginclass = \core_plugin_manager::resolve_plugininfo_class($plugin->plugin);
+            $oldvalue = $pluginclass::get_enabled_plugin($plugin->name);
+
+            $visiblename = $plugin->plugin . '_' . $plugin->name;
+            if (get_string_manager()->string_exists('pluginname', $plugin->plugin . '_' . $plugin->name)) {
+                $visiblename = get_string('pluginname', $plugin->plugin . '_' . $plugin->name);
+            }
+            if ($plugin->enabled > 0) {
+                $visiblevalue = $strenabled;
+            } else if ($plugin->enabled == 0) {
+                $visiblevalue = $strdisabled;
+            } else {
+                $visiblevalue = get_string('disabledwithvalue', 'tool_admin_presets', $plugin->enabled);
+            }
+
+            $data = [
+                'plugin' => $plugin->plugin,
+                'visiblename' => $visiblename,
+                'visiblevalue' => $visiblevalue,
+            ];
+
+            if ($pluginclass == '\core\plugininfo\orphaned') {
+                $skipped[] = $data;
+                continue;
+            }
+
+            // Only change the plugin visibility if it's different to current value.
+            if (($plugin->enabled != $oldvalue) && (($plugin->enabled > 0 && !$oldvalue) || ($plugin->enabled < 1 && $oldvalue))) {
+                try {
+                    if (!$simulate) {
+                        $pluginclass::enable_plugin($plugin->name, $plugin->enabled);
+
+                        // The preset application it's only saved when values differences are found.
+                        if (empty($adminpresetapplyid)) {
+                            // Save the preset application and store the preset applied id.
+                            $presetapplied = new stdClass();
+                            $presetapplied->adminpresetid = $presetid;
+                            $presetapplied->userid = $USER->id;
+                            $presetapplied->time = time();
+                            if (!$adminpresetapplyid = $DB->insert_record('tool_admin_presets_app', $presetapplied)) {
+                                throw new moodle_exception('errorinserting', 'tool_admin_presets');
+                            }
+                        }
+
+                        // Add plugin to aplied plugins table (for being able to restore in the future if required).
+                        $appliedplug = new stdClass();
+                        $appliedplug->adminpresetapplyid = $adminpresetapplyid;
+                        $appliedplug->plugin = $plugin->plugin;
+                        $appliedplug->name = $plugin->name;
+                        $appliedplug->value = $plugin->enabled;
+                        $appliedplug->oldvalue = $oldvalue;
+                        $DB->insert_record('tool_admin_presets_app_plug', $appliedplug);
+                    }
+
+                    if ($oldvalue > 0) {
+                        $oldvisiblevalue = $strenabled;
+                    } else if ($oldvalue == 0) {
+                        $oldvisiblevalue = $strdisabled;
+                    } else {
+                        $oldvisiblevalue = get_string('disabledwithvalue', 'tool_admin_presets', $oldvalue);
+                    }
+                    $data['oldvisiblevalue'] = $oldvisiblevalue;
+                    $applied[] = $data;
+                } catch (\exception $e) {
+                    $skipped[] = $data;
+                }
+            } else {
+                $skipped[] = $data;
+            }
+        }
+
+        return [$adminpresetapplyid, $applied, $skipped];
+    }
+
 }

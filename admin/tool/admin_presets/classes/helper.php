@@ -58,6 +58,31 @@ class helper {
     }
 
     /**
+     * Apply a preset.
+     *
+     * @param int $presetid The preset identifier to apply.
+     * @param manager|null $manager The manager helper class (if will be created if null is given).
+     * @param bool $simulate Whether this is a simulation or not.
+     * @return array List with the admin preset applied id, an array with the applied settings and another with the skipped ones.
+     */
+    public static function apply_preset(int $presetid, ?manager $manager = null, bool $simulate = false): array {
+        if (is_null($manager)) {
+            $manager = new manager();
+        }
+
+        // Apply preset settings.
+        [$appid, $settingsapplied, $settingsskipped] = $manager->apply_settings($presetid, $simulate);
+
+        // Set plugins visibility.
+        [$appid, $pluginsapplied, $pluginsskipped] = $manager->apply_plugins($presetid, $simulate, $appid);
+
+        $applied = array_merge($settingsapplied, $pluginsapplied);
+        $skipped = array_merge($settingsskipped, $pluginsskipped);
+
+        return [$appid, $applied, $skipped];
+    }
+
+    /**
      * Helper method to add a setting item to a preset.
      *
      * @param int $presetid Preset identifier where the item will belong.
