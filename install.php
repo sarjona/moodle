@@ -136,6 +136,7 @@ if (!empty($_POST)) {
 
     $config->dataroot = trim($_POST['dataroot']);
 
+    $config->defaultadminpreset   = trim($_POST['defaultadminpreset']);
 } else {
     $config->stage    = INSTALL_WELCOME;
 
@@ -151,6 +152,8 @@ if (!empty($_POST)) {
     $config->admin    = 'admin';
 
     $config->dataroot = empty($distro->dataroot) ? null  : $distro->dataroot; // initialised later after including libs or by distro
+
+    $config->defaultadminpreset = empty($distro->defaultadminpreset) ? '' : $distro->defaultadminpreset;
 }
 
 // Fake some settings so that we can use selected functions from moodlelib.php, weblib.php and filelib.php.
@@ -179,6 +182,7 @@ $CFG->ostype               = (stristr(PHP_OS, 'win') && !stristr(PHP_OS, 'darwin
 $CFG->debug                = (E_ALL | E_STRICT);
 $CFG->debugdisplay         = true;
 $CFG->debugdeveloper       = true;
+$CFG->defaultadminpreset   = $config->defaultadminpreset;
 
 // Require all needed libs
 require_once($CFG->libdir.'/setuplib.php');
@@ -316,7 +320,33 @@ if ($config->stage == INSTALL_SAVE) {
     }
 }
 
+if ($config->stage == INSTALL_SELECTPRESET) {
+    $CFG->early_install_lang = false;
 
+    // TODO: Add strings and improve them.
+    // TODO: Improve styling.
+    $sub = 'Here goes some explanation about what presets are and how they will affect the installation';
+
+    install_print_header($config, 'Mode', 'Default preset', $sub);
+
+    echo '<div class="mb-4">';
+
+    echo '<div>';
+
+    echo '<input type="radio" id="advanced" name="defaultadminpreset" value="" checked>';
+    echo '<label for="advanced">Advanced</label>';
+    echo '</div>';
+
+    echo '<div>';
+    echo '<input type="radio" id="starter" name="defaultadminpreset" value="starter">';
+    echo '<label for="starter">Starter</label>';
+    echo '</div>';
+
+
+    echo '</div>';
+    install_print_footer($config);
+    die;
+}
 
 if ($config->stage == INSTALL_DOWNLOADLANG) {
     if (empty($CFG->dataroot)) {
@@ -652,4 +682,3 @@ echo '</div>';
 
 install_print_footer($config);
 die;
-

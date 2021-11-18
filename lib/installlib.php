@@ -38,8 +38,10 @@ define('INSTALL_DOWNLOADLANG',  3);
 define('INSTALL_DATABASETYPE',  4);
 /** INSTALL_DATABASE = 5 */
 define('INSTALL_DATABASE',      5);
-/** INSTALL_SAVE = 6 */
-define('INSTALL_SAVE',          6);
+/** INSTALL_SELECTPRESET = 6 */
+define('INSTALL_SELECTPRESET',  6);
+/** INSTALL_SAVE = 7 */
+define('INSTALL_SAVE',          7);
 
 /**
  * Tries to detect the right www root setting.
@@ -261,6 +263,10 @@ function install_generate_configphp($database, $cfg) {
 
     if (isset($cfg->upgradekey) and $cfg->upgradekey !== '') {
         $configphp .= '$CFG->upgradekey = ' . var_export($cfg->upgradekey, true) . ';' . PHP_EOL . PHP_EOL;
+    }
+
+    if (isset($cfg->defaultadminpreset) and $cfg->defaultadminpreset !== '') {
+        $configphp .= '$CFG->defaultadminpreset = ' . var_export($cfg->defaultadminpreset, true) . ';' . PHP_EOL . PHP_EOL;
     }
 
     $configphp .= 'require_once(__DIR__ . \'/lib/setup.php\');' . PHP_EOL . PHP_EOL;
