@@ -5,6 +5,7 @@
     "features": [
         "lib/tests/behat/action_menu.feature",
         "admin/tests/behat/site_administration.feature",
+        "blocks/glossary_random/tests/behat/glossary_random_addblock.feature",
         "blocks/tests/behat/add_blocks_overridden.feature",
         "blocks/tests/behat/hide_blocks.feature",
         "blocks/tests/behat/move_blocks.feature",
