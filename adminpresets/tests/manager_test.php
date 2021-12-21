@@ -133,7 +133,7 @@ class manager_test extends \advanced_testcase {
         $settingpage = $adminroot->locate('modsettingquiz');
         $settingdata = $settingpage->settings->quizbrowsersecurity;;
         $result = $manager->get_setting($settingdata, '');
-        $this->assertInstanceOf('\mod_quiz\local\setting\admin_preset_mod_quiz_admin_setting_browsersecurity', $result);
+        $this->assertInstanceOf('\mod_quiz\adminpresets\admin_preset_mod_quiz_admin_setting_browsersecurity', $result);
         $this->assertNotEquals('core_adminpresets\local\setting\admin_preset_setting', get_class($result));
 
         // Check the admin_preset_setting class is returned when no specific class exists.
