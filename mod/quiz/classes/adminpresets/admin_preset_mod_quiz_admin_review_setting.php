@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_quiz\local\setting;
+namespace mod_quiz\adminpresets;
 
 use ReflectionMethod;
-use tool_admin_presets\local\setting\admin_preset_setting;
+use core_adminpresets\local\setting\admin_preset_setting;
 
 /**
  * Admin settings class for the quiz review options.

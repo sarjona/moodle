@@ -314,7 +314,7 @@ class manager {
             if (array_key_exists($plugindata[1], $plugins)) {
                 // Check if there is a specific class for this plugin admin setting.
                 $settingname = 'admin_preset_' . $settingtype;
-                $classname = "\\$plugindata[0]_$plugindata[1]\\local\\setting\\$settingname";
+                $classname = "\\$plugindata[0]_$plugindata[1]\\adminpresets\\$settingname";
                 if (!class_exists($classname)) {
                     $classname = null;
                 }
