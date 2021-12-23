@@ -3393,5 +3393,16 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2021121700.01);
     }
 
+    if ($oldversion < 2021121700.02) {
+        // If exists, migrate sensiblesettings admin settings from tool_admin_preset to adminpresets.
+        if (get_config('tool_admin_presets', 'sensiblesettings') !== false) {
+            set_config('sensiblesettings', get_config('tool_admin_presets', 'sensiblesettings'), 'adminpresets');
+            unset_config('sensiblesettings', 'tool_admin_presets');
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2021121700.02);
+    }
+
     return true;
 }
