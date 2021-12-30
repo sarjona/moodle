@@ -42,75 +42,75 @@ class manager {
     /** @var array Setting classes mapping, to associated the local/setting class that should be used when there is
      * no specific class. */
     protected static $settingclassesmap = [
-            'admin_preset_admin_setting_agedigitalconsentmap' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configcolourpicker' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configdirectory' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configduration_with_advanced' => 'admin_preset_admin_setting_configtext_with_advanced',
-            'admin_preset_admin_setting_configduration' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configempty' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configexecutable' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configfile' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_confightmleditor' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configmixedhostiplist' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configmultiselect_modules' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_setting_configpasswordunmask' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configportlist' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configselect_with_lock' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_setting_configtext_trim_lower' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configtext_with_maxlength' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configtextarea' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_configthemepreset' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_setting_countrycodes' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_courselist_frontpage' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_setting_description' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_enablemobileservice' => 'admin_preset_admin_setting_configcheckbox',
-            'admin_preset_admin_setting_filetypes' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_forcetimezone' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_setting_grade_profilereport' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_setting_langlist' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_my_grades_report' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_setting_pickroles' => 'admin_preset_admin_setting_configmulticheckbox',
-            'admin_preset_admin_setting_question_behaviour' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_setting_regradingcheckbox' => 'admin_preset_admin_setting_configcheckbox',
-            'admin_preset_admin_setting_scsscode' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_servertimezone' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_setting_sitesetcheckbox' => 'admin_preset_admin_setting_configcheckbox',
-            'admin_preset_admin_setting_sitesetselect' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_setting_special_adminseesall' => 'admin_preset_admin_setting_configcheckbox',
-            'admin_preset_admin_setting_special_backup_auto_destination' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_special_coursecontact' => 'admin_preset_admin_setting_configmulticheckbox',
-            'admin_preset_admin_setting_special_coursemanager' => 'admin_preset_admin_setting_configmulticheckbox',
-            'admin_preset_admin_setting_special_debug' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_setting_special_frontpagedesc' => 'admin_preset_admin_setting_sitesettext',
-            'admin_preset_admin_setting_special_gradebookroles' => 'admin_preset_admin_setting_configmulticheckbox',
-            'admin_preset_admin_setting_special_gradeexport' => 'admin_preset_admin_setting_configmulticheckbox',
-            'admin_preset_admin_setting_special_gradelimiting' => 'admin_preset_admin_setting_configcheckbox',
-            'admin_preset_admin_setting_special_grademinmaxtouse' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_setting_special_gradepointdefault' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_special_gradepointmax' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_admin_setting_special_registerauth' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_setting_special_selectsetup' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_settings_country_select' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_settings_coursecat_select' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_settings_h5plib_handler_select' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_admin_settings_num_course_sections' => 'admin_preset_admin_setting_configmultiselect_with_loader',
-            'admin_preset_admin_settings_sitepolicy_handler_select' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_antivirus_clamav_pathtounixsocket_setting' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_antivirus_clamav_runningmethod_setting' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_antivirus_clamav_tcpsockethost_setting' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_auth_db_admin_setting_special_auth_configtext' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_auth_ldap_admin_setting_special_lowercase_configtext' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_auth_ldap_admin_setting_special_ntlm_configtext' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_auth_shibboleth_admin_setting_convert_data' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_auth_shibboleth_admin_setting_special_idp_configtextarea' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_auth_shibboleth_admin_setting_special_wayf_select' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_editor_atto_toolbar_setting' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_editor_tinymce_json_setting_textarea' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_enrol_database_admin_setting_category' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_enrol_flatfile_role_setting' => 'admin_preset_admin_setting_configtext',
-            'admin_preset_enrol_ldap_admin_setting_category' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_format_singleactivity_admin_setting_activitytype' => 'admin_preset_admin_setting_configselect',
-            'admin_preset_qtype_multichoice_admin_setting_answernumbering' => 'admin_preset_admin_setting_configselect',
+            'adminpresets_admin_setting_agedigitalconsentmap' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configcolourpicker' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configdirectory' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configduration_with_advanced' => 'adminpresets_admin_setting_configtext_with_advanced',
+            'adminpresets_admin_setting_configduration' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configempty' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configexecutable' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configfile' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_confightmleditor' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configmixedhostiplist' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configmultiselect_modules' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_setting_configpasswordunmask' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configportlist' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configselect_with_lock' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_setting_configtext_trim_lower' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configtext_with_maxlength' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configtextarea' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_configthemepreset' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_setting_countrycodes' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_courselist_frontpage' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_setting_description' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_enablemobileservice' => 'adminpresets_admin_setting_configcheckbox',
+            'adminpresets_admin_setting_filetypes' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_forcetimezone' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_setting_grade_profilereport' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_setting_langlist' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_my_grades_report' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_setting_pickroles' => 'adminpresets_admin_setting_configmulticheckbox',
+            'adminpresets_admin_setting_question_behaviour' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_setting_regradingcheckbox' => 'adminpresets_admin_setting_configcheckbox',
+            'adminpresets_admin_setting_scsscode' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_servertimezone' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_setting_sitesetcheckbox' => 'adminpresets_admin_setting_configcheckbox',
+            'adminpresets_admin_setting_sitesetselect' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_setting_special_adminseesall' => 'adminpresets_admin_setting_configcheckbox',
+            'adminpresets_admin_setting_special_backup_auto_destination' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_special_coursecontact' => 'adminpresets_admin_setting_configmulticheckbox',
+            'adminpresets_admin_setting_special_coursemanager' => 'adminpresets_admin_setting_configmulticheckbox',
+            'adminpresets_admin_setting_special_debug' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_setting_special_frontpagedesc' => 'adminpresets_admin_setting_sitesettext',
+            'adminpresets_admin_setting_special_gradebookroles' => 'adminpresets_admin_setting_configmulticheckbox',
+            'adminpresets_admin_setting_special_gradeexport' => 'adminpresets_admin_setting_configmulticheckbox',
+            'adminpresets_admin_setting_special_gradelimiting' => 'adminpresets_admin_setting_configcheckbox',
+            'adminpresets_admin_setting_special_grademinmaxtouse' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_setting_special_gradepointdefault' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_special_gradepointmax' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_admin_setting_special_registerauth' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_setting_special_selectsetup' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_settings_country_select' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_settings_coursecat_select' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_settings_h5plib_handler_select' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_admin_settings_num_course_sections' => 'adminpresets_admin_setting_configmultiselect_with_loader',
+            'adminpresets_admin_settings_sitepolicy_handler_select' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_antivirus_clamav_pathtounixsocket_setting' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_antivirus_clamav_runningmethod_setting' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_antivirus_clamav_tcpsockethost_setting' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_auth_db_admin_setting_special_auth_configtext' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_auth_ldap_admin_setting_special_lowercase_configtext' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_auth_ldap_admin_setting_special_ntlm_configtext' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_auth_shibboleth_admin_setting_convert_data' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_auth_shibboleth_admin_setting_special_idp_configtextarea' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_auth_shibboleth_admin_setting_special_wayf_select' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_editor_atto_toolbar_setting' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_editor_tinymce_json_setting_textarea' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_enrol_database_admin_setting_category' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_enrol_flatfile_role_setting' => 'adminpresets_admin_setting_configtext',
+            'adminpresets_enrol_ldap_admin_setting_category' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_format_singleactivity_admin_setting_activitytype' => 'adminpresets_admin_setting_configselect',
+            'adminpresets_qtype_multichoice_admin_setting_answernumbering' => 'adminpresets_admin_setting_configselect',
     ];
 
     /** @var array Relation between database fields and XML files. **/
@@ -313,14 +313,14 @@ class manager {
             $plugins = \core_component::get_plugin_list($plugindata[0]);
             if (array_key_exists($plugindata[1], $plugins)) {
                 // Check if there is a specific class for this plugin admin setting.
-                $settingname = 'admin_preset_' . $settingtype;
+                $settingname = 'adminpresets_' . $settingtype;
                 $classname = "\\$plugindata[0]_$plugindata[1]\\adminpresets\\$settingname";
                 if (!class_exists($classname)) {
                     $classname = null;
                 }
             }
         } else {
-            $settingname = 'admin_preset_' . $settingtype;
+            $settingname = 'adminpresets_' . $settingtype;
             $classname = '\\core_adminpresets\\local\\setting\\' . $settingname;
             if (!class_exists($classname)) {
                 // Check if there is some mapped class that should be used for this setting.
@@ -330,7 +330,7 @@ class manager {
 
         if (is_null($classname)) {
             // Return the default setting class if there is no specific class for this setting.
-            $classname = '\\core_adminpresets\\local\\setting\\admin_preset_setting';
+            $classname = '\\core_adminpresets\\local\\setting\\adminpresets_setting';
         }
 
         return new $classname($settingdata, $currentvalue);
@@ -851,7 +851,7 @@ class manager {
                         // Output table.
                         $rollback[] = $contextdata;
 
-                        // Deleting the admin_preset_apply_item instance.
+                        // Deleting the adminpreset applied item instance.
                         $deletewhere = [
                             'adminpresetapplyid' => $change->adminpresetapplyid,
                             'configlogid' => $change->id,
@@ -905,7 +905,7 @@ class manager {
                             'visiblevalue' => $oldsetting->get_visiblevalue()
                         ];
 
-                        // Deleting the admin_preset_apply_item_attr instance.
+                        // Deleting the adminpreset applied item attribute instance.
                         $deletewhere = [
                             'adminpresetapplyid' => $change->adminpresetapplyid,
                             'configlogid' => $change->id,

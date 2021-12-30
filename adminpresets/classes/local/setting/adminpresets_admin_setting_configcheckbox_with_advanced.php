@@ -16,42 +16,30 @@
 
 namespace core_adminpresets\local\setting;
 
+use admin_setting;
+
 /**
- * Select setting for blog's bloglevel setting.
+ * Checkbox with an advanced checkbox that controls an additional $name.'_adv' config setting.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_bloglevel extends admin_preset_admin_setting_configselect {
+class adminpresets_admin_setting_configcheckbox_with_advanced extends adminpresets_admin_setting_configcheckbox {
+
+    public function __construct(admin_setting $settingdata, $dbsettingvalue) {
+        // To look for other values.
+        $this->attributes = ['adv' => $settingdata->name . '_adv'];
+        parent::__construct($settingdata, $dbsettingvalue);
+    }
 
     /**
-     * Extended to change the block visibility.
-     *
-     * @param bool $name Setting name to store.
-     * @param mixed $value Setting value to store.
-     * @return int|false config_log inserted id or false whenever the value has not been saved.
+     * Uses delegation
      */
-    public function save_value($name = false, $value = null) {
-        global $DB;
-
-        if (!$id = parent::save_value($name, $value)) {
-            return false;
-        }
-
-        // Object values if no arguments.
-        if ($value === null) {
-            $value = $this->value;
-        }
-
-        // Pasted from admin_setting_bloglevel (can't use write_config).
-        if ($value == 0) {
-            $DB->set_field('block', 'visible', 0, ['name' => 'blog_menu']);
-        } else {
-            $DB->set_field('block', 'visible', 1, ['name' => 'blog_menu']);
-        }
-
-        return $id;
+    protected function set_visiblevalue() {
+        parent::set_visiblevalue();
+        $value = $this->attributesvalues[$this->attributes['adv']];
+        $this->visiblevalue .= $this->delegation->extra_set_visiblevalue($value, 'advanced');
     }
 }

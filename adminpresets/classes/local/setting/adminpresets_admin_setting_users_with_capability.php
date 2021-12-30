@@ -17,27 +17,23 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Checkbox setting.
+ * Extends configselect to reuse set_valuevisible.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_configcheckbox extends admin_preset_setting {
+class adminpresets_admin_setting_users_with_capability extends adminpresets_admin_setting_configmultiselect {
 
-    protected function set_value($value) {
-        $this->value = clean_param($value, PARAM_BOOL);
-        return true;
+    protected function set_behaviors() {
+        $this->behaviors['loadchoices'] = &$this->settingdata;
     }
 
-    protected function set_visiblevalue() {
-        if ($this->value) {
-            $str = get_string('yes');
-        } else {
-            $str = get_string('no');
-        }
+    protected function set_value($value) {
+        // Dirty hack (the value stored in the DB is '').
+        $this->settingdata->choices[''] = $this->settingdata->choices['$@NONE@$'];
 
-        $this->visiblevalue = $str;
+        return parent::set_value($value);
     }
 }

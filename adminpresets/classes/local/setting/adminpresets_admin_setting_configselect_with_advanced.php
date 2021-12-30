@@ -26,7 +26,7 @@ use admin_setting;
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_configselect_with_advanced extends admin_preset_admin_setting_configselect {
+class adminpresets_admin_setting_configselect_with_advanced extends adminpresets_admin_setting_configselect {
 
     /** @var string Name of the advanced setting. **/
     protected $advancedkey;

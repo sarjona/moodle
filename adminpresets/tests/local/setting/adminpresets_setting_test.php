@@ -17,15 +17,15 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Tests for the admin_preset_setting class.
+ * Tests for the adminpresets_setting class.
  *
  * @package    core_adminpresets
  * @category   test
  * @copyright  2021 Sara Arjona (sara@moodle.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_adminpresets\local\setting\admin_preset_setting
+ * @coversDefaultClass \core_adminpresets\local\setting\adminpresets_setting
  */
-class admin_preset_setting_test extends \advanced_testcase {
+class adminpresets_setting_test extends \advanced_testcase {
 
     /**
      * Test the behaviour of save_value() method.

@@ -17,16 +17,36 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Generalizes a configmultipleselect with load_choices().
+ * Special control for selecting days to backup.
+ *
+ * It doesn't specify loadchoices behavior because is set_visiblevalue who needs it.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_configmultiselect_with_loader extends admin_preset_admin_setting_configmultiselect {
+class adminpresets_admin_setting_special_backupdays extends adminpresets_setting {
 
-    public function set_behaviors() {
-        $this->behaviors['loadchoices'] = &$this->settingdata;
+    protected function set_value($value) {
+        $this->value = clean_param($value, PARAM_SEQUENCE);
+    }
+
+    protected function set_visiblevalue() {
+        $this->settingdata->load_choices();
+
+        $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+        $selecteddays = [];
+
+        $week = str_split($this->value);
+        foreach ($week as $key => $day) {
+            if ($day) {
+                $index = $days[$key];
+                $selecteddays[] = $this->settingdata->choices[$index];
+            }
+        }
+
+        $this->visiblevalue = implode(', ', $selecteddays);
     }
 }

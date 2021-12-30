@@ -16,30 +16,42 @@
 
 namespace core_adminpresets\local\setting;
 
-use admin_setting;
-
 /**
- * Adds the advanced attribute.
+ * Select setting for blog's bloglevel setting.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_configtext_with_advanced extends admin_preset_admin_setting_configtext {
-
-    public function __construct(admin_setting $settingdata, $dbsettingvalue) {
-        // To look for other values.
-        $this->attributes = ['fix' => $settingdata->name . '_adv'];
-        parent::__construct($settingdata, $dbsettingvalue);
-    }
+class adminpresets_admin_setting_bloglevel extends adminpresets_admin_setting_configselect {
 
     /**
-     * Delegates
+     * Extended to change the block visibility.
+     *
+     * @param bool $name Setting name to store.
+     * @param mixed $value Setting value to store.
+     * @return int|false config_log inserted id or false whenever the value has not been saved.
      */
-    protected function set_visiblevalue() {
-        parent::set_visiblevalue();
-        $value = $this->attributesvalues[$this->attributes['fix']];
-        $this->visiblevalue .= $this->delegation->extra_set_visiblevalue($value, 'advanced');
+    public function save_value($name = false, $value = null) {
+        global $DB;
+
+        if (!$id = parent::save_value($name, $value)) {
+            return false;
+        }
+
+        // Object values if no arguments.
+        if ($value === null) {
+            $value = $this->value;
+        }
+
+        // Pasted from admin_setting_bloglevel (can't use write_config).
+        if ($value == 0) {
+            $DB->set_field('block', 'visible', 0, ['name' => 'blog_menu']);
+        } else {
+            $DB->set_field('block', 'visible', 1, ['name' => 'blog_menu']);
+        }
+
+        return $id;
     }
 }

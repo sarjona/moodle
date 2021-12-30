@@ -17,48 +17,48 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Time selector.
+ * Select one value from list.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_configtime extends admin_preset_setting {
+class adminpresets_admin_setting_configselect extends adminpresets_setting {
 
     /**
-     * To check that the value is one of the options
+     * Sets the setting value cleaning it.
      *
-     * @param string $name
-     * @param mixed $value
+     * @param mixed $value must be one of the setting choices.
+     * @return bool true if the value one of the setting choices
      */
-    public function set_attribute_value($name, $value) {
-        for ($i = 0; $i < 60; $i = $i + 5) {
-            $minutes[$i] = $i;
-        }
-
-        if (!empty($minutes[$value])) {
-            $this->attributesvalues[$name] = $value;
-        } else {
-            $this->attributesvalues[$name] = $this->settingdata->defaultsetting['m'];
-        }
-    }
-
     protected function set_value($value) {
-        $this->attributes = ['m' => $this->settingdata->name2];
-
-        for ($i = 0; $i < 24; $i++) {
-            $hours[$i] = $i;
+        // When we intantiate the class we need the choices.
+        if (empty($this->settindata->choices) && method_exists($this->settingdata, 'load_choices')) {
+            $this->settingdata->load_choices();
         }
 
-        if (empty($hours[$value])) {
-            $this->value = false;
+        if (!is_null($this->settingdata->choices) and is_array($this->settingdata->choices)) {
+            foreach ($this->settingdata->choices as $key => $choice) {
+
+                if ($key == $value) {
+                    $this->value = $value;
+                    return true;
+                }
+            }
         }
 
-        $this->value = $value;
+        $this->value = false;
+        return false;
     }
 
     protected function set_visiblevalue() {
-        $this->visiblevalue = $this->value . ':' . $this->attributesvalues[$this->settingdata->name2];
+        // Just to avoid heritage problems.
+        if (empty($this->settingdata->choices[$this->value])) {
+            $this->visiblevalue = '';
+        } else {
+            $this->visiblevalue = $this->settingdata->choices[$this->value];
+        }
+
     }
 }

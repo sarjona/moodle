@@ -17,41 +17,28 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Basic text setting, cleans the param using the admin_setting paramtext attribute.
+ * Special admin control for calendar weekend.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_configtext extends admin_preset_setting {
+class adminpresets_admin_setting_special_calendar_weekend extends adminpresets_setting {
 
-    /**
-     * Validates the value using paramtype attribute
-     *
-     * @param mixed $value
-     * @return  boolean Cleaned or not, but always true.
-     */
-    protected function set_value($value) {
-        $this->value = $value;
-
-        if (empty($this->settingdata->paramtype)) {
-
-            // For configfile, configpasswordunmask....
-            $this->settingdata->paramtype = 'RAW';
+    protected function set_visiblevalue() {
+        if (!$this->value) {
+            parent::set_visiblevalue();
+            return;
         }
 
-        $paramtype = 'PARAM_' . strtoupper($this->settingdata->paramtype);
-
-        // Regexp.
-        if (!defined($paramtype)) {
-            $this->value = preg_replace($this->settingdata->paramtype, '', $this->value);
-
-            // Standard moodle param type.
-        } else {
-            $this->value = clean_param($this->value, constant($paramtype));
+        $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        for ($i = 0; $i < 7; $i++) {
+            if ($this->value & (1 << $i)) {
+                $settings[] = get_string($days[$i], 'calendar');
+            }
         }
 
-        return true;
+        $this->visiblevalue = implode(', ', $settings);
     }
 }

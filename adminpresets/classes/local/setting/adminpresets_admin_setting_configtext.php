@@ -17,16 +17,41 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Class to be extended by multicheckbox settings.
+ * Basic text setting, cleans the param using the admin_setting paramtext attribute.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_configmulticheckbox extends admin_preset_admin_setting_configmultiselect {
+class adminpresets_admin_setting_configtext extends adminpresets_setting {
 
-    public function set_behaviors() {
-        $this->behaviors['loadchoices'] = &$this->settingdata;
+    /**
+     * Validates the value using paramtype attribute
+     *
+     * @param mixed $value
+     * @return  boolean Cleaned or not, but always true.
+     */
+    protected function set_value($value) {
+        $this->value = $value;
+
+        if (empty($this->settingdata->paramtype)) {
+
+            // For configfile, configpasswordunmask....
+            $this->settingdata->paramtype = 'RAW';
+        }
+
+        $paramtype = 'PARAM_' . strtoupper($this->settingdata->paramtype);
+
+        // Regexp.
+        if (!defined($paramtype)) {
+            $this->value = preg_replace($this->settingdata->paramtype, '', $this->value);
+
+            // Standard moodle param type.
+        } else {
+            $this->value = clean_param($this->value, constant($paramtype));
+        }
+
+        return true;
     }
 }

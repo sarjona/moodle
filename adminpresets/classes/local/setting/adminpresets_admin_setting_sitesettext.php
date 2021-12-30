@@ -24,7 +24,7 @@ namespace core_adminpresets\local\setting;
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_sitesettext extends admin_preset_admin_setting_configtext {
+class adminpresets_admin_setting_sitesettext extends adminpresets_admin_setting_configtext {
 
     /**
      * Overwritten to store the value in the course table

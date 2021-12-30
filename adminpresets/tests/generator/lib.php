@@ -16,7 +16,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-use core_adminpresets\local\setting\admin_preset_setting;
+use core_adminpresets\local\setting\adminpresets_setting;
 use core_adminpresets\manager;
 use core_adminpresets\helper;
 
@@ -224,20 +224,20 @@ class core_adminpresets_generator extends \component_generator_base {
 
 
     /**
-     * Given a tree category and setting name, it gets the admin_preset_setting class.
+     * Given a tree category and setting name, it gets the adminpresets_setting class.
      *
      * @param string $category Tree category name where the setting is located.
      * @param string $settingname Setting name to get the class.
-     * @return admin_preset_setting
+     * @return adminpresets_setting
      */
-    public function get_admin_preset_setting(string $category, string $settingname): admin_preset_setting {
+    public function get_admin_preset_setting(string $category, string $settingname): adminpresets_setting {
         $adminroot = admin_get_root();
 
         // Set method accessibility.
         $method = new ReflectionMethod(manager::class, 'get_setting');
         $method->setAccessible(true);
 
-        // Get the proper admin_preset_setting instance.
+        // Get the proper adminpresets_setting instance.
         $settingpage = $adminroot->locate($category);
         $settingdata = $settingpage->settings->$settingname;
         return $method->invokeArgs(new manager(), [$settingdata, '']);

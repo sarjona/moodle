@@ -17,15 +17,15 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Tests for the admin_preset_admin_setting_bloglevel class.
+ * Tests for the adminpresets_admin_setting_sitesettext class.
  *
  * @package    core_adminpresets
  * @category   test
  * @copyright  2021 Sara Arjona (sara@moodle.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_adminpresets\local\setting\admin_preset_admin_setting_bloglevel
+ * @coversDefaultClass \core_adminpresets\local\setting\adminpresets_admin_setting_sitesettext
  */
-class admin_preset_admin_setting_bloglevel_test extends \advanced_testcase {
+class adminpresets_admin_setting_sitesettext_test extends \advanced_testcase {
 
     /**
      * Test the behaviour of save_value() method.
@@ -33,10 +33,11 @@ class admin_preset_admin_setting_bloglevel_test extends \advanced_testcase {
      * @covers ::save_value
      * @dataProvider save_value_provider
      *
-     * @param int $settingvalue Setting value to be saved.
+     * @param string $settingname Setting name to save.
+     * @param string $settingvalue Setting value to be saved.
      * @param bool $expectedsaved Whether the setting will be saved or not.
      */
-    public function test_save_value(int $settingvalue, bool $expectedsaved): void {
+    public function test_save_value(string $settingname, string $settingvalue, bool $expectedsaved): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -44,27 +45,20 @@ class admin_preset_admin_setting_bloglevel_test extends \advanced_testcase {
         // Login as admin, to access all the settings.
         $this->setAdminUser();
 
-        // Set the config values (to confirm they change after applying the preset).
-        set_config('bloglevel', BLOG_SITE_LEVEL); // All site users can see all blog entries.
-
         // Get the setting and save the value.
         $generator = $this->getDataGenerator()->get_plugin_generator('core_adminpresets');
-        $setting = $generator->get_admin_preset_setting('blog', 'bloglevel');
+        $setting = $generator->get_admin_preset_setting('frontpagesettings', $settingname);
         $result = $setting->save_value(false, $settingvalue);
 
         // Check the result is the expected (saved when it has a different value and ignored when the value is the same).
         if ($expectedsaved) {
             $this->assertCount(1, $DB->get_records('config_log', ['id' => $result]));
-            // Specific from the save_value in admin_preset_admin_setting_bloglevel.
-            if ($settingvalue != 0) {
-                $this->assertTrue((bool) $DB->get_field('block', 'visible', ['name' => 'blog_menu']));
-            } else {
-                $this->assertFalse((bool) $DB->get_field('block', 'visible', ['name' => 'blog_menu']));
-            }
+            // Specific from the save_value in adminpresets_admin_setting_sitesettext.
+            $sitecourse = $DB->get_record('course', ['id' => 1]);
+            $this->assertEquals($settingvalue, $sitecourse->{$settingname});
         } else {
             $this->assertFalse($result);
         }
-        $this->assertEquals($settingvalue, get_config('core', 'bloglevel'));
     }
 
     /**
@@ -74,17 +68,25 @@ class admin_preset_admin_setting_bloglevel_test extends \advanced_testcase {
      */
     public function save_value_provider(): array {
         return [
-            'Save the bloglevel and set blog_menu block visibility to true' => [
-                'setttingvalue' => BLOG_USER_LEVEL,
+            'Fullname: different value' => [
+                'settingname' => 'fullname',
+                'setttingvalue' => 'New site fullname',
                 'expectedsaved' => true,
             ],
-            'Same value to bloglevel, so it will not be saved' => [
-                'setttingvalue' => BLOG_SITE_LEVEL,
+            'Fullname: same value' => [
+                'settingname' => 'fullname',
+                'setttingvalue' => 'PHPUnit test site',
                 'expectedsaved' => false,
             ],
-            'Save the bloglevel and set blog_menu block visibility to false' => [
-                'setttingvalue' => 0,
+            'Summary: different value' => [
+                'settingname' => 'summary',
+                'setttingvalue' => 'This is a new site summary.',
                 'expectedsaved' => true,
+            ],
+            'Summary: same value' => [
+                'settingname' => 'summary',
+                'setttingvalue' => '',
+                'expectedsaved' => false,
             ],
         ];
     }

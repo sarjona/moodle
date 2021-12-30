@@ -16,28 +16,30 @@
 
 namespace core_adminpresets\local\setting;
 
+use admin_setting;
+
 /**
- * Reimplementation to allow human friendly view of the selected regexps.
+ * Checkbox with an advanced checkbox that controls an additional $name.'_locked' config setting.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_devicedetectregex extends admin_preset_admin_setting_configtext {
+class adminpresets_admin_setting_configcheckbox_with_lock extends adminpresets_admin_setting_configcheckbox {
 
-    public function set_visiblevalue() {
-        $values = json_decode($this->get_value());
+    public function __construct(admin_setting $settingdata, $dbsettingvalue) {
+        // To look for other values.
+        $this->attributes = ['locked' => $settingdata->name . '_locked'];
+        parent::__construct($settingdata, $dbsettingvalue);
+    }
 
-        if (!$values) {
-            parent::set_visiblevalue();
-            return;
-        }
-
-        $this->visiblevalue = '';
-        foreach ($values as $key => $value) {
-            $this->visiblevalue .= $key . ' = ' . $value . ', ';
-        }
-        $this->visiblevalue = rtrim($this->visiblevalue, ', ');
+    /**
+     * Uses delegation
+     */
+    protected function set_visiblevalue() {
+        parent::set_visiblevalue();
+        $value = $this->attributesvalues[$this->attributes['locked']];
+        $this->visiblevalue .= $this->delegation->extra_set_visiblevalue($value, 'locked');
     }
 }

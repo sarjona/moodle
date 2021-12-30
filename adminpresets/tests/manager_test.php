@@ -47,21 +47,21 @@ class manager_test extends \advanced_testcase {
 
         // Check fullname is set into the none category.
         $this->assertInstanceOf(
-                '\core_adminpresets\local\setting\admin_preset_admin_setting_sitesettext',
+                '\core_adminpresets\local\setting\adminpresets_admin_setting_sitesettext',
                 $result['none']['fullname']
         );
         $this->assertEquals('PHPUnit test site', $result['none']['fullname']->get_value());
 
         // Check some of the config setting is present (they should be stored in the "none" category).
         $this->assertInstanceOf(
-                '\core_adminpresets\local\setting\admin_preset_admin_setting_configcheckbox',
+                '\core_adminpresets\local\setting\adminpresets_admin_setting_configcheckbox',
                 $result['none']['enablecompletion']
         );
         $this->assertEquals(1, $result['none']['enablecompletion']->get_value());
 
         // Check some of the plugin config settings is present.
         $this->assertInstanceOf(
-                '\core_adminpresets\local\setting\admin_preset_admin_setting_configtext',
+                '\core_adminpresets\local\setting\adminpresets_admin_setting_configtext',
                 $result['folder']['maxsizetodownload']
         );
         $this->assertEquals(0, $result['folder']['maxsizetodownload']->get_value());
@@ -79,19 +79,19 @@ class manager_test extends \advanced_testcase {
         $result = $manager->get_site_settings();
         // Site fullname.
         $this->assertInstanceOf(
-                '\core_adminpresets\local\setting\admin_preset_admin_setting_sitesettext',
+                '\core_adminpresets\local\setting\adminpresets_admin_setting_sitesettext',
                 $result['none']['fullname']
         );
         $this->assertEquals($sitecourse->fullname, $result['none']['fullname']->get_value());
         // Config setting.
         $this->assertInstanceOf(
-                '\core_adminpresets\local\setting\admin_preset_admin_setting_configcheckbox',
+                '\core_adminpresets\local\setting\adminpresets_admin_setting_configcheckbox',
                 $result['none']['enablecompletion']
         );
         $this->assertEquals(0, $result['none']['enablecompletion']->get_value());
         // Plugin config settting.
         $this->assertInstanceOf(
-                '\core_adminpresets\local\setting\admin_preset_admin_setting_configtext',
+                '\core_adminpresets\local\setting\adminpresets_admin_setting_configtext',
                 $result['folder']['maxsizetodownload']
         );
         $this->assertEquals(101, $result['folder']['maxsizetodownload']->get_value());
@@ -111,21 +111,21 @@ class manager_test extends \advanced_testcase {
 
         $adminroot = admin_get_root();
 
-        // Check the admin_preset_xxxxx class is created properly when it exists.
+        // Check the adminpresets_xxxxx class is created properly when it exists.
         $settingpage = $adminroot->locate('optionalsubsystems');
         $settingdata = $settingpage->settings->enablebadges;
         $manager = new manager();
         $result = $manager->get_setting($settingdata, '');
-        $this->assertInstanceOf('\core_adminpresets\local\setting\admin_preset_admin_setting_configcheckbox', $result);
-        $this->assertNotEquals('core_adminpresets\local\setting\admin_preset_setting', get_class($result));
+        $this->assertInstanceOf('\core_adminpresets\local\setting\adminpresets_admin_setting_configcheckbox', $result);
+        $this->assertNotEquals('core_adminpresets\local\setting\adminpresets_setting', get_class($result));
 
         // Check the mapped class is returned when no specific class exists and it exists in the mappings array.
         $settingpage = $adminroot->locate('h5psettings');
         $settingdata = $settingpage->settings->h5plibraryhandler;;
         $result = $manager->get_setting($settingdata, '');
-        $this->assertInstanceOf('\core_adminpresets\local\setting\admin_preset_admin_setting_configselect', $result);
+        $this->assertInstanceOf('\core_adminpresets\local\setting\adminpresets_admin_setting_configselect', $result);
         $this->assertNotEquals(
-                'core_adminpresets\local\setting\admin_preset_admin_settings_h5plib_handler_select',
+                'core_adminpresets\local\setting\adminpresets_admin_settings_h5plib_handler_select',
                 get_class($result)
         );
 
@@ -133,15 +133,15 @@ class manager_test extends \advanced_testcase {
         $settingpage = $adminroot->locate('modsettingquiz');
         $settingdata = $settingpage->settings->quizbrowsersecurity;;
         $result = $manager->get_setting($settingdata, '');
-        $this->assertInstanceOf('\mod_quiz\adminpresets\admin_preset_mod_quiz_admin_setting_browsersecurity', $result);
-        $this->assertNotEquals('core_adminpresets\local\setting\admin_preset_setting', get_class($result));
+        $this->assertInstanceOf('\mod_quiz\adminpresets\adminpresets_mod_quiz_admin_setting_browsersecurity', $result);
+        $this->assertNotEquals('core_adminpresets\local\setting\adminpresets_setting', get_class($result));
 
-        // Check the admin_preset_setting class is returned when no specific class exists.
+        // Check the adminpresets_setting class is returned when no specific class exists.
         $settingpage = $adminroot->locate('managecustomfields');
         $settingdata = $settingpage->settings->customfieldsui;;
         $result = $manager->get_setting($settingdata, '');
-        $this->assertInstanceOf('\core_adminpresets\local\setting\admin_preset_setting', $result);
-        $this->assertEquals('core_adminpresets\local\setting\admin_preset_setting', get_class($result));
+        $this->assertInstanceOf('\core_adminpresets\local\setting\adminpresets_setting', $result);
+        $this->assertEquals('core_adminpresets\local\setting\adminpresets_setting', get_class($result));
     }
 
     /**

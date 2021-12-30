@@ -17,28 +17,16 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Special admin control for calendar weekend.
+ * Class to be extended by multicheckbox settings.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_special_calendar_weekend extends admin_preset_setting {
+class adminpresets_admin_setting_configmulticheckbox extends adminpresets_admin_setting_configmultiselect {
 
-    protected function set_visiblevalue() {
-        if (!$this->value) {
-            parent::set_visiblevalue();
-            return;
-        }
-
-        $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        for ($i = 0; $i < 7; $i++) {
-            if ($this->value & (1 << $i)) {
-                $settings[] = get_string($days[$i], 'calendar');
-            }
-        }
-
-        $this->visiblevalue = implode(', ', $settings);
+    public function set_behaviors() {
+        $this->behaviors['loadchoices'] = &$this->settingdata;
     }
 }

@@ -17,36 +17,48 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Special control for selecting days to backup.
- *
- * It doesn't specify loadchoices behavior because is set_visiblevalue who needs it.
+ * Time selector.
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_special_backupdays extends admin_preset_setting {
+class adminpresets_admin_setting_configtime extends adminpresets_setting {
+
+    /**
+     * To check that the value is one of the options
+     *
+     * @param string $name
+     * @param mixed $value
+     */
+    public function set_attribute_value($name, $value) {
+        for ($i = 0; $i < 60; $i = $i + 5) {
+            $minutes[$i] = $i;
+        }
+
+        if (!empty($minutes[$value])) {
+            $this->attributesvalues[$name] = $value;
+        } else {
+            $this->attributesvalues[$name] = $this->settingdata->defaultsetting['m'];
+        }
+    }
 
     protected function set_value($value) {
-        $this->value = clean_param($value, PARAM_SEQUENCE);
+        $this->attributes = ['m' => $this->settingdata->name2];
+
+        for ($i = 0; $i < 24; $i++) {
+            $hours[$i] = $i;
+        }
+
+        if (empty($hours[$value])) {
+            $this->value = false;
+        }
+
+        $this->value = $value;
     }
 
     protected function set_visiblevalue() {
-        $this->settingdata->load_choices();
-
-        $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
-        $selecteddays = [];
-
-        $week = str_split($this->value);
-        foreach ($week as $key => $day) {
-            if ($day) {
-                $index = $days[$key];
-                $selecteddays[] = $this->settingdata->choices[$index];
-            }
-        }
-
-        $this->visiblevalue = implode(', ', $selecteddays);
+        $this->visiblevalue = $this->value . ':' . $this->attributesvalues[$this->settingdata->name2];
     }
 }

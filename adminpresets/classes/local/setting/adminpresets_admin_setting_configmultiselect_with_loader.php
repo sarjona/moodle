@@ -17,23 +17,16 @@
 namespace core_adminpresets\local\setting;
 
 /**
- * Extends configselect to reuse set_valuevisible.
+ * Generalizes a configmultipleselect with load_choices().
  *
  * @package          core_adminpresets
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_admin_setting_users_with_capability extends admin_preset_admin_setting_configmultiselect {
+class adminpresets_admin_setting_configmultiselect_with_loader extends adminpresets_admin_setting_configmultiselect {
 
-    protected function set_behaviors() {
+    public function set_behaviors() {
         $this->behaviors['loadchoices'] = &$this->settingdata;
-    }
-
-    protected function set_value($value) {
-        // Dirty hack (the value stored in the DB is '').
-        $this->settingdata->choices[''] = $this->settingdata->choices['$@NONE@$'];
-
-        return parent::set_value($value);
     }
 }
