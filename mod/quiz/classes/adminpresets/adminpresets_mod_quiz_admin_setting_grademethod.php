@@ -16,17 +16,17 @@
 
 namespace mod_quiz\adminpresets;
 
-use core_adminpresets\local\setting\admin_preset_admin_setting_configselect_with_advanced;
+use core_adminpresets\local\setting\adminpresets_admin_setting_configselect_with_advanced;
 
 /**
- * Admin settings class for the quiz browser security option.
+ * Admin settings class for the quiz grading method.
  *
  * @package          mod_quiz
  * @copyright        2021 Pimenko <support@pimenko.com><pimenko.com>
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_mod_quiz_admin_setting_browsersecurity extends admin_preset_admin_setting_configselect_with_advanced {
+class adminpresets_mod_quiz_admin_setting_grademethod extends adminpresets_admin_setting_configselect_with_advanced {
 
     public function set_behaviors() {
         $this->behaviors['loadchoices'] = &$this->settingdata;

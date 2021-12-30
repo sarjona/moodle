@@ -17,7 +17,7 @@
 namespace mod_quiz\adminpresets;
 
 use ReflectionMethod;
-use core_adminpresets\local\setting\admin_preset_setting;
+use core_adminpresets\local\setting\adminpresets_setting;
 
 /**
  * Admin settings class for the quiz review options.
@@ -27,7 +27,7 @@ use core_adminpresets\local\setting\admin_preset_setting;
  * @author           Jordan Kesraoui | Sylvain Revenu | Pimenko based on David Monllaó <david.monllao@urv.cat> code
  * @license          http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_preset_mod_quiz_admin_review_setting extends admin_preset_setting {
+class adminpresets_mod_quiz_admin_review_setting extends adminpresets_setting {
 
     /**
      * Overwrite to add the reviewoptions text
