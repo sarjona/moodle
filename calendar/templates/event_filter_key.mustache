@@ -29,10 +29,11 @@
     {
     }
 }}
-<a href="#" data-action="filter-event-type" data-eventtype="{{eventtype}}" data-eventtype-hidden="{{hidden}}">
+<a href="#" data-action="filter-event-type" data-eventtype="{{eventtype}}" data-eventtype-hidden="{{hidden}}"
+        aria-label="{{#str}}hideeventtype, calendar, {{name}}{{/str}}"">
     {{^hidden}}
         <span class="calendar_event_{{eventtype}}">
-            {{#pix}}i/hide, core, {{#str}}hideeventtype, calendar, {{name}}{{/str}}{{/pix}}
+            {{#pix}}i/hide, core, {{/pix}}
         </span>
         <span>&nbsp;</span>
         <span class="eventname">{{#str}}hideeventtype, calendar, {{name}}{{/str}}</span>

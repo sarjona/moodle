@@ -37,8 +37,9 @@
 }}
 <div class="popover-region collapsed" data-region="popover-region-messages">
     <a id="message-drawer-toggle-{{uniqid}}" class="nav-link popover-region-toggle position-relative icon-no-margin" href="#"
-            role="button">
-        {{#pix}} t/message, core, {{#str}} togglemessagemenu, message {{/str}} {{/pix}}
+            role="button" title="{{#str}} togglemessagemenu, message {{/str}}"
+            aria-label="{{#str}} togglemessagemenu, message {{/str}}">
+        {{#pix}} t/message, core {{/pix}}
         <div class="count-container {{^unreadcount}}hidden{{/unreadcount}}" data-region="count-container"
         aria-label="{{#str}} unreadconversations, core_message, {{unreadcount}} {{/str}}">{{unreadcount}}</div>
     </a>

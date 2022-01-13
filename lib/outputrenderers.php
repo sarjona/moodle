@@ -4159,12 +4159,13 @@ EOD;
         }
 
         $liferingicon = $this->pix_icon('t/life-ring', '', 'moodle', ['class' => 'fa fa-life-ring']);
-        $newwindowicon = $this->pix_icon('i/externallink', get_string('opensinnewwindow'), 'moodle',
+        $newwindowicon = $this->pix_icon('i/externallink', '', 'moodle',
             ['class' => 'fa fa-externallink fa-fw']);
         $link = 'https://moodle.com/help/?utm_source=CTA-banner&utm_medium=platform&utm_campaign=name~Moodle4+cat~lms+mp~no';
         $content = $liferingicon . get_string('moodleservicesandsupport') . $newwindowicon;
 
-        return html_writer::tag('a', $content, ['target' => '_blank', 'href' => $link]);
+        return html_writer::tag('a', $content, ['target' => '_blank', 'href' => $link, 'title' => get_string('opensinnewwindow'),
+            'aria-label' => get_string('opensinnewwindow')]);
     }
 
     /**
