@@ -193,6 +193,24 @@ privatefiles,moodle|/user/files.php',
     );
     $temp->add(new admin_setting_configselect('defaulthomepage', new lang_string('defaulthomepage', 'admin'),
             new lang_string('configdefaulthomepage', 'admin'), HOMEPAGE_MY, $choices));
+    $primaryoptions = [
+        'home' => new lang_string('home'),
+        'myhome' => new lang_string('myhome'),
+        'mycourses' => new lang_string('mycourses'),
+    ];
+    $defaultprimaryoptions = [
+        'home' => 1,
+        'myhome' => 1,
+        'mycourses' => 1,
+    ];
+    $temp->add(new admin_setting_configmulticheckbox(
+            'primarynavoptions',
+            new lang_string('primarynavoptions', 'admin'),
+            new lang_string('primarynavoptions_desc', 'admin'),
+            $defaultprimaryoptions,
+            $primaryoptions
+    ));
+
     $temp->add(new admin_setting_configcheckbox('allowguestmymoodle', new lang_string('allowguestmymoodle', 'admin'), new lang_string('configallowguestmymoodle', 'admin'), 1));
     $temp->add(new admin_setting_configcheckbox('navshowfullcoursenames', new lang_string('navshowfullcoursenames', 'admin'), new lang_string('navshowfullcoursenames_help', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('navshowcategories', new lang_string('navshowcategories', 'admin'), new lang_string('confignavshowcategories', 'admin'), 1));

@@ -1098,6 +1098,8 @@ $string['requiremodintro'] = 'Require activity description';
 $string['requiremodintro_desc'] = 'If enabled, users will be forced to enter a description for each activity.';
 $string['required'] = 'Required';
 $string['requires'] = 'Requires';
+$string['primarynavoptions'] = 'Primary navigation options';
+$string['primarynavoptions_desc'] = '[TODO:] Primary navigation options description';
 $string['purgecaches'] = 'Purge all caches';
 $string['purgecachesconfirm'] = 'Moodle can cache themes, javascript, language strings, filtered text, rss feeds and many other pieces of calculated data.  Purging these caches will delete that data from the server and force browsers to refetch data, so that you can be sure you are seeing the most up-to-date values produced by the current code.  There is no danger in purging caches, but your site may appear slower for a while until the server and clients calculate new information and cache it.';
 $string['purgecachesfinished'] = 'All caches were purged.';
@@ -1557,4 +1559,3 @@ $string['modchooserdefault'] = 'Activity chooser default';
 $string['coursepage'] = 'Course page';
 $string['mediapluginswf'] = 'Enable .swf filter';
 $string['mediapluginswfnote'] = 'As a default security measure, normal users should not be allowed to embed swf flash files.';
-

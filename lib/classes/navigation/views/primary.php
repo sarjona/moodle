@@ -33,29 +33,45 @@ class primary extends view {
      * Initialise the primary navigation node
      */
     public function initialise(): void {
+        global $CFG;
+
         if (during_initial_install() || $this->initialised) {
             return;
         }
         $this->id = 'primary_navigation';
 
+        $enabledoptions = array_flip(explode(',', $CFG->primarynavoptions));
+
         // We do not need to change the text for the home/dashboard depending on the set homepage.
-        $sitehome = $this->add(get_string('home'), new \moodle_url('/'), self::TYPE_SYSTEM,
+        if (array_key_exists('home', $enabledoptions)) {
+            $sitehome = $this->add(get_string('home'), new \moodle_url('/'), self::TYPE_SYSTEM,
             null, 'home', new \pix_icon('i/home', ''));
+        }
         if (isloggedin() ) {
             if (!isguestuser()) {
                 $homepage = get_home_page();
-                if ($homepage == HOMEPAGE_MY || $homepage == HOMEPAGE_MYCOURSES) {
+                if ($homepage == HOMEPAGE_SITE && !isset($sitehome)) {
+                    // Add site to the primary navigation if it's defined as start page (even if it's not checked in the
+                    // primarynavoptions setting).
+                    $sitehome = $this->add(get_string('home'), new \moodle_url('/'), self::TYPE_SYSTEM,
+                    null, 'home', new \pix_icon('i/home', ''));
+                }
+                if (isset($sitehome) && ($homepage == HOMEPAGE_MY || $homepage == HOMEPAGE_MYCOURSES)) {
                     // We need to stop automatic redirection.
                     $sitehome->action->param('redirect', '0');
                 }
 
                 // Add the dashboard link.
-                $this->add(get_string('myhome'), new \moodle_url('/my/'),
+                if (array_key_exists('myhome', $enabledoptions) || $homepage == HOMEPAGE_MY) {
+                    $this->add(get_string('myhome'), new \moodle_url('/my/'),
                     self::TYPE_SETTING, null, 'myhome', new \pix_icon('i/dashboard', ''));
+                }
             }
 
             // Add the mycourses link.
-            $this->add(get_string('mycourses'), new \moodle_url('/my/courses.php'), self::TYPE_ROOTNODE, null, 'courses');
+            if (array_key_exists('mycourses', $enabledoptions) || $homepage == HOMEPAGE_MYCOURSES) {
+                $this->add(get_string('mycourses'), new \moodle_url('/my/courses.php'), self::TYPE_ROOTNODE, null, 'courses');
+            }
         }
 
         if ($node = $this->get_site_admin_node()) {
