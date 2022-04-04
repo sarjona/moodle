@@ -45,6 +45,30 @@ Feature: Use global search interface
     And I should see "ForumName1" in the ".breadcrumb" "css_element"
 
   @javascript
+  Scenario: Search from search page with quotes
+    Given the following "course" exist:
+      | shortname | fullname   |
+      | F2        | Amphibians 2 |
+    And I update the global search index
+    And I search for "zombies" using the header global search box
+    And I should see "No results"
+    When I set the field "id_q" to "\"Amphibians 2\""
+    # You cannot press "Search" because there's a fieldset with the same name that gets in the way.
+    And I press "id_submitbutton"
+    Then I should see "F2"
+    And I should not see "F1"
+    And I set the field "id_q" to "\"PageName1 frogs amphibians\""
+    # You cannot press "Search" because there's a fieldset with the same name that gets in the way.
+    And I press "id_submitbutton"
+    And I should see "PageName1"
+    And I should see "PageDesc1"
+    And I should not see "ForumName1"
+    And I should not see "ForumDesc1"
+    # Check the link works.
+    And I follow "PageName1 frogs amphibians"
+    And I should see "PageName1 frogs amphibians" in the ".breadcrumb" "css_element"
+
+  @javascript
   Scenario: Search starting from site context (no within option)
     When I search for "frogs" using the header global search box
     And I expand all fieldsets

@@ -346,12 +346,23 @@ class engine extends \core_search\engine {
             $DB->sql_like('description1', '?', false, false) . ' OR ' .
             $DB->sql_like('description2', '?', false, false) .
             ')';
-        $params = array(
-            '%' . $q . '%',
-            '%' . $q . '%',
-            '%' . $q . '%',
-            '%' . $q . '%'
-        );
+        // If query starts and finish with quotes, exact search will be done.
+        if (strpos($q, '"') === 0 && strrpos($q, '"') === (strlen($q) - 1)) {
+            $q = str_replace('"', '', $q);
+            $params = [
+                $q,
+                $q,
+                $q,
+                $q,
+            ];
+        } else {
+            $params = [
+                '%' . $q . '%',
+                '%' . $q . '%',
+                '%' . $q . '%',
+                '%' . $q . '%'
+            ];
+        }
         return array($sql, $params);
     }
 
