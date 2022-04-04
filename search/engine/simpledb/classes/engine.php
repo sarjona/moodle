@@ -153,7 +153,7 @@ class engine extends \core_search\engine {
                         }
                     } else {
                         // Clumsy version for mysql versions with no fulltext support.
-                        list($queryand, $queryparams) = $this->get_simple_query($filters->q);
+                        list($queryand, $queryparams) = $this->get_simple_query(str_replace('"', '', $filters->q));
                         $ands[] = $queryand;
                         $params = array_merge($params, $queryparams);
                     }
@@ -167,13 +167,13 @@ class engine extends \core_search\engine {
                         $params[] = '"' . str_replace('"', '', $filters->q) . '"';
                     } else {
                         // Clumsy version for mysql versions with no fulltext support.
-                        list($queryand, $queryparams) = $this->get_simple_query($filters->q);
+                        list($queryand, $queryparams) = $this->get_simple_query(str_replace('"', '', $filters->q));
                         $ands[] = $queryand;
                         $params = array_merge($params, $queryparams);
                     }
                     break;
                 default:
-                    list($queryand, $queryparams) = $this->get_simple_query($filters->q);
+                    list($queryand, $queryparams) = $this->get_simple_query(str_replace('"', '', $filters->q));
                     $ands[] = $queryand;
                     $params = array_merge($params, $queryparams);
                     break;
