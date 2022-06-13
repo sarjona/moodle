@@ -22,9 +22,13 @@ Feature: Add H5P activity
 
   @javascript
   Scenario: Add a h5pactivity activity to a course
-    Given the following "activities" exist:
-      | activity    | course | section | name                | intro                    | packagefilepath               |
-      | h5pactivity | C1     | 1       | Awesome H5P package | H5P activity Description | h5p/tests/fixtures/ipsums.h5p |
+    Given the following "activity" exists:
+      | activity                 | h5pactivity                                              |
+      | course                   | C1                                                       |
+      | section                  | 1                                                        |
+      | name                     | Awesome H5P package                                      |
+      | intro                    | H5P activity Description                                 |
+      | packagefilepath          | h5p/tests/fixtures/ipsums.h5p                            |
     #When I add a "H5P" to section "1"
     #And I set the following fields to these values:
     #  | Name        | Awesome H5P package      |
