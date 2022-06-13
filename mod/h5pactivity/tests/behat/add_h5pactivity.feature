@@ -22,13 +22,17 @@ Feature: Add H5P activity
 
   @javascript
   Scenario: Add a h5pactivity activity to a course
-    When I add a "H5P" to section "1"
-    And I set the following fields to these values:
-      | Name        | Awesome H5P package      |
-      | Description | H5P activity Description |
-    And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Package file" filemanager
-    And I click on "Save and display" "button"
-    And I wait until the page is ready
+    Given the following "activities" exist:
+      | activity    | course | section | name                | intro                    | packagefilepath               |
+      | h5pactivity | C1     | 1       | Awesome H5P package | H5P activity Description | h5p/tests/fixtures/ipsums.h5p |
+    #When I add a "H5P" to section "1"
+    #And I set the following fields to these values:
+    #  | Name        | Awesome H5P package      |
+    #  | Description | H5P activity Description |
+    #And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Package file" filemanager
+    #And I click on "Save and display" "button"
+    #And I wait until the page is ready
+    When I am on the "Awesome H5P package" "h5pactivity activity" page
     Then I should see "H5P activity Description"
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
@@ -40,14 +44,18 @@ Feature: Add H5P activity
 
   @javascript
   Scenario: Add a h5pactivity activity with download
-    When I add a "H5P" to section "1"
-    And I set the following fields to these values:
-      | Name                       | Awesome H5P package |
-      | Description                | Description         |
-      | Allow download             | 1                   |
-    And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Package file" filemanager
-    And I click on "Save and display" "button"
-    And I wait until the page is ready
+    Given the following "activities" exist:
+      | activity    | course | section | name                | intro       | filepath                      |
+      | h5pactivity | C1     | 1       | Awesome H5P package | description | h5p/tests/fixtures/ipsums.h5p |
+    #When I add a "H5P" to section "1"
+    #And I set the following fields to these values:
+    #  | Name                       | Awesome H5P package |
+    #  | Description                | Description         |
+    #  | Allow download             | 1                   |
+    #And I upload "h5p/tests/fixtures/ipsums.h5p" file to "Package file" filemanager
+    #And I click on "Save and display" "button"
+    #And I wait until the page is ready
+    When I am on the "Awesome H5P package" "h5pactivity activity" page
     Then I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I should see "Reuse"
