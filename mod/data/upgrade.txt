@@ -1,6 +1,13 @@
 This files describes API changes in /mod/data - plugins,
 information provided here is intended especially for developers.
 
+=== 4.1 ===
+* The following functions have been deprecated because they have been moved to the manager class:
+  - data_get_available_presets
+  - data_get_available_site_presets
+  - data_preset_name
+  - is_directory_a_preset
+
 === 3.7 ===
 * External functions get_entries, get_entry and search_entries now return an additional field "tags" containing the entry tags.
 
