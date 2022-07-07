@@ -70,7 +70,7 @@ $data->cmidnumber = $cm->idnumber;
 $data->instance   = $cm->instance;
 
 $renderer = $PAGE->get_renderer('mod_data');
-$presets = data_get_available_presets($context);
+$presets = \mod_data\manager::get_available_presets($context);
 
 if ($action === 'export') {
     if (headers_sent()) {

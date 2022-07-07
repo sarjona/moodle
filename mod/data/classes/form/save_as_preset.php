@@ -20,6 +20,7 @@ use context;
 use moodle_exception;
 use moodle_url;
 use core_form\dynamic_form;
+use mod_data\manager;
 
 /**
  * Save database as preset form.
@@ -74,7 +75,7 @@ class save_as_preset extends dynamic_form {
         $context = $this->get_context_for_dynamic_submission();
 
         if (!empty($formdata['overwrite'])) {
-            $presets = data_get_available_presets($context);
+            $presets = manager::get_available_presets($context);
             $selectedpreset = new \stdClass();
             foreach ($presets as $preset) {
                 if ($preset->name == $formdata['name']) {
@@ -87,7 +88,7 @@ class save_as_preset extends dynamic_form {
             }
         } else {
             // If the preset exists now then we need to throw an error.
-            $sitepresets = data_get_available_site_presets($context);
+            $sitepresets = manager::get_available_saved_presets($context);
             foreach ($sitepresets as $preset) {
                 if ($formdata['name'] == $preset->name) {
                     $errors['name'] = get_string('errorpresetexists', 'data');
@@ -137,7 +138,7 @@ class save_as_preset extends dynamic_form {
 
         try {
             if (!empty($this->get_data()->overwrite)) {
-                $presets = data_get_available_presets($context);
+                $presets = manager::get_available_presets($context);
                 $selectedpreset = new \stdClass();
                 foreach ($presets as $preset) {
                     if ($preset->name == $this->get_data()->name) {

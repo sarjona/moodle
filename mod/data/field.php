@@ -23,6 +23,8 @@
  * @package mod_data
  */
 
+use mod_data\manager;
+
 require_once('../../config.php');
 require_once('lib.php');
 require_once($CFG->dirroot.'/mod/data/preset_form.php');
@@ -315,7 +317,7 @@ switch ($mode) {
             }
         } else {
             echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
-            $presets = data_get_available_presets($context);
+            $presets = manager::get_available_presets($context);
             $presetstable = new \mod_data\output\presets($data->id, $presets,
                 new \moodle_url('/mod/data/field.php'));
             echo $renderer->render_presets($presetstable, false);
@@ -463,4 +465,3 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
 
 /// Finish the page
 echo $OUTPUT->footer();
-
