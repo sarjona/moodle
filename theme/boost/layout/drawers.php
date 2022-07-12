@@ -41,6 +41,11 @@ if (isloggedin()) {
     $blockdraweropen = false;
 }
 
+$pagetypepattern = $PAGE->pagetype;
+if (preg_match('/^mod-.*-mod/', $pagetypepattern)) {
+    $courseindexopen = false;
+}
+
 if (defined('BEHAT_SITE_RUNNING')) {
     $blockdraweropen = true;
 }
