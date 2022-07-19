@@ -54,3 +54,17 @@ Feature: Users can view and manage data presets
     And the "Use preset" "button" should be disabled
     And I click on "fullname" "radio" in the "Image gallery" "table_row"
     And the "Use preset" "button" should be enabled
+
+  @javascript
+  Scenario: Only users with the viewalluserpresets capability can see presets created by other users
+    Given the following "permission override" exists:
+      | role         | editingteacher                       |
+      | capability   | mod/data:viewalluserpresets          |
+      | permission   | Prohibit                             |
+      | contextlevel | System                               |
+      | reference    |                                      |
+    When I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    And I follow "Presets"
+    Then I should see "Image gallery"
+    And I should not see "Saved preset 1"
+    And I should not see "Saved preset 2"
