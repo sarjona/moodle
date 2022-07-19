@@ -139,7 +139,6 @@ class behat_mod_data_generator extends behat_generator_base {
         global $DB;
 
         $instance = $DB->get_record('data', ['id' => $data['databaseid']], '*', MUST_EXIST);
-        unset($data['databaseid']);
 
         $this->get_data_generator()->create_preset($instance, (object) $data);
     }
