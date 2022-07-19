@@ -368,7 +368,7 @@ class mod_data_generator extends testing_module_generator {
      * Creates a preset from a mod_data instance.
      *
      * @param stdClass $instance The mod_data instance.
-     * @param stdClass|null $record The preset information, like 'presetname'.
+     * @param stdClass|null $record The preset information, like 'name'.
      * @return bool Whether the preset has been created or not.
      */
     public function create_preset(stdClass $instance, stdClass $record = null): bool {
