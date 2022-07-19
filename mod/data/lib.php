@@ -3701,6 +3701,7 @@ function data_presets_generate_xml($course, $cm, $data) {
     );
 
     $presetxmldata .= "<settings>\n";
+
     // First, settings that do not require any conversion
     foreach ($raw_settings as $setting) {
         $presetxmldata .= "<$setting>" . htmlspecialchars($data->$setting) . "</$setting>\n";

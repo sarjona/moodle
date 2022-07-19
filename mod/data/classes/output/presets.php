@@ -124,6 +124,7 @@ class presets implements templatable, renderable {
                 'name' => $preset->name,
                 'shortname' => $preset->shortname,
                 'fullname' => $presetname,
+                'description' => $preset->description,
                 'userid' => $preset->userid,
                 'actions' => $actions,
             ];

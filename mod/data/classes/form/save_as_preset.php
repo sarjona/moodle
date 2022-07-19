@@ -21,6 +21,7 @@ use moodle_exception;
 use moodle_url;
 use core_form\dynamic_form;
 use mod_data\manager;
+use mod_data\preset;
 
 /**
  * Save database as preset form.
@@ -40,9 +41,14 @@ class save_as_preset extends dynamic_form {
         $this->_form->setType('d', PARAM_INT);
         $this->_form->addElement('hidden', 'action', 'save2');
         $this->_form->setType('action', PARAM_ALPHANUM);
+
         $this->_form->addElement('text', 'name', get_string('name'), ['size' => 60]);
         $this->_form->setType('name', PARAM_FILE);
         $this->_form->addRule('name', null, 'required');
+
+        $this->_form->addElement('textarea', 'description', get_string('description'), ['rows' => 5, 'cols' => 60]);
+        $this->_form->setType('name', PARAM_TEXT);
+
         $this->_form->addElement('checkbox', 'overwrite', '', get_string('overrwritedesc', 'data'));
     }
 
@@ -139,8 +145,8 @@ class save_as_preset extends dynamic_form {
         $context = \context_module::instance($cm->id, MUST_EXIST);
 
         try {
+            $manager = manager::create_from_instance($data);
             if (!empty($this->get_data()->overwrite)) {
-                $manager = manager::create_from_coursemodule($cm);
                 $presets = $manager->get_available_presets();
                 $selectedpreset = new \stdClass();
                 foreach ($presets as $preset) {
@@ -153,7 +159,8 @@ class save_as_preset extends dynamic_form {
                     data_delete_site_preset($this->get_data()->name);
                 }
             }
-            data_presets_save($course, $cm, $data, $this->get_data()->name);
+            $preset = preset::create_from_instance($manager, $this->get_data()->name, $this->get_data()->description);
+            $preset->save();
             $result = true;
         } catch (\Exception $e) {
             $errors[] = $e->getMessage();
