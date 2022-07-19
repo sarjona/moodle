@@ -143,7 +143,6 @@ class manager {
     /**
      * Returns an array of all the available presets.
      *
-     * @param context $context The context that we are looking from.
      * @return array A list with the datapreset plugins and the presets saved by users.
      */
     public function get_available_presets(): array {
@@ -159,7 +158,7 @@ class manager {
     /**
      * Returns an array of all the presets that users have saved to the site.
      *
-     * @return array An list with the preset saved by the users.
+     * @return array A list with the preset saved by the users.
      */
     public function get_available_saved_presets() {
         global $USER;
@@ -174,7 +173,8 @@ class manager {
         $canviewall = has_capability('mod/data:viewalluserpresets', $this->get_context());
         foreach ($files as $file) {
             $isnotdirectory = ($file->is_directory() && $file->get_filepath() == '/') || !$file->is_directory();
-            $cannotviewfile = !$canviewall && $file->get_userid() != $USER->id;
+            $userid = $file->get_userid();
+            $cannotviewfile = !$canviewall && $userid != $USER->id;
             if ($isnotdirectory || $cannotviewfile) {
                 continue;
             }
@@ -184,7 +184,7 @@ class manager {
             $preset->path = $file->get_filepath();
             $preset->name = trim($preset->path, '/');
             $preset->shortname = $preset->name;
-            $preset->userid = $file->get_userid();
+            $preset->userid = $userid;
             $preset->id = $file->get_id();
             $preset->storedfile = $file;
             $presets[] = $preset;
@@ -209,7 +209,7 @@ class manager {
                     $preset->path = $fulldir;
                     $preset->userid = 0;
                     $preset->shortname = $dir;
-                    $preset->name = preset::get_name_for_plugin($dir);
+                    $preset->name = preset::get_name_from_plugin($dir);
                     $presets[] = $preset;
                 }
             }

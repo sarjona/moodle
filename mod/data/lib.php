@@ -2205,14 +2205,14 @@ function data_convert_to_roles($data, $teacherroles=array(), $studentroles=array
  * @param string $shortname
  * @param  string $path
  * @return string
- * @deprecated since Moodle 4.1 MDL-75148 - please, use the preset::get_name_for_plugin() function instead.
+ * @deprecated since Moodle 4.1 MDL-75148 - please, use the preset::get_name_from_plugin() function instead.
  * @todo MDL-75189 This will be deleted in Moodle 4.5.
- * @see preset::get_name_for_plugin()
+ * @see preset::get_name_from_plugin()
  */
 function data_preset_name($shortname, $path) {
-    debugging('data_preset_name() is deprecated. Please use preset::get_name_for_plugin() instead.', DEBUG_DEVELOPER);
+    debugging('data_preset_name() is deprecated. Please use preset::get_name_from_plugin() instead.', DEBUG_DEVELOPER);
 
-    return preset::get_name_for_plugin($shortname);
+    return preset::get_name_from_plugin($shortname);
 }
 
 /**

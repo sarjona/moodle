@@ -68,21 +68,21 @@ class preset_test extends \advanced_testcase {
     }
 
     /**
-     * Test for get_name_for_plugin().
+     * Test for get_name_from_plugin().
      *
-     * @covers ::get_name_for_plugin
+     * @covers ::get_name_from_plugin
      */
-    public function test_get_name_for_plugin() {
+    public function test_get_name_from_plugin() {
         $this->resetAfterTest();
         $this->setAdminUser();
 
         // The expected name for plugins with modulename in lang is this value.
-        $name = preset::get_name_for_plugin('imagegallery');
+        $name = preset::get_name_from_plugin('imagegallery');
         $this->assertEquals('Image gallery', $name);
 
         // However, if the plugin doesn't exist or the modulename is not defined, the preset shortname will be returned.
         $presetshortname = 'nonexistingpreset';
-        $name = preset::get_name_for_plugin($presetshortname);
+        $name = preset::get_name_from_plugin($presetshortname);
         $this->assertEquals($presetshortname, $name);
     }
 

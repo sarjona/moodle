@@ -138,10 +138,10 @@ class manager_test extends \advanced_testcase {
         }
         // Check all the presets have the proper value for the isplugin attribute.
         foreach ($presets as $preset) {
-            if ($preset->name === 'Image gallery') {
-                $this->assertTrue($preset->isplugin);
-            } else if (in_array($preset->name, $savedpresetsnames)) {
+            if (in_array($preset->name, $savedpresetsnames)) {
                 $this->assertFalse($preset->isplugin);
+            } else {
+                $this->assertTrue($preset->isplugin);
             }
         }
 
