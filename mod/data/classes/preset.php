@@ -122,25 +122,33 @@ class preset {
      */
     public static function create_from_instance(manager $manager, string $presetname, ?string $description = ''): self {
         $isplugin = false;
+
         $path = '/' . $presetname . '/';
+        $file = null;
+        $userid = null;
+        $file = static::get_file($path, '.');
+        if ($file) {
+            $userid = $file->get_userid();
+        }
+
         $name = $presetname;
         $description = $description;
 
-        return new self($manager, $isplugin, $name, $name, $path, $description);
+        return new self($manager, $isplugin, $name, $name, $path, $description, $userid, $file);
     }
 
-    public static function get_attribute_value(stored_file $file, string $name) {
-        global $CFG;
-        require_once($CFG->libdir.'/xmlize.php');
-
+    protected static function get_attribute_value(stored_file $file, string $name) {
         $presetxml = static::get_content_from_file($file, 'preset.xml');
-        $parsedxml = xmlize($presetxml, 0);
+        $parsedxml = simplexml_load_string($presetxml);
+        if (property_exists($parsedxml, 'description')) {
+            $value = $parsedxml->description;
+        }
 
         $value = '';
         switch ($name) {
             case 'description':
-                if (key_exists('description', $parsedxml['preset']['#'])) {
-                    $value = $parsedxml['preset']['#']['description'][0]['#'][0];
+                if (property_exists($parsedxml, 'description')) {
+                    $value = $parsedxml->description;
                 }
                 break;
         }
@@ -161,27 +169,87 @@ class preset {
         global $USER;
 
         $fs = get_file_storage();
+        if (is_null($this->storedfile)) {
+            // The preset hasn't been saved before.
 
+            // Create and save the preset.xml file, with the description, settings, fields...
+            $filerecord = static::get_filerecord('preset.xml', $this->path, $USER->id);
+            $instance = $this->manager->get_instance();
+            $fs->create_file_from_string($filerecord, static::generate_xml($instance, $this->description));
+
+            // Create and save the template files.
+            foreach (manager::TEMPLATES_LIST as $templatename => $templatefile) {
+                $filerecord->filename = $templatefile;
+                $fs->create_file_from_string($filerecord, $instance->{$templatename});
+            }
+        } else {
+            // It's a pre-existing preset, so it needs to be updated.
+
+            // TODO: Check if the preset name has changed or not. If it has changed, more actions are required.
+
+            $oldpresetfile = static::get_file($this->storedfile->get_filepath(), 'preset.xml');
+            $presetxml = $oldpresetfile->get_content();
+            $parsedxml = simplexml_load_string($presetxml);
+            if (property_exists($parsedxml, 'description')) {
+                $parsedxml->description = $this->description;
+            } else {
+                $parsedxml->addChild('description', $this->description);
+            }
+
+            $presetcontent = $parsedxml->asXML();
+            $templatefile = static::get_file($this->storedfile->get_filepath(), 'preset.xml');
+
+            $oldpresetfile->delete();
+            $filerecord = static::get_filerecord('preset.xml', $this->path, $USER->id);
+            $this->storedfile = $fs->create_file_from_string($filerecord, $presetcontent);
+        }
+
+        return true;
+    }
+
+    protected static function get_filerecord(string $filename, string $filepath, int $userid): stdClass {
         $filerecord = new stdClass;
         $filerecord->contextid = DATA_PRESET_CONTEXT;
         $filerecord->component = DATA_PRESET_COMPONENT;
         $filerecord->filearea = DATA_PRESET_FILEAREA;
         $filerecord->itemid = 0;
-        $filerecord->filepath = $this->path;
-        $filerecord->userid = $USER->id;
+        $filerecord->filepath = $filepath;
+        $filerecord->userid = $userid;
+        $filerecord->filename = $filename;
 
-        // Create and save the preset.xml file, with the description, settings, fields...
-        $filerecord->filename = 'preset.xml';
-        $instance = $this->manager->get_instance();
-        $fs->create_file_from_string($filerecord, static::generate_xml($instance, $this->description));
+        return $filerecord;
+    }
 
-        // Create and save the template files.
-        foreach (manager::TEMPLATES_LIST as $templatename => $templatefile) {
-            $filerecord->filename = $templatefile;
-            $fs->create_file_from_string($filerecord, $instance->{$templatename});
+    /**
+     * Retrieve the contents of a file. That file may either be in a conventional directory of the Moodle file storage.
+     *
+     * @param string $filepath the directory to look in
+     * @param string $filename the name of the file we want
+     * @return stored_file|null the file or null if the file doesn't exist.
+     */
+    protected static function get_file(string $filepath, string $filename): ?stored_file {
+        $file = null;
+        $fs = get_file_storage();
+        $fileexists = $fs->file_exists(
+            DATA_PRESET_CONTEXT,
+            DATA_PRESET_COMPONENT,
+            DATA_PRESET_FILEAREA,
+            0,
+            $filepath,
+            $filename
+        );
+        if ($fileexists) {
+            $file = $fs->get_file(
+                DATA_PRESET_CONTEXT,
+                DATA_PRESET_COMPONENT,
+                DATA_PRESET_FILEAREA,
+                0,
+                $filepath,
+                $filename
+            );
         }
 
-        return true;
+        return $file;
     }
 
     /**
@@ -191,30 +259,13 @@ class preset {
      * @param string $filename the name of the file we want
      * @return string the contents of the file or null if the file doesn't exist.
      */
-    public static function get_content_from_file(stored_file $file, string $filename) {
-        $fs = get_file_storage();
-
-        $fileexists = $fs->file_exists(
-            DATA_PRESET_CONTEXT,
-            DATA_PRESET_COMPONENT,
-            DATA_PRESET_FILEAREA,
-            0,
-            $file->get_filepath(),
-            $filename
-        );
-        if ($fileexists) {
-            $file = $fs->get_file(
-                DATA_PRESET_CONTEXT,
-                DATA_PRESET_COMPONENT,
-                DATA_PRESET_FILEAREA,
-                0,
-                $file->get_filepath(),
-                $filename
-            );
-            return $file->get_content();
-        } else {
-            return null;
+    protected static function get_content_from_file(stored_file $file, string $filename) {
+        $templatefile = static::get_file($file->get_filepath(), $filename);
+        if ($templatefile) {
+            return $templatefile->get_content();
         }
+
+        return null;
     }
 
     /**
@@ -245,7 +296,7 @@ class preset {
             'defaultsortdir'
         ];
 
-        $presetxmldata .= '<description>' . htmlspecialchars($description) . "<\description>\n\n";
+        $presetxmldata .= '<description>' . htmlspecialchars($description) . "</description>\n\n";
 
         $presetxmldata .= "<settings>\n";
         // First, settings that do not require any conversion.

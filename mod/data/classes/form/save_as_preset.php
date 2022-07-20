@@ -32,6 +32,8 @@ use mod_data\preset;
  */
 class save_as_preset extends dynamic_form {
 
+    private $action;
+
     /**
      * Form definition
      */
@@ -49,7 +51,10 @@ class save_as_preset extends dynamic_form {
         $this->_form->addElement('textarea', 'description', get_string('description'), ['rows' => 5, 'cols' => 60]);
         $this->_form->setType('name', PARAM_TEXT);
 
-        $this->_form->addElement('checkbox', 'overwrite', '', get_string('overrwritedesc', 'data'));
+        $this->action = $this->optional_param('action', 'saveaspreset', PARAM_ALPHA);
+        if ($this->action === 'saveaspreset') {
+            $this->_form->addElement('checkbox', 'overwrite', '', get_string('overrwritedesc', 'data'));
+        }
     }
 
     /**
@@ -82,24 +87,26 @@ class save_as_preset extends dynamic_form {
         $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, MUST_EXIST);
         $manager = manager::create_from_coursemodule($cm);
 
-        if (!empty($formdata['overwrite'])) {
-            $presets = $manager->get_available_presets();
-            $selectedpreset = new \stdClass();
-            foreach ($presets as $preset) {
-                if ($preset->name == $formdata['name']) {
-                    $selectedpreset = $preset;
-                    break;
+        if ($this->action === 'saveaspreset') {
+            if (!empty($formdata['overwrite'])) {
+                $presets = $manager->get_available_presets();
+                $selectedpreset = new \stdClass();
+                foreach ($presets as $preset) {
+                    if ($preset->name == $formdata['name']) {
+                        $selectedpreset = $preset;
+                        break;
+                    }
                 }
-            }
-            if (isset($selectedpreset->name) && !data_user_can_delete_preset($context, $selectedpreset)) {
-                $errors['name'] = get_string('cannotoverwritepreset', 'data');
-            }
-        } else {
-            // If the preset exists now then we need to throw an error.
-            $sitepresets = $manager->get_available_saved_presets();
-            foreach ($sitepresets as $preset) {
-                if ($formdata['name'] == $preset->name) {
-                    $errors['name'] = get_string('errorpresetexists', 'data');
+                if (isset($selectedpreset->name) && !data_user_can_delete_preset($context, $selectedpreset)) {
+                    $errors['name'] = get_string('cannotoverwritepreset', 'data');
+                }
+            } else {
+                // If the preset exists now then we need to throw an error.
+                $sitepresets = $manager->get_available_saved_presets();
+                foreach ($sitepresets as $preset) {
+                    if ($formdata['name'] == $preset->name) {
+                        $errors['name'] = get_string('errorpresetexists', 'data');
+                    }
                 }
             }
         }
@@ -146,22 +153,29 @@ class save_as_preset extends dynamic_form {
 
         try {
             $manager = manager::create_from_instance($data);
-            if (!empty($this->get_data()->overwrite)) {
-                $presets = $manager->get_available_presets();
-                $selectedpreset = new \stdClass();
-                foreach ($presets as $preset) {
-                    if ($preset->name == $this->get_data()->name) {
-                        $selectedpreset = $preset;
-                        break;
+
+            if ($this->action === 'saveaspreset') {
+                if (!empty($this->get_data()->overwrite)) {
+                    $presets = $manager->get_available_presets();
+                    $selectedpreset = new \stdClass();
+                    foreach ($presets as $preset) {
+                        if ($preset->name == $this->get_data()->name) {
+                            $selectedpreset = $preset;
+                            break;
+                        }
+                    }
+                    if (isset($selectedpreset->name) && data_user_can_delete_preset($context, $selectedpreset)) {
+                        data_delete_site_preset($this->get_data()->name);
                     }
                 }
-                if (isset($selectedpreset->name) && data_user_can_delete_preset($context, $selectedpreset)) {
-                    data_delete_site_preset($this->get_data()->name);
-                }
+                $preset = preset::create_from_instance($manager, $this->get_data()->name, $this->get_data()->description);
+                $preset->save();
+                $result = true;
+            } else {
+                $preset = preset::create_from_instance($manager, $this->get_data()->name, $this->get_data()->description);
+                $preset->save();
+                $result = true;
             }
-            $preset = preset::create_from_instance($manager, $this->get_data()->name, $this->get_data()->description);
-            $preset->save();
-            $result = true;
         } catch (\Exception $e) {
             $errors[] = $e->getMessage();
         }
@@ -180,6 +194,8 @@ class save_as_preset extends dynamic_form {
     public function set_data_for_dynamic_submission(): void {
         $data = (object)[
             'd' => $this->optional_param('d', 0, PARAM_INT),
+            'name' => $this->optional_param('presetname', '', PARAM_RAW),
+            'description' => $this->optional_param('presetdescription', '', PARAM_RAW),
         ];
         $this->set_data($data);
     }

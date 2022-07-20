@@ -40,11 +40,19 @@ export const init = () => {
         event.preventDefault();
 
         const modalForm = new ModalForm({
-            modalConfig: {
-                title: getString('savedataaspreset', 'mod_data'),
+          modalConfig: {
+                title: (saveAsPresetButton.getAttribute('data-actionx') === 'editpreset') ?
+                    getString('editpreset', 'mod_data') : getString('savedataaspreset', 'mod_data'),
             },
             formClass: 'mod_data\\form\\save_as_preset',
-            args: {d: saveAsPresetButton.getAttribute('data-dataid')},
+            args: {
+                d: saveAsPresetButton.getAttribute('data-dataid'),
+                action: saveAsPresetButton.getAttribute('data-action'),
+                presetname: (saveAsPresetButton.getAttribute('data-action') === 'editpreset' ?
+                    saveAsPresetButton.getAttribute('data-presetname') : ''),
+                presetdescription: (saveAsPresetButton.getAttribute('data-action') === 'editpreset' ?
+                    saveAsPresetButton.getAttribute('data-presetdescription') : '')
+            },
             saveButtonText: getString('save'),
             returnFocus: saveAsPresetButton,
         });
