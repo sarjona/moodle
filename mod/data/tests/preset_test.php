@@ -433,7 +433,6 @@ class preset_test extends \advanced_testcase {
         $result = preset::is_directory_a_preset($directory);
         $this->assertEquals($expected, $result);
     }
-
     /**
      * Data provider for test_is_directory_a_preset().
      *
@@ -611,5 +610,100 @@ class preset_test extends \advanced_testcase {
         // Check invalid preset file name doesn't exist.
         $file = preset::get_file($preset->get_path(), 'unexistingpreset.xml');
         $this->assertNull($file);
+    }
+
+    /**
+     * Test for can_delete().
+     *
+     * @covers ::can_delete
+     */
+    public function test_can_delete() {
+        $this->resetAfterTest();
+
+        // Create course, database activity and users.
+        $course = $this->getDataGenerator()->create_course();
+        $data = $this->getDataGenerator()->create_module('data', ['course' => $course->id]);
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $manager = manager::create_from_instance($data);
+
+        $preset1name = 'Admin preset';
+        $preset2name = 'Teacher preset';
+
+        // Create a saved preset by admin.
+        $this->setAdminUser();
+        $plugingenerator = $this->getDataGenerator()->get_plugin_generator('mod_data');
+        $record = (object) [
+            'name' => $preset1name,
+            'description' => 'Testing preset description',
+        ];
+        $plugingenerator->create_preset($data, $record);
+        $adminpreset = preset::create_from_instance($manager, $preset1name);
+
+        // Create a saved preset by teacher.
+        $this->setUser($teacher);
+        $record = (object) [
+            'name' => $preset2name,
+            'description' => 'Testing preset description',
+        ];
+        $plugingenerator->create_preset($data, $record);
+        $teacherpreset = preset::create_from_instance($manager, $preset2name);
+
+        // Admin can delete all saved presets.
+        $this->setAdminUser();
+        $this->assertTrue($adminpreset->can_delete());
+        $this->assertTrue($teacherpreset->can_delete());
+
+        // Teacher can delete their own preset only.
+        $this->setUser($teacher);
+        $this->assertFalse($adminpreset->can_delete());
+        $this->assertTrue($teacherpreset->can_delete());
+
+        // Student can't delete any of the presets.
+        $this->setUser($student);
+        $this->assertFalse($adminpreset->can_delete());
+        $this->assertFalse($teacherpreset->can_delete());
+    }
+
+    /**
+     * Test for delete().
+     *
+     * @covers ::delete
+     */
+    public function test_delete() {
+        $this->resetAfterTest();
+
+        // Create course, database activity and users.
+        $course = $this->getDataGenerator()->create_course();
+        $data = $this->getDataGenerator()->create_module('data', ['course' => $course->id]);
+        $manager = manager::create_from_instance($data);
+        $presetname = 'Admin preset';
+
+        // Create a saved preset by admin.
+        $this->setAdminUser();
+        $plugingenerator = $this->getDataGenerator()->get_plugin_generator('mod_data');
+        $record = (object) [
+            'name' => $presetname,
+            'description' => 'Testing preset description',
+        ];
+        $plugingenerator->create_preset($data, $record);
+        $adminpreset = preset::create_from_instance($manager, $presetname);
+        $this->assertNotEmpty($adminpreset->storedfile);
+
+        $result = $adminpreset->delete();
+        $this->assertTrue($result);
+
+        // After deleting the preset, there is no file linked.
+        $adminpreset = preset::create_from_instance($manager, $presetname);
+        $this->assertEmpty($adminpreset->storedfile);
+
+        // The behavior of trying to delete a preset twice.
+        $result = $adminpreset->delete();
+        $this->assertFalse($result);
+
+        $emptypreset = preset::create_from_instance($manager, $presetname);
+        // The behavior of deleting an empty preset.
+        $result = $emptypreset->delete();
+        $this->assertFalse($result);
     }
 }

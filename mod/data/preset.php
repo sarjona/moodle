@@ -53,7 +53,7 @@ if ($id) {
 }
 
 $action = optional_param('action', 'view', PARAM_ALPHA); // The page action.
-$allowedactions = ['view', 'delete', 'confirmdelete', 'import', 'importzip', 'finishimport',
+$allowedactions = ['view', 'import', 'importzip', 'finishimport',
     'export'];
 if (!in_array($action, $allowedactions)) {
     throw new moodle_exception('invalidaccess');
@@ -71,6 +71,7 @@ $PAGE->set_title(get_string('course') . ': ' . $course->fullname);
 $PAGE->set_heading($course->fullname);
 $PAGE->force_settings_menu(true);
 $PAGE->activityheader->disable();
+$PAGE->requires->js_call_amd('mod_data/presetactions', 'init');
 
 // fill in missing properties needed for updating of instance
 $data->course     = $cm->course;
@@ -118,6 +119,15 @@ if ($formimportzip->is_cancelled()) {
 
 echo $OUTPUT->header();
 
+// If needed, display notifications.
+$statusmsg = optional_param('statusmsg', '', PARAM_ALPHANUMEXT);
+$errormsg = optional_param('errormsg', '', PARAM_ALPHANUMEXT);
+if ($errormsg !== '' && get_string_manager()->string_exists($errormsg, 'mod_data')) {
+    echo $OUTPUT->notification(get_string($errormsg, 'mod_data'));
+} else if ($statusmsg !== '' && get_string_manager()->string_exists($statusmsg, 'mod_data')) {
+    echo $OUTPUT->notification(get_string($statusmsg, 'mod_data'), 'notifysuccess');
+}
+
 if ($formdata = $formimportzip->get_data()) {
     echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
     $file = new stdClass;
@@ -129,7 +139,7 @@ if ($formdata = $formimportzip->get_data()) {
     exit(0);
 }
 
-if (in_array($action, ['confirmdelete', 'delete', 'finishimport'])) {
+if (in_array($action, ['finishimport'])) {
     $fullname = optional_param('fullname', '' , PARAM_PATH); // The directory the preset is in.
     // Find out preset owner userid and shortname.
     $parts = explode('/', $fullname, 2);
@@ -137,37 +147,7 @@ if (in_array($action, ['confirmdelete', 'delete', 'finishimport'])) {
     $shortname = empty($parts[1]) ? '' : $parts[1];
     echo html_writer::start_div('overflow-hidden');
 
-    if ($action === 'confirmdelete') {
-        $path = data_preset_path($course, $userid, $shortname);
-        $strwarning = get_string('deletewarning', 'data').'<br />'.$shortname;
-        $optionsyes = [
-            'fullname' => $fullname,
-            'action' => 'delete',
-            'd' => $data->id,
-        ];
-        $optionsno = ['d' => $data->id];
-        echo $OUTPUT->confirm($strwarning, new moodle_url('/mod/data/preset.php', $optionsyes),
-            new moodle_url('/mod/data/preset.php', $optionsno));
-        echo $OUTPUT->footer();
-        exit(0);
-    } else if ($action === 'delete') {
-        if (!confirm_sesskey()) {
-            throw new moodle_exception('invalidsesskey');
-        }
-        $selectedpreset = new stdClass();
-        foreach ($presets as $preset) {
-            if ($preset->shortname == $shortname) {
-                $selectedpreset = $preset;
-            }
-        }
-        if (!isset($selectedpreset->shortname) || !data_user_can_delete_preset($context, $selectedpreset)) {
-            throw new \moodle_exception('invalidrequest');
-        }
-
-        data_delete_site_preset($shortname);
-        $strdeleted = get_string('deleted', 'data');
-        echo $OUTPUT->notification("$shortname $strdeleted", 'notifysuccess');
-    } else if ($action === 'finishimport') {
+    if ($action === 'finishimport') {
         if (!confirm_sesskey()) {
             throw new moodle_exception('invalidsesskey');
         }

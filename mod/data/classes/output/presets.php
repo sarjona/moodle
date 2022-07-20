@@ -109,7 +109,7 @@ class presets implements templatable, renderable {
                 $actionmenu->attributes['class'] .= ' presets-actions';
 
                 // Edit.
-                if (!$preset->isplugin && data_user_can_delete_preset($PAGE->context, $preset)) {
+                if (!$preset->isplugin && $preset->can_delete()) {
                     // Only presets saved by users can be edited (so the datapreset plugins shouldn't display these buttons).
                     $params = [
                         'd' => $this->id,
@@ -146,18 +146,23 @@ class presets implements templatable, renderable {
                 }
 
                 // Delete.
-                if (!$preset->isplugin && data_user_can_delete_preset($PAGE->context, $preset)) {
+                if (!$preset->isplugin && $preset->can_delete()) {
                     // Only presets saved by users can be deleted (so the datapreset plugins shouldn't display these buttons).
                     $params = [
                         'd' => $this->id,
-                        'fullname' => "{$userid}/{$preset->shortname}",
-                        'action' => 'confirmdelete',
+                        'action' => 'delete',
                     ];
                     $deleteactionurl = new moodle_url('/mod/data/preset.php', $params);
+                    $attributes = [
+                        'data-action' => 'deletepreset',
+                        'data-dataid' => $this->id,
+                        "data-presetname" => $preset->name,
+                    ];
                     $actionmenu->add(new action_menu_link_secondary(
                         $deleteactionurl,
                         null,
                         get_string('delete'),
+                        $attributes,
                     ));
                 }
             }

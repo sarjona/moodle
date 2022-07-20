@@ -522,4 +522,55 @@ class preset {
 
         return $preset->asXML();
     }
+
+    /**
+     * Checks to see if the user has permission to delete the preset.
+     *
+     * @return bool  Returns true if the user can delete this preset, false otherwise.
+     */
+    public function can_delete(): bool {
+        global $USER;
+
+        $context = $this->manager->get_context();
+        if (has_capability('mod/data:manageuserpresets', $context)) {
+            return true;
+        } else {
+            if ($this->get_userid() == $USER->id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Deletes a saved preset.
+     *
+     * @return bool
+     */
+    public function delete(): bool {
+        $fs = get_file_storage();
+        $exists = false;
+
+        $files = $fs->get_directory_files(
+            DATA_PRESET_CONTEXT,
+            DATA_PRESET_COMPONENT,
+            DATA_PRESET_FILEAREA,
+            0,
+            '/' . $this->name . '/'
+        );
+        if (!empty($files)) {
+            $exists = true;
+            foreach ($files as $file) {
+                $file->delete();
+            }
+        }
+
+        $dir = $fs->get_file(DATA_PRESET_CONTEXT, DATA_PRESET_COMPONENT, DATA_PRESET_FILEAREA, 0, '/' . $this->name . '/', '.');
+        if (!empty($dir)) {
+            $exists = true;
+            $dir->delete();
+        }
+
+        return $exists;
+    }
 }
