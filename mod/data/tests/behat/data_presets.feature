@@ -40,14 +40,25 @@ Feature: Users can view and manage data presets
 
   @javascript
   Scenario: Teachers can see and use presets
-    Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    Given the following "mod_data > fields" exist:
+      | database | type | name              | description              |
+      | data1    | text | Test field name   | Test field description   |
+    And I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    And I follow "Templates"
+    And I click on "Save as preset" "button"
+    And I set the field "Name" to "Saved preset by teacher1"
+    And I click on "Save" "button" in the "Save all fields and templates as preset" "dialogue"
     When I follow "Presets"
     Then I should see "Choose a preset to use as a starting point."
     And I should see "Image gallery"
     And I should see "Saved preset 1"
     And I should see "Saved preset 2"
+    And I should see "Saved preset by teacher1"
     # Plugin presets can't be removed.
     And I should not see "Actions" in the "Image gallery" "table_row"
+    # Teachers should be able to delete their saved presets.
+    And I open the action menu in "Saved preset by teacher1" "table_row"
+    And I should see "Delete"
     # Teachers can't delete the presets they haven't created.
     And I should not see "Actions" in the "Saved preset 1" "table_row"
     # The "Use preset" button should be enabled only when a preset is selected.
