@@ -139,6 +139,11 @@ class preset {
     public function save(): bool {
         global $USER;
 
+        if ($this->isplugin) {
+            // Plugin presets can't be saved.
+            return false;
+        }
+
         $result = false;
         $fs = get_file_storage();
         if (is_null($this->storedfile)) {
@@ -157,6 +162,50 @@ class preset {
             // Update the storedfile with the one we've just saved.
             $this->storedfile = static::get_file($this->get_path(), '.');
             $result = true;
+        } else {
+            // It's a pre-existing preset, so it needs to be updated.
+            $shouldbesaved = false;
+
+            // Update description (if required).
+            $oldpresetfile = static::get_file($this->storedfile->get_filepath(), 'preset.xml');
+            $presetxml = $oldpresetfile->get_content();
+            $parsedxml = simplexml_load_string($presetxml);
+            if (property_exists($parsedxml, 'description')) {
+                if ($parsedxml->description != $this->description) {
+                    $parsedxml->description = $this->description;
+                    $shouldbesaved = true;
+                }
+            } else {
+                if (!is_null($this->description)) {
+                    $parsedxml->addChild('description', $this->description);
+                    $shouldbesaved = true;
+                }
+            }
+
+            // Update name (if required).
+            $oldname = trim($this->storedfile->get_filepath(), '/');
+            $newpath = '/' . $this->name . '/';
+            if ($oldname != $this->name) {
+                // Preset name has changed, so files need to be updated too because the preset name is saved in the filepath.
+                foreach (manager::TEMPLATES_LIST as $templatename => $templatefile) {
+                    $oldfile = static::get_file($this->storedfile->get_filepath(), $templatefile);
+                    $oldfile->rename($newpath, $templatefile);
+                }
+                // The root folder should also be renamed.
+                $this->storedfile->rename($newpath, $this->storedfile->get_filename());
+                $shouldbesaved = true;
+            }
+
+            // Only save the new preset.xml if there are changes.
+            if ($shouldbesaved) {
+                // Before saving preset.xml, the old preset.xml file should be removed.
+                $oldpresetfile->delete();
+                // Create the new file with the new content.
+                $filerecord = static::get_filerecord('preset.xml', $newpath, $USER->id);
+                $presetcontent = $parsedxml->asXML();
+                $fs->create_file_from_string($filerecord, $presetcontent);
+                $result = true;
+            }
         }
 
         return $result;
@@ -290,6 +339,39 @@ class preset {
         }
     }
 
+
+    /**
+     * Helper method to retrieve a file.
+     *
+     * @param string $filepath the directory to look in
+     * @param string $filename the name of the file we want
+     * @return stored_file|null the file or null if the file doesn't exist.
+     */
+    public static function get_file(string $filepath, string $filename): ?stored_file {
+        $file = null;
+        $fs = get_file_storage();
+        $fileexists = $fs->file_exists(
+            DATA_PRESET_CONTEXT,
+            DATA_PRESET_COMPONENT,
+            DATA_PRESET_FILEAREA,
+            0,
+            $filepath,
+            $filename
+        );
+        if ($fileexists) {
+            $file = $fs->get_file(
+                DATA_PRESET_CONTEXT,
+                DATA_PRESET_COMPONENT,
+                DATA_PRESET_FILEAREA,
+                0,
+                $filepath,
+                $filename
+            );
+        }
+
+        return $file;
+    }
+
     /**
      * Helper to get the value of one of the elements in the presets.xml file.
      *
@@ -333,38 +415,6 @@ class preset {
         $filerecord->filename = $filename;
 
         return $filerecord;
-    }
-
-    /**
-     * Helper method to retrieve a file.
-     *
-     * @param string $filepath the directory to look in
-     * @param string $filename the name of the file we want
-     * @return stored_file|null the file or null if the file doesn't exist.
-     */
-    protected static function get_file(string $filepath, string $filename): ?stored_file {
-        $file = null;
-        $fs = get_file_storage();
-        $fileexists = $fs->file_exists(
-            DATA_PRESET_CONTEXT,
-            DATA_PRESET_COMPONENT,
-            DATA_PRESET_FILEAREA,
-            0,
-            $filepath,
-            $filename
-        );
-        if ($fileexists) {
-            $file = $fs->get_file(
-                DATA_PRESET_CONTEXT,
-                DATA_PRESET_COMPONENT,
-                DATA_PRESET_FILEAREA,
-                0,
-                $filepath,
-                $filename
-            );
-        }
-
-        return $file;
     }
 
     /**
