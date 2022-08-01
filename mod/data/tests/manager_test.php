@@ -29,8 +29,7 @@ use core_component;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \mod_data\manager
  */
-class manager_test extends \advanced_testcase
-{
+class manager_test extends \advanced_testcase {
 
     /**
      * Test for static create methods.
@@ -39,8 +38,7 @@ class manager_test extends \advanced_testcase
      * @covers ::create_from_coursemodule
      * @covers ::create_from_data_record
      */
-    public function test_create()
-    {
+    public function test_create() {
 
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -88,8 +86,7 @@ class manager_test extends \advanced_testcase
      * Test set_module_viewed
      * @covers ::set_module_viewed
      */
-    public function test_set_module_viewed()
-    {
+    public function test_set_module_viewed() {
         global $CFG;
 
         $CFG->enablecompletion = 1;
@@ -135,8 +132,7 @@ class manager_test extends \advanced_testcase
      * Test set_template_viewed
      * @covers ::set_template_viewed
      */
-    public function test_set_template_viewed()
-    {
+    public function test_set_template_viewed() {
         $this->resetAfterTest();
         $this->setAdminUser();
 

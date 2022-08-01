@@ -38,9 +38,6 @@ class manager {
     /** Module name. */
     const MODULE = 'data';
 
-    /** Pluginname name. */
-    const PLUGIN = 'mod_data';
-
     /** Template list with their files required to save the information of a preset. */
     const TEMPLATES_LIST = [
         'listtemplate' => 'listtemplate.html',
@@ -325,7 +322,7 @@ class manager {
      *
      * @return array A list with the preset saved by the users.
      */
-    public function get_available_saved_presets() {
+    public function get_available_saved_presets(): array {
         global $USER;
 
         $presets = [];
@@ -366,17 +363,16 @@ class manager {
     public static function get_available_plugin_presets(): array {
         $presets = [];
 
-        if ($dirs = core_component::get_plugin_list('datapreset')) {
-            foreach ($dirs as $dir => $fulldir) {
-                if (preset::is_directory_a_preset($fulldir)) {
-                    $preset = new stdClass();
-                    $preset->isplugin = true;
-                    $preset->path = $fulldir;
-                    $preset->userid = 0;
-                    $preset->shortname = $dir;
-                    $preset->name = preset::get_name_from_plugin($dir);
-                    $presets[] = $preset;
-                }
+        $dirs = core_component::get_plugin_list('datapreset');
+        foreach ($dirs as $dir => $fulldir) {
+            if (preset::is_directory_a_preset($fulldir)) {
+                $preset = new stdClass();
+                $preset->isplugin = true;
+                $preset->path = $fulldir;
+                $preset->userid = 0;
+                $preset->shortname = $dir;
+                $preset->name = preset::get_name_from_plugin($dir);
+                $presets[] = $preset;
             }
         }
 

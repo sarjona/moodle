@@ -41,11 +41,14 @@ $manager = null;
 if ($id) {
     list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
     $manager = manager::create_from_coursemodule($cm);
+    $data = $manager->get_instance();
 } else {
     // We must have the database activity id.
     $d = required_param('d', PARAM_INT);
     $data = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
     $manager = manager::create_from_instance($data);
+    $cm = $manager->get_coursemodule();
+    $course = get_course($cm->course);
 }
 
 $action = optional_param('action', 'view', PARAM_ALPHA); // The page action.
@@ -55,10 +58,7 @@ if (!in_array($action, $allowedactions)) {
     throw new moodle_exception('invalidaccess');
 }
 
-$data = $manager->get_instance();
-$cm = $manager->get_coursemodule();
 $context = $manager->get_context();
-$course = get_course($cm->course);
 
 require_login($course, false, $cm);
 require_capability('mod/data:managetemplates', $context);
