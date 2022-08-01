@@ -22,6 +22,7 @@ use mod_data\preset;
 use moodle_url;
 use templatable;
 use renderable;
+use stdClass;
 
 /**
  * Renderable class for the presets table in the database activity.
@@ -98,27 +99,52 @@ class presets implements templatable, renderable {
                 $presetname = "{$presetname} ({$username})";
             }
 
-            $actions = [];
+            $actions = new stdClass();
+            $actionmenu = null;
             if ($this->manage) {
-                // Only presets saved by users can be removed (so the datapreset plugins shouldn't display the delete button).
+                $actionmenu = new action_menu();
+                $icon = $OUTPUT->pix_icon('i/menu', get_string('actions'));
+                $actionmenu->set_menu_trigger($icon, 'btn btn-icon d-flex align-items-center justify-content-center');
+                $actionmenu->set_action_label(get_string('actions'));
+                $actionmenu->attributes['class'] .= ' presets-actions';
+
+                // Only presets saved by users can be edited or removed (so the datapreset plugins shouldn't display these buttons).
                 if (!$preset->isplugin && data_user_can_delete_preset($PAGE->context, $preset)) {
-                    $deleteactionurl = new moodle_url('/mod/data/preset.php',
-                        ['d' => $this->id, 'fullname' => "{$userid}/{$preset->shortname}",
-                        'action' => 'confirmdelete']);
+                    $params = [
+                        'd' => $this->id,
+                        'action' => 'edit',
+                    ];
+                    $editactionurl = new moodle_url('/mod/data/preset.php', $params);
+                    $attributes = [
+                        'data-action' => 'editpreset',
+                        'data-dataid' => $this->id,
+                        "data-presetname" => $preset->name,
+                        "data-presetdescription" => $preset->description,
+                    ];
+                    $actionmenu->add(new action_menu_link_secondary(
+                        $editactionurl,
+                        null,
+                        get_string('edit'),
+                        $attributes
+                    ));
 
-                    $actionmenu = new action_menu();
-                    $icon = $OUTPUT->pix_icon('i/menu', get_string('actions'));
-                    $actionmenu->set_menu_trigger($icon, 'btn btn-icon d-flex align-items-center justify-content-center');
-                    $actionmenu->set_action_label(get_string('actions'));
-                    $actionmenu->attributes['class'] .= ' presets-actions';
-
+                    // Delete.
+                    $params = [
+                        'd' => $this->id,
+                        'fullname' => "{$userid}/{$preset->shortname}",
+                        'action' => 'confirmdelete',
+                    ];
+                    $deleteactionurl = new moodle_url('/mod/data/preset.php', $params);
                     $actionmenu->add(new action_menu_link_secondary(
                         $deleteactionurl,
                         null,
                         get_string('delete'),
                     ));
-                    $actions = $actionmenu->export_for_template($OUTPUT);
                 }
+            }
+
+            if (!is_null($actionmenu)) {
+                $actions = $actionmenu->export_for_template($OUTPUT);
             }
 
             $presets[] = [

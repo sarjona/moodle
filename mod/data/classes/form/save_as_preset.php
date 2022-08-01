@@ -17,6 +17,7 @@
 namespace mod_data\form;
 
 use context;
+use core\notification;
 use moodle_exception;
 use moodle_url;
 use core_form\dynamic_form;
@@ -39,8 +40,10 @@ class save_as_preset extends dynamic_form {
 
         $this->_form->addElement('hidden', 'd');
         $this->_form->setType('d', PARAM_INT);
-        $this->_form->addElement('hidden', 'action', 'save2');
+        $this->_form->addElement('hidden', 'action', 'save');
         $this->_form->setType('action', PARAM_ALPHANUM);
+        $this->_form->addElement('hidden', 'oldpresetname', '');
+        $this->_form->setType('oldpresetname', PARAM_FILE);
 
         $this->_form->addElement('text', 'name', get_string('name'), ['size' => 60]);
         $this->_form->setType('name', PARAM_FILE);
@@ -95,8 +98,9 @@ class save_as_preset extends dynamic_form {
             if (isset($selectedpreset->name) && !data_user_can_delete_preset($context, $selectedpreset)) {
                 $errors['name'] = get_string('cannotoverwritepreset', 'data');
             }
-        } else {
-            // If the preset exists now then we need to throw an error.
+        } else if ($formdata['action'] == 'saveaspreset' || $formdata['oldpresetname'] != $formdata['name']) {
+
+            // If the preset exists when a new preset is saved or name has changed, then we need to throw an error.
             $sitepresets = $manager->get_available_saved_presets();
             $usercandelete = false;
             foreach ($sitepresets as $preset) {
@@ -132,11 +136,15 @@ class save_as_preset extends dynamic_form {
             throw new moodle_exception('saveaspresetmissingcapability', 'data');
         }
 
-        $d = $this->optional_param('d', null, PARAM_INT);
-        $hasfields = $DB->record_exists('data_fields', ['dataid' => $d]);
+        $action = $this->optional_param('action', '', PARAM_ALPHANUM);
+        if ($action == 'saveaspreset') {
+            // For saving it as a new preset, some fields need to be created; otherwise, an exception will be raised.
+            $d = $this->optional_param('d', null, PARAM_INT);
+            $hasfields = $DB->record_exists('data_fields', ['dataid' => $d]);
 
-        if (!$hasfields) {
-            throw new moodle_exception('nofieldindatabase', 'data');
+            if (!$hasfields) {
+                throw new moodle_exception('nofieldindatabase', 'data');
+            }
         }
     }
 
@@ -171,9 +179,22 @@ class save_as_preset extends dynamic_form {
                     data_delete_site_preset($this->get_data()->name);
                 }
             }
-            $preset = preset::create_from_instance($manager, $this->get_data()->name, $this->get_data()->description);
-            $preset->save();
-            $result = true;
+            $presetname = $this->get_data()->name;
+            if (!empty($this->get_data()->oldpresetname)) {
+                $presetname = $this->get_data()->oldpresetname;
+            }
+            $preset = preset::create_from_instance($manager, $presetname, $this->get_data()->description);
+            if (!empty($this->get_data()->oldpresetname)) {
+                // Update the name and the description, to save the new data.
+                $preset->name = $this->get_data()->name;
+                $preset->description = $this->get_data()->description;
+            }
+            $result = $preset->save();
+
+            if ($result) {
+                // Add notification in the session to be shown when the page is reloaded on the JS side.
+                notification::success(get_string('savesuccess', 'mod_data'));
+            }
         } catch (\Exception $e) {
             $errors[] = $e->getMessage();
         }
@@ -192,6 +213,10 @@ class save_as_preset extends dynamic_form {
     public function set_data_for_dynamic_submission(): void {
         $data = (object)[
             'd' => $this->optional_param('d', 0, PARAM_INT),
+            'action' => $this->optional_param('action', '', PARAM_ALPHANUM),
+            'oldpresetname' => $this->optional_param('presetname', '', PARAM_FILE),
+            'name' => $this->optional_param('presetname', '', PARAM_FILE),
+            'description' => $this->optional_param('presetdescription', '', PARAM_TEXT),
         ];
         $this->set_data($data);
     }
