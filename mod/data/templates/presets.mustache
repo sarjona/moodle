@@ -64,7 +64,7 @@
         </thead>
         <tbody>
             {{#presets}}
-            <tr>
+            <tr data-presethash="{{hash}}">
                 <td class="p-4 border-right">
                     <input type="radio" name="fullname" value="{{userid}}/{{shortname}}" />
                 </td>
@@ -88,5 +88,10 @@
 {{#js}}
     require(['mod_data/selectpreset'], function(selectPreset) {
         selectPreset.init();
+    });
+
+
+    require(['mod_data/editpreset'], function(editPreset) {
+        editPreset.init();
     });
 {{/js}}
