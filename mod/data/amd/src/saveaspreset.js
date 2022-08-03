@@ -24,7 +24,6 @@
 import ModalForm from 'core_form/modalform';
 import Notification from 'core/notification';
 import {get_string as getString} from 'core/str';
-import {add as addToast} from 'core/toast';
 
 const selectors = {
     saveAsPresetButton: '[data-action="saveaspreset"]',
@@ -52,7 +51,12 @@ export const init = () => {
         // Show a toast notification when the form is submitted.
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, event => {
             if (event.detail.result) {
-                getString('savesuccess', 'data').then(addToast).catch();
+                getString('savesuccess', 'mod_data')
+                .then(message => Notification.addNotification({
+                    type: 'info',
+                    message: message
+                }))
+                .catch(Notification.exception);
             } else {
                 Notification.addNotification({
                     type: 'error',
