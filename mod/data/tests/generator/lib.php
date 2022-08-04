@@ -373,6 +373,15 @@ class mod_data_generator extends testing_module_generator {
      * @return preset The preset that has been created.
      */
     public function create_preset(stdClass $instance, stdClass $record = null): preset {
+        global $USER;
+
+        // Set current user if defined.
+        if (isset($record->userid)) {
+            $currentuser = $USER;
+            $user = \core_user::get_user($record->userid);
+            $this->set_user($user);
+        }
+
         if (is_null($record)) {
             $record = new stdClass();
         }
@@ -390,6 +399,10 @@ class mod_data_generator extends testing_module_generator {
         $manager = manager::create_from_instance($instance);
         $preset = preset::create_from_instance($manager, $presetname, $presetdescription);
         $preset->save();
+
+        if (isset($currentuser)) {
+            $this->set_user($currentuser);
+        }
 
         return $preset;
     }
