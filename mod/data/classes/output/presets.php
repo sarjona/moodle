@@ -71,7 +71,7 @@ class presets implements templatable, renderable {
         $presets = $this->get_presets();
         return [
             'd' => $this->id,
-            'formactionul' => $this->formactionurl->out(),
+            'formactionurl' => $this->formactionurl->out(),
             'showmanage' => $this->manage,
             'presets' => $presets,
         ];
@@ -98,6 +98,7 @@ class presets implements templatable, renderable {
                 $username = fullname($presetuser, true);
                 $presetname = "{$presetname} ({$username})";
             }
+            $fullname = "{$userid}/{$preset->shortname}";
 
             $actions = new stdClass();
             $actionmenu = null;
@@ -171,9 +172,16 @@ class presets implements templatable, renderable {
                 $actions = $actionmenu->export_for_template($OUTPUT);
             }
 
+
+            $previewurl = new moodle_url(
+                '/mod/data/preset.php',
+                ['d' => $this->id, 'fullname' => $fullname, 'action' => 'preview']
+            );
+
             $presets[] = [
                 'id' => $this->id,
                 'name' => $preset->name,
+                'url' => $previewurl->out(),
                 'shortname' => $preset->shortname,
                 'fullname' => $presetname,
                 'description' => $preset->description,

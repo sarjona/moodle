@@ -38,6 +38,9 @@ class manager {
     /** Module name. */
     const MODULE = 'data';
 
+    /** The plugin name. */
+    const PLUGINNAME = 'mod_data';
+
     /** Template list with their files required to save the information of a preset. */
     const TEMPLATES_LIST = [
         'listtemplate' => 'listtemplate.html',
@@ -53,7 +56,7 @@ class manager {
     ];
 
     /** @var string plugin path. */
-    private $path;
+    public $path;
 
     /** @var stdClass course_module record. */
     private $instance;
@@ -239,6 +242,7 @@ class manager {
      * @return data_field_base the data field class instance
      */
     public function get_field(stdClass $fieldrecord): data_field_base {
+        global $CFG; // Some old field plugins require $CFG to be in the  scope.
         $filepath = "{$this->path}/field/{$fieldrecord->type}/field.class.php";
         $classname = "data_field_{$fieldrecord->type}";
         if (!file_exists($filepath)) {
@@ -271,6 +275,7 @@ class manager {
         if (empty($templatecontent)) {
             $templatecontent = data_generate_default_template($instance, $templatename, 0, false, false);
         }
+        $options['templatename'] = $templatename;
         // Some templates have extra options.
         if ($templatename === 'singletemplate') {
             $options['comments'] = true;
@@ -319,6 +324,24 @@ class manager {
         ));
         $event->trigger();
 
+        return true;
+    }
+
+    /** Check if the user can view a specific preset.
+     *
+     * @param preset $preset the preset instance.
+     * @param int $userid the user id to check ($USER->id if null).
+     * @return bool if the user can view the preset.
+     */
+    public function can_view_preset (preset $preset, ?int $userid = null) {
+        global $USER;
+        if (!$userid) {
+            $userid = $USER->id;
+        }
+        $presetuserid = $preset->get_userid();
+        if ($presetuserid && $presetuserid != $userid) {
+            return has_capability('mod/data:viewalluserpresets', $this->context, $userid);
+        }
         return true;
     }
 

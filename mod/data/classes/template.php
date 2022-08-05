@@ -49,6 +49,9 @@ class template {
     /** @var string the template. */
     private $templatecontent;
 
+    /** @var string the template name. */
+    private $templatename;
+
     /** @var moodle_url the base url. */
     private $baseurl;
 
@@ -73,6 +76,9 @@ class template {
     /** @var array All template tags (calculated in load_template_tags). */
     protected $tags = [];
 
+    /** @var array The mod_data fields. */
+    protected $fields = [];
+
     /**
      * Class contructor.
      *
@@ -81,8 +87,9 @@ class template {
      * @param manager $manager the current instance manager
      * @param string $templatecontent the template string to use
      * @param array $options an array of extra diplay options
+     * @param array $fields alternative array of fields (for preview presets)
      */
-    public function __construct(manager $manager, string $templatecontent, array $options = []) {
+    public function __construct(manager $manager, string $templatecontent, array $options = [], array $fields = null) {
         $this->manager = $manager;
         $this->instance = $manager->get_instance();
         $this->templatecontent = $templatecontent;
@@ -90,6 +97,7 @@ class template {
         $context = $manager->get_context();
         $this->canmanageentries = has_capability('mod/data:manageentries', $context);
         $this->icons = $this->get_icons();
+        $this->fields = $fields ?? $manager->get_fields();
         $this->add_options($options);
         $this->load_template_tags($templatecontent);
     }
@@ -121,6 +129,7 @@ class template {
         $this->ratings = $options['ratings'] ?? false;
         $this->forcecomments = $options['comments'] ?? false;
         $this->showmore = $options['showmore'] ?? false;
+        $this->templatename = $options['templatename'] ?? 'singletemplate';
     }
 
     /**
@@ -211,13 +220,12 @@ class template {
      */
     private function get_fields_replacements(stdClass $entry): array {
         $result = [];
-        $fields = $this->manager->get_fields();
-        foreach ($fields as $field) {
+        foreach ($this->fields as $field) {
             // Field value.
             $pattern = '[[' . $field->field->name . ']]';
             $result[$pattern] = highlight(
                 $this->search,
-                $field->display_browse_field($entry->id, $this->templatecontent)
+                $field->display_browse_field($entry->id, $this->templatename)
             );
             // Field id.
             $pattern = '[[' . $field->field->name . '#id]]';
@@ -444,8 +452,7 @@ class template {
             ['id' => $cm->id, 'recordid' => $entry->id],
             'mod_data'
         );
-        $fields = $this->manager->get_fields();
-        list($formats, $files) = data_portfolio_caller::formats($fields, $entry);
+        list($formats, $files) = data_portfolio_caller::formats($this->fields, $entry);
         $button->set_formats($formats);
         $result = $button->to_html(PORTFOLIO_ADD_ICON_LINK);
         if (is_null($result)) {
