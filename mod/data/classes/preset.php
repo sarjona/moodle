@@ -16,6 +16,8 @@
 
 namespace mod_data;
 
+use core_component;
+use invalid_parameter_exception;
 use SimpleXMLElement;
 use stdClass;
 use stored_file;
@@ -38,7 +40,7 @@ class preset {
     /** @var string The preset name. */
     public $name;
 
-    /** @var string The preset shortname. For datapreset plugins that's is the folder; for saved presets, that's the preset name. */
+    /** @var string The preset shortname. For datapreset plugins that is the folder; for saved presets, that's the preset name. */
     public $shortname;
 
     /** @var string The preset description. */
@@ -57,8 +59,9 @@ class preset {
      * @param string $shortname the preset shortname
      * @param string|null $description the preset description
      * @param stored_file|null $storedfile for saved presets, that's the file for the root folder
+     * @throws invalid_parameter_exception
      */
-    public function __construct(
+    protected function __construct(
         ?manager $manager,
         bool $isplugin,
         string $name,
@@ -66,6 +69,9 @@ class preset {
         ?string $description = '',
         ?stored_file $storedfile = null
     ) {
+        if (!$isplugin && is_null($manager)) {
+            throw new invalid_parameter_exception('The $manager parameter can only be null for plugin presets.');
+        }
         $this->manager = $manager;
         $this->isplugin = $isplugin;
         $this->name = $name;
@@ -100,15 +106,28 @@ class preset {
      *
      * @param manager|null $manager the current instance manager
      * @param string $pluginname the datapreset plugin name
-     * @return preset
+     * @return preset|null The plugin preset or null if there is no datapreset plugin with the given name.
      */
-    public static function create_from_plugin(?manager $manager, string $pluginname): self {
-        $isplugin = true;
-        $shortname = $pluginname;
+    public static function create_from_plugin(?manager $manager, string $pluginname): ?self {
+        $found = false;
+
+        $plugins = array_keys(core_component::get_plugin_list('datapreset'));
+        foreach ($plugins as $plugin) {
+            if ($plugin == $pluginname) {
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            // If there is no datapreset plugin with this name, return null.
+            return null;
+        }
+
         $name = static::get_name_from_plugin($pluginname);
         $description = static::get_description_from_plugin($pluginname);
 
-        return new self($manager, $isplugin, $name, $shortname, $description);
+        return new self($manager, true, $name, $pluginname, $description);
     }
 
     /**
@@ -125,10 +144,7 @@ class preset {
         $path = '/' . $presetname . '/';
         $file = static::get_file($path, '.');
 
-        $name = $presetname;
-        $description = $description;
-
-        return new self($manager, $isplugin, $name, $name, $description, $file);
+        return new self($manager, $isplugin, $presetname, $presetname, $description, $file);
     }
 
     /**
@@ -139,10 +155,15 @@ class preset {
     public function save(): bool {
         global $USER;
 
+        if ($this->isplugin) {
+            // Plugin presets can't be saved.
+            return false;
+        }
+
         $result = false;
-        $fs = get_file_storage();
         if (is_null($this->storedfile)) {
             // The preset hasn't been saved before.
+            $fs = get_file_storage();
 
             // Create and save the preset.xml file, with the description, settings, fields...
             $filerecord = static::get_filerecord('preset.xml', $this->get_path(), $USER->id);
@@ -168,12 +189,14 @@ class preset {
      * @return string the full path to the exported preset file.
      */
     public function export(): string {
-        global $CFG;
+        if ($this->isplugin) {
+            // For now, only saved presets can be exported.
+            return '';
+        }
 
         $presetname = clean_filename($this->name) . '-preset-' . gmdate("Ymd_Hi");
         $exportsubdir = "mod_data/presetexport/$presetname";
-        make_temp_directory($exportsubdir);
-        $exportdir = "$CFG->tempdir/$exportsubdir";
+        $exportdir = make_temp_directory($exportsubdir);
 
         // Generate and write the preset.xml file.
         $presetxmldata = static::generate_preset_xml();
@@ -295,7 +318,7 @@ class preset {
      *
      * @param string $filepath The preset filepath.
      * @param string $name Attribute name to return.
-     * @return string|null The attribute value or null if the it doesn't exists or the file is not a valid XML.
+     * @return string|null The attribute value; null if the it doesn't exist or the file is not a valid XML.
      */
     protected static function get_attribute_value(string $filepath, string $name): ?string {
         $value = null;
@@ -342,7 +365,7 @@ class preset {
      * @param string $filename the name of the file we want
      * @return stored_file|null the file or null if the file doesn't exist.
      */
-    protected static function get_file(string $filepath, string $filename): ?stored_file {
+    public static function get_file(string $filepath, string $filename): ?stored_file {
         $file = null;
         $fs = get_file_storage();
         $fileexists = $fs->file_exists(
@@ -390,6 +413,11 @@ class preset {
      */
     protected function generate_preset_xml(): string {
         global $DB;
+
+        if ($this->isplugin) {
+            // Only saved presets can generate the preset.xml file.
+            return '';
+        }
 
         $presetxmldata = "<preset>\n\n";
 

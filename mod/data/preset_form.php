@@ -1,7 +1,5 @@
 <?php
 
-use mod_data\preset;
-
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden!');
 }
@@ -19,7 +17,7 @@ class data_existing_preset_form extends moodleform {
         $this->_form->setType('action', PARAM_ALPHANUM);
         $delete = get_string('delete');
         foreach ($this->_customdata['presets'] as $preset) {
-            $userid = $preset instanceof preset ? $preset->get_userid() : $preset->userid;
+            $userid = $preset instanceof \mod_data\preset ? $preset->get_userid() : $preset->userid;
             $this->_form->addElement('radio', 'fullname', null, ' '.$preset->description, $userid.'/'.$preset->shortname);
         }
         $this->_form->addElement('submit', 'importexisting', get_string('choose'));

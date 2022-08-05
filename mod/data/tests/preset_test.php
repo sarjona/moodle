@@ -40,19 +40,6 @@ class preset_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
-        // Create a course and a database activity.
-        $course = $this->getDataGenerator()->create_course();
-        $activity = $this->getDataGenerator()->create_module(manager::MODULE, ['course' => $course]);
-        $manager = manager::create_from_instance($activity);
-
-        // Create a saved preset.
-        $plugingenerator = $this->getDataGenerator()->get_plugin_generator('mod_data');
-        $record = (object) [
-            'name' => 'Testing preset name',
-            'description' => 'Testing preset description',
-        ];
-        $plugingenerator->create_preset($activity, $record);
-
         // Check create_from_plugin is working as expected when an existing plugin is given.
         $pluginname = 'imagegallery';
         $result = preset::create_from_plugin(null, $pluginname);
@@ -67,13 +54,7 @@ class preset_test extends \advanced_testcase {
         // Check create_from_plugin is working as expected when an unexisting plugin is given.
         $pluginname = 'unexisting';
         $result = preset::create_from_plugin(null, $pluginname);
-        $this->assertTrue($result->isplugin);
-        $this->assertEquals(preset::get_name_from_plugin($pluginname), $result->name);
-        $this->assertEquals($pluginname, $result->shortname);
-        $this->assertEquals(preset::get_description_from_plugin($pluginname), $result->description);
-        $this->assertEmpty($result->get_userid());
-        $this->assertEmpty($result->storedfile);
-        $this->assertNull($result->get_path());
+        $this->assertNull($result);
     }
 
     /**
@@ -184,6 +165,11 @@ class preset_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
+        // Save should return false when trying to save a plugin preset.
+        $preset = preset::create_from_plugin(null, 'imagegallery');
+        $result = $preset->save();
+        $this->assertFalse($result);
+
         // Create a course and a database activity.
         $course = $this->getDataGenerator()->create_course();
         $activity = $this->getDataGenerator()->create_module(manager::MODULE, ['course' => $course]);
@@ -204,7 +190,7 @@ class preset_test extends \advanced_testcase {
         ];
         $plugingenerator->create_preset($activity, $record);
 
-        // Save should return false when trying to save an existing preset.
+        // Save should return false when trying to save an existing saved preset.
         $preset = preset::create_from_instance($manager, $record->name, $record->description);
         $result = $preset->save();
         $this->assertFalse($result);
@@ -234,6 +220,11 @@ class preset_test extends \advanced_testcase {
     public function test_export() {
         $this->resetAfterTest();
         $this->setAdminUser();
+
+        // Export should return empty string when trying to export a plugin preset.
+        $preset = preset::create_from_plugin(null, 'imagegallery');
+        $result = $preset->export();
+        $this->assertEmpty($result);
 
         // Create a course and a database activity.
         $course = $this->getDataGenerator()->create_course();
@@ -412,7 +403,7 @@ class preset_test extends \advanced_testcase {
         $description = preset::get_description_from_plugin('imagegallery');
         $this->assertEquals('Use this preset to collect images.', $description);
 
-        // However, if the plugin doesn't exist or the modulename is not defined, the preset shortname will be returned.
+        // However, if the plugin doesn't exist or the modulename is not defined, empty string will be returned.
         $presetshortname = 'nonexistingpreset';
         $description = preset::get_description_from_plugin($presetshortname);
         $this->assertEmpty($description);
@@ -430,6 +421,16 @@ class preset_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
+        // Make accessible the method.
+        $reflection = new \ReflectionClass(preset::class);
+        $method = $reflection->getMethod('generate_preset_xml');
+        $method->setAccessible(true);
+
+        // The method should return empty string when trying to generate preset.xml for a plugin preset.
+        $preset = preset::create_from_plugin(null, 'imagegallery');
+        $result = $method->invokeArgs($preset, []);
+        $this->assertEmpty($result);
+
         // Create a course and a database activity.
         $course = $this->getDataGenerator()->create_course();
         $activity = $this->getDataGenerator()->create_module(manager::MODULE, array_merge(['course' => $course], $params));
@@ -444,10 +445,7 @@ class preset_test extends \advanced_testcase {
         $manager = manager::create_from_instance($activity);
         $preset = preset::create_from_instance($manager, $activity->name, $description);
 
-        // Make accessible the method and call it.
-        $reflection = new \ReflectionClass(preset::class);
-        $method = $reflection->getMethod('generate_preset_xml');
-        $method->setAccessible(true);
+        // Call the generate_preset_xml method.
         $result = $method->invokeArgs($preset, []);
         // Check is a valid XML.
         $parsedxml = simplexml_load_string($result);
@@ -494,5 +492,37 @@ class preset_test extends \advanced_testcase {
                 'description' => 'This is a description',
             ],
         ];
+    }
+
+    /**
+     * Test for get_file().
+     *
+     * @covers ::get_file
+     */
+    public function test_get_file() {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        // Create a course and a database activity.
+        $course = $this->getDataGenerator()->create_course();
+        $activity = $this->getDataGenerator()->create_module(manager::MODULE, ['course' => $course]);
+        $manager = manager::create_from_instance($activity);
+
+        $presetname = 'Saved preset';
+        // Check file doesn't exist if the preset hasn't been saved yet.
+        $preset = preset::create_from_instance($manager, $presetname);
+        $file = preset::get_file($preset->get_path(), 'preset.xml');
+        $this->assertNull($file);
+
+        // Check file is not empty when there is a saved preset with this name.
+        $preset->save();
+        $file = preset::get_file($preset->get_path(), 'preset.xml');
+        $this->assertNotNull($file);
+        $this->assertStringContainsString($presetname, $file->get_filepath());
+        $this->assertEquals('preset.xml', $file->get_filename());
+
+        // Check invalid preset file name doesn't exist.
+        $file = preset::get_file($preset->get_path(), 'unexistingpreset.xml');
+        $this->assertNull($file);
     }
 }
