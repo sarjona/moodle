@@ -51,6 +51,7 @@ class presets_action_bar implements templatable, renderable {
         $importpresetlink = new moodle_url('/mod/data/preset.php', ['d' => $this->id, 'action' => 'import']);
 
         return [
+            'd' => $this->id,
             'importpreseturl' => $importpresetlink->out(false),
         ];
     }

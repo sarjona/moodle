@@ -55,8 +55,7 @@ if ($id) {
 }
 
 $action = optional_param('action', 'view', PARAM_ALPHA); // The page action.
-$allowedactions = ['view', 'import', 'importzip', 'finishimport',
-    'export', 'preview'];
+$allowedactions = ['view', 'import', 'finishimport', 'export', 'preview', 'importmapping'];
 if (!in_array($action, $allowedactions)) {
     throw new moodle_exception('invalidaccess');
 }
@@ -111,14 +110,6 @@ if ($action === 'export') {
     unlink($exportfile);
     exit(0);
 }
-
-$formimportzip = new data_import_preset_zip_form();
-$formimportzip->set_data(array('d' => $data->id));
-
-if ($formimportzip->is_cancelled()) {
-    redirect(new moodle_url('/mod/data/preset.php', ['d' => $data->id]));
-}
-
 // Preset preview injects CSS and JS to the page and should be done before the page header.
 if ($action === 'preview') {
     $fullname = optional_param('fullname', '', PARAM_PATH); // The directory the preset is in.
@@ -152,12 +143,11 @@ if ($errormsg !== '' && get_string_manager()->string_exists($errormsg, 'mod_data
     echo $OUTPUT->notification(get_string($statusmsg, 'mod_data'), 'notifysuccess');
 }
 
-if ($formdata = $formimportzip->get_data()) {
+if ($action == 'importmapping') {
     echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
     $file = new stdClass;
-    $file->name = $formimportzip->get_new_filename('importfile');
-    $file->path = $formimportzip->save_temp_file('importfile');
-    $importer = new data_preset_upload_importer($course, $cm, $data, $file->path);
+    $filepath = optional_param('filepath', '', PARAM_PATH);
+    $importer = new data_preset_upload_importer($course, $cm, $data, $CFG->tempdir . $filepath);
     echo $renderer->import_setting_mappings($data, $importer);
     echo $OUTPUT->footer();
     exit(0);
@@ -201,15 +191,10 @@ if (in_array($action, ['finishimport'])) {
     exit(0);
 }
 
-if ($action === 'import') {
-    echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
-    echo $formimportzip->display();
-} else {
-    $actionbar = new \mod_data\output\action_bar($data->id, $url);
-    echo $actionbar->get_presets_action_bar();
-    echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
-    $presets = new \mod_data\output\presets($data->id, $presets, new \moodle_url('/mod/data/field.php'), true);
-    echo $renderer->render_presets($presets);
-}
+$actionbar = new \mod_data\output\action_bar($data->id, $url);
+echo $actionbar->get_presets_action_bar();
+echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
+$presets = new \mod_data\output\presets($data->id, $presets, new \moodle_url('/mod/data/field.php'), true);
+echo $renderer->render_presets($presets);
 
 echo $OUTPUT->footer();
