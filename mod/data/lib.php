@@ -1108,7 +1108,9 @@ function data_update_instance($data) {
     require_once($CFG->dirroot.'/mod/data/locallib.php');
 
     $data->timemodified = time();
-    $data->id           = $data->instance;
+    if (!empty($data->instance)) {
+        $data->id = $data->instance;
+    }
 
     if (empty($data->assessed)) {
         $data->assessed = 0;
@@ -2252,6 +2254,8 @@ function is_directory_a_preset($directory) {
 
 /**
  * Abstract class used for data preset importers
+ *
+ * @deprecated since Moodle 4.1 MDL-75140 - please do not use this class any more.
  */
 abstract class data_preset_importer {
 
@@ -2269,6 +2273,11 @@ abstract class data_preset_importer {
      * @param string $directory
      */
     public function __construct($course, $cm, $module, $directory) {
+        debugging(
+            'data_preset_importer is deprecated. Please use mod\\data\\importer\\preset_importer instead',
+            DEBUG_DEVELOPER
+        );
+
         $this->course = $course;
         $this->cm = $cm;
         $this->module = $module;
@@ -2533,10 +2542,18 @@ abstract class data_preset_importer {
 
 /**
  * Data preset importer for uploaded presets
+ *
+ * @deprecated since Moodle 4.1 MDL-75140 - please do not use this class any more.
  */
 class data_preset_upload_importer extends data_preset_importer {
     public function __construct($course, $cm, $module, $filepath) {
         global $USER;
+
+        debugging(
+            'data_preset_upload_importer is deprecated. Please use mod\\data\\importer\\preset_upload_importer instead',
+            DEBUG_DEVELOPER
+        );
+
         if (is_file($filepath)) {
             $fp = get_file_packer();
             if ($fp->extract_to_pathname($filepath, $filepath.'_extracted')) {
@@ -2553,11 +2570,19 @@ class data_preset_upload_importer extends data_preset_importer {
 
 /**
  * Data preset importer for existing presets
+ *
+ * @deprecated since Moodle 4.1 MDL-75140 - please do not use this class any more.
  */
 class data_preset_existing_importer extends data_preset_importer {
     protected $userid;
     public function __construct($course, $cm, $module, $fullname) {
         global $USER;
+
+        debugging(
+            'data_preset_existing_importer is deprecated. Please use mod\\data\\importer\\preset_existing_importer instead',
+            DEBUG_DEVELOPER
+        );
+
         list($userid, $shortname) = explode('/', $fullname, 2);
         $context = context_module::instance($cm->id);
         if ($userid && ($userid != $USER->id) && !has_capability('mod/data:manageuserpresets', $context) && !has_capability('mod/data:viewalluserpresets', $context)) {

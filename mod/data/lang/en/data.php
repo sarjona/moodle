@@ -214,6 +214,7 @@ $string['expired'] = 'Sorry, this activity closed on {$a} and is no longer avail
 $string['importentries'] = 'Import entries';
 $string['importpreset'] = 'Import a preset';
 $string['importsuccess'] = 'The preset has been successfully applied.';
+$string['importfail'] = 'An error ocurred while applying the preset.';
 $string['includeapproval'] = 'Include approval status';
 $string['includetags'] = 'Include tags';
 $string['includetime'] = 'Include time added/modified';

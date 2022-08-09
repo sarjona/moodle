@@ -119,17 +119,28 @@ $data->instance   = $cm->instance;
  ***********************************/
 $renderer = $PAGE->get_renderer('mod_data');
 
+$backurl = new moodle_url('/mod/data/field.php', ['id' => $cm->id]);
 if ($formimportzip->is_cancelled()) {
-    redirect(new moodle_url('/mod/data/field.php', ['d' => $data->id]));
+    redirect($backurl);
 } else if ($formdata = $formimportzip->get_data()) {
-    $fieldactionbar = $actionbar->get_fields_action_bar();
-    data_print_header($course, $cm, $data, false, $fieldactionbar);
-    echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
     $file = new stdClass;
     $file->name = $formimportzip->get_new_filename('importfile');
     $file->path = $formimportzip->save_temp_file('importfile');
-    $importer = new data_preset_upload_importer($course, $cm, $data, $file->path);
-    echo $renderer->import_setting_mappings($data, $importer);
+    $importer = new \mod_data\importer\preset_upload_importer($manager, $file->path);
+
+    if (!$importer->needs_mapping()) {
+        if ($importer->import(false)) {
+            \core\notification::success(get_string('importsuccess', 'mod_data'));
+        } else {
+            \core\notification::error(get_string('presetapplied', 'mod_data'));
+        }
+        redirect($backurl);
+    }
+
+    $fieldactionbar = $actionbar->get_fields_action_bar();
+    data_print_header($course, $cm, $data, false, $fieldactionbar);
+    echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
+    echo $renderer->importing($data, $importer);
     echo $OUTPUT->footer();
     exit(0);
 }
@@ -143,9 +154,9 @@ if ($action == 'finishimport' && confirm_sesskey()) {
         if (!file_exists($presetdir) || !is_dir($presetdir)) {
             throw new moodle_exception('cannotimport', 'error');
         }
-        $importer = new data_preset_upload_importer($course, $cm, $data, $presetdir);
+        $importer = new \mod_data\importer\preset_upload_importer($manager, $presetdir);
     } else {
-        $importer = new data_preset_existing_importer($course, $cm, $data, $fullname);
+        $importer = new \mod_data\importer\preset_existing_importer($manager, $fullname);
     }
 
     $importer->import($overwritesettings);
@@ -306,17 +317,39 @@ switch ($mode) {
         exit;
 
     case 'usepreset':
-        $PAGE->navbar->add(get_string('usestandard', 'data'));
-        $fieldactionbar = $actionbar->get_fields_action_bar();
-        data_print_header($course, $cm, $data, false, $fieldactionbar);
-
         if ($action === 'select') {
-            if (!empty($fullname)) {
-                echo $OUTPUT->heading(get_string('usestandard', 'data'), 2, 'mb-4');
-                $importer = new data_preset_existing_importer($course, $cm, $data, $fullname);
-                echo $renderer->import_setting_mappings($data, $importer);
+            if (!$fullname) {
+                $presetdir = $CFG->tempdir . '/forms/' . required_param('directory', PARAM_FILE);
+                if (!file_exists($presetdir) || !is_dir($presetdir)) {
+                    throw new moodle_exception('cannotimport', 'error');
+                }
+                $importer = new \mod_data\importer\preset_upload_importer($manager, $presetdir);
+            } else {
+                $importer = new \mod_data\importer\preset_existing_importer($manager, $fullname);
             }
+
+            if (!$importer->needs_mapping()) {
+                if ($importer->import(false)) {
+                    \core\notification::success(get_string('importsuccess', 'mod_data'));
+                    $backurl = new moodle_url('/mod/data/field.php', ['id' => $cm->id]);
+                } else {
+                    \core\notification::error(get_string('presetapplied', 'mod_data'));
+                    $backurl = new moodle_url('/mod/data/preset.php', ['id' => $cm->id]);
+                }
+                redirect($backurl);
+            }
+
+            // Go for the mapping options.
+            $PAGE->navbar->add(get_string('usestandard', 'data'));
+            $fieldactionbar = $actionbar->get_fields_action_bar();
+            data_print_header($course, $cm, $data, false, $fieldactionbar);
+            echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
+            echo $renderer->importing($data, $importer);
+
         } else {
+            $PAGE->navbar->add(get_string('usestandard', 'data'));
+            $fieldactionbar = $actionbar->get_fields_action_bar();
+            data_print_header($course, $cm, $data, false, $fieldactionbar);
             echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
             $presets = $manager->get_available_presets();
             $presetsdata = new \mod_data\output\presets($data->id, $presets,

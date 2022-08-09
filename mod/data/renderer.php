@@ -4,7 +4,31 @@ defined('MOODLE_INTERNAL') || die();
 
 class mod_data_renderer extends plugin_renderer_base {
 
+    /**
+     * Rendering setting and mapping page to import a preset.
+     *
+     * @param stdClass $datamodule  Database module to import to.
+     * @param data_preset_importer $importer Importer instance to use for the importing.
+     * @return string
+     * @deprecated since Moodle 4.1 MDL-75140 - please do not use this class any more.
+     */
     public function import_setting_mappings($datamodule, data_preset_importer $importer) {
+        debugging('import_setting_mappings is deprecated. Please use importing instead', DEBUG_DEVELOPER);
+
+        $manager = \mod_data\manager::create_from_coursemodule($datamodule);
+        $fullname = $importer->get_directory();
+        return $this->importing($datamodule, new \mod_data\importer\preset_existing_importer($manager, $fullname));
+    }
+
+    /**
+     * Importing a preset on a database module.
+     *
+     * @param stdClass $datamodule  Database module to import to.
+     * @param \mod_data\importer\preset_importer $importer Importer instance to use for the importing.
+     *
+     * @return string
+     */
+    public function importing(stdClass $datamodule, \mod_data\importer\preset_importer $importer): string {
 
         $strblank = get_string('blank', 'data');
         $strcontinue = get_string('continue');
