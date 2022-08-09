@@ -108,8 +108,9 @@ class presets implements templatable, renderable {
                 $actionmenu->set_action_label(get_string('actions'));
                 $actionmenu->attributes['class'] .= ' presets-actions';
 
-                // Only presets saved by users can be edited or removed (so the datapreset plugins shouldn't display these buttons).
+                // Edit.
                 if (!$preset->isplugin && data_user_can_delete_preset($PAGE->context, $preset)) {
+                    // Only presets saved by users can be edited (so the datapreset plugins shouldn't display these buttons).
                     $params = [
                         'd' => $this->id,
                         'action' => 'edit',
@@ -127,8 +128,26 @@ class presets implements templatable, renderable {
                         get_string('edit'),
                         $attributes
                     ));
+                }
 
-                    // Delete.
+                // Export.
+                if (!$preset->isplugin) {
+                    $params = [
+                        'd' => $this->id,
+                        'presetname' => $preset->name,
+                        'action' => 'export',
+                    ];
+                    $exporturl = new moodle_url('/mod/data/preset.php', $params);
+                    $actionmenu->add(new action_menu_link_secondary(
+                        $exporturl,
+                        null,
+                        get_string('export', 'mod_data'),
+                    ));
+                }
+
+                // Delete.
+                if (!$preset->isplugin && data_user_can_delete_preset($PAGE->context, $preset)) {
+                    // Only presets saved by users can be deleted (so the datapreset plugins shouldn't display these buttons).
                     $params = [
                         'd' => $this->id,
                         'fullname' => "{$userid}/{$preset->shortname}",
