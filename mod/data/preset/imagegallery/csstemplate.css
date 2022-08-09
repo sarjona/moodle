@@ -1,40 +1,30 @@
 /******  List View CSS ******/
 
-#pictures {
-    width: 750px;
+.imagegallery-listentry .img-wrapper img {
+    width: 300px;
+    height: auto;
 }
 
-.picture {
-    padding: 5px;
-    border-style: solid;
-    border-width: thin;
-    border-color: #779;
-    background-color: white;
-    display: inline-block;
+#imagegallery-list .card {
+    margin-top: 30px;
+    margin-bottom: 15px;
 }
 
-.pictureframe {
-    padding: 5px;
-    display: inline-block;
-}
-
-.picturediv {
-    display: inline-block;
-    max-width: 150px;
-    max-height: 200px;
-}
-
-.inline {
-    display: inline;
+.imagegallery-listentry .card-horizontal {
+    display: flex;
+    flex: 1 1 auto;
 }
 
 /*****  Single View CSS *****/
 
-.caption {
-    font-style: italic;
+.imagegallery-single-body .col {
+    padding: 10px 15px;
 }
 
-#singleimage img {
-    width: 700px;
-    height: auto;
+/*****  Add entry CSS *****/
+
+.imagegallery-addentry .form-group label,
+.asearchtemplate .form-group label {
+    font-weight: bold;
+    padding-top: 20px;
 }
