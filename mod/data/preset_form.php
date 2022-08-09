@@ -46,7 +46,48 @@ class data_existing_preset_form extends moodleform {
     }
 }
 
+/**
+ * Import preset class
+ *
+ * This is deprecated, please use the dynamic_form form (\mod_data\form\import_presets)
+ * @deprecated since 4.1
+ */
 class data_import_preset_zip_form extends moodleform {
+    /**
+     * Constructor
+     *
+     * @param mixed $action the action attribute for the form. If empty defaults to auto detect the
+     *              current url. If a moodle_url object then outputs params as hidden variables.
+     * @param mixed $customdata if your form defintion method needs access to data such as $course
+     *              $cm, etc. to construct the form definition then pass it in this array. You can
+     *              use globals for somethings.
+     * @param string $method if you set this to anything other than 'post' then _GET and _POST will
+     *               be merged and used as incoming data to the form.
+     * @param string $target target frame for form submission. You will rarely use this. Don't use
+     *               it if you don't need to as the target attribute is deprecated in xhtml strict.
+     * @param mixed $attributes you can pass a string of html attributes here or an array.
+     *               Special attribute 'data-random-ids' will randomise generated elements ids. This
+     *               is necessary when there are several forms on the same page.
+     *               Special attribute 'data-double-submit-protection' set to 'off' will turn off
+     *               double-submit protection JavaScript - this may be necessary if your form sends
+     *               downloadable files in response to a submit button, and can't call
+     *               \core_form\util::form_download_complete();
+     * @param bool $editable
+     * @param array $ajaxformdata Forms submitted via ajax, must pass their data here, instead of relying on _GET and _POST.
+     */
+    public function __construct($action=null, $customdata=null, $method='post', $target='', $attributes=null, $editable=true,
+        $ajaxformdata=null) {
+        debugging('data_import_preset_zip_form class is deprecated. Please use \mod_data\form\import_presets instead.',
+            DEBUG_DEVELOPER);
+        parent($action, $customdata, $method, $target, $attributes, $editable, $ajaxformdata);
+    }
+
+    /**
+     * Form definition
+     *
+     * @return void
+     * @throws coding_exception
+     */
     public function definition() {
         $this->_form->addElement('header', 'uploadpreset', get_string('fromfile', 'data'));
         $this->_form->addHelpButton('uploadpreset', 'fromfile', 'data');
@@ -57,7 +98,7 @@ class data_import_preset_zip_form extends moodleform {
         $this->_form->setType('mode', PARAM_ALPHANUM);
         $this->_form->addElement('hidden', 'action', 'importzip');
         $this->_form->setType('action', PARAM_ALPHANUM);
-        $this->_form->addElement('filepicker', 'importfile', get_string('choosepreset', 'data'));
+        $this->_form->addElement('filepicker', 'importfile', get_string('chooseorupload', 'data'));
         $this->_form->addRule('importfile', null, 'required');
         $buttons = [
             $this->_form->createElement('submit', 'submitbutton', get_string('save')),

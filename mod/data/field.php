@@ -100,9 +100,6 @@ $manager = manager::create_from_coursemodule($cm);
 $context = $manager->get_context();
 require_capability('mod/data:managetemplates', $context);
 
-$formimportzip = new data_import_preset_zip_form();
-$formimportzip->set_data(array('d' => $data->id));
-
 $actionbar = new \mod_data\output\action_bar($data->id, $PAGE->url);
 
 $PAGE->set_title(get_string('course') . ': ' . $course->fullname);
@@ -118,52 +115,6 @@ $data->instance   = $cm->instance;
  *        Data Processing           *
  ***********************************/
 $renderer = $PAGE->get_renderer('mod_data');
-
-if ($formimportzip->is_cancelled()) {
-    redirect(new moodle_url('/mod/data/field.php', ['d' => $data->id]));
-} else if ($formdata = $formimportzip->get_data()) {
-    $fieldactionbar = $actionbar->get_fields_action_bar();
-    data_print_header($course, $cm, $data, false, $fieldactionbar);
-    echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
-    $file = new stdClass;
-    $file->name = $formimportzip->get_new_filename('importfile');
-    $file->path = $formimportzip->save_temp_file('importfile');
-    $importer = new data_preset_upload_importer($course, $cm, $data, $file->path);
-    echo $renderer->import_setting_mappings($data, $importer);
-    echo $OUTPUT->footer();
-    exit(0);
-}
-
-if ($action == 'finishimport' && confirm_sesskey()) {
-    data_print_header($course, $cm, $data, false);
-    $overwritesettings = optional_param('overwritesettings', false, PARAM_BOOL);
-
-    if (!$fullname) {
-        $presetdir = $CFG->tempdir . '/forms/' . required_param('directory', PARAM_FILE);
-        if (!file_exists($presetdir) || !is_dir($presetdir)) {
-            throw new moodle_exception('cannotimport', 'error');
-        }
-        $importer = new data_preset_upload_importer($course, $cm, $data, $presetdir);
-    } else {
-        $importer = new data_preset_existing_importer($course, $cm, $data, $fullname);
-    }
-
-    $importer->import($overwritesettings);
-    $strimportsuccess = get_string('importsuccess', 'data');
-    $straddentries = get_string('addentries', 'data');
-    $strtodatabase = get_string('todatabase', 'data');
-
-    if (!$DB->get_records('data_records', array('dataid' => $data->id))) {
-        echo $OUTPUT->notification("$strimportsuccess <a href='edit.php?d=$data->id'>$straddentries</a> $strtodatabase",
-            'notifysuccess');
-    } else {
-        echo $OUTPUT->notification("$strimportsuccess", 'notifysuccess');
-    }
-
-    echo $OUTPUT->continue_button(new moodle_url('/mod/data/field.php', ['d' => $data->id]));
-    echo $OUTPUT->footer();
-    exit;
-}
 
 switch ($mode) {
 
@@ -294,16 +245,6 @@ switch ($mode) {
             exit;
         }
         break;
-
-    case 'import':
-        $PAGE->navbar->add(get_string('importpreset', 'data'));
-        $fieldactionbar = $actionbar->get_fields_action_bar();
-        data_print_header($course, $cm, $data, false, $fieldactionbar);
-
-        echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
-        echo $formimportzip->display();
-        echo $OUTPUT->footer();
-        exit;
 
     case 'usepreset':
         $PAGE->navbar->add(get_string('usestandard', 'data'));

@@ -60,21 +60,17 @@ class action_bar {
         global $PAGE, $DB;
 
         $createfieldlink = new moodle_url('/mod/data/field.php', ['d' => $this->id]);
-        $importlink = new moodle_url('/mod/data/field.php', ['d' => $this->id, 'mode' => 'import']);
         $presetslink = new moodle_url('/mod/data/field.php', ['d' => $this->id, 'mode' => 'usepreset']);
 
         $menu = [
             $createfieldlink->out(false) => get_string('managefields', 'mod_data'),
-            $importlink->out(false) => get_string('importpreset', 'mod_data'),
             $presetslink->out(false) => get_string('usestandard', 'mod_data'),
         ];
 
         $selected = $createfieldlink->out(false);
         $mode = $this->currenturl->get_param('mode');
 
-        if ($mode == 'import') {
-            $selected = $importlink->out(false);
-        } else if ($mode === 'usepreset') {
+        if ($mode === 'usepreset') {
             $selected = $presetslink->out(false);
         }
 
