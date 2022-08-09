@@ -154,9 +154,23 @@ class presets implements templatable, renderable {
                     get_string('edit'),
                     $attributes
                 ));
+            }
 
-                // Delete.
-                $params = [
+            // Export.
+            $params = [
+                'd' => $this->id,
+                'presetname' => $preset->name,
+                'action' => 'export',
+            ];
+            $exporturl = new moodle_url('/mod/data/preset.php', $params);
+            $actionmenu->add(new action_menu_link_secondary(
+                $exporturl,
+                null,
+                get_string('export', 'mod_data'),
+            ));
+
+            // Delete.
+            if ($preset->can_manage()) {                $params = [
                     'd' => $this->id,
                     'action' => 'delete',
                 ];
