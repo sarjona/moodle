@@ -217,8 +217,8 @@ if ($PAGE->user_allowed_editing() && !$PAGE->theme->haseditswitch) {
         $urlediting = 'on';
         $strediting = get_string('blocksediton');
     }
-    $url = new moodle_url($CFG->wwwroot.'/mod/data/view.php', array('id' => $cm->id, 'edit' => $urlediting));
-    $PAGE->set_button($OUTPUT->single_button($url, $strediting));
+    $editurl = new moodle_url($CFG->wwwroot.'/mod/data/view.php', array('id' => $cm->id, 'edit' => $urlediting));
+    $PAGE->set_button($OUTPUT->single_button($editurl, $strediting));
 }
 
 if ($mode == 'asearch') {
@@ -426,8 +426,8 @@ if ($showactivity) {
 
         } else {
             //  We have some records to print.
-            $url = new moodle_url('/mod/data/view.php', array('d' => $data->id, 'sesskey' => sesskey()));
-            echo html_writer::start_tag('form', array('action' => $url, 'method' => 'post'));
+            $formurl = new moodle_url('/mod/data/view.php', array('d' => $data->id, 'sesskey' => sesskey()));
+            echo html_writer::start_tag('form', array('action' => $formurl, 'method' => 'post'));
 
             if ($maxcount != $totalcount) {
                 $a = new stdClass();
@@ -447,7 +447,6 @@ if ($showactivity) {
                     $baseurlparams['page'] = $page;
                 }
                 $baseurl = new moodle_url($baseurl, $baseurlparams);
-                echo $OUTPUT->paging_bar($totalcount, $page, $nowperpage, $baseurl);
 
                 if (empty($data->singletemplate)){
                     echo $OUTPUT->notification(get_string('nosingletemplate','data'));
@@ -479,18 +478,14 @@ if ($showactivity) {
                 ];
                 $parser = $manager->get_template('singletemplate', $options);
                 echo $parser->parse_entries($records);
-
-                echo $OUTPUT->paging_bar($totalcount, $page, $nowperpage, $baseurl);
-
-            } else {                                  // List template
+            } else {
+                // List template.
                 $baseurl = '/mod/data/view.php';
                 $baseurlparams = ['d' => $data->id, 'advanced' => $advanced, 'paging' => $paging];
                 if (!empty($search)) {
                     $baseurlparams['filter'] = 1;
                 }
                 $baseurl = new moodle_url($baseurl, $baseurlparams);
-
-                echo $OUTPUT->paging_bar($totalcount, $page, $nowperpage, $baseurl);
 
                 if (empty($data->listtemplate)){
                     echo $OUTPUT->notification(get_string('nolisttemplate','data'));
@@ -506,34 +501,17 @@ if ($showactivity) {
                 echo $parser->parse_entries($records);
 
                 echo $data->listtemplatefooter;
-
-                echo $OUTPUT->paging_bar($totalcount, $page, $nowperpage, $baseurl->out());
             }
 
-            if ($mode != 'single' && $canmanageentries) {
-                // Build the select/deselect all control.
-                $selectallid = 'selectall-listview-entries';
-                $togglegroup = 'listview-entries';
-                $mastercheckbox = new \core\output\checkbox_toggleall($togglegroup, true, [
-                    'id' => $selectallid,
-                    'name' => $selectallid,
-                    'value' => 1,
-                    'label' => get_string('selectall'),
-                    'classes' => 'btn-secondary mr-1',
-                ], true);
-                echo $OUTPUT->render($mastercheckbox);
-
-                $deleteselected = html_writer::empty_tag('input', array(
-                    'class' => 'btn btn-secondary',
-                    'type' => 'submit',
-                    'value' => get_string('deleteselected'),
-                    'disabled' => true,
-                    'data-action' => 'toggle',
-                    'data-togglegroup' => $togglegroup,
-                    'data-toggle' => 'action',
-                ));
-                echo $deleteselected;
-            }
+            $stickyfooter = new mod_data\output\view_footer(
+                $manager,
+                $totalcount,
+                $page,
+                $nowperpage,
+                $baseurl,
+                $mode
+            );
+            echo $OUTPUT->render($stickyfooter);
 
             echo html_writer::end_tag('form');
         }

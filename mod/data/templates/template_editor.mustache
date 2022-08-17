@@ -91,33 +91,34 @@
             {{/editors}}
         </div>
     </div>
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <div>
-                <input
-                    class="btn btn-secondary"
-                    type="submit"
-                    name="defaultform"
-                    value="{{#str}} resettemplate, data {{/str}}"
-                />
-                <input
-                    class="btn btn-primary"
-                    type="submit"
-                    value="{{#str}} savetemplate, data {{/str}}"
-                />
-            </div>
-            {{#disableeditor}}
-            <div class="ml-auto">
-                <input
-                    type="checkbox"
-                    name="useeditor"
-                    id="useeditor"
-                    value="1"
-                    {{#usehtmleditor}}checked{{/usehtmleditor}}
-                />
-                <label for="useeditor">{{#str}} editorenable, data {{/str}}</label>
-            </div>
-            {{/disableeditor}}
+    {{< core/sticky_footer }}
+        {{$ stickyclasses }} justify-content-between {{/ stickyclasses }}
+        {{$ stickycontent }}
+        <div>
+            <input
+                class="btn btn-secondary"
+                type="submit"
+                name="defaultform"
+                value="{{#str}} resettemplate, data {{/str}}"
+            />
+            <input
+                class="btn btn-primary"
+                type="submit"
+                value="{{#str}} savetemplate, data {{/str}}"
+            />
         </div>
-    </div>
+        {{#disableeditor}}
+        <div class="ml-auto">
+            <input
+                type="checkbox"
+                name="useeditor"
+                id="useeditor"
+                value="1"
+                {{#usehtmleditor}}checked{{/usehtmleditor}}
+            />
+            <label for="useeditor">{{#str}} editorenable, data {{/str}}</label>
+        </div>
+        {{/disableeditor}}
+        {{/ stickycontent }}
+    {{/ core/sticky_footer }}
 </form>

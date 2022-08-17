@@ -118,5 +118,3 @@ class mod_data_export_form extends moodleform {
     }
 
 }
-
-

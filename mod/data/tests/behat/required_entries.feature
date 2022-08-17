@@ -41,7 +41,7 @@ Feature: Users can be required to specify certain fields when adding entries to 
     RTOC Option 1
     RTOC Option 2
     """
-    And I press "Add"
+    And I press "Save"
     And I add a "Latlong" field to "Test database name" database and I fill the form with:
       | Field name | Required Latlong |
       | Field description | Required Latlong |
@@ -88,7 +88,7 @@ Feature: Users can be required to specify certain fields when adding entries to 
     Option 1
     Option 2
     """
-    And I press "Add"
+    And I press "Save"
     And I add a "Checkbox" field to "Test database name" database and I fill the form with:
       | Field name | Not required Checkbox |
       | Field description | Not required Checkbox |

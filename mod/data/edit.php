@@ -23,63 +23,54 @@
  * @package mod_data
  */
 
+use mod_data\manager;
+
 require_once('../../config.php');
 require_once('locallib.php');
 require_once("$CFG->libdir/rsslib.php");
 require_once("$CFG->libdir/form/filemanager.php");
 
-$id    = optional_param('id', 0, PARAM_INT);    // course module id
-$d     = optional_param('d', 0, PARAM_INT);    // database id
-$rid   = optional_param('rid', 0, PARAM_INT);    //record id
-$mode ='addtemplate';    //define the mode for this page, only 1 mode available
+$id = optional_param('id', 0, PARAM_INT); // Course module id.
+$d = optional_param('d', 0, PARAM_INT); // Database id.
+$rid = optional_param('rid', 0, PARAM_INT); // Record id.
+$mode = 'addtemplate'; // Define the mode for this page, only 1 mode available.
 $tags = optional_param_array('tags', [], PARAM_TAGLIST);
 $redirectbackto = optional_param('backto', '', PARAM_LOCALURL); // The location to redirect back.
 
 $url = new moodle_url('/mod/data/edit.php');
+
+$record = null;
+
+if ($id) {
+    list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
+    $manager = manager::create_from_coursemodule($cm);
+} else {   // We must have $d.
+    $data = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
+    $manager = manager::create_from_instance($data);
+    $cm = $manager->get_coursemodule();
+    $course = get_course($cm->course);
+}
+$data = $manager->get_instance();
+$context = $manager->get_context();
+
 if ($rid !== 0) {
-    $record = $DB->get_record('data_records', array(
-            'id' => $rid,
-            'dataid' => $d,
-        ), '*', MUST_EXIST);
+    $record = $DB->get_record(
+        'data_records',
+        ['id' => $rid, 'dataid' => $data->id],
+        '*',
+        MUST_EXIST
+    );
     $url->param('rid', $rid);
 }
 
-if ($id) {
-    $url->param('id', $id);
-    $PAGE->set_url($url);
-    if (! $cm = get_coursemodule_from_id('data', $id)) {
-        throw new \moodle_exception('invalidcoursemodule');
-    }
-    if (! $course = $DB->get_record('course', array('id'=>$cm->course))) {
-        throw new \moodle_exception('coursemisconf');
-    }
-    if (! $data = $DB->get_record('data', array('id'=>$cm->instance))) {
-        throw new \moodle_exception('invalidcoursemodule');
-    }
-
-} else {
-    $url->param('d', $d);
-    $PAGE->set_url($url);
-    if (! $data = $DB->get_record('data', array('id'=>$d))) {
-        throw new \moodle_exception('invalidid', 'data');
-    }
-    if (! $course = $DB->get_record('course', array('id'=>$data->course))) {
-        throw new \moodle_exception('coursemisconf');
-    }
-    if (! $cm = get_coursemodule_from_instance('data', $data->id, $course->id)) {
-        throw new \moodle_exception('invalidcoursemodule');
-    }
-}
+$PAGE->set_url($url);
+require_login($course, false, $cm);
 
 $url->param('backto', $redirectbackto);
-
-require_login($course, false, $cm);
 
 if (isguestuser()) {
     redirect('view.php?d='.$data->id);
 }
-
-$context = context_module::instance($cm->id);
 
 /// If it's hidden then it doesn't show anything.  :)
 if (empty($cm->visible) and !has_capability('moodle/course:viewhiddenactivities', $context)) {
@@ -296,11 +287,18 @@ foreach ($generalnotifications as $notification) {
 }
 echo $newtext;
 
-$redirectbackto = !empty($redirectbackto) ? $redirectbackto :
-    new \moodle_url('/mod/data/view.php', ['d' => $data->id]);
-$actionbuttons = html_writer::link($redirectbackto, get_string('cancel'), ['class' => 'btn btn-secondary']);
-$actionbuttons .= html_writer::empty_tag('input', ['type' => 'submit', 'name' => 'saveandview',
-    'value' => get_string('save'), 'class' => 'btn btn-primary ml-2']);
+$redirectbackto = !empty($redirectbackto) ? $redirectbackto : new \moodle_url('/mod/data/view.php', ['d' => $data->id]);
+
+$actionbuttons = html_writer::link(
+    $redirectbackto,
+    get_string('cancel'),
+    ['class' => 'btn btn-secondary', 'role' => 'button']
+);
+$actionbuttons .= html_writer::empty_tag('input', [
+    'type' => 'submit',
+    'name' => 'saveandview',
+    'value' => get_string('save'),
+    'class' => 'btn btn-primary ml-2']);
 
 if (!$rid && ((!$data->maxentries) ||
         has_capability('mod/data:manageentries', $context) ||
@@ -309,7 +307,9 @@ if (!$rid && ((!$data->maxentries) ||
         'value' => get_string('saveandadd', 'data'), 'class' => 'btn btn-primary ml-2']);
 }
 
-echo html_writer::div($actionbuttons, 'mdl-align mt-2');
+$stickyfooter = new core\output\sticky_footer($actionbuttons);
+echo $OUTPUT->render($stickyfooter);
+
 echo $OUTPUT->box_end();
 echo '</div></form>';
 
