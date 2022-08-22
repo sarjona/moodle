@@ -2563,6 +2563,7 @@ class data_preset_upload_importer extends data_preset_importer {
         }
         parent::__construct($course, $cm, $module, $filepath);
     }
+
     public function cleanup() {
         return fulldelete($this->directory);
     }

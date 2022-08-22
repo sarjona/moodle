@@ -35,7 +35,6 @@ $fid            = optional_param('fid', 0 , PARAM_INT);          // update field
 $newtype        = optional_param('newtype','',PARAM_ALPHA);      // type of the new field
 $mode           = optional_param('mode','',PARAM_ALPHA);
 $action         = optional_param('action', '', PARAM_ALPHA);
-$fullname       = optional_param('fullname', '', PARAM_PATH);    // Directory the preset is in.
 $defaultsort    = optional_param('defaultsort', 0, PARAM_INT);
 $defaultsortdir = optional_param('defaultsortdir', 0, PARAM_INT);
 $cancel         = optional_param('cancel', 0, PARAM_BOOL);
@@ -100,9 +99,6 @@ $manager = manager::create_from_coursemodule($cm);
 $context = $manager->get_context();
 require_capability('mod/data:managetemplates', $context);
 
-$formimportzip = new data_import_preset_zip_form();
-$formimportzip->set_data(array('d' => $data->id));
-
 $actionbar = new \mod_data\output\action_bar($data->id, $PAGE->url);
 
 $PAGE->set_title(get_string('course') . ': ' . $course->fullname);
@@ -119,58 +115,41 @@ $data->instance   = $cm->instance;
  ***********************************/
 $renderer = $PAGE->get_renderer('mod_data');
 
-$backurl = new moodle_url('/mod/data/field.php', ['id' => $cm->id]);
-if ($formimportzip->is_cancelled()) {
-    redirect($backurl);
-} else if ($formdata = $formimportzip->get_data()) {
-    $file = new stdClass;
-    $file->name = $formimportzip->get_new_filename('importfile');
-    $file->path = $formimportzip->save_temp_file('importfile');
-    $importer = new \mod_data\importer\preset_upload_importer($manager, $file->path);
-
-    if (!$importer->needs_mapping()) {
-        if ($importer->import(false)) {
-            \core\notification::success(get_string('importsuccess', 'mod_data'));
-        } else {
-            \core\notification::error(get_string('presetapplied', 'mod_data'));
-        }
+if ($action == 'select') {
+    $formimportzip = new data_import_preset_zip_form();
+    $formimportzip->set_data(['d' => $data->id]);
+    $backurl = new moodle_url('/mod/data/field.php', ['id' => $cm->id]);
+    if ($formimportzip->is_cancelled()) {
         redirect($backurl);
-    }
+    } else if ($formdata = $formimportzip->get_data()) {
+        $file = new stdClass;
+        $file->name = $formimportzip->get_new_filename('importfile');
+        $file->path = $formimportzip->save_temp_file('importfile');
+        $importer = new \mod_data\importer\preset_upload_importer($manager, $file->path);
 
-    $fieldactionbar = $actionbar->get_fields_action_bar();
-    data_print_header($course, $cm, $data, false, $fieldactionbar);
-    echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
-    echo $renderer->importing($data, $importer);
-    echo $OUTPUT->footer();
-    exit(0);
+        if (!$importer->needs_mapping()) {
+            if ($importer->import(false)) {
+                \core\notification::success(get_string('importsuccess', 'mod_data'));
+            } else {
+                \core\notification::error(get_string('presetapplied', 'mod_data'));
+            }
+            redirect($backurl);
+        }
+
+        $fieldactionbar = $actionbar->get_fields_action_bar();
+        data_print_header($course, $cm, $data, false, $fieldactionbar);
+        echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
+        echo $renderer->importing($data, $importer);
+        echo $OUTPUT->footer();
+        exit(0);
+    }
 }
 
 if ($action == 'finishimport' && confirm_sesskey()) {
     data_print_header($course, $cm, $data, false);
     $overwritesettings = optional_param('overwritesettings', false, PARAM_BOOL);
-
-    if (!$fullname) {
-        $presetdir = $CFG->tempdir . '/forms/' . required_param('directory', PARAM_FILE);
-        if (!file_exists($presetdir) || !is_dir($presetdir)) {
-            throw new moodle_exception('cannotimport', 'error');
-        }
-        $importer = new \mod_data\importer\preset_upload_importer($manager, $presetdir);
-    } else {
-        $importer = new \mod_data\importer\preset_existing_importer($manager, $fullname);
-    }
-
-    $importer->import($overwritesettings);
-    $strimportsuccess = get_string('importsuccess', 'data');
-    $straddentries = get_string('addentries', 'data');
-    $strtodatabase = get_string('todatabase', 'data');
-
-    if (!$DB->get_records('data_records', array('dataid' => $data->id))) {
-        echo $OUTPUT->notification("$strimportsuccess <a href='edit.php?d=$data->id'>$straddentries</a> $strtodatabase",
-            'notifysuccess');
-    } else {
-        echo $OUTPUT->notification("$strimportsuccess", 'notifysuccess');
-    }
-
+    $importer = \mod_data\importer\preset_importer::get_importer_from_parameters($manager);
+    $importer->finish_import_process($overwritesettings, $data);
     echo $OUTPUT->continue_button(new moodle_url('/mod/data/field.php', ['d' => $data->id]));
     echo $OUTPUT->footer();
     exit;
@@ -307,27 +286,16 @@ switch ($mode) {
         break;
 
     case 'import':
-        $PAGE->navbar->add(get_string('importpreset', 'data'));
-        $fieldactionbar = $actionbar->get_fields_action_bar();
-        data_print_header($course, $cm, $data, false, $fieldactionbar);
-
-        echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
-        echo $formimportzip->display();
+        // The import option is no longer present and has deprecated for fields. Import can now be accessed on the zero state page
+        // or on the preset page only (MDL-75188).
+        debugging('The import option is no longer present in the field page and is only accessible in the preset page.',
+            DEBUG_DEVELOPER);
         echo $OUTPUT->footer();
         exit;
 
     case 'usepreset':
         if ($action === 'select') {
-            if (!$fullname) {
-                $presetdir = $CFG->tempdir . '/forms/' . required_param('directory', PARAM_FILE);
-                if (!file_exists($presetdir) || !is_dir($presetdir)) {
-                    throw new moodle_exception('cannotimport', 'error');
-                }
-                $importer = new \mod_data\importer\preset_upload_importer($manager, $presetdir);
-            } else {
-                $importer = new \mod_data\importer\preset_existing_importer($manager, $fullname);
-            }
-
+            $importer = \mod_data\importer\preset_importer::get_importer_from_parameters($manager);
             if (!$importer->needs_mapping()) {
                 if ($importer->import(false)) {
                     \core\notification::success(get_string('importsuccess', 'mod_data'));

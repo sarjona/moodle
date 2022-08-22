@@ -48,6 +48,7 @@ class preset_existing_importer extends preset_importer {
             throw new \coding_exception('Invalid preset provided');
         }
 
+        $this->userid = intval($userid);
         $cm = $manager->get_coursemodule();
         $course = $cm->get_course();
         $filepath = data_preset_path($course, $userid, $shortname);
@@ -61,5 +62,14 @@ class preset_existing_importer extends preset_importer {
      */
     public function get_userid(): int {
         return $this->userid;
+    }
+
+    /**
+     * Get parameters for mapping form
+     *
+     * @return array
+     */
+    public function get_importer_form_parameters(): array {
+        return ['fullname' => $this->get_userid() . '/' . $this->get_directory()];
     }
 }

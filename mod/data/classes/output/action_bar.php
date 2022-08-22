@@ -53,25 +53,21 @@ class action_bar {
      * @return string The HTML code for the action bar.
      */
     public function get_fields_action_bar(bool $hasfieldselect = false, bool $hassaveaspreset = false,
-            bool $hasexportpreset = false): string {
+        bool $hasexportpreset = false): string {
         global $PAGE, $DB;
 
         $createfieldlink = new moodle_url('/mod/data/field.php', ['d' => $this->id]);
-        $importlink = new moodle_url('/mod/data/field.php', ['d' => $this->id, 'mode' => 'import']);
         $presetslink = new moodle_url('/mod/data/field.php', ['d' => $this->id, 'mode' => 'usepreset']);
 
         $menu = [
             $createfieldlink->out(false) => get_string('managefields', 'mod_data'),
-            $importlink->out(false) => get_string('importpreset', 'mod_data'),
             $presetslink->out(false) => get_string('usestandard', 'mod_data'),
         ];
 
         $selected = $createfieldlink->out(false);
         $mode = $this->currenturl->get_param('mode');
 
-        if ($mode == 'import') {
-            $selected = $importlink->out(false);
-        } else if ($mode === 'usepreset') {
+        if ($mode === 'usepreset') {
             $selected = $presetslink->out(false);
         }
 
@@ -214,11 +210,15 @@ class action_bar {
      * @return string The HTML code for the action selector.
      */
     public function get_presets_action_bar(): string {
-        global $PAGE;
+        global $PAGE, $DB;
 
         $renderer = $PAGE->get_renderer('mod_data');
+        $data = $DB->get_record('data', ['id' => $this->id], '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('data', $data->id, $data->course, null, MUST_EXIST);
+        if (!has_capability('mod/data:managetemplates', \context_module::instance($cm->id))) {
+            return '';
+        }
         $presetsactionbar = new presets_action_bar($this->id);
-
         return $renderer->render_presets_action_bar($presetsactionbar);
     }
 }

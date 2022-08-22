@@ -104,18 +104,12 @@ if ($action === 'export') {
     exit(0);
 }
 
-$formimportzip = new data_import_preset_zip_form();
-$formimportzip->set_data(array('d' => $data->id));
 
-if ($formimportzip->is_cancelled()) {
-    redirect(new moodle_url('/mod/data/preset.php', ['d' => $data->id]));
-}
-
-if ($formdata = $formimportzip->get_data()) {
-    $file = new stdClass;
-    $file->name = $formimportzip->get_new_filename('importfile');
-    $file->path = $formimportzip->save_temp_file('importfile');
-    $importer = new \mod_data\importer\preset_upload_importer($manager, $file->path);
+if ($action == 'importzip') {
+    echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
+    $filepath = optional_param('filepath', '', PARAM_PATH);
+    $manager = \mod_data\manager::create_from_coursemodule($cm);
+    $importer = new \mod_data\importer\preset_upload_importer($manager, $CFG->tempdir . $filepath);
     if ($importer->needs_mapping()) {
         echo $OUTPUT->header();
         echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
@@ -125,11 +119,12 @@ if ($formdata = $formimportzip->get_data()) {
     }
 
     $importer->import(false);
+    core\notification::success(get_string('importsuccess', 'mod_data'));
     redirect(new moodle_url('/mod/data/field.php', ['id' => $cm->id]));
+    exit(0);
 }
 
 echo $OUTPUT->header();
-
 if (in_array($action, ['confirmdelete', 'delete', 'finishimport'])) {
     $fullname = optional_param('fullname', '' , PARAM_PATH); // The directory the preset is in.
     // Find out preset owner userid and shortname.
@@ -173,24 +168,8 @@ if (in_array($action, ['confirmdelete', 'delete', 'finishimport'])) {
             throw new moodle_exception('invalidsesskey');
         }
         $overwritesettings = optional_param('overwritesettings', false, PARAM_BOOL);
-        if (!$fullname) {
-            $presetdir = $CFG->tempdir.'/forms/'.required_param('directory', PARAM_FILE);
-            if (!file_exists($presetdir) || !is_dir($presetdir)) {
-                throw new \moodle_exception('cannotimport');
-            }
-            $importer = new \mod_data\importer\preset_upload_importer($manager, $presetdir);
-        } else {
-            $importer = new \mod_data\importer\preset_existing_importer($manager, $fullname);
-        }
-        $importer->import($overwritesettings);
-        $strimportsuccess = get_string('importsuccess', 'data');
-        $straddentries = get_string('addentries', 'data');
-        $strtodatabase = get_string('todatabase', 'data');
-        if (!$DB->get_records('data_records', array('dataid'=>$data->id))) {
-            echo $OUTPUT->notification("$strimportsuccess <a href='edit.php?d=$data->id'>$straddentries</a> $strtodatabase", 'notifysuccess');
-        } else {
-            echo $OUTPUT->notification("$strimportsuccess", 'notifysuccess');
-        }
+        $importer = \mod_data\importer\preset_importer::get_importer_from_parameters($manager);
+        $importer->finish_import_process($overwritesettings, $data);
     }
     echo $OUTPUT->continue_button(new moodle_url('/mod/data/preset.php', ['d' => $data->id]));
     echo html_writer::end_div();
@@ -198,15 +177,10 @@ if (in_array($action, ['confirmdelete', 'delete', 'finishimport'])) {
     exit(0);
 }
 
-if ($action === 'import') {
-    echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
-    echo $formimportzip->display();
-} else {
-    $actionbar = new \mod_data\output\action_bar($data->id, $url);
-    echo $actionbar->get_presets_action_bar();
-    echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
-    $presets = new \mod_data\output\presets($data->id, $presets, new \moodle_url('/mod/data/field.php'), true);
-    echo $renderer->render_presets($presets);
-}
+$actionbar = new \mod_data\output\action_bar($data->id, $url);
+echo $actionbar->get_presets_action_bar();
+echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
+$presets = new \mod_data\output\presets($data->id, $presets, new \moodle_url('/mod/data/field.php'), true);
+echo $renderer->render_presets($presets);
 
 echo $OUTPUT->footer();

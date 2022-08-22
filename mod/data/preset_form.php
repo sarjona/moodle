@@ -24,7 +24,20 @@ class data_existing_preset_form extends moodleform {
     }
 }
 
+/**
+ * Import preset class
+ *
+ * This is deprecated, please use the dynamic_form form (\mod_data\form\import_presets)
+ * @package   mod_data
+ * @deprecated since 4.1
+ */
 class data_import_preset_zip_form extends moodleform {
+    /**
+     * Form definition
+     *
+     * @return void
+     * @throws coding_exception
+     */
     public function definition() {
         $this->_form->addElement('header', 'uploadpreset', get_string('fromfile', 'data'));
         $this->_form->addHelpButton('uploadpreset', 'fromfile', 'data');

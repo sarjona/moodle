@@ -390,4 +390,55 @@ abstract class preset_importer {
         $module = $this->manager->get_instance();
         return $DB->record_exists('data_fields', ['dataid' => $module->id]);
     }
+
+    /**
+     * Helper function to finish up the import routine.
+     *
+     * Called from fields and presets pages.
+     *
+     * @param bool $overwritesettings
+     * @param object $data
+     * @return void
+     */
+    public function finish_import_process(bool $overwritesettings, object $data): void {
+        global $DB;
+        $this->import($overwritesettings);
+        $strimportsuccess = get_string('importsuccess', 'data');
+        $straddentries = get_string('addentries', 'data');
+        $strtodatabase = get_string('todatabase', 'data');
+        if (!$DB->get_records('data_records', ['dataid' => $data->id])) {
+            \core\notification::success("$strimportsuccess <a href='edit.php?d=$data->id'>$straddentries</a> $strtodatabase");
+        } else {
+            \core\notification::success($strimportsuccess);
+        }
+    }
+
+    /**
+     * Get parameters for mapping form
+     *
+     * @return array
+     */
+    abstract public function get_importer_form_parameters(): array;
+
+    /**
+     * Get the right importer instance from the provided parameters (POST or GET)
+     *
+     * @param manager $manager
+     * @return preset_importer
+     * @throws \moodle_exception
+     */
+    public static function get_importer_from_parameters(manager $manager): preset_importer {
+        global $CFG;
+        $fullname = optional_param('fullname', '', PARAM_PATH);    // Directory the preset is in.
+        if (!$fullname) {
+            $presetdir = $CFG->tempdir . '/forms/' . required_param('directory', PARAM_FILE);
+            if (!file_exists($presetdir) || !is_dir($presetdir)) {
+                throw new \moodle_exception('cannotimport');
+            }
+            $importer = new preset_upload_importer($manager, $presetdir);
+        } else {
+            $importer = new preset_existing_importer($manager, $fullname);
+        }
+        return $importer;
+    }
 }

@@ -1,8 +1,8 @@
 @mod @mod_data @javascript @_file_upload
-Feature: Users can import presets
+Feature: Users can use predefined presets
   In order to use presets
   As a user
-  I need to import and apply presets from zip files
+  I need to select an existing preset
 
   Background:
     Given the following "users" exist:
@@ -22,30 +22,32 @@ Feature: Users can import presets
       | data1    | Saved preset 1  | The preset1 has description   |
       | data1    | Saved preset 2  |                               |
 
-  Scenario: Teacher can import from preset page on an empty database
+  Scenario: Teacher can use presets from field page on an empty database
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
-    And I follow "Presets"
-    And I click on "Import" "link"
-    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
-    When I click on "Import preset and apply" "button"
+    And I follow "Fields"
+    And I set the field "Fields tertiary navigation" to "Use a preset"
+    And I click on "fullname" "radio" in the "Image gallery" "table_row"
+    And the "Use preset" "button" should be enabled
+    Then I click on "Use preset" "button"
     Then I should not see "Field mappings"
     And I should see "image"
     And I should see "Picture field" in the "image" "table_row"
 
-  Scenario: Teacher can import from preset page on a database with fields
+  Scenario: Teacher can use a preset from field page on a database with fields
     Given the following "mod_data > fields" exist:
       | database | type | name              | description              |
       | data1    | text | Test field name   | Test field description   |
-    And I am on the "Mountain landscapes" "data activity" page logged in as teacher1
-    And I follow "Presets"
-    And I click on "Import" "link"
-    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
-    When I click on "Import preset and apply" "button"
+    Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    And I follow "Fields"
+    And I set the field "Fields tertiary navigation" to "Use a preset"
+    And I click on "fullname" "radio" in the "Image gallery" "table_row"
+    And the "Use preset" "button" should be enabled
+    Then I click on "Use preset" "button"
     Then I should see "Field mappings"
     And I should see "image"
     And I should see "Create a new field" in the "image" "table_row"
 
-  Scenario: Teacher can import from preset page on a database with entries
+  Scenario: Teacher can use a preset from field page on a database with entries
     And the following "mod_data > fields" exist:
       | database | type | name   | description              |
       | data1    | text | field1 | Test field description   |
@@ -59,20 +61,22 @@ Feature: Users can import presets
     And the following "mod_data > entries" exist:
       | database | field1          |
       | data1    | Student entry 1 |
-    And I am on the "Mountain landscapes" "data activity" page logged in as teacher1
-    And I follow "Presets"
-    And I click on "Import" "link"
-    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
-    When I click on "Import preset and apply" "button"
+    Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    And I follow "Fields"
+    And I set the field "Fields tertiary navigation" to "Use a preset"
+    And I click on "fullname" "radio" in the "Image gallery" "table_row"
+    And the "Use preset" "button" should be enabled
+    Then I click on "Use preset" "button"
     Then I should see "Field mappings"
     And I should see "image"
     And I should see "Create a new field" in the "image" "table_row"
 
-  Scenario: Teacher can import from zero state page on an empty database
+  Scenario: Teacher can use a preset from zero state page on an empty database
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
-    And I click on "Import a preset" "button"
-    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
-    When I click on "Import preset and apply" "button"
+    And I click on "Use preset" "button"
+    And I click on "fullname" "radio" in the "Image gallery" "table_row"
+    And the "Use preset" "button" should be enabled
+    Then I click on "Use preset" "button"
     Then I should not see "Field mappings"
     And I should see "image"
     And I should see "Picture field" in the "image" "table_row"

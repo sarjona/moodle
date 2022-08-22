@@ -237,3 +237,21 @@ Feature: Users can view and manage data presets
     And I should see "This preset has also a description" in the "Saved preset 1" "table_row"
     And I should not see "Saved preset by teacher1"
     And I should not see "The preset1 has description"
+
+  @javascript @_file_upload
+  Scenario Outline: Admins and Teachers can load a preset from a file
+    Given I am on the "Mountain landscapes" "data activity" page logged in as <user>
+    When I follow "Presets"
+    Then I click on "Import" "link"
+    And I wait until the page is ready
+    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
+    Then I click on "Import preset and apply" "button" in the ".modal-dialog" "css_element"
+    Then I should see "The preset has been successfully applied."
+    # I am on the field page.
+    And I should see "Manage fields"
+    Then I should see "The preset has been successfully applied."
+
+    Examples:
+      | user     |
+      | admin    |
+      | teacher1 |

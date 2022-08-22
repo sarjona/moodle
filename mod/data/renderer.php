@@ -49,10 +49,8 @@ class mod_data_renderer extends plugin_renderer_base {
         $html .= html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=>sesskey()));
         $html .= html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'d', 'value'=>$datamodule->id));
 
-        if ($importer instanceof data_preset_existing_importer) {
-            $html .= html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'fullname', 'value'=>$importer->get_userid().'/'.$importer->get_directory()));
-        } else {
-            $html .= html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'directory', 'value'=>$importer->get_directory()));
+        foreach ($importer->get_importer_form_parameters() as $key => $value) {
+            $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => $key, 'value' => $value]);
         }
 
         if (!empty($newfields)) {

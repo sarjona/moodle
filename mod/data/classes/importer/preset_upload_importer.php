@@ -52,4 +52,13 @@ class preset_upload_importer extends preset_importer {
     public function cleanup() {
         return fulldelete($this->directory);
     }
+
+    /**
+     * Get parameters for mapping form
+     *
+     * @return array
+     */
+    public function get_importer_form_parameters(): array {
+        return ['directory' => $this->get_directory()];
+    }
 }
