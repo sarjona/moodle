@@ -40,38 +40,46 @@ export const init = () => {
  * Register events for update/delete links.
  */
 const registerEventListeners = () => {
-    document.addEventListener('click', e => {
-        const editAction = e.target.closest(selectors.editPresetButton);
+    document.addEventListener('click', (event) => {
+        const editAction = event.target.closest(selectors.editPresetButton);
         if (editAction) {
-            e.preventDefault();
-
-            const modalForm = new ModalForm({
-                modalConfig: {
-                    title: getString('editpreset', 'mod_data'),
-                },
-                formClass: 'mod_data\\form\\save_as_preset',
-                args: {
-                    d: editAction.getAttribute('data-dataid'),
-                    action: editAction.getAttribute('data-action'),
-                    presetname: editAction.getAttribute('data-presetname'),
-                    presetdescription: editAction.getAttribute('data-presetdescription')
-                },
-                saveButtonText: getString('save'),
-                returnFocus: editAction,
-            });
-
-            modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, e => {
-                if (e.detail.result) {
-                    window.location.reload();
-                } else {
-                    Notification.addNotification({
-                        type: 'error',
-                        message:  e.detail.errors.join('<br>')
-                    });
-                }
-            });
-
-            modalForm.show();
+            event.preventDefault();
+            showEditPresetModal(editAction);
         }
     });
+};
+
+/**
+ * Show the edit preset modal.
+ *
+ * @param {HTMLElement} editAction the edit action element.
+ */
+const showEditPresetModal = (editAction) => {
+    const modalForm = new ModalForm({
+        modalConfig: {
+            title: getString('editpreset', 'mod_data'),
+        },
+        formClass: 'mod_data\\form\\save_as_preset',
+        args: {
+            d: editAction.getAttribute('data-dataid'),
+            action: editAction.getAttribute('data-action'),
+            presetname: editAction.getAttribute('data-presetname'),
+            presetdescription: editAction.getAttribute('data-presetdescription')
+        },
+        saveButtonText: getString('save'),
+        returnFocus: editAction,
+    });
+
+    modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, event => {
+        if (event.detail.result) {
+            window.location.reload();
+        } else {
+            Notification.addNotification({
+                type: 'error',
+                message: event.detail.errors.join('<br>')
+            });
+        }
+    });
+
+    modalForm.show();
 };
