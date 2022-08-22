@@ -375,15 +375,15 @@ class mod_data_generator extends testing_module_generator {
     public function create_preset(stdClass $instance, stdClass $record = null): preset {
         global $USER;
 
+        if (is_null($record)) {
+            $record = new stdClass();
+        }
+
         // Set current user if defined.
-        if (isset($record->userid)) {
+        if (isset($record->userid) && $record->userid != $USER->id) {
             $currentuser = $USER;
             $user = \core_user::get_user($record->userid);
             $this->set_user($user);
-        }
-
-        if (is_null($record)) {
-            $record = new stdClass();
         }
 
         // Fill in optional values if not specified.
