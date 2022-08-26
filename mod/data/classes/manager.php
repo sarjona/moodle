@@ -296,14 +296,8 @@ class manager {
         }
         $options['templatename'] = $templatename;
         // Some templates have extra options.
-        if ($templatename === 'singletemplate') {
-            $options['comments'] = true;
-            $options['ratings'] = true;
-        }
-        if ($templatename === 'listtemplate') {
-            // The "Show more" button should be only displayed in the listtemplate.
-            $options['showmore'] = true;
-        }
+        $options = array_merge($options, template::get_default_display_options($templatename));
+
         return new template($this, $templatecontent, $options);
     }
 
