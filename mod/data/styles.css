@@ -163,3 +163,11 @@
 .template-preview-content .data-field-html button {
     pointer-events: none;
 }
+
+.template-preview-content .action-icon,
+.template-preview-content .dropdown-menu a,
+.template-preview-content .data-field-link,
+.template-preview-content .data-field-html a,
+.template-preview-content .data-field-html button {
+    pointer-events: none;
+}
