@@ -134,6 +134,9 @@ class restore_lti_activity_structure_step extends restore_activity_structure_ste
         $this->newltitype = false;
         if (!$ltitypeid && $data->course == $courseid) {
             unset($data->toolproxyid); // Course tools can not use LTI2.
+            if (!$this->task->is_samesite()) {
+                unset($data->coursecategories); // Course categories won't exists if restoring to another site.
+            }
             $ltitypeid = $DB->insert_record('lti_types', $data);
             $this->newltitype = true;
             $this->set_mapping('ltitype', $oldid, $ltitypeid);
