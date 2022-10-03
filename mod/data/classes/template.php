@@ -484,7 +484,7 @@ class template {
         if (!isset($user->picture)) {
             $user = core_user::get_user($entry->userid);
         }
-        return $OUTPUT->user_picture($user, ['courseid' => $cm->course]);
+        return $OUTPUT->user_picture($user, ['courseid' => $cm->course, 'size' => 60]);
     }
 
     /**
@@ -532,7 +532,11 @@ class template {
      * @return string the tag replacement
      */
     protected function get_tag_timeadded_replacement(stdClass $entry, bool $canmanageentry): string {
-        return userdate($entry->timecreated);
+        return html_writer::tag(
+            'span',
+            userdate($entry->timecreated, get_string('strftimedatemonthabbr', 'langconfig')),
+            ['title' => userdate($entry->timecreated)]
+        );
     }
 
     /**
@@ -543,7 +547,11 @@ class template {
      * @return string the tag replacement
      */
     protected function get_tag_timemodified_replacement(stdClass $entry, bool $canmanageentry): string {
-        return userdate($entry->timemodified);
+        return html_writer::tag(
+            'span',
+            userdate($entry->timemodified, get_string('strftimedatemonthabbr', 'langconfig')),
+            ['title' => userdate($entry->timecreated)]
+        );
     }
 
     /**
