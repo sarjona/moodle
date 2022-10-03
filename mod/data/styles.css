@@ -162,6 +162,11 @@
     max-width: 100%;
 }
 
+/* Date information displayed in templates/presets */
+.data-timeinfo {
+    color: #6c757d;
+}
+
 /* Legacy icons */
 .dataicon,
 .portfolio-add-icon {
