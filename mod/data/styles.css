@@ -173,3 +173,11 @@
 .template-preview-content .data-field-html button {
     pointer-events: none;
 }
+
+#page-mod-data-view .notapproved {
+    background-color: #fff3cd;
+    color: #856404;
+    border-radius: 0.5em;
+    padding: 0.5em 1em;
+    gap: 1em;
+}
