@@ -26,6 +26,7 @@ Feature: Users can edit the database templates
       | data1    | Student entry 1 | Some content 1 |
     And I am on the "Test database name" "data activity" page logged in as teacher1
     And I navigate to "Templates" in current page administration
+    And I set the field "Templates tertiary navigation" to "List template"
 
   @javascript
   Scenario: Edit list template
@@ -71,7 +72,7 @@ Feature: Users can edit the database templates
 
   @javascript
   Scenario: Edit without the wysiwyg editor
-    Given I click on "Enable editor" "checkbox"
+    Given I click on "Enable code editor" "checkbox"
     And I set the following fields to these values:
       | Repeated entry | <span class="d-none">Nope</span>Yep! |
     And I click on "Save template" "button"
@@ -81,7 +82,7 @@ Feature: Users can edit the database templates
 
   @javascript
   Scenario: Edit CSS teamplate
-    Given I click on "Enable editor" "checkbox"
+    Given I click on "Enable code editor" "checkbox"
     And I set the following fields to these values:
       | Repeated entry | <span class="hideme">Nope</span>Yep! |
     And I click on "Save template" "button"
@@ -95,7 +96,7 @@ Feature: Users can edit the database templates
 
   @javascript
   Scenario: Edit Javascript template
-    Given I click on "Enable editor" "checkbox"
+    Given I click on "Enable code editor" "checkbox"
     And I set the following fields to these values:
       | Repeated entry | <span id="hideme">Nope</span>Yep! |
     And I click on "Save template" "button"
@@ -121,6 +122,7 @@ Feature: Users can edit the database templates
     And I should not see "Student entry 1"
     And I should not see "Some content 1"
     When I navigate to "Templates" in current page administration
+    And I set the field "Templates tertiary navigation" to "List template"
     And I click on "Reset template" "button"
     And I click on "Reset template" "button" in the "Reset template?" "dialogue"
     Then I should see "Template reset"

@@ -340,7 +340,6 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
 } else {                                              /// Display the main listing of all fields
     $fieldactionbar = $actionbar->get_fields_action_bar(true, true, true);
     data_print_header($course, $cm, $data, 'fields', $fieldactionbar);
-    echo $OUTPUT->heading(get_string('managefields', 'data'), 2, 'mb-4');
 
     if (!$DB->record_exists('data_fields', array('dataid'=>$data->id))) {
         echo $OUTPUT->notification(get_string('nofieldindatabase','data'));  // nothing in database
@@ -348,13 +347,17 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
 
     } else {    //else print quiz style list of fields
 
+        echo $OUTPUT->box_start('mb-4');
+        echo get_string('fieldshelp', 'data');
+        echo $OUTPUT->box_end();
+
         $table = new html_table();
         $table->head = array(
             get_string('fieldname', 'data'),
             get_string('type', 'data'),
             get_string('required', 'data'),
             get_string('fielddescription', 'data'),
-            get_string('action', 'data'),
+            '',
         );
         $table->align = array('left', 'left', 'left', 'left');
         $table->wrap = array(false,false,false,false);
@@ -378,14 +381,31 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
                     'mode'      => 'delete',
                 ));
 
+                $actionmenu = new action_menu();
+                $icon = $OUTPUT->pix_icon('i/menu', get_string('actions'));
+                $actionmenu->set_menu_trigger($icon, 'btn btn-icon d-flex align-items-center justify-content-center');
+                $actionmenu->set_action_label(get_string('actions'));
+                $actionmenu->attributes['class'] .= ' fields-actions';
+                // Edit.
+                $actionmenu->add(new action_menu_link_secondary(
+                    $displayurl,
+                    null,
+                    get_string('edit'),
+                ));
+                // Delete.
+                $actionmenu->add(new action_menu_link_secondary(
+                    $deleteurl,
+                    null,
+                    get_string('delete'),
+                ));
+                $actionmenutemplate = $actionmenu->export_for_template($OUTPUT);
+
                 $table->data[] = array(
-                    html_writer::link($displayurl, $field->field->name),
+                    $field->field->name,
                     $field->image() . '&nbsp;' . $field->name(),
                     $field->field->required ? get_string('yes') : get_string('no'),
                     shorten_text($field->field->description, 30),
-                    html_writer::link($displayurl, $OUTPUT->pix_icon('t/edit', get_string('edit'))) .
-                        '&nbsp;' .
-                        html_writer::link($deleteurl, $OUTPUT->pix_icon('t/delete', get_string('delete'))),
+                    $OUTPUT->render_from_template('core/action_menu', $actionmenutemplate),
                 );
             }
         }

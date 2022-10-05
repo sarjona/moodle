@@ -31,9 +31,9 @@
         "backtitle": "Back",
         "title": "Some title",
         "urlselect": {
-            "id": "url_select_test",
+            "id": "url_select_test1",
             "action": "https://example.com/post",
-            "formid": "url_select_form",
+            "formid": "url_select_form1",
             "sesskey": "sesskey",
             "classes": "urlselect",
             "label": "",
@@ -50,9 +50,9 @@
             "title": null
         },
         "extraurlselect": {
-            "id": "url_select_test",
+            "id": "url_select_test2",
             "action": "https://example.com/post",
-            "formid": "url_select_form",
+            "formid": "url_select_form2",
             "sesskey": "sesskey",
             "classes": "urlselect",
             "label": "",
@@ -84,34 +84,35 @@
     <div class="row">
         <div class="d-flex">
             {{#hasback}}
-                <div class="navitem backbutton border-right">
+                <div class="navitem mb-0 backbutton border-right">
                     <a href="{{backurl}}" role="button" title="{{backtitle}}" class="d-flex align-items-center">{{!
                     }}{{#pix}} i/previous, moodle {{/pix}}{{!
                     }}</a>
                 </div>
             {{/hasback}}
             {{#urlselect}}
-                <div class="navitem">
+                <div class="navitem mb-0">
                     {{>core/url_select}}
                 </div>
             {{/urlselect}}
             {{#title}}
-                <div class="navitem title d-flex align-items-center">
-                    {{title}}
+                <div class="navitem mb-0 title d-flex align-items-center">
+                    <h2>{{title}}</h2>
                 </div>
             {{/title}}
         </div>
         <div class="ml-sm-auto d-flex">
             {{#extraurlselect}}
-                <div class="navitem">
+                <div class="navitem mb-0">
                     {{>core/url_select}}
                 </div>
             {{/extraurlselect}}
             {{#buttons}}
-                <div class="navitem">
+                <div class="navitem mb-0">
                     {{>core/single_button}}
                 </div>
             {{/buttons}}
         </div>
     </div>
 </div>
+<hr/>

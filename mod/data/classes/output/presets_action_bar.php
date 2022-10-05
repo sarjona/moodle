@@ -32,13 +32,18 @@ class presets_action_bar implements templatable, renderable {
     /** @var int $id The database module id. */
     private $id;
 
+    /** @var \action_menu $actionsselect The presets actions selector object. */
+    private $actionsselect;
+
     /**
      * The class constructor.
      *
      * @param int $id The database module id
+     * @param \action_menu|null $actionsselect The presets actions selector object.
      */
-    public function __construct(int $id) {
+    public function __construct(int $id, ?\action_menu $actionsselect) {
         $this->id = $id;
+        $this->actionsselect = $actionsselect;
     }
 
     /**
@@ -48,10 +53,12 @@ class presets_action_bar implements templatable, renderable {
      * @return array
      */
     public function export_for_template(\renderer_base $output): array {
-        $importpresetlink = new moodle_url('/mod/data/preset.php', ['d' => $this->id, 'action' => 'import']);
+        $data = [];
 
-        return [
-            'importpreseturl' => $importpresetlink->out(false),
-        ];
+        if ($this->actionsselect) {
+            $data['actionsselect'] = $this->actionsselect->export_for_template($output);
+        }
+
+        return $data;
     }
 }
