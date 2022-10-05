@@ -22,6 +22,13 @@ information provided here is intended especially for developers.
   - data_preset_existing_importer
   - data_preset_upload_importer
 * import_setting_mappings() function has been deprecated. Use importing_preset() instead.
+* The $urlselect, $saveaspresetbutton and $exportpresetbutton parameters in the constructor of the fields_action_bar class
+have been deprecated and are not used anymore.
+* The $saveaspresetbutton and $exportpresetbutton parameters in the constructor of the templates_action_bar class
+have been deprecated and are not used anymore. Besides, a new parameter, $actionsselect, has been added to the
+constructor of this class.
+* A new parameter, $actionsselect, has been added to the presets_action_bar constructor.
+* A new parameter, $mode, has been added to the view_action_bar constructor.
 
 === 3.7 ===
 * External functions get_entries, get_entry and search_entries now return an additional field "tags" containing the entry tags.

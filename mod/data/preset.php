@@ -135,7 +135,6 @@ if ($action === 'preview') {
     echo $OUTPUT->header();
     $actionbar = new action_bar($data->id, $url);
     echo $actionbar->get_presets_preview_action_bar($manager, $fullname, $templatename);
-    echo $OUTPUT->heading(ucfirst($preset->name), 2, 'mb-4');
     echo $renderer->render($preview);
     echo $OUTPUT->footer();
     exit(0);
@@ -203,7 +202,7 @@ if ($action === 'import') {
 } else {
     $actionbar = new \mod_data\output\action_bar($data->id, $url);
     echo $actionbar->get_presets_action_bar();
-    echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
+
     $presets = new \mod_data\output\presets($data->id, $presets, new \moodle_url('/mod/data/field.php'), true);
     echo $renderer->render_presets($presets);
 }
