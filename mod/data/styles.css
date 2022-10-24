@@ -170,7 +170,7 @@
 /* Legacy icons */
 .dataicon,
 .portfolio-add-icon {
-    color: black;
+    color: var(--dark);
 }
 
 /* Preset preview styles */
