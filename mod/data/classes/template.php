@@ -503,7 +503,7 @@ class template {
         if (!isset($user->picture)) {
             $user = core_user::get_user($entry->userid);
         }
-        return $OUTPUT->user_picture($user, ['courseid' => $cm->course, 'size' => 60]);
+        return $OUTPUT->user_picture($user, ['courseid' => $cm->course, 'size' => 64]);
     }
 
     /**

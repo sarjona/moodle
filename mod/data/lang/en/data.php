@@ -457,3 +457,4 @@ $string['nolisttemplate'] = 'List template is not yet defined';
 $string['nosingletemplate'] = 'Single template is not yet defined';
 $string['blank'] = 'Blank';
 $string['savetemplate'] = 'Save template';
+$string['addedby'] = 'Added by';

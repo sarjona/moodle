@@ -164,7 +164,7 @@
 
 /* Date information displayed in templates/presets */
 .data-timeinfo {
-    color: #6c757d;
+    color: var(–gray);
 }
 
 /* Legacy icons */
