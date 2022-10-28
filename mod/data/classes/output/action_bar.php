@@ -56,16 +56,20 @@ class action_bar {
      * Generate the output for the action bar in the field page.
      *
      * @param bool $hasfieldselect Whether the field selector element should be rendered.
-     * @param bool $hassaveaspreset Whether the save as preset button element should be rendered.
-     * @param bool $hasexportpreset Whether the export as preset button element should be rendered.
+     * @param null $unused1 This parameter has been deprecated since 4.1 and should not be used anymore.
+     * @param null $unused2 This parameter has been deprecated since 4.1 and should not be used anymore.
      * @return string The HTML code for the action bar.
      */
     public function get_fields_action_bar(
         bool $hasfieldselect = false,
-        bool $hassaveaspreset = false,
-        bool $hasexportpreset = false
+        ?bool $unused1 = null,
+        ?bool $unused2 = null
     ): string {
-        global $PAGE, $DB;
+        global $PAGE;
+
+        if ($unused1 !== null || $unused2 !== null) {
+            debugging('Deprecated argument passed to get_fields_action_bar method', DEBUG_DEVELOPER);
+        }
 
         $fieldselect = null;
         if ($hasfieldselect) {
@@ -98,7 +102,7 @@ class action_bar {
         foreach ($menufield as $fieldtype => $fieldname) {
             $fieldselectparams['newtype'] = $fieldtype;
             $fieldselect->add(new \action_menu_link(
-                new \moodle_url('/mod/data/field.php', $fieldselectparams),
+                new moodle_url('/mod/data/field.php', $fieldselectparams),
                 new \pix_icon('field/' . $fieldtype, $fieldname, 'data'),
                 $fieldname,
                 false
@@ -260,7 +264,7 @@ class action_bar {
             // Import.
             $actionsselectparams = ['id' => $this->cmid, 'action' => 'import'];
             $actionsselect->add(new \action_menu_link(
-                new \moodle_url('/mod/data/preset.php', $actionsselectparams),
+                new moodle_url('/mod/data/preset.php', $actionsselectparams),
                 null,
                 get_string('importpreset', 'mod_data'),
                 false,
@@ -271,16 +275,16 @@ class action_bar {
         // If the database has no fields, export and save as preset options shouldn't be displayed.
         if ($hasfields) {
             // Export.
-            $actionsselectparams = ['d' => $this->id, 'action' => 'export'];
+            $actionsselectparams = ['id' => $this->cmid, 'action' => 'export'];
             $actionsselect->add(new \action_menu_link(
-                new \moodle_url('/mod/data/preset.php', $actionsselectparams),
+                new moodle_url('/mod/data/preset.php', $actionsselectparams),
                 null,
                 get_string('exportpreset', 'mod_data'),
                 false
             ));
             // Save as preset.
             $actionsselect->add(new \action_menu_link(
-                new \moodle_url('/mod/data/preset.php', $actionsselectparams),
+                new moodle_url('/mod/data/preset.php', $actionsselectparams),
                 null,
                 get_string('saveaspreset', 'mod_data'),
                 false,

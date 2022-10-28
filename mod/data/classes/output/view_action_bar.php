@@ -66,15 +66,18 @@ class view_action_bar implements templatable, renderable {
      * @return array
      */
     public function export_for_template(\renderer_base $output): array {
-        global $PAGE, $DB, $CFG, $USER;
+        global $PAGE, $DB, $CFG;
 
         $data = [
             'urlselect' => $this->urlselect->export_for_template($output),
         ];
 
+        $activity = $DB->get_record('data', ['id' => $this->id], '*', MUST_EXIST);
+        $manager = manager::create_from_instance($activity);
+
         $actionsselect = null;
         // Import entries.
-        if (has_capability('mod/data:manageentries', $PAGE->context)) {
+        if (has_capability('mod/data:manageentries', $manager->get_context())) {
             $actionsselect = new \action_menu();
             $actionsselect->set_menu_trigger(get_string('actions'), 'btn btn-secondary');
 
@@ -88,7 +91,7 @@ class view_action_bar implements templatable, renderable {
         }
 
         // Export entries.
-        if (has_capability(DATA_CAP_EXPORT, $PAGE->context) && $this->hasentries) {
+        if (has_capability(DATA_CAP_EXPORT, $manager->get_context()) && $this->hasentries) {
             if (!$actionsselect) {
                 $actionsselect = new \action_menu();
                 $actionsselect->set_menu_trigger(get_string('actions'), 'btn btn-secondary');
@@ -104,18 +107,10 @@ class view_action_bar implements templatable, renderable {
 
         // Export to portfolio. This is for exporting all records, not just the ones in the search.
         if ($this->mode == '' && !empty($CFG->enableportfolios) && $this->hasentries) {
-            // Exportallentries and exportentry are basically the same capability.
-            $canexport = has_capability('mod/data:exportallentries', $PAGE->context) ||
-                    has_capability('mod/data:exportentry', $PAGE->context) ||
-                    (has_capability('mod/data:exportownentry', $PAGE->context) &&
-                    $DB->record_exists('data_records', ['userid' => $USER->id, 'dataid' => $this->id]));
-
-            if ($canexport) {
+            if ($manager->can_export_entries()) {
                 // Add the portfolio export button.
                 require_once($CFG->libdir . '/portfoliolib.php');
 
-                $activity = $DB->get_record('data', ['id' => $this->id], '*', MUST_EXIST);
-                $manager = manager::create_from_instance($activity);
                 $cm = $manager->get_coursemodule();
 
                 $button = new portfolio_add_button();

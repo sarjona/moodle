@@ -31,6 +31,8 @@ have been deprecated and are not used anymore. Besides, a new parameter, $action
 constructor of this class.
 * A new parameter, $actionsselect, has been added to the presets_action_bar constructor.
 * A new parameter, $mode, has been added to the view_action_bar constructor.
+* The $hassaveaspreset and $haveexportpreset parameters in the get_fields_action_bar() action_bar class have been deprecated and
+are not used anymore.
 
 === 3.7 ===
 * External functions get_entries, get_entry and search_entries now return an additional field "tags" containing the entry tags.

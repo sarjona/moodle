@@ -45,9 +45,9 @@ class templates_action_bar implements templatable, renderable {
      * @param select_menu $selectmenu The URL selector object.
      * @param null $unused1 This parameter has been deprecated since 4.1 and should not be used anymore.
      * @param null $unused2 This parameter has been deprecated since 4.1 and should not be used anymore.
-     * @param \action_menu|null $actionsselect The presets actions selector object.
+     * @param \action_menu $actionsselect The presets actions selector object.
      */
-    public function __construct(int $id, select_menu $selectmenu, $unused1, $unused2, ?\action_menu $actionsselect) {
+    public function __construct(int $id, select_menu $selectmenu, $unused1, $unused2, \action_menu $actionsselect) {
         $this->id = $id;
         $this->selectmenu = $selectmenu;
         $this->actionsselect = $actionsselect;
@@ -61,15 +61,10 @@ class templates_action_bar implements templatable, renderable {
      */
     public function export_for_template(\renderer_base $output): array {
 
-        $data = [
+        return [
             'd' => $this->id,
             'selectmenu' => $this->selectmenu->export_for_template($output),
+            'actionsselect' => $this->actionsselect->export_for_template($output),
         ];
-
-        if ($this->actionsselect) {
-            $data['actionsselect'] = $this->actionsselect->export_for_template($output);
-        }
-
-        return $data;
     }
 }

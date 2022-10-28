@@ -16,7 +16,6 @@
 
 namespace mod_data\output;
 
-use moodle_url;
 use templatable;
 use renderable;
 

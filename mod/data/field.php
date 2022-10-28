@@ -321,7 +321,7 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
         // Don't check the rest of the options. There is no field, there is nothing else to work with.
         exit;
     }
-    $fieldactionbar = $actionbar->get_fields_action_bar(true, true, true);
+    $fieldactionbar = $actionbar->get_fields_action_bar(true);
     data_print_header($course, $cm, $data, 'fields', $fieldactionbar);
 
     echo $OUTPUT->box_start('mb-4');
