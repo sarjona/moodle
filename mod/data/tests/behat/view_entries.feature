@@ -154,7 +154,7 @@ Feature: Users can view and search database entries
       | data1    | teacher1 | Teacher entry 2 | Some teacher content 2 | http://moodle.com |
     And I am on the "Test database name" "data activity" page logged in as teacher1
     And I navigate to "Templates" in current page administration
-    And I set the field "Templates tertiary navigation" to "List template"
+    And I set the field "Templates tertiary navigation" to "List view template"
     And I set the following fields to these values:
       | Repeated entry | ##delcheck##[[Test field name]]! |
     And I click on "Save" "button" in the "sticky-footer" "region"

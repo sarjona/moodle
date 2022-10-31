@@ -100,7 +100,7 @@ Feature: Users can navigate through the database activity using the tertiary nav
     Then I should see "Preview of Saved preset by teacher1"
     And "Use this preset" "button" should exist
     # Single view
-    And I set the field "Templates tertiary navigation" to "Single template"
+    And I set the field "Templates tertiary navigation" to "Single view template"
     And I should see "Preview of Saved preset by teacher1"
     And "Use this preset" "button" should exist
 
@@ -122,7 +122,7 @@ Feature: Users can navigate through the database activity using the tertiary nav
     And I press the escape key
     And I should see "Add entry template"
     # List template.
-    And I set the field "Templates tertiary navigation" to "List template"
+    And I set the field "Templates tertiary navigation" to "List view template"
     And I should not see "Add entry template"
     And I should see "Header"
     And I should see "Repeated entry"

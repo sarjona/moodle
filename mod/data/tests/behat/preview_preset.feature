@@ -85,8 +85,8 @@ Feature: Users can preview presets
     And I click on "Save" "button" in the "Save all fields and templates as preset" "dialogue"
     When I follow "Presets"
     And I click on "Saved preset by teacher1" "link"
-    And I set the field "Templates tertiary navigation" to "Single template"
-    # Check single template preview fields.
+    And I set the field "Templates tertiary navigation" to "Single view template"
+    # Check single view template preview fields.
     Then I should see "Saved preset by teacher1"
     And I should see "Single template content" in the "template-preview" "region"
     And I should see "My text field" in the "template-preview" "region"
@@ -124,7 +124,7 @@ Feature: Users can preview presets
     Then I should see "Journal"
     And I should see "This is a short text"
     And I should see "This is a text area"
-    And I select "Single template" from the "Templates tertiary navigation" singleselect
+    And I select "Single view template" from the "Templates tertiary navigation" singleselect
     And I should see "This is a short text"
     And I should see "This is a text area"
     And I should see "This is a short text" in the "template-preview" "region"
