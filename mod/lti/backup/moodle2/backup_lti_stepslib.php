@@ -109,7 +109,8 @@ class backup_lti_activity_structure_step extends backup_activity_structure_step 
             'createdby',
             'timecreated',
             'timemodified',
-            'description'
+            'description',
+            'coursecategories'
             )
         );
 

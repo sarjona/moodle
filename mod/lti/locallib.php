@@ -2305,18 +2305,36 @@ function lti_get_tools_by_domain($domain, $state = null, $courseid = null) {
         $coursefilter = 'OR course = :courseid';
     }
 
+    $coursecategory = $DB->get_field('course', 'category', ['id' => $courseid]);
+    // Field 'coursecategories' has comma separated value.
+    // Build SQL like params to check if course category is part of this list.
+    $coursecategorysql1 = $DB->sql_like('coursecategories', ':coursecategorylike1');
+    $coursecategorysql2 = $DB->sql_like('coursecategories', ':coursecategorylike2');
+    $coursecategorysql3 = $DB->sql_like('coursecategories', ':coursecategorylike3');
+    $coursecategorylike1 = $coursecategory . ',%';
+    $coursecategorylike2 = '%,' . $coursecategory . ',%';
+    $coursecategorylike3 = '%,' . $coursecategory;
+
     $query = "SELECT *
                 FROM {lti_types}
                WHERE tooldomain = :tooldomain
                  AND (course = :siteid $coursefilter)
-                 $statefilter";
+                 $statefilter
+                 AND (coursecategories IS NULL OR coursecategories = '' OR coursecategories = :coursecategory
+                        OR $coursecategorysql1 OR $coursecategorysql2 OR $coursecategorysql3)";
 
-    return $DB->get_records_sql($query, array(
-        'courseid' => $courseid,
-        'siteid' => $SITE->id,
-        'tooldomain' => $domain,
-        'state' => $state
-    ));
+    return $DB->get_records_sql($query,
+        [
+            'courseid' => $courseid,
+            'siteid' => $SITE->id,
+            'tooldomain' => $domain,
+            'state' => $state,
+            'coursecategory' => $coursecategory,
+            'coursecategorylike1' => $coursecategorylike1,
+            'coursecategorylike2' => $coursecategorylike2,
+            'coursecategorylike3' => $coursecategorylike3
+        ]
+    );
 }
 
 /**
@@ -2386,15 +2404,34 @@ function lti_get_lti_types_by_course($courseid, $coursevisible = null) {
         return [];
     }
     $coursecond = implode(" OR ", $courseconds);
+    $coursecategory = $DB->get_field('course', 'category', ['id' => $courseid]);
+    // Field 'coursecategories' has comma separated value.
+    // Build SQL like params to check if course category is part of this list.
+    $coursecategorysql1 = $DB->sql_like('coursecategories', ':coursecategorylike1');
+    $coursecategorysql2 = $DB->sql_like('coursecategories', ':coursecategorylike2');
+    $coursecategorysql3 = $DB->sql_like('coursecategories', ':coursecategorylike3');
+    $coursecategorylike1 = $coursecategory . ',%';
+    $coursecategorylike2 = '%,' . $coursecategory . ',%';
+    $coursecategorylike3 = '%,' . $coursecategory;
     $query = "SELECT *
                 FROM {lti_types}
                WHERE coursevisible $coursevisiblesql
                  AND ($coursecond)
                  AND state = :active
+                 AND (coursecategories IS NULL OR coursecategories = '' OR coursecategories = :coursecategory
+                        OR $coursecategorysql1 OR $coursecategorysql2 OR $coursecategorysql3)
             ORDER BY name ASC";
 
     return $DB->get_records_sql($query,
-        array('siteid' => $SITE->id, 'courseid' => $courseid, 'active' => LTI_TOOL_STATE_CONFIGURED) + $coursevisparams);
+        [
+            'siteid' => $SITE->id,
+            'courseid' => $courseid,
+            'active' => LTI_TOOL_STATE_CONFIGURED,
+            'coursecategory' => $coursecategory,
+            'coursecategorylike1' => $coursecategorylike1,
+            'coursecategorylike2' => $coursecategorylike2,
+            'coursecategorylike3' => $coursecategorylike3
+        ] + $coursevisparams);
 }
 
 /**
@@ -2695,6 +2732,8 @@ function lti_get_type_type_config($id) {
 
     $type->lti_secureicon = $basicltitype->secureicon;
 
+    $type->lti_coursecategories = $basicltitype->coursecategories;
+
     if (isset($config['resourcekey'])) {
         $type->lti_resourcekey = $config['resourcekey'];
     }
@@ -2836,6 +2875,10 @@ function lti_prepare_type_for_save($type, $config) {
         $type->secureicon = $config->lti_secureicon;
     }
 
+    if (isset($config->lti_coursecategories)) {
+        $type->coursecategories = $config->lti_coursecategories;
+    }
+
     $type->forcessl = !empty($config->lti_forcessl) ? $config->lti_forcessl : 0;
     $config->lti_forcessl = $type->forcessl;
     if (isset($config->lti_contentitem)) {
@@ -2860,6 +2903,7 @@ function lti_prepare_type_for_save($type, $config) {
     unset ($config->lti_clientid);
     unset ($config->lti_icon);
     unset ($config->lti_secureicon);
+    unset ($config->lti_coursecategories);
 }
 
 function lti_update_type($type, $config) {
