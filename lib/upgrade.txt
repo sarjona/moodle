@@ -72,6 +72,7 @@ information provided here is intended especially for developers.
 * The core/modal module and all their versions (SAVE_CANCEL, DELETE_CANCEL...) now has a setButtonDisable to disable or enable
   specific modal action buttons. This function allows developers to have modals that could only be submited if the user do some
   action in the modal body like ticking a checkbox or selecting an element.
+* A new grunt task, upgradablelibs, has been added to get the list of libraries that have a newer version in their repositories.
 
 === 4.1 ===
 
