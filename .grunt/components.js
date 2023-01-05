@@ -232,6 +232,111 @@ const getOwningComponentDirectory = checkPath => {
     return null;
 };
 
+/**
+ * Get the list of thirdparty libraries to upgrade.
+ *
+ * @returns {array}
+ */
+const getThirdPartyLibsUpgradable = async () => {
+  // const semver = require('semver');
+  // const git = require('isomorphic-git');
+  // let info = await git.getRemoteInfo({
+  //   url: 'https://github.com/sindresorhus/remote-git-tags'
+  // });
+  // console.log('info');
+  // console.log(info);
+  // let result = Object.keys(info.refs.tags);
+  // console.log(info);
+
+  // let tags = await git.get('https://github.com/sindresorhus/remote-git-tags').then(console.log);
+  // console.log(await git.get('https://github.com/sindresorhus/remote-git-tags'));
+
+  // https://github.com/sindresorhus/remote-git-tags.
+  // const git = require('remote-git-tags');
+  // let tags = await git('https://github.com/sindresorhus/remote-git-tags');
+  // console.log('eo');
+  // console.log(tags);
+  // git('https://github.com/sindresorhus/remote-git-tags').then(console.log);
+
+  // https://www.npmjs.com/package/git-tags-remote.
+
+  const getLatestTag = async(url) => {
+    const gtr = require('git-tags-remote');
+    try {
+      const tag = await gtr.latest(url);
+      if (tag !== undefined) {
+        return tag;
+      }
+    } catch {
+      return [];
+    }
+    return [];
+  };
+
+  // const tag = await getLatestTag('https://github.com/yui/yui3-gallery');
+  // console.log(tag);
+
+  const libraries = getThirdPartyLibsData();
+  let upgradableLibraries = [];
+  for (let library of libraries) {
+    if (library['repository']) {
+      // console.log(library);
+      const latestTag = await getLatestTag(library['repository']);
+      // console.log(latestTag);
+      if (latestTag.length !== 0) {
+        let newVersion = latestTag.shift();
+        const currentVersion = library['version'];
+        // console.log(newVersion);
+        if (newVersion !== undefined && newVersion.startsWith('v') && !currentVersion.startsWith('v')) {
+          // If the version doesn't start with v (vX.Y), remove it from the new version.
+          newVersion = newVersion.substring(1);
+        }
+        // // If the new version starts with a number, the semver method can be used. Otherwise, current and new versions will be compared.
+        // if ((newVersion.match(/^\d/) && semver.gt(newVersion, currentVersion)) ||
+        //     !newVersion.match(/^\d/) && newVersion != currentVersion)) {
+        if (newVersion != currentVersion) {
+          // Include the newVersion to the library data and return it.
+          library['newVersion'] = newVersion;
+          upgradableLibraries.push(library);
+          // console.log(library);
+        }
+      }
+    }
+  }
+
+  return upgradableLibraries;
+};
+
+const getThirdPartyLibsData = () => {
+  const DOMParser = require('xmldom').DOMParser;
+  const fs = require('fs');
+  const xpath = require('xpath');
+
+  const libraryList = [];
+  const libraryFields = [
+      'location',
+      'name',
+      'version',
+      'repository',
+  ];
+
+  const thirdpartyfiles = getThirdPartyLibsList(fs.realpathSync('./'));
+  thirdpartyfiles.forEach(function(libraryPath) {
+      const xmlContent = fs.readFileSync(libraryPath, 'utf8');
+      const doc = new DOMParser().parseFromString(xmlContent);
+      const libraries = xpath.select("/libraries/library", doc);
+      for (const library of libraries) {
+            let libraryData = [];
+            for (const field of libraryFields) {
+              libraryData[field] = xpath.select(`${field}/text()`, library)?.toString();
+            }
+            libraryList.push(libraryData);
+      }
+  });
+
+  return libraryList.sort((a, b) => a.location.localeCompare(b.location));
+};
+
 module.exports = {
     fetchComponentData,
     getAmdSrcGlobList,
@@ -241,4 +346,5 @@ module.exports = {
     getYuiSrcGlobList,
     getThirdPartyLibsList,
     getThirdPartyPaths,
+    getThirdPartyLibsUpgradable,
 };
