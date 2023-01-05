@@ -232,6 +232,96 @@ const getOwningComponentDirectory = checkPath => {
     return null;
 };
 
+/**
+ * Get the latest tag in a remote GitHub repository.
+ *
+ * @param {string} url The remote repository.
+ * @returns {Array}
+ */
+const getLatestTag = async(url) => {
+    const gtr = require('git-tags-remote');
+    try {
+        const tag = await gtr.latest(url);
+        if (tag !== undefined) {
+            return tag;
+        }
+    } catch {
+        return [];
+    }
+    return [];
+};
+
+/**
+ * Get the list of thirdparty libraries that could be upgraded.
+ *
+ * @returns {Array}
+ */
+const getThirdPartyLibsUpgradable = async() => {
+    const libraries = getThirdPartyLibsData();
+    let upgradableLibraries = [];
+    for (let library of libraries) {
+        if (library.repository) {
+            const latestTag = await getLatestTag(library.repository);
+            if (latestTag.length !== 0) {
+                let newVersion = latestTag.shift();
+                const currentVersion = library.version;
+                if (newVersion !== undefined && newVersion.startsWith('v') && !currentVersion.startsWith('v')) {
+                    // If the version doesn't start with v (vX.Y), remove it from the new, unless the current also starts with 'v'.
+                    newVersion = newVersion.substring(1);
+                }
+                if (newVersion != currentVersion) {
+                    // Initially this was using the semver.gt method, but in some cases it won't work so finally I realised it was
+                    // easier to compare versions and done.
+
+                    // Delete version and add it again at the end of the array. That way, current and new will stay closer.
+                    delete library.version;
+                    library.version = currentVersion;
+                    // If the versions are different, include the newVersion to the library data and return it.
+                    library.newVersion = newVersion;
+                    upgradableLibraries.push(library);
+                }
+            }
+        }
+    }
+
+    return upgradableLibraries;
+};
+
+/**
+ * Get the list of thirdparty libraries.
+ *
+ * @returns {Array}
+ */
+const getThirdPartyLibsData = () => {
+    const DOMParser = require('xmldom').DOMParser;
+    const fs = require('fs');
+    const xpath = require('xpath');
+
+    const libraryList = [];
+    const libraryFields = [
+        'location',
+        'name',
+        'version',
+        'repository',
+    ];
+
+    const thirdpartyfiles = getThirdPartyLibsList(fs.realpathSync('./'));
+    thirdpartyfiles.forEach(function(libraryPath) {
+        const xmlContent = fs.readFileSync(libraryPath, 'utf8');
+        const doc = new DOMParser().parseFromString(xmlContent);
+        const libraries = xpath.select("/libraries/library", doc);
+        for (const library of libraries) {
+            let libraryData = [];
+            for (const field of libraryFields) {
+              libraryData[field] = xpath.select(`${field}/text()`, library)?.toString();
+            }
+            libraryList.push(libraryData);
+        }
+    });
+
+    return libraryList.sort((a, b) => a.location.localeCompare(b.location));
+};
+
 module.exports = {
     fetchComponentData,
     getAmdSrcGlobList,
@@ -241,4 +331,5 @@ module.exports = {
     getYuiSrcGlobList,
     getThirdPartyLibsList,
     getThirdPartyPaths,
+    getThirdPartyLibsUpgradable,
 };
