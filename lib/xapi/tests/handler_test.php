@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * This file contains unit test related to xAPI library.
- *
- * @package    core_xapi
- * @copyright  2020 Ferran Recio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace core_xapi;
 
 use core_xapi\xapi_exception;
@@ -30,9 +22,6 @@ use core_xapi\local\statement\item_agent;
 use core_xapi\local\statement\item_verb;
 use core_xapi\local\statement\item_activity;
 use advanced_testcase;
-use core\event\base;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Contains test cases for testing xAPI statement handler base methods.
@@ -47,7 +36,7 @@ class handler_test extends advanced_testcase {
     /**
      * Setup to ensure that fixtures are loaded.
      */
-    public static function setupBeforeClass(): void {
+    public static function setUpBeforeClass(): void {
         global $CFG;
         require_once($CFG->dirroot.'/lib/xapi/tests/helper.php');
     }
@@ -115,6 +104,7 @@ class handler_test extends advanced_testcase {
         $this->assertEquals(false, $result[1]);
 
         // Check log entries.
+        /** @var \core_xapi\event\xapi_test_statement_post $log */
         $log = $testhelper->get_last_log_entry();
         $this->assertNotEmpty($log);
 

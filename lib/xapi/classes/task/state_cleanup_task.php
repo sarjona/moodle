@@ -14,16 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Strings for xapi library, language 'en'
- *
- * @package   core_xapi
- * @copyright 2020 Ferran Recio
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace core_xapi\task;
 
-$string['eventxapipost'] = 'Post xAPI statement';
-$string['privacy:metadata'] = 'The xAPI library does not store any personal data.';
-$string['xapicleanup'] = 'Stored xAPI states clean up';
-$string['xapicleanupperiod'] = 'Clean up xAPI states';
-$string['xapicleanupperiod_help'] = 'Remove any stored xAPI which is not updaded in the selected period';
+/**
+ * A scheduled task to clear up old xAPI state data.
+ *
+ * @package    core_xapi
+ * @since      Moodle 4.2
+ * @copyright  2022 Ferran Recio <ferran@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class state_cleanup_task extends \core\task\scheduled_task {
+
+    /**
+     * Get a descriptive name for this task (shown to admins).
+     *
+     * @return string
+     */
+    public function get_name() {
+        return get_string('xapicleanup', 'xapi');
+    }
+
+    /**
+     * Run task.
+     */
+    public function execute() {
+        \core_xapi\api::execute_state_cleanup();
+    }
+}
