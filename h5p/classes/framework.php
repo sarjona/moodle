@@ -16,6 +16,8 @@
 
 namespace core_h5p;
 
+use core_xapi\handler;
+use core_xapi\xapi_exception;
 use Moodle\H5PFrameworkInterface;
 use Moodle\H5PCore;
 
@@ -886,14 +888,6 @@ class framework implements H5PFrameworkInterface {
     public function updateContent($content, $contentmainid = null) {
         global $DB;
 
-        if (!isset($content['pathnamehash'])) {
-            $content['pathnamehash'] = '';
-        }
-
-        if (!isset($content['contenthash'])) {
-            $content['contenthash'] = '';
-        }
-
         // If the libraryid declared in the package is empty, get the latest version.
         if (empty($content['library']['libraryId'])) {
             $mainlibrary = $this->get_latest_library_version($content['library']['machineName']);
@@ -919,11 +913,19 @@ class framework implements H5PFrameworkInterface {
             'mainlibraryid' => $content['library']['libraryId'],
             'timemodified' => time(),
             'filtered' => null,
-            'pathnamehash' => $content['pathnamehash'],
-            'contenthash' => $content['contenthash']
         ];
 
+        if (isset($content['pathnamehash'])) {
+            $data['pathnamehash'] = $content['pathnamehash'];
+        }
+
+        if (isset($content['contenthash'])) {
+            $data['contenthash'] = $content['contenthash'];
+        }
+
         if (!isset($content['id'])) {
+            $data['pathnamehash'] = $data['pathnamehash'] ?? '';
+            $data['contenthash'] = $data['contenthash'] ?? '';
             $data['timecreated'] = $data['timemodified'];
             $id = $DB->insert_record('h5p', $data);
         } else {
@@ -941,7 +943,30 @@ class framework implements H5PFrameworkInterface {
      * @param int $contentid The h5p content id
      */
     public function resetContentUserData($contentid) {
-        // Currently, we do not store user data for a content.
+        global $DB;
+
+        // Get the component associated to the H5P content to reset.
+        $h5p = $DB->get_record('h5p', ['id' => $contentid]);
+        if ($h5p) {
+            $fs = get_file_storage();
+            $file = $fs->get_file_by_hash($h5p->pathnamehash);
+            if ($file) {
+                $component = $file->get_component();
+                $itemid = $file->get_contextid();
+
+                // Reset user data.
+                try {
+                    $xapihandler = handler::create($component);
+                } catch (xapi_exception $exception) {
+                    // This component doesn't support xAPI State, so no content needs to be reset.
+                    $xapihandler = null;
+                } finally {
+                    if ($xapihandler !== null) {
+                        $xapihandler->reset($itemid);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -998,8 +1023,31 @@ class framework implements H5PFrameworkInterface {
     public function deleteContentData($contentid) {
         global $DB;
 
+        // Get the component associated to the H5P content to remove.
+        $h5p = $DB->get_record('h5p', ['id' => $contentid]);
+        $fs = get_file_storage();
+        $file = $fs->get_file_by_hash($h5p->pathnamehash);
+
+        // Remove user data.
+        if ($file) {
+            try {
+                $component = $file->get_component();
+                $itemid = $file->get_contextid();
+                $xapihandler = handler::create($component);
+            } catch (xapi_exception $exception) {
+                // This component doesn't support xAPI State, so no content needs to be removed.
+                $xapihandler = null;
+            } finally {
+                if ($xapihandler !== null) {
+                    // The content should be reset (instead of removed), because this method is called when H5P content needs
+                    // to be updated too (and the previous states must be kept, but reset).
+                    $xapihandler->reset($itemid);
+                }
+            }
+        }
+
         // Remove content.
-        $DB->delete_records('h5p', array('id' => $contentid));
+        $DB->delete_records('h5p', ['id' => $contentid]);
 
         // Remove content library dependencies.
         $this->deleteLibraryUsage($contentid);
