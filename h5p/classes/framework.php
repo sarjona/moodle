@@ -1000,6 +1000,8 @@ class framework implements H5PFrameworkInterface {
 
         // Remove content library dependencies.
         $this->deleteLibraryUsage($contentid);
+
+        // TODO: Remove user data.
     }
 
     /**

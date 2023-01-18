@@ -231,7 +231,7 @@ class player {
             'url'             => $xapiobject->get_data()->id,
             'contentUrl'      => $contenturl->out(),
             'metadata'        => $this->content['metadata'],
-            'contentUserData' => [0 => ['state' => '{}']]
+            'contentUserData' => [0 => ['state' => '{}']], // TODO: Update it to initialize it with the user data.
         ];
         // Get the core H5P assets, needed by the H5P classes to render the H5P content.
         $settings = $this->get_assets();

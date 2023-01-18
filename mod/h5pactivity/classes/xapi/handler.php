@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * The xapi_handler for xAPI statements.
- *
- * @package    mod_h5pactivity
- * @since      Moodle 3.9
- * @copyright  2020 Ferran Recio <ferran@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_h5pactivity\xapi;
 
 use mod_h5pactivity\local\attempt;
@@ -31,7 +22,7 @@ use mod_h5pactivity\event\statement_received;
 use core_xapi\local\statement;
 use core_xapi\handler as handler_base;
 use core\event\base as event_base;
-use context_module;
+use core_xapi\local\state;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -41,9 +32,10 @@ require_once($CFG->dirroot.'/mod/h5pactivity/lib.php');
 /**
  * Class xapi_handler for H5P statements.
  *
- * @package mod_h5pactivity
+ * @package    mod_h5pactivity
  * @since      Moodle 3.9
  * @copyright  2020 Ferran Recio <ferran@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class handler extends handler_base {
 
@@ -144,5 +136,21 @@ class handler extends handler_base {
             'userid' => $user->id,
         ];
         return statement_received::create($params);
+    }
+
+    /**
+     * Validate a xAPI state.
+     *
+     * Check if the state is valid for this handler.
+     *
+     * This method is used also for the state get requests so the validation
+     * cannot rely on having state data.
+     *
+     * @param state $state
+     * @return bool if the state is valid or not
+     */
+    protected function validate_state(state $state): bool {
+        // TODO: Implement this method.
+        return true;
     }
 }

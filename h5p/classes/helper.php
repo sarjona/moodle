@@ -324,8 +324,8 @@ class helper {
 
         // Generate AJAX paths.
         $ajaxpaths = [];
-        $ajaxpaths['xAPIResult'] = '';
-        $ajaxpaths['contentUserData'] = '';
+        // $ajaxpaths['xAPIResult'] = ''; // TODO: I think this can be removed because it's not required by H5P API.
+        $ajaxpaths['contentUserData'] = ''; // TODO: Update it with the URL that will be called to update user data.
 
         $factory = new factory();
         $core = $factory->get_core();

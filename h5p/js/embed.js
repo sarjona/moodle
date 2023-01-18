@@ -215,6 +215,8 @@ document.onreadystatechange = async() => {
         if (isCompleted && !isChild) {
             var statements = H5P.getXAPIStatements(this.contentId, statement);
             H5PEmbedCommunicator.post(moodlecomponent, statements);
+        } else {
+            // TODO: Save xAPI state if the attempt hasn't finished yet.
         }
     });
 
