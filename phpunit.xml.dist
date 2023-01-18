@@ -201,6 +201,7 @@
     </testsuite>
     <testsuite name="core_xapi_testsuite">
       <directory suffix="_test.php">lib/xapi/tests</directory>
+      <directory suffix="_test.php">mod/h5pactivity/tests/xapi</directory>
     </testsuite>
     <testsuite name="core_contentbank_testsuite">
       <directory suffix="_test.php">contentbank/tests</directory>
