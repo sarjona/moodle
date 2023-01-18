@@ -233,25 +233,30 @@ const getOwningComponentDirectory = checkPath => {
 };
 
 /**
+ * Get the latest tag in a remote GitHub repository.
+ *
+ * @param {string} url The remote repository.
+ * @returns {Array}
+ */
+const getLatestTag = async(url) => {
+    const gtr = require('git-tags-remote');
+    try {
+        const tag = await gtr.latest(url);
+        if (tag !== undefined) {
+            return tag;
+        }
+    } catch {
+        return [];
+    }
+    return [];
+};
+
+/**
  * Get the list of thirdparty libraries that could be upgraded.
  *
- * @returns {array}
+ * @returns {Array}
  */
 const getThirdPartyLibsUpgradable = async() => {
-
-    const getLatestTag = async(url) => {
-        const gtr = require('git-tags-remote');
-        try {
-            const tag = await gtr.latest(url);
-            if (tag !== undefined) {
-                return tag;
-            }
-        } catch {
-            return [];
-        }
-        return [];
-    };
-
     const libraries = getThirdPartyLibsData();
     let upgradableLibraries = [];
     for (let library of libraries) {
@@ -285,7 +290,7 @@ const getThirdPartyLibsUpgradable = async() => {
 /**
  * Get the list of thirdparty libraries.
  *
- * @returns {array}
+ * @returns {Array}
  */
 const getThirdPartyLibsData = () => {
     const DOMParser = require('xmldom').DOMParser;
