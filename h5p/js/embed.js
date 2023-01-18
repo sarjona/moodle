@@ -92,6 +92,83 @@ H5PEmbedCommunicator = (function() {
                 ]);
             });
         };
+
+        /**
+         * Get a xAPI state from LMS.
+         *
+         * @param {string} component
+         * @param {string} activityId
+         * @param {Object} agent
+         * @param {string} stateId
+         */
+        self.getState = function(component, activityId, agent, stateId) {
+          require(['core/ajax'], function(ajax) {
+              var data = {
+                  component: component,
+                  activityId: activityId,
+                  agent: JSON.stringify(agent),
+                  stateId: stateId
+              };
+              ajax.call([
+                  {
+                      methodname: 'core_xapi_get_state',
+                      args: data
+                  }
+              ]);
+          });
+        };
+
+        /**
+         * Send a xAPI state to LMS.
+         *
+         * @param {string} component
+         * @param {string} activityId
+         * @param {Object} agent
+         * @param {string} stateId
+         * @param {string} stateData
+         */
+        self.postState = function(component, activityId, agent, stateId, stateData) {
+            require(['core/ajax'], function(ajax) {
+                var data = {
+                    component: component,
+                    activityId: activityId,
+                    agent: JSON.stringify(agent),
+                    stateId: stateId,
+                    stateData: stateData
+                };
+                ajax.call([
+                    {
+                        methodname: 'core_xapi_post_state',
+                        args: data
+                    }
+                ]);
+            });
+        };
+
+        /**
+         * Delete a xAPI state from LMS.
+         *
+         * @param {string} component
+         * @param {string} activityId
+         * @param {Object} agent
+         * @param {string} stateId
+         */
+        self.deleteState = function(component, activityId, agent, stateId) {
+          require(['core/ajax'], function(ajax) {
+              var data = {
+                  component: component,
+                  activityId: activityId,
+                  agent: JSON.stringify(agent),
+                  stateId: stateId
+              };
+              ajax.call([
+                  {
+                      methodname: 'core_xapi_delete_state',
+                      args: data
+                  }
+              ]);
+          });
+      };
     }
 
     return (window.postMessage && window.addEventListener ? new Communicator() : undefined);
@@ -119,6 +196,8 @@ document.onreadystatechange = async() => {
     if (document.readyState !== 'complete') {
         return;
     }
+
+    var statementPosted = false;
 
     // Check for H5P iFrame.
     var iFrame = document.querySelector('.h5p-iframe');
@@ -188,6 +267,7 @@ document.onreadystatechange = async() => {
 
     // Get emitted xAPI data.
     H5P.externalDispatcher.on('xAPI', function(event) {
+        statementPosted = false;
         var moodlecomponent = H5P.getMoodleComponent();
         if (moodlecomponent == undefined) {
             return;
@@ -215,6 +295,27 @@ document.onreadystatechange = async() => {
         if (isCompleted && !isChild) {
             var statements = H5P.getXAPIStatements(this.contentId, statement);
             H5PEmbedCommunicator.post(moodlecomponent, statements);
+            // Mark the statement has been sent, to avoid sending xAPI State after it.
+            statementPosted = true;
+        }
+    });
+
+    H5P.externalDispatcher.on('xAPIState', function(event) {
+        var moodlecomponent = H5P.getMoodleComponent();
+        var contentId = event.data.activityId;
+        var stateId = event.data.stateId;
+        var state = event.data.state;
+        if (state !== undefined) {
+            if (state === null) {
+                H5PEmbedCommunicator.deleteState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId);
+            } else if (!statementPosted) {
+                // Only send the state if statement hasn't been posted recently.
+                var statedata = new Object();
+                statedata.h5p = state;
+                H5PEmbedCommunicator.postState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId, JSON.stringify(statedata));
+            }
+        } else {
+            H5PEmbedCommunicator.getState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId);
         }
     });
 
