@@ -26,6 +26,7 @@ namespace core_h5p;
 
 use context_system;
 use core_h5p\local\library\autoloader;
+use Moodle\H5PCore;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -325,7 +326,11 @@ class helper {
         // Generate AJAX paths.
         $ajaxpaths = [];
         // $ajaxpaths['xAPIResult'] = ''; // TODO: I think this can be removed because it's not required by H5P API.
-        $ajaxpaths['contentUserData'] = ''; // TODO: Update it with the URL that will be called to update user data.
+        // $ajaxpath = "{$basepath}mod/hvp/ajax.php?token=";
+        // $ajaxpaths['contentUserData'] = ''; // TODO: Update it with the URL that will be called to update user data.
+        // $ajaxpaths['contentUserData'] = $ajaxpath . H5PCore::createToken('contentuserdata') .
+        //     '&action=contents_user_data&content_id=:contentId&data_type=:dataType&sub_content_id=:subContentId';
+        //$ajaxpaths['contentUserData'] = $ajaxpath;
 
         $factory = new factory();
         $core = $factory->get_core();
@@ -342,7 +347,7 @@ class helper {
             'urlLibraries' => "{$basepath}pluginfile.php/{$systemcontext->id}/core_h5p/libraries",
             'postUserStatistics' => false,
             'ajax' => $ajaxpaths,
-            'saveFreq' => false,
+            'saveFreq' => '10', // TODO: Update it properly.
             'siteUrl' => $CFG->wwwroot,
             'l10n' => array('H5P' => $core->getLocalization()),
             'user' => $usersettings,

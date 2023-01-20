@@ -2336,6 +2336,11 @@ H5P.createTitle = function (rawTitle, maxLength) {
    * @param {boolean} [async=true]
    */
   function contentUserDataAjax(contentId, dataType, subContentId, done, data, preload, invalidate, async) {
+    // Moodle patch to let override this method.
+    if (H5P.contentUserDataAjax !== undefined) {
+      return H5P.contentUserDataAjax(contentId, dataType, subContentId, done, data, preload, invalidate, async);
+    }
+    // End of Moodle patch.
     if (H5PIntegration.user === undefined) {
       // Not logged in, no use in saving.
       done('Not signed in.');
