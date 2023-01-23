@@ -43,15 +43,20 @@ require_login();
 
 $action = required_param('action', PARAM_ALPHA);
 
-$factory = new factory();
-$editor = $factory->get_editor();
-
 // Set context to default system context.
 $PAGE->set_context(null);
 
 switch ($action) {
+    // Handle user data, to save/get/delete the xAPI state.
+    case 'contentsuserdata':
+        autoloader::register();
+        H5PCore::ajaxError(get_string('noexport', 'hvp'));
+        break;
+
     // Load list of libraries or details for library.
     case 'libraries':
+        $factory = new factory();
+        $editor = $factory->get_editor();
         // Get parameters.
         $name = optional_param('machineName', '', PARAM_TEXT);
         $major = optional_param('majorVersion', 0, PARAM_INT);
@@ -72,6 +77,8 @@ switch ($action) {
 
     // Load content type cache list to display available libraries in hub.
     case 'contenttypecache':
+        $factory = new factory();
+        $editor = $factory->get_editor();
         $editor->ajax->action(H5PEditorEndpoints::CONTENT_TYPE_CACHE);
         break;
 
@@ -79,6 +86,8 @@ switch ($action) {
     // This endpoint needs a token that only users with H5P editor access could get.
     // TODO: MDL-68907 to check capabilities.
     case 'files':
+        $factory = new factory();
+        $editor = $factory->get_editor();
         $token = required_param('token', PARAM_RAW);
         $contentid = required_param('contentId', PARAM_INT);
 
@@ -98,12 +107,16 @@ switch ($action) {
 
     // Get the $language libraries translations.
     case 'translations':
+        $factory = new factory();
+        $editor = $factory->get_editor();
         $language = required_param('language', PARAM_RAW);
         $editor->ajax->action(H5PEditorEndpoints::TRANSLATIONS, $language);
         break;
 
     // Handle filtering of parameters through AJAX.
     case 'filter':
+        $factory = new factory();
+        $editor = $factory->get_editor();
         $token = required_param('token', PARAM_RAW);
         $libraryparameters = required_param('libraryParameters', PARAM_RAW);
 
