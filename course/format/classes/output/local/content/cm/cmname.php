@@ -94,6 +94,8 @@ class cmname implements named_templatable, renderable {
      * @return stdClass data context for a mustache template
      */
     public function export_for_template(\renderer_base $output): array {
+        global $USER;
+
         $mod = $this->mod;
         $displayoptions = $this->displayoptions;
 
@@ -106,11 +108,14 @@ class cmname implements named_templatable, renderable {
             'url' => $mod->url,
             'icon' => $mod->get_icon_url(),
             'modname' => $mod->modname,
-            'pluginname' => get_string('pluginname', 'mod_' . $mod->modname),
             'textclasses' => $displayoptions['textclasses'] ?? '',
             'purpose' => plugin_supports('mod', $mod->modname, FEATURE_MOD_PURPOSE, MOD_PURPOSE_OTHER),
             'activityname' => $this->get_title_data($output),
         ];
+
+        if (!empty($USER->editing)) {
+            $data['pluginname'] = get_string('pluginname', 'mod_' . $mod->modname);
+        }
 
         return $data;
     }
