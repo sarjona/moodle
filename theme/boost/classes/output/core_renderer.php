@@ -77,7 +77,6 @@ class core_renderer extends \core_renderer {
         $context = $this->page->context;
         $heading = null;
         $imagedata = null;
-        $subheader = null;
         $userbuttons = null;
 
         // Make sure to use the heading if it has been set.
@@ -155,7 +154,6 @@ class core_renderer extends \core_renderer {
             }
         }
 
-        $prefix = null;
         if ($context->contextlevel == CONTEXT_MODULE) {
             if ($this->page->course->format === 'singleactivity') {
                 $heading = $this->page->course->fullname;
@@ -167,12 +165,10 @@ class core_renderer extends \core_renderer {
                 $purposeclass .= ' activityiconcontainer';
                 $purposeclass .= ' modicon_' . $this->page->activityname;
                 $imagedata = html_writer::tag('div', $imagedata, ['class' => $purposeclass]);
-                $prefix = get_string('modulename', $this->page->activityname);
             }
         }
 
-
-        $contextheader = new \context_header($heading, $headinglevel, $imagedata, $userbuttons, $prefix);
+        $contextheader = new \context_header($heading, $headinglevel, $imagedata, $userbuttons);
         return $this->render_context_header($contextheader);
     }
 

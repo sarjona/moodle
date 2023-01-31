@@ -36,8 +36,8 @@ $primary-light-background: theme-color-level('primary', -12) !default;
 $primary-light-border: theme-color-level('primary', -2) !default;
 $primary-light-color: $body-color;
 $primary-light-hover: theme-color-level('primary', -10) !default;
-$activity-iconcontainer-height: 50px;
-$activity-iconcontainer-width: 50px;
+$activity-iconcontainer-height: 40px;
+$activity-iconcontainer-width: 40px;
 
 $activity-icon-colors: () !default;
 $activity-icon-colors: map-merge(
