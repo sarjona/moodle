@@ -115,6 +115,8 @@ class cmname implements named_templatable, renderable {
 
         if (!empty($USER->editing)) {
             $data['pluginname'] = get_string('pluginname', 'mod_' . $mod->modname);
+        } else {
+            $data['afterlink'] = $mod->afterlink;
         }
 
         return $data;

@@ -25,7 +25,6 @@
             "displayvalue" : "<a class=\"aalink\" href=\"#\"><span class=\"instancename\">Activity example</span></a>"
         },
         "hasname": "true",
-        "afterlink": "<span class=\"badge badge-primary\">30 unread messages</span>",
         "hasextras": true,
         "extras": ["<span class=\"badge badge-secondary\">[extras]</span>"],
         "activityinfo": {
@@ -69,12 +68,6 @@
                 {{> core_courseformat/local/content/cm/cmname }}
             {{/ core_courseformat/local/content/cm/cmname }}
         {{/cmname}}
-        {{#afterlink}}
-            <div class="afterlink">
-                {{{afterlink}}}
-            </div>
-        {{/afterlink}}
-
         {{#activityinfo}}
             <div class="activity-info mt-1 mt-md-0">
                 {{$ core_courseformat/local/content/cm/activity_info}}
@@ -92,6 +85,7 @@
         </div>
     {{/controlmenu}}
 </div>
+
 {{#hasname}}
     {{$ core_courseformat/local/content/cm/badges }}
         {{> core_courseformat/local/content/cm/badges }}
