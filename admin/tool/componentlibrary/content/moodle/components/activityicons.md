@@ -34,7 +34,6 @@ The CSS classes for these icons are ```activityiconcontainer``` wrapper class wi
     <div class="activityiconcontainer assessment mr-3">
         {{< image "quiz/icon.svg" "Quiz icon" "activityicon">}}    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">quiz</div>
         <div class="activityname"><a href="#">Multiple choice quiz 1</a></div>
     </div>
 </div>
@@ -100,7 +99,6 @@ $iconurl = get_fast_modinfo($courseid)->get_cm($cmid)->get_icon_url()->out(false
     <div class="activityiconcontainer lti mr-3">
         <img alt="lti icon" title="lti icon" src="https://moodle.org/theme/moodleorg/pix/moodle_logo_small.svg" class="activityicon ">    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">external</div>
         <div class="activityname"><a href="#">External tool module</a></div>
     </div>
 </div>
@@ -111,7 +109,6 @@ $iconurl = get_fast_modinfo($courseid)->get_cm($cmid)->get_icon_url()->out(false
     <div class="activityiconcontainer administration mr-3">
         {{< image "quiz/icon.svg" "Admin icon" "activityicon">}}    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">admin</div>
         <div class="activityname"><a href="#">Administration module</a></div>
     </div>
 </div>
@@ -120,7 +117,6 @@ $iconurl = get_fast_modinfo($courseid)->get_cm($cmid)->get_icon_url()->out(false
     <div class="activityiconcontainer assessment mr-3">
         {{< image "quiz/icon.svg" "Quiz icon" "activityicon">}}    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">quiz</div>
         <div class="activityname"><a href="#">Assessment module</a></div>
     </div>
 </div>
@@ -129,7 +125,6 @@ $iconurl = get_fast_modinfo($courseid)->get_cm($cmid)->get_icon_url()->out(false
     <div class="activityiconcontainer collaboration mr-3">
         {{< image "wiki/icon.svg" "Wiki icon" "activityicon">}}    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">wiki</div>
         <div class="activityname"><a href="#">Collaboration module</a></div>
     </div>
 </div>
@@ -138,7 +133,6 @@ $iconurl = get_fast_modinfo($courseid)->get_cm($cmid)->get_icon_url()->out(false
     <div class="activityiconcontainer collaboration mr-3">
         {{< image "choice/icon.svg" "Choice icon" "activityicon">}}    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">choice</div>
         <div class="activityname"><a href="#">Learner type</a></div>
     </div>
 </div>
@@ -147,7 +141,6 @@ $iconurl = get_fast_modinfo($courseid)->get_cm($cmid)->get_icon_url()->out(false
     <div class="activityiconcontainer content mr-3">
         {{< image "lesson/icon.svg" "Choice icon" "activityicon">}}    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">lesson</div>
         <div class="activityname"><a href="#">Content module</a></div>
     </div>
 </div>
@@ -156,7 +149,6 @@ $iconurl = get_fast_modinfo($courseid)->get_cm($cmid)->get_icon_url()->out(false
     <div class="activityiconcontainer interface mr-3">
         {{< image "quiz/icon.svg" "Interface icon" "activityicon">}}    </div>
     <div class="media-body align-self-center">
-        <div class="text-uppercase small">interface</div>
         <div class="activityname"><a href="#">Interface module</a></div>
     </div>
 </div>
