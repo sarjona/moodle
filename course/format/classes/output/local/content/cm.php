@@ -184,7 +184,6 @@ class cm implements named_templatable, renderable {
             ['overflowdiv' => true, 'noclean' => true]
         );
         $data->altcontent = (empty($altcontent)) ? false : $altcontent;
-        $data->afterlink = $this->mod->afterlink;
         return !empty($data->altcontent);
     }
 

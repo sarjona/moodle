@@ -37,6 +37,7 @@ Feature: Teacher can specify different display options for the resource
   @javascript
   Scenario Outline: Specifying different display options for a file resource
     When I add a "File" to section "1"
+    And I turn editing mode off
     And I set the following fields to these values:
       | Name                      | Myfile     |
       | Display                   | Open       |

@@ -29,6 +29,7 @@
         "textclasses": "",
         "purpose": "content",
         "modname": "resource",
+        "afterlink": "<span class=\"resourcelinkdetails\">1.0&nbsp;KB Text file Uploaded 01/01/23, 00:00</span>",
         "activityname": {
             "displayvalue" : "<a href=\"#\">Moodle</a>",
             "value" : "Moodle",
@@ -62,6 +63,11 @@
                         {{/ core/inplace_editable }}
                     {{/activityname}}
                 </div>
+                {{#afterlink}}
+                    <div class="afterlink">
+                        {{{afterlink}}}
+                    </div>
+                {{/afterlink}}
             </div>
         </div>
     </div>
