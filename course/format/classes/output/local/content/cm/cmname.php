@@ -110,6 +110,7 @@ class cmname implements named_templatable, renderable {
             'textclasses' => $displayoptions['textclasses'] ?? '',
             'purpose' => plugin_supports('mod', $mod->modname, FEATURE_MOD_PURPOSE, MOD_PURPOSE_OTHER),
             'activityname' => $this->get_title_data($output),
+            'afterlink' => $mod->afterlink,
         ];
 
         return $data;
