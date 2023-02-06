@@ -202,7 +202,7 @@ class core_renderer extends \core_renderer {
 
         // Headings.
         if (isset($contextheader->prefix)) {
-            $prefix = html_writer::div($contextheader->prefix, 'text-muted small line-height-3');
+            $prefix = html_writer::div($contextheader->prefix, 'text-muted small line-height-1 mt-1');
             $heading = $prefix . $heading;
         }
         $html .= html_writer::tag('div', $heading, array('class' => 'page-header-headings'));
