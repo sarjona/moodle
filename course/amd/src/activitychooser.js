@@ -36,6 +36,10 @@ import Pending from 'core/pending';
 const ALLACTIVITIESRESOURCES = 0;
 const ONLYALL = 1;
 const ACTIVITIESRESOURCES = 2;
+const ALLACTIVITIESRESOURCESREC = 3;
+const ONLYALLREC = 4;
+const ACTIVITIESRESOURCESREC = 5;
+
 
 // Module types.
 const ACTIVITY = 0;
@@ -213,7 +217,8 @@ const templateDataBuilder = (data, chooserConfig) => {
     const recommended = data.filter(mod => mod.recommended === true);
 
     // Both of these modes need Activity & Resource tabs.
-    if ((tabMode === ALLACTIVITIESRESOURCES || tabMode === ACTIVITIESRESOURCES) && tabMode !== ONLYALL) {
+    if ((tabMode === ALLACTIVITIESRESOURCES || tabMode === ALLACTIVITIESRESOURCESREC || tabMode === ACTIVITIESRESOURCES ||
+        tabMode === ACTIVITIESRESOURCESREC) && (tabMode !== ONLYALL && tabMode !== ONLYALLREC)) {
         // Filter the incoming data to find activities then resources.
         activities = data.filter(mod => mod.archetype === ACTIVITY);
         resources = data.filter(mod => mod.archetype === RESOURCE);
@@ -221,18 +226,22 @@ const templateDataBuilder = (data, chooserConfig) => {
         showResources = true;
 
         // We want all of the previous information but no 'All' tab.
-        if (tabMode === ACTIVITIESRESOURCES) {
+        if (tabMode === ACTIVITIESRESOURCES || tabMode === ACTIVITIESRESOURCESREC) {
             showAll = false;
         }
     }
 
+    const recommendedBeginning = (tabMode === ALLACTIVITIESRESOURCESREC || tabMode === ONLYALLREC ||
+        tabMode === ACTIVITIESRESOURCESREC);
+
     // Given the results of the above filters lets figure out what tab to set active.
     // We have some favourites.
     const favouritesFirst = !!favourites.length;
+    const recommendedFirst = favouritesFirst === false && recommendedBeginning && !!recommended.length;
     // We are in tabMode 2 without any favourites.
-    const activitiesFirst = showAll === false && favouritesFirst === false;
+    const activitiesFirst = showAll === false && favouritesFirst === false && recommendedFirst == false;
     // We have nothing fallback to show all modules.
-    const fallback = showAll === true && favouritesFirst === false;
+    const fallback = showAll === true && favouritesFirst === false && recommendedFirst == false;
 
     return {
         'default': data,
@@ -244,6 +253,8 @@ const templateDataBuilder = (data, chooserConfig) => {
         showResources: showResources,
         favourites: favourites,
         recommended: recommended,
+        recommendedFirst: recommendedFirst,
+        recommendedBeginning: recommendedBeginning,
         favouritesFirst: favouritesFirst,
         fallback: fallback,
     };
