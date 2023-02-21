@@ -18,15 +18,12 @@ namespace core_xapi\external;
 
 use core_xapi\local\state;
 use core_xapi\local\statement\item_activity;
-use core_xapi\local\statement\item_agent;
 use core_xapi\handler;
 use core_xapi\xapi_exception;
 use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_value;
-use core_component;
 use core_xapi\iri;
-use JsonException;
 
 /**
  * This is the external API for generic xAPI state deletion.
@@ -37,6 +34,8 @@ use JsonException;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class delete_state extends external_api {
+
+    use \core_xapi\local\helper\state_trait;
 
     /**
      * Parameters for execute.
@@ -56,7 +55,7 @@ class delete_state extends external_api {
     }
 
     /**
-     * Process a stae delete request.
+     * Process a state delete request.
      *
      * @param string $component The component name in frankenstyle.
      * @param string $activityiri The activity IRI.
@@ -113,53 +112,5 @@ class delete_state extends external_api {
      */
     public static function execute_returns(): external_value {
         return new external_value(PARAM_BOOL, 'If the state data is deleted');
-    }
-
-    /**
-     * Check component name.
-     *
-     * Note: this function is separated mainly for testing purposes to
-     * be overridden to fake components.
-     *
-     * @throws xapi_exception if component is not available
-     * @param string $component component name
-     */
-    protected static function validate_component(string $component): void {
-        // Check that $component is a real component name.
-        $dir = core_component::get_component_directory($component);
-        if (!$dir) {
-            throw new xapi_exception("Component $component not available.");
-        }
-    }
-
-    /**
-     * Convert a json agent into a valid item_agent.
-     *
-     * @throws xapi_exception if JSON cannot be parsed
-     * @param string $agentjson json encoded agent structure
-     * @return item_agent the agent
-     */
-    private static function get_agent_from_json(string $agentjson): item_agent {
-        try {
-            $agentdata = json_decode($agentjson, null, 521, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            throw new xapi_exception('No agent detected');
-        }
-        return item_agent::create_from_data($agentdata);
-    }
-
-    /**
-     * Check that $USER is actor in the state.
-     *
-     * @param state $state The state object to check
-     * @return bool if $USER is actor of the state
-     */
-    private static function check_state_user(state $state): bool {
-        global $USER;
-        $user = $state->get_user();
-        if ($user->id != $USER->id) {
-            return false;
-        }
-        return true;
     }
 }

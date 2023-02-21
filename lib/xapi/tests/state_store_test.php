@@ -420,8 +420,11 @@ class state_store_test extends advanced_testcase {
         // Check no state has been removed (because the entries are not old enough).
         $this->assertEquals($currentstates, $DB->count_records('xapi_states'));
 
-        // Wait for 2 seconds, to remove old entries for the fake_component.
-        sleep(2);
+        // Make the existing state entries older.
+        $timepast = time() - 2;
+        $DB->set_field('xapi_states', 'timecreated', $timepast);
+        $DB->set_field('xapi_states', 'timemodified', $timepast);
+
         // Create 1 more state, that shouldn't be removed after the cleanup.
         test_helper::create_state(['activity' => item_activity::create_from_id('7')], true);
 

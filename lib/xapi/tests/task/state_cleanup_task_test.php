@@ -41,8 +41,6 @@ class state_cleanup_task_test extends advanced_testcase {
 
     /**
      * Testing execute method in state_cleanup_task.
-     *
-     * @return void
      */
     public function test_state_cleanup_task(): void {
         global $DB;
@@ -68,8 +66,11 @@ class state_cleanup_task_test extends advanced_testcase {
         // Check no state has been removed yet (because the entries are not old enough).
         $this->assertEquals(7, $DB->count_records('xapi_states'));
 
-        // Wait for 2 seconds, to remove old entries for the mod_h5pactivity.
-        sleep(2);
+        // Make the existing state entries older.
+        $timepast = time() - 2;
+        $DB->set_field('xapi_states', 'timecreated', $timepast);
+        $DB->set_field('xapi_states', 'timemodified', $timepast);
+
         // Create 1 more state, that shouldn't be removed after the cleanup.
         test_helper::create_state(['activity' => item_activity::create_from_id('8'), 'component' => 'mod_h5pactivity'], true);
 

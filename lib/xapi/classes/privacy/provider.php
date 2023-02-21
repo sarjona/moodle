@@ -78,9 +78,6 @@ class provider implements
 
         $params = ['userid' => $userid, 'component' => $component];
 
-        global $DB;
-        $records = $DB->get_records_sql($sql, $params);
-
         $contextlist->add_from_sql($sql, $params);
     }
 
@@ -127,15 +124,20 @@ class provider implements
             'itemid' => $itemid,
         ];
 
-        if (!$state = $DB->get_record('xapi_states', $params)) {
+        if (!$states = $DB->get_records('xapi_states', $params)) {
             return;
         }
 
-        return [
-            'statedata' => $state->statedata,
-            'timecreated' => transform::datetime($state->timecreated),
-            'timemodified' => transform::datetime($state->timemodified)
-        ];
+        $result = [];
+        foreach ($states as $state) {
+            $result[] = [
+                'statedata' => $state->statedata,
+                'timecreated' => transform::datetime($state->timecreated),
+                'timemodified' => transform::datetime($state->timemodified)
+            ];
+        }
+
+        return $result;
     }
 
     /**

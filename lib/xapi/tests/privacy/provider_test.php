@@ -153,14 +153,16 @@ class provider_test extends provider_testcase {
         $systemcontext = \context_system::instance();
 
         // Get the states info for user1 in the system context.
-        $info = (object) provider::get_xapi_states_for_user($user1->id, 'fake_component', $systemcontext->id);
+        $result = provider::get_xapi_states_for_user($user1->id, 'fake_component', $systemcontext->id);
+        $info = (object) reset($result);
         // Ensure the correct data has been returned.
         $this->assertNotEmpty($info->statedata);
         $this->assertNotEmpty(transform::datetime($info->timecreated));
         $this->assertNotEmpty(transform::datetime($info->timemodified));
 
         // Get the states info for user2 in the system context.
-        $info = (object) provider::get_xapi_states_for_user($user2->id, 'fake_component', $systemcontext->id);
+        $result = provider::get_xapi_states_for_user($user2->id, 'fake_component', $systemcontext->id);
+        $info = (object) reset($result);
         // Ensure the correct data has been returned.
         $this->assertNotEmpty($info->statedata);
         $this->assertNotEmpty(transform::datetime($info->timecreated));

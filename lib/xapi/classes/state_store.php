@@ -113,7 +113,7 @@ class state_store {
             'stateid' => $state->get_state_id(),
             'registration' => $state->get_registration(),
         ];
-        $record = $DB->get_record('xapi_states', $data) ?: $data;
+        $record = $DB->get_record('xapi_states', $data) ?: (object) $data;
         if (isset($record->id)) {
             $record->statedata = json_encode($state->jsonSerialize());
             $record->timemodified = time();
@@ -129,6 +129,8 @@ class state_store {
 
     /**
      * Reset all states from the component.
+     * The given parameters are filters to decide the states to reset. If no parameters are defined, the only filter applied
+     * will be the component.
      *
      * Plugins may override this method if they store some data in different tables.
      *
@@ -165,6 +167,8 @@ class state_store {
 
     /**
      * Remove all states from the component
+     * The given parameters are filters to decide the states to wipe. If no parameters are defined, the only filter applied
+     * will be the component.
      *
      * Plugins may override this method if they store some data in different tables.
      *
