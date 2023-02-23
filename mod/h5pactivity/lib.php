@@ -149,7 +149,7 @@ function h5pactivity_delete_instance(int $id): bool {
     if ($cm = get_coursemodule_from_instance('h5pactivity', $activity->id)) {
         $context = context_module::instance($cm->id);
         $xapihandler = handler::create('mod_h5pactivity');
-        $xapihandler->wipe($context->id);
+        $xapihandler->wipe_states($context->id);
     }
 
     $DB->delete_records('h5pactivity', ['id' => $id]);
@@ -286,7 +286,7 @@ function h5pactivity_reset_userdata(stdClass $data): array {
                                                      MUST_EXIST);
                 mod_h5pactivity\local\attempt::delete_all_attempts ($cm);
                 $context = context_module::instance($cm->id);
-                $xapihandler->wipe($context->id);
+                $xapihandler->wipe_states($context->id);
             }
         }
         // Remove all grades from gradebook.

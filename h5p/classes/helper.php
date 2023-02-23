@@ -339,11 +339,8 @@ class helper {
             $usersettings['id'] = $USER->id;
         }
         $savefreq = false;
-        if ($component !== null) {
-            $savefreq = (bool) get_config($component, 'enablesavestate');
-            if ($savefreq) {
-                $savefreq = get_config($component, 'savestatefreq');
-            }
+        if ($component !== null && get_config($component, 'enablesavestate')) {
+            $savefreq = get_config($component, 'savestatefreq');
         }
         $settings = array(
             'baseUrl' => $basepath,

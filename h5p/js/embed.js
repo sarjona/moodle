@@ -94,31 +94,6 @@ H5PEmbedCommunicator = (function() {
         };
 
         /**
-         * Get a xAPI state from LMS.
-         *
-         * @param {string} component
-         * @param {string} activityId
-         * @param {Object} agent
-         * @param {string} stateId
-         */
-        self.getState = function(component, activityId, agent, stateId) {
-          require(['core/ajax'], function(ajax) {
-              var data = {
-                  component: component,
-                  activityId: activityId,
-                  agent: JSON.stringify(agent),
-                  stateId: stateId
-              };
-              ajax.call([
-                  {
-                      methodname: 'core_xapi_get_state',
-                      args: data
-                  }
-              ]);
-          });
-        };
-
-        /**
          * Send a xAPI state to LMS.
          *
          * @param {string} component
@@ -197,6 +172,7 @@ document.onreadystatechange = async() => {
         return;
     }
 
+    /** @var {boolean} statementPosted Whether the statement has been sent or not, to avoid sending xAPI State after it. */
     var statementPosted = false;
 
     // Check for H5P iFrame.
@@ -305,17 +281,23 @@ document.onreadystatechange = async() => {
         var contentId = event.data.activityId;
         var stateId = event.data.stateId;
         var state = event.data.state;
-        if (state !== undefined) {
-            if (state === null) {
-                H5PEmbedCommunicator.deleteState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId);
-            } else if (!statementPosted) {
-                // Only send the state if statement hasn't been posted recently.
-                var statedata = new Object();
-                statedata.h5p = state;
-                H5PEmbedCommunicator.postState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId, JSON.stringify(statedata));
-            }
-        } else {
-            H5PEmbedCommunicator.getState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId);
+        if (state === undefined) {
+            // When state is undefined, a call to the WS for getting the state could be done. However, for now, this is not
+            // required because the content state is initialised with PHP.
+            return;
+        }
+
+        if (state === null) {
+            // When this method is called from the H5P API with null state, the state must be deleted using the rest of attributes.
+            H5PEmbedCommunicator.deleteState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId);
+        } else if (!statementPosted) {
+            // Only update the state if a statement hasn't been posted recently.
+            // When state is defined, it needs to be updated. As not all the H5P content types are returning a JSON, we need
+            // to simulate it because xAPI State defines statedata as a JSON.
+            var statedata = {
+                h5p: state
+            };
+            H5PEmbedCommunicator.postState(moodlecomponent, contentId, H5P.getxAPIActor(), stateId, JSON.stringify(statedata));
         }
     });
 

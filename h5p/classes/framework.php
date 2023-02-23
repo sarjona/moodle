@@ -947,25 +947,23 @@ class framework implements H5PFrameworkInterface {
 
         // Get the component associated to the H5P content to reset.
         $h5p = $DB->get_record('h5p', ['id' => $contentid]);
-        if ($h5p) {
-            $fs = get_file_storage();
-            $file = $fs->get_file_by_hash($h5p->pathnamehash);
-            if ($file) {
-                $component = $file->get_component();
-                $itemid = $file->get_contextid();
+        if (!$h5p) {
+            return;
+        }
 
-                // Reset user data.
-                try {
-                    $xapihandler = handler::create($component);
-                } catch (xapi_exception $exception) {
-                    // This component doesn't support xAPI State, so no content needs to be reset.
-                    $xapihandler = null;
-                } finally {
-                    if ($xapihandler !== null) {
-                        $xapihandler->reset($itemid);
-                    }
-                }
-            }
+        $fs = get_file_storage();
+        $file = $fs->get_file_by_hash($h5p->pathnamehash);
+        if (!$file) {
+            return;
+        }
+
+        // Reset user data.
+        try {
+            $xapihandler = handler::create($file->get_component());
+            $xapihandler->reset_states($file->get_contextid());
+        } catch (xapi_exception $exception) {
+            // This component doesn't support xAPI State, so no content needs to be reset.
+            return;
         }
     }
 
@@ -1023,28 +1021,9 @@ class framework implements H5PFrameworkInterface {
     public function deleteContentData($contentid) {
         global $DB;
 
-        // Get the component associated to the H5P content to remove.
-        $h5p = $DB->get_record('h5p', ['id' => $contentid]);
-        $fs = get_file_storage();
-        $file = $fs->get_file_by_hash($h5p->pathnamehash);
-
-        // Remove user data.
-        if ($file) {
-            try {
-                $component = $file->get_component();
-                $itemid = $file->get_contextid();
-                $xapihandler = handler::create($component);
-            } catch (xapi_exception $exception) {
-                // This component doesn't support xAPI State, so no content needs to be removed.
-                $xapihandler = null;
-            } finally {
-                if ($xapihandler !== null) {
-                    // The content should be reset (instead of removed), because this method is called when H5P content needs
-                    // to be updated too (and the previous states must be kept, but reset).
-                    $xapihandler->reset($itemid);
-                }
-            }
-        }
+        // The user content should be reset (instead of removed), because this method is called when H5P content needs
+        // to be updated too (and the previous states must be kept, but reset).
+        $this->resetContentUserData($contentid);
 
         // Remove content.
         $DB->delete_records('h5p', ['id' => $contentid]);

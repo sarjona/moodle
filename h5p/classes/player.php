@@ -223,42 +223,6 @@ class player {
             \core_h5p\file_storage::CONTENT_FILEAREA, $this->h5pid, null, null);
         $exporturl = $this->get_export_settings($displayoptions[ core::DISPLAY_OPTION_DOWNLOAD ]);
         $xapiobject = item_activity::create_from_id($this->context->id);
-        // Initialize the H5P content with the saved state (if it's enabled and the user has some stored state).
-        $statedata = '{}';
-        $savestate = (bool) get_config($this->component, 'enablesavestate');
-        if ($savestate) {
-            $xapihandler = handler::create($this->component);
-            if ($xapihandler) {
-                // The component implements the xAPI handler, so the state can be loaded.
-                $state = new state(
-                    item_agent::create_from_user($USER),
-                    $xapiobject,
-                    'state',
-                    null,
-                    null
-                );
-                try {
-                    $state = $xapihandler->load_state($state);
-                } catch (xapi_exception $exception) {
-                    $state = null;
-                } finally {
-                    if ($state) {
-                        if (is_null($state->get_state_data())) {
-                            // The state content should be reset because, for instance, the content has changed.
-                            $statedata = 'RESET';
-                        } else {
-                            $statedata = $state->jsonSerialize();
-                            if (!is_null($statedata)) {
-                                if (property_exists($statedata, 'h5p')) {
-                                    // As the H5P state doesn't always use JSON, we have added this h5p object to jsonize it.
-                                    $statedata = $statedata->h5p;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         $contentsettings = [
             'library'         => core::libraryToString($this->content['library']),
@@ -272,7 +236,7 @@ class player {
             'url'             => $xapiobject->get_data()->id,
             'contentUrl'      => $contenturl->out(),
             'metadata'        => $this->content['metadata'],
-            'contentUserData' => [0 => ['state' => $statedata]],
+            'contentUserData' => [0 => ['state' => $this->get_state_data($xapiobject)]],
         ];
         // Get the core H5P assets, needed by the H5P classes to render the H5P content.
         $settings = $this->get_assets();
@@ -280,6 +244,62 @@ class player {
 
         // Print JavaScript settings to page.
         $PAGE->requires->data_for_js('H5PIntegration', $settings, true);
+    }
+
+    /**
+     * Get the stored xAPI state to use as user data.
+     *
+     * @param item_activity $xapiobject
+     * @return string The state data to pass to the player frontend
+     */
+    private function get_state_data(item_activity $xapiobject): string {
+        global $USER;
+
+        // Initialize the H5P content with the saved state (if it's enabled and the user has some stored state).
+        $emptystatedata = '{}';
+        $savestate = (bool) get_config($this->component, 'enablesavestate');
+        if (!$savestate) {
+            return $emptystatedata;
+        }
+
+        $xapihandler = handler::create($this->component);
+        if (!$xapihandler) {
+            return $emptystatedata;
+        }
+
+        // The component implements the xAPI handler, so the state can be loaded.
+        $state = new state(
+            item_agent::create_from_user($USER),
+            $xapiobject,
+            'state',
+            null,
+            null
+        );
+        try {
+            $state = $xapihandler->load_state($state);
+            if (!$state) {
+                return $emptystatedata;
+            }
+
+            if (is_null($state->get_state_data())) {
+                // The state content should be reset because, for instance, the content has changed.
+                return 'RESET';
+            }
+
+            $statedata = $state->jsonSerialize();
+            if (is_null($statedata)) {
+                return $emptystatedata;
+            }
+
+            if (property_exists($statedata, 'h5p')) {
+                // As the H5P state doesn't always use JSON, we have added this h5p object to jsonize it.
+                return $statedata->h5p;
+            }
+        } catch (xapi_exception $exception) {
+            return $emptystatedata;
+        }
+
+        return $emptystatedata;
     }
 
     /**
