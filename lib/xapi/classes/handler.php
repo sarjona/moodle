@@ -136,7 +136,7 @@ abstract class handler {
         if (!$this->validate_state($state)) {
             throw new xapi_exception('The state is not accepted, so it cannot be saved');
         }
-        return $this->get_state_store()->put($state);
+        return $this->statestore->put($state);
     }
 
     /**
@@ -149,7 +149,7 @@ abstract class handler {
         if (!$this->validate_state($state)) {
             throw new xapi_exception('The state is not accepted, so it cannot be loaded');
         }
-        $state = $this->get_state_store()->get($state);
+        $state = $this->statestore->get($state);
         return $state;
     }
 
@@ -163,7 +163,7 @@ abstract class handler {
         if (!$this->validate_state($state)) {
             throw new xapi_exception('The state is not accepted, so it cannot be deleted');
         }
-        return $this->get_state_store()->delete($state);
+        return $this->statestore->delete($state);
     }
 
     /**
@@ -174,13 +174,13 @@ abstract class handler {
      * @param string|null $stateid
      * @param string|null $registration
      */
-    public function wipe(
+    public function wipe_states(
         ?string $itemid = null,
         ?int $userid = null,
         ?string $stateid = null,
         ?string $registration = null
     ): void {
-        $this->get_state_store()->wipe($itemid, $userid, $stateid, $registration);
+        $this->statestore->wipe($itemid, $userid, $stateid, $registration);
     }
 
     /**
@@ -191,13 +191,13 @@ abstract class handler {
      * @param string|null $stateid
      * @param string|null $registration
      */
-    public function reset(
+    public function reset_states(
         ?string $itemid = null,
         ?int $userid = null,
         ?string $stateid = null,
         ?string $registration = null
     ): void {
-        $this->get_state_store()->reset($itemid, $userid, $stateid, $registration);
+        $this->statestore->reset($itemid, $userid, $stateid, $registration);
     }
 
     /**

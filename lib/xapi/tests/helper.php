@@ -96,7 +96,7 @@ class test_helper {
         $component = $info['component'] ?? 'fake_component';
         $agent = $info['agent'] ?? item_agent::create_from_user($USER);
         $activity = $info['activity'] ?? item_activity::create_from_id('12345');
-        $stateid = $info['stateid'] ?? '';
+        $stateid = $info['stateid'] ?? 'state';
         $data = $info['data'] ?? json_decode('{"progress":0,"answers":[[["AA"],[""]],[{"answers":[]}]],"answered":[true,false]}');
         $registration = $info['registration'] ?? null;
 

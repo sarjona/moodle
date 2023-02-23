@@ -246,9 +246,9 @@ class handler_test extends advanced_testcase {
     }
 
     /**
-     * Testing reset method.
+     * Testing reset_states method.
      */
-    public function test_reset_state(): void {
+    public function test_reset_states(): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -260,33 +260,33 @@ class handler_test extends advanced_testcase {
 
         // Check the state is not reset (when there are no states).
         $this->assertCount(0, $DB->get_records_select('xapi_states', 'statedata IS NULL'));
-        $handler->reset();
+        $handler->reset_states();
         $this->assertCount(0, $DB->get_records_select('xapi_states', 'statedata IS NULL'));
 
         // Add, at least, one xAPI state record to database (with the default values).
         test_helper::create_state([], true);
 
         // Check the state is not reset if the given state doesn't meet its values.
-        $handler->reset('1');
+        $handler->reset_states('1');
         $this->assertCount(1, $DB->get_records('xapi_states'));
         $this->assertCount(0, $DB->get_records_select('xapi_states', 'statedata IS NULL'));
 
         // Check the state is reset if it exists.
-        $handler->reset();
+        $handler->reset_states();
         $this->assertCount(1, $DB->get_records('xapi_states'));
         $this->assertCount(1, $DB->get_records_select('xapi_states', 'statedata IS NULL'));
 
         // Check the state is reset too when using some of the given parameters.
         test_helper::create_state(['activity' => item_activity::create_from_id('1')], true);
-        $handler->reset('1');
+        $handler->reset_states('1');
         $this->assertCount(2, $DB->get_records('xapi_states'));
         $this->assertCount(2, $DB->get_records_select('xapi_states', 'statedata IS NULL'));
     }
 
     /**
-     * Testing wipe method.
+     * Testing wipe_states method.
      */
-    public function test_wipe_state(): void {
+    public function test_wipe_states(): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -298,24 +298,24 @@ class handler_test extends advanced_testcase {
 
         // Check the state is not wiped (when there are no states).
         $this->assertCount(0, $DB->get_records('xapi_states'));
-        $handler->wipe();
+        $handler->wipe_states();
         $this->assertCount(0, $DB->get_records('xapi_states'));
 
         // Add, at least, one xAPI state record to database (with the default values).
         test_helper::create_state([], true);
 
         // Check the state is not wiped if the given state doesn't meet its values.
-        $handler->wipe('1');
+        $handler->wipe_states('1');
         $this->assertCount(1, $DB->get_records('xapi_states'));
 
         // Check the state is wiped if it exists.
-        $handler->wipe();
+        $handler->wipe_states();
         $this->assertCount(0, $DB->get_records('xapi_states'));
 
         // Check the state is wiped too when using some of the given parameters.
         test_helper::create_state(['activity' => item_activity::create_from_id('1')], true);
         $this->assertCount(1, $DB->get_records('xapi_states'));
-        $handler->wipe('1');
+        $handler->wipe_states('1');
         $this->assertCount(0, $DB->get_records('xapi_states'));
     }
 
