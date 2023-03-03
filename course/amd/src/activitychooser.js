@@ -34,7 +34,6 @@ import Pending from 'core/pending';
 
 // Tab config options.
 const ALLACTIVITIESRESOURCES = 0;
-const ONLYALL = 1;
 const ACTIVITIESRESOURCES = 2;
 const ALLACTIVITIESRESOURCESREC = 3;
 const ONLYALLREC = 4;
@@ -216,9 +215,20 @@ const templateDataBuilder = (data, chooserConfig) => {
     const favourites = data.filter(mod => mod.favourite === true);
     const recommended = data.filter(mod => mod.recommended === true);
 
-    // Both of these modes need Activity & Resource tabs.
-    if ((tabMode === ALLACTIVITIESRESOURCES || tabMode === ALLACTIVITIESRESOURCESREC || tabMode === ACTIVITIESRESOURCES ||
-        tabMode === ACTIVITIESRESOURCESREC) && (tabMode !== ONLYALL && tabMode !== ONLYALLREC)) {
+    // Whether the activities and resources tabs should be displayed or not.
+    const showActivitiesAndResources = (tabMode) => {
+        const acceptableModes = [
+            ALLACTIVITIESRESOURCES,
+            ALLACTIVITIESRESOURCESREC,
+            ACTIVITIESRESOURCES,
+            ALLACTIVITIESRESOURCES,
+        ];
+
+        return acceptableModes.indexOf(tabMode) !== -1;
+    };
+
+    // These modes need Activity & Resource tabs.
+    if (showActivitiesAndResources(tabMode)) {
         // Filter the incoming data to find activities then resources.
         activities = data.filter(mod => mod.archetype === ACTIVITY);
         resources = data.filter(mod => mod.archetype === RESOURCE);
@@ -231,17 +241,22 @@ const templateDataBuilder = (data, chooserConfig) => {
         }
     }
 
-    const recommendedBeginning = (tabMode === ALLACTIVITIESRESOURCESREC || tabMode === ONLYALLREC ||
-        tabMode === ACTIVITIESRESOURCESREC);
+    const recommendedBeforeTabs = [
+        ALLACTIVITIESRESOURCESREC,
+        ONLYALLREC,
+        ACTIVITIESRESOURCESREC,
+    ];
+    // Whether the recommended tab should be displayed before the All/Activities/Resources tabs.
+    const recommendedBeginning = recommendedBeforeTabs.indexOf(tabMode) !== -1;
 
     // Given the results of the above filters lets figure out what tab to set active.
     // We have some favourites.
     const favouritesFirst = !!favourites.length;
-    const recommendedFirst = favouritesFirst === false && recommendedBeginning && !!recommended.length;
+    const recommendedFirst = favouritesFirst === false && recommendedBeginning === true && !!recommended.length;
     // We are in tabMode 2 without any favourites.
-    const activitiesFirst = showAll === false && favouritesFirst === false && recommendedFirst == false;
+    const activitiesFirst = showAll === false && favouritesFirst === false && recommendedFirst === false;
     // We have nothing fallback to show all modules.
-    const fallback = showAll === true && favouritesFirst === false && recommendedFirst == false;
+    const fallback = showAll === true && favouritesFirst === false && recommendedFirst === false;
 
     return {
         'default': data,
