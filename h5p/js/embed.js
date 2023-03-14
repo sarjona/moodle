@@ -72,38 +72,36 @@ H5PEmbedCommunicator = (function() {
             window.parent.postMessage(data, '*');
         };
 
-        /**
-         * Send a xAPI statement to LMS.
-         *
-         * @param {string} component
-         * @param {Object} statements
-         */
-        self.post = function(component, statements) {
-            require(['core/ajax'], function(ajax) {
+        require(['core/ajax'], function(ajax) {
+            /**
+             * Send a xAPI statement to LMS.
+             *
+             * @param {string} component
+             * @param {Object} statements
+             */
+            self.post = function(component, statements) {
                 var data = {
                     component: component,
                     requestjson: JSON.stringify(statements)
                 };
                 ajax.call([
-                   {
-                       methodname: 'core_xapi_statement_post',
-                       args: data
-                   }
+                    {
+                        methodname: 'core_xapi_statement_post',
+                        args: data
+                    }
                 ]);
-            });
-        };
+            };
 
-        /**
-         * Send a xAPI state to LMS.
-         *
-         * @param {string} component
-         * @param {string} activityId
-         * @param {Object} agent
-         * @param {string} stateId
-         * @param {string} stateData
-         */
-        self.postState = function(component, activityId, agent, stateId, stateData) {
-            require(['core/ajax'], function(ajax) {
+            /**
+             * Send a xAPI state to LMS.
+             *
+             * @param {string} component
+             * @param {string} activityId
+             * @param {Object} agent
+             * @param {string} stateId
+             * @param {string} stateData
+             */
+            self.postState = function(component, activityId, agent, stateId, stateData) {
                 var data = {
                     component: component,
                     activityId: activityId,
@@ -117,33 +115,31 @@ H5PEmbedCommunicator = (function() {
                         args: data
                     }
                 ]);
-            });
-        };
+            };
 
-        /**
-         * Delete a xAPI state from LMS.
-         *
-         * @param {string} component
-         * @param {string} activityId
-         * @param {Object} agent
-         * @param {string} stateId
-         */
-        self.deleteState = function(component, activityId, agent, stateId) {
-          require(['core/ajax'], function(ajax) {
-              var data = {
-                  component: component,
-                  activityId: activityId,
-                  agent: JSON.stringify(agent),
-                  stateId: stateId
-              };
-              ajax.call([
-                  {
-                      methodname: 'core_xapi_delete_state',
-                      args: data
-                  }
-              ]);
-          });
-      };
+            /**
+             * Delete a xAPI state from LMS.
+             *
+             * @param {string} component
+             * @param {string} activityId
+             * @param {Object} agent
+             * @param {string} stateId
+             */
+            self.deleteState = function(component, activityId, agent, stateId) {
+                var data = {
+                    component: component,
+                    activityId: activityId,
+                    agent: JSON.stringify(agent),
+                    stateId: stateId
+                };
+                ajax.call([
+                    {
+                        methodname: 'core_xapi_delete_state',
+                        args: data
+                    }
+                ]);
+            };
+        });
     }
 
     return (window.postMessage && window.addEventListener ? new Communicator() : undefined);
