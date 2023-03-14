@@ -43,16 +43,14 @@ class post_state extends external_api {
      * @return external_function_parameters
      */
     public static function execute_parameters(): external_function_parameters {
-        return new external_function_parameters(
-            [
-                'component' => new external_value(PARAM_COMPONENT, 'Component name'),
-                'activityId' => new external_value(PARAM_URL, 'xAPI activity ID IRI'),
-                'agent' => new external_value(PARAM_RAW, 'The xAPI agent json'),
-                'stateId' => new external_value(PARAM_ALPHAEXT, 'The xAPI state ID'),
-                'stateData' => new external_value(PARAM_RAW, 'JSON object with the state data'),
-                'registration' => new external_value(PARAM_ALPHANUMEXT, 'The xAPI registration UUID', VALUE_DEFAULT, null),
-            ]
-        );
+        return new external_function_parameters([
+            'component' => new external_value(PARAM_COMPONENT, 'Component name'),
+            'activityId' => new external_value(PARAM_URL, 'xAPI activity ID IRI'),
+            'agent' => new external_value(PARAM_RAW, 'The xAPI agent json'),
+            'stateId' => new external_value(PARAM_ALPHAEXT, 'The xAPI state ID'),
+            'stateData' => new external_value(PARAM_RAW, 'JSON object with the state data'),
+            'registration' => new external_value(PARAM_ALPHANUMEXT, 'The xAPI registration UUID', VALUE_DEFAULT, null),
+        ]);
     }
 
     /**
@@ -105,7 +103,7 @@ class post_state extends external_api {
             $registration
         );
 
-        if (!self::check_state_user($state, $handler)) {
+        if (!self::check_state_user($state)) {
             throw new xapi_exception('State agent is not the current user');
         }
 

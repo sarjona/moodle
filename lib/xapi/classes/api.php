@@ -35,9 +35,8 @@ class api {
         try {
             $handler = handler::create($component);
             $statestore = $handler->get_state_store();
-        } catch (\Exception $exception) {
-            // If the component is not available, use the standard one
-            // to ensure we clean the xapi_states table.
+        } catch (xapi_exception $exception) {
+            // If the component is not available, use the standard one to ensure we clean the xapi_states table.
             $statestore = new state_store($component);
         }
         $statestore->wipe();

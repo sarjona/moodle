@@ -59,19 +59,27 @@ class api_test extends advanced_testcase {
         test_helper::create_state(['activity' => item_activity::create_from_id('5'), 'component' => 'mod_h5pactivity'], true);
         test_helper::create_state(['activity' => item_activity::create_from_id('6'), 'component' => 'mod_h5pactivity'], true);
         test_helper::create_state(['activity' => item_activity::create_from_id('7'), 'component' => 'mod_h5pactivity'], true);
+        test_helper::create_state(['activity' => item_activity::create_from_id('8'), 'component' => 'unexisting'], true);
+        test_helper::create_state(['activity' => item_activity::create_from_id('9'), 'component' => 'unexisting'], true);
 
-        // Check no state has been removed (because there are no entries for the unexisting_component).
-        api::remove_states_from_component('unexisting_component');
-        $this->assertEquals(7, $DB->count_records('xapi_states'));
+        // Check no state has been removed (because there are no entries for the another_component).
+        api::remove_states_from_component('another_component');
+        $this->assertEquals(9, $DB->count_records('xapi_states'));
 
         // Check states for the fake_component have been removed.
         api::remove_states_from_component('fake_component');
-        $this->assertEquals(3, $DB->count_records('xapi_states'));
+        $this->assertEquals(5, $DB->count_records('xapi_states'));
         $this->assertEquals(0, $DB->count_records('xapi_states', ['component' => 'fake_component']));
         $this->assertEquals(3, $DB->count_records('xapi_states', ['component' => 'mod_h5pactivity']));
+        $this->assertEquals(2, $DB->count_records('xapi_states', ['component' => 'unexisting']));
 
         // Check states for the mod_h5pactivity have been removed too.
         api::remove_states_from_component('mod_h5pactivity');
+        $this->assertEquals(2, $DB->count_records('xapi_states'));
+        $this->assertEquals(0, $DB->count_records('xapi_states', ['component' => 'mod_h5pactivity']));
+
+        // Check states for the unexisting component have been removed (using the default state_store).
+        api::remove_states_from_component('unexisting');
         $this->assertEquals(0, $DB->count_records('xapi_states'));
     }
 
