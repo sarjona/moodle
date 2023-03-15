@@ -54,11 +54,22 @@ abstract class handler {
      * @throws xapi_exception
      */
     final public static function create(string $component): self {
-        $classname = "\\$component\\xapi\\handler";
-        if (class_exists($classname)) {
+        if (self::supports_xapi($component)) {
+            $classname = "\\$component\\xapi\\handler";
             return new $classname($component);
         }
         throw new xapi_exception('Unknown handler');
+    }
+
+    /**
+     * Whether a component supports (and implements) xAPI.
+     *
+     * @param string $component the component name in frankenstyle.
+     * @return bool true if the given component implements xAPI handler; false otherwise.
+     */
+    final public static function supports_xapi(string $component): bool {
+        $classname = "\\$component\\xapi\\handler";
+        return class_exists($classname);
     }
 
     /**

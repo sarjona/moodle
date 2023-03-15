@@ -238,7 +238,9 @@ function uninstall_plugin($type, $name) {
     }
 
     // Wipe any xAPI state information.
-    core_xapi\api::remove_states_from_component($component);
+    if (core_xapi\handler::supports_xapi($component)) {
+        core_xapi\api::remove_states_from_component($component);
+    }
 
     // delete message provider
     message_provider_uninstall($component);

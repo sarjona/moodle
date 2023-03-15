@@ -32,14 +32,23 @@ class api {
      * @return void
      */
     public static function remove_states_from_component(string $component): void {
+        global $DB;
+
+        $statestore = null;
+        $dbman = $DB->get_manager();
         try {
             $handler = handler::create($component);
             $statestore = $handler->get_state_store();
         } catch (xapi_exception $exception) {
-            // If the component is not available, use the standard one to ensure we clean the xapi_states table.
-            $statestore = new state_store($component);
+            // If the component is not available but the xapi_states table exists, use the standard one to ensure we clean it.
+            $table = new \xmldb_table('xapi_states');
+            if ($dbman->table_exists($table)) {
+                $statestore = new state_store($component);
+            }
         }
-        $statestore->wipe();
+        if ($statestore) {
+            $statestore->wipe();
+        }
     }
 
     /**

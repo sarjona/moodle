@@ -58,6 +58,19 @@ class handler_test extends advanced_testcase {
     }
 
     /**
+     * Test xAPI support.
+     */
+    public function test_supports_xapi() {
+        // Get an existent handler.
+        $result = handler::supports_xapi('fake_component');
+        $this->assertTrue($result);
+
+        // Get a non existent handler.
+        $result = handler::supports_xapi('potato_omelette');
+        $this->assertFalse($result);
+    }
+
+    /**
      * Test support group.
      */
     public function test_support_group_actor() {
