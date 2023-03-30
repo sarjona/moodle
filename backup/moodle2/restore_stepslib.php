@@ -4235,17 +4235,13 @@ class restore_xapistate_structure_step extends restore_structure_step {
      * Define structure for xAPI state step
      */
     protected function define_structure() {
-
-        $paths = [];
-        $paths[] = new restore_path_element('xapistate', '/states/state');
-
-        return $paths;
+        return [new restore_path_element('xapistate', '/states/state')];
     }
 
     /**
      * Define data processed for xAPI state.
      *
-     * @param mixed  $data
+     * @param array|stdClass $data
      */
     public function process_xapistate($data) {
         global $DB;

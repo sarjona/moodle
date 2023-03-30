@@ -1,4 +1,4 @@
-@core @core_backup @core_h5p @mod_h5pactivity @_file_upload @_switch_iframe @javascript
+@core @core_backup @core_h5p @mod_h5pactivity @_switch_iframe @javascript
 Feature: Backup xAPI states
   In order to save and restore xAPI states
   As an admin
@@ -14,9 +14,6 @@ Feature: Backup xAPI states
     And the following "course enrolments" exist:
       | user     | course | role           |
       | student1 | C1     | student        |
-    And the following "permission overrides" exist:
-      | capability                 | permission | role           | contextlevel | reference |
-      | moodle/h5p:updatelibraries | Allow      | editingteacher | System       |           |
     And the following "activity" exists:
       | activity        | h5pactivity                             |
       | course          | C1                                      |
