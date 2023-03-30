@@ -278,7 +278,7 @@ class player {
         try {
             $state = $xapihandler->load_state($state);
             if (!$state) {
-                // Check if the state has been restored from a backup.
+                // Check if the state has been restored from a backup for the current user.
                 $state = new state(
                     item_agent::create_from_user($USER),
                     $xapiobject,
@@ -291,11 +291,11 @@ class player {
                     // A restored state has been found. It will be replaced with one with the proper stateid and statedata.
                     $xapihandler->delete_state($state);
                     $state = new state(
-                                item_agent::create_from_user($USER),
-                                $xapiobject,
-                                'state',
-                                $statedata,
-                                null
+                        item_agent::create_from_user($USER),
+                        $xapiobject,
+                        'state',
+                        $statedata,
+                        null
                     );
                     $xapihandler->save_state($state);
                 }
