@@ -287,14 +287,14 @@ class player {
                     null
                 );
                 $state = $xapihandler->load_state($state);
-                if ($state && !is_null($state->get_state_data()) && $statedata = $state->jsonSerialize()) {
+                if ($state && !is_null($state->get_state_data())) {
                     // A restored state has been found. It will be replaced with one with the proper stateid and statedata.
                     $xapihandler->delete_state($state);
                     $state = new state(
                         item_agent::create_from_user($USER),
                         $xapiobject,
                         'state',
-                        $statedata,
+                        $state->jsonSerialize(),
                         null
                     );
                     $xapihandler->save_state($state);
