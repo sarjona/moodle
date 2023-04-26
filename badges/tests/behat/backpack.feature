@@ -122,6 +122,7 @@ Feature: Backpack badges
     When I press "Add a new backpack"
     And I set the field "backpackapiurl" to "http://backpackapiurl.cat"
     And I set the field "backpackweburl" to "aaa"
+    And I set the field "apiversion" to "2"
     And I press "Save changes"
     And I should see "Invalid URL"
     And I set the field "backpackweburl" to "http://backpackweburl.cat"
