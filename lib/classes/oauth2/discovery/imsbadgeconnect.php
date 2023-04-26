@@ -40,14 +40,12 @@ class imsbadgeconnect extends base_definition {
      */
     public static function get_discovery_endpoint_url(issuer $issuer): string {
         $url = $issuer->get('baseurl');
-        if (!empty($url)) {
-            // Add slash at the end of the base url.
-            $url .= (substr($url, -1) == '/' ? '' : '/');
-            // Append the well-known file for IMS OBv2.1.
-            $url .= '.well-known/badgeconnect.json';
+        if (empty($url)) {
+            return '';
         }
 
-        return $url;
+        $hostname = parse_url($url, PHP_URL_HOST);
+        return "https://{$hostname}/.well-known/badgeconnect.json";
     }
 
     /**
