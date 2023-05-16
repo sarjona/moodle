@@ -30,6 +30,10 @@ information provided here is intended especially for developers.
   - core_useragent::get_device_type_cfg_var_name()
   - theme_is_device_locked()
   - theme_get_locked_theme_for_device()
+* New scheduled tasks show_started_courses_task and hide_ended_courses_task that updates the course visibility when the current
+  day matches course start date/end date. They are disabled by default. Once they are enabled, only courses with start/end dates
+  near the past 24 hours will be checked. The visibility of these courses will only changed when their start/end dates are higher
+  than the current one, to avoid updating the course visibility early.
 
 === 4.2 ===
 
