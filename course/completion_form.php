@@ -153,6 +153,18 @@ class course_completion_form extends moodleform {
             }
             $mform->addElement('select', 'course_aggregation', get_string('courseaggregation', 'core_completion'), $courseaggregationmenu);
             $mform->setDefault('course_aggregation', $completion->get_aggregation_method(COMPLETION_CRITERIA_TYPE_COURSE));
+
+            if (!empty($CFG->enablerestrictcoursesbasedoncompletion)) {
+                // Add a setting to let define whether course access should be blocked when course completion is enabled and
+                // the depending course hasn't been completed yet.
+                $aggdata = [
+                    'course'        => $course->id,
+                    'criteriatype'  => COMPLETION_CRITERIA_TYPE_COURSE,
+                ];
+                $courseagg = new completion_aggregation($aggdata);
+                $mform->addElement('checkbox', 'course_blockaccess', get_string('courseblockaccess', 'core_completion'));
+                $mform->setDefault('course_blockaccess', $courseagg->value);
+            }
         } else {
             $mform->addElement('static', 'nocourses', '', get_string('err_nocourses', 'completion'));
         }

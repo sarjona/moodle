@@ -4643,7 +4643,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 2,
                 'limit' => 0,
                 'offset' => 0,
-                'expecteddbqueries' => 2,
+                'expecteddbqueries' => 3,
                 'expectedresult' => $buildexpectedresult(2, 0)
             ],
             'more than query limit' => [
@@ -4651,7 +4651,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 7,
                 'limit' => 0,
                 'offset' => 0,
-                'expecteddbqueries' => 4,
+                'expecteddbqueries' => 7,
                 'expectedresult' => $buildexpectedresult(7, 0)
             ],
             'limit less than query limit' => [
@@ -4659,7 +4659,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 7,
                 'limit' => 2,
                 'offset' => 0,
-                'expecteddbqueries' => 2,
+                'expecteddbqueries' => 3,
                 'expectedresult' => $buildexpectedresult(2, 0)
             ],
             'limit less than query limit with offset' => [
@@ -4667,7 +4667,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 7,
                 'limit' => 2,
                 'offset' => 2,
-                'expecteddbqueries' => 2,
+                'expecteddbqueries' => 3,
                 'expectedresult' => $buildexpectedresult(2, 2)
             ],
             'limit less than total' => [
@@ -4675,7 +4675,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 9,
                 'limit' => 6,
                 'offset' => 0,
-                'expecteddbqueries' => 3,
+                'expecteddbqueries' => 5,
                 'expectedresult' => $buildexpectedresult(6, 0)
             ],
             'less results than limit' => [
@@ -4683,7 +4683,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 9,
                 'limit' => 20,
                 'offset' => 0,
-                'expecteddbqueries' => 4,
+                'expecteddbqueries' => 7,
                 'expectedresult' => $buildexpectedresult(9, 0)
             ],
             'less results than limit exact divisible' => [
@@ -4691,7 +4691,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 9,
                 'limit' => 20,
                 'offset' => 0,
-                'expecteddbqueries' => 5,
+                'expecteddbqueries' => 8,
                 'expectedresult' => $buildexpectedresult(9, 0)
             ],
             'less results than limit with offset' => [
@@ -4699,7 +4699,7 @@ class courselib_test extends advanced_testcase {
                 'totalcourses' => 9,
                 'limit' => 10,
                 'offset' => 5,
-                'expecteddbqueries' => 3,
+                'expecteddbqueries' => 5,
                 'expectedresult' => $buildexpectedresult(4, 5)
             ],
         ];

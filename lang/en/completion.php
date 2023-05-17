@@ -121,6 +121,7 @@ $string['courseaggregation'] = 'Condition requires';
 $string['courseaggregation_all'] = 'ALL selected courses to be completed';
 $string['courseaggregation_any'] = 'ANY selected courses to be completed';
 $string['coursealreadycompleted'] = 'You have already completed this course';
+$string['courseblockaccess'] = 'Restrict access to students until dependant courses are completed.';
 $string['coursecomplete'] = 'Course complete';
 $string['coursecompleted'] = 'Course completed';
 $string['coursecompletedmessage'] = '<p>Congratulations!</p><p>You have completed the course <a href="{$a->courselink}">{$a->coursename}</a>.</p>';

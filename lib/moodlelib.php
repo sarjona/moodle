@@ -2460,17 +2460,49 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
         if (is_role_switched($course->id)) {
             // When switching roles ignore the hidden flag - user had to be in course to do the switch.
         } else {
-            if (!$course->visible and !has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
-                // Originally there was also test of parent category visibility, BUT is was very slow in complex queries
-                // involving "my courses" now it is also possible to simply hide all courses user is not enrolled in :-).
-                if ($preventredirect) {
-                    throw new require_login_exception('Course is hidden');
+            if (!has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
+                if (!$course->visible) {
+                    // Originally there was also test of parent category visibility, BUT is was very slow in complex queries
+                    // involving "my courses" now it is also possible to simply hide all courses user is not enrolled in :-).
+                    if ($preventredirect) {
+                        throw new require_login_exception('Course is hidden');
+                    }
+                    $PAGE->set_context(null);
+                    // We need to override the navigation URL as the course won't have been added to the navigation and thus
+                    // the navigation will mess up when trying to find it.
+                    navigation_node::override_active_url(new moodle_url('/'));
+                    notice(get_string('coursehidden'), $CFG->wwwroot .'/');
+                } else {
+                    $blockedcourses = enrol_get_uncompleted_dependant_courses([$course->id => $course], true);
+                    if (!empty($blockedcourses)) {
+                        // The course depends on other courses that haven't been completed yet.
+                        if ($preventredirect) {
+                            throw new require_login_exception('Course has dependencies');
+                        }
+                        $PAGE->set_context(null);
+                        // We need to override the navigation URL as the course won't have been added to the navigation and thus
+                        // the navigation will mess up when trying to find it.
+                        navigation_node::override_active_url(new moodle_url('/'));
+                        $message = 'coursewithalldependencies';
+                        $blockedcourse = reset($blockedcourses);
+                        if ($blockedcourse['completionmethod'] == COMPLETION_AGGREGATION_ANY) {
+                             $message = 'coursewithanydependencies';
+                        }
+
+                        // Get the dependant courses information, to display them to the users.
+                        $blockedcourses = $DB->get_records_list('course', 'id', array_values($blockedcourse['courses']));
+                        $blockedcoursesstring = html_writer::start_tag('ul');;
+                        foreach ($blockedcourses as $course) {
+                            $courselink = \html_writer::link(
+                                new \moodle_url('/course/view.php', ['id' => $course->id]),
+                                format_string($course->fullname) .' [' . format_string($course->shortname) . ']'
+                            );
+                            $blockedcoursesstring .= html_writer::start_tag('li') . $courselink . html_writer::end_tag('li');
+                        }
+                        $blockedcoursesstring .= html_writer::end_tag('ul');
+                        notice(get_string($message, 'core', $blockedcoursesstring), $CFG->wwwroot .'/');
+                    }
                 }
-                $PAGE->set_context(null);
-                // We need to override the navigation URL as the course won't have been added to the navigation and thus
-                // the navigation will mess up when trying to find it.
-                navigation_node::override_active_url(new moodle_url('/'));
-                notice(get_string('coursehidden'), $CFG->wwwroot .'/');
             }
         }
     }
