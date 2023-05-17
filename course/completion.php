@@ -130,7 +130,14 @@ if ($form->is_cancelled()){
     }
 
     $aggdata['criteriatype'] = COMPLETION_CRITERIA_TYPE_COURSE;
-    $aggregation = new completion_aggregation($aggdata);
+    // Setting to define whether the course access should be blocked or not.
+    $courseaggdata = $aggdata;
+    if (!empty($data->course_blockaccess)) {
+        $courseaggdata['value'] = $data->course_blockaccess;
+    } else {
+        $courseaggdata['value'] = null;
+    }
+    $aggregation = new completion_aggregation($courseaggdata);
     $aggregation->setMethod($data->course_aggregation);
     $aggregation->save();
 
