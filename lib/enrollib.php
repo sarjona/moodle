@@ -804,13 +804,16 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
            $ccjoin
              WHERE $wheres
           $orderby";
-
     $courses = $DB->get_records_sql($sql, $params, $offset, $limit);
+
+    $blockedcourses = enrol_get_blocked_dependant_courses($courses, $offset, $limit);
 
     // preload contexts and check visibility
     foreach ($courses as $id=>$course) {
         context_helper::preload_from_record($course);
-        if (!$course->visible) {
+        // If course is not visible or it depends on any other course that is blocked because a dependant course needs to be
+        // completed first.
+        if (!$course->visible || array_key_exists($id, $blockedcourses)) {
             if (!$context = context_course::instance($id, IGNORE_MISSING)) {
                 unset($courses[$id]);
                 continue;
@@ -826,6 +829,66 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
     //wow! Is that really all? :-D
 
     return $courses;
+}
+
+
+function enrol_get_blocked_dependant_courses($courses, $offset = 0, $limit = 0): array {
+    global $USER, $DB;
+
+    $courseidsql = '';
+    $coursesparams = [];
+    if (!empty($courses)) {
+        list ($coursessql, $coursesparams) = $DB->get_in_or_equal(array_keys($courses), SQL_PARAMS_NAMED);
+        $courseidsql = " AND ccc.course $coursessql";
+    }
+    // Courses depending on another courses.
+    $sql = "SELECT DISTINCT ccc.id, ccc.course, ccc.courseinstance, ca.method, cc.timecompleted
+              FROM {course_completion_criteria} ccc
+        INNER JOIN {course_completion_aggr_methd} ca ON ccc.course = ca.course AND ca.criteriatype = :criteriatype1
+         LEFT JOIN {course_completions} cc ON cc.course = ccc.courseinstance AND cc.userid = :userid
+             WHERE ccc.criteriatype = :criteriatype2 $courseidsql";
+    $params = [
+        'criteriatype1' => 8,
+        'criteriatype2' => 8,
+        'userid' => $USER->id,
+    ];
+    $params = array_merge($params, $coursesparams);
+    $allcourses = $DB->get_records_sql($sql, $params, $offset, $limit);
+
+    $allcoursesbykey = [];
+    foreach ($allcourses as $course) {
+        $allcoursesbykey[$course->course][] = $course;
+    }
+
+    $blockedcourses = [];
+    foreach ($allcoursesbykey as $key => $coursesbykey) {
+        $found = false;
+        foreach ($coursesbykey as $course) {
+            switch ($course->method) {
+                case 2:
+                    if ($course->timecompleted != null) {
+                        $found = true;
+                        break 2;
+                    } else {
+                        $found = false;
+                    }
+                    break;
+                case 1:
+                    if ($course->timecompleted != null) {
+                        $found = true;
+                    } else {
+                        $found = false;
+                        break 2;
+                    }
+                    break;
+            }
+        }
+        if (!$found) {
+            $blockedcourses[$key] = $key;
+        }
+    }
+
+    return $blockedcourses;
 }
 
 /**
@@ -1124,6 +1187,12 @@ function enrol_get_all_users_courses($userid, $onlyactive = false, $fields = nul
     $params['userid']  = $userid;
 
     $courses = $DB->get_records_sql($sql, $params);
+
+    // Exclude courses depending on other courses that need to be completed before.
+    $blockedcourses = enrol_get_blocked_dependant_courses($courses);
+    foreach ($blockedcourses as $courseid => $noutused) {
+        unset($courses[$courseid]);
+    }
 
     return $courses;
 }

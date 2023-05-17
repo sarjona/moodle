@@ -2922,17 +2922,74 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
         if (is_role_switched($course->id)) {
             // When switching roles ignore the hidden flag - user had to be in course to do the switch.
         } else {
-            if (!$course->visible and !has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
-                // Originally there was also test of parent category visibility, BUT is was very slow in complex queries
-                // involving "my courses" now it is also possible to simply hide all courses user is not enrolled in :-).
-                if ($preventredirect) {
-                    throw new require_login_exception('Course is hidden');
+            if (!has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
+                if (!$course->visible) {
+                    // Originally there was also test of parent category visibility, BUT is was very slow in complex queries
+                    // involving "my courses" now it is also possible to simply hide all courses user is not enrolled in :-).
+                    if ($preventredirect) {
+                        throw new require_login_exception('Course is hidden');
+                    }
+                    $PAGE->set_context(null);
+                    // We need to override the navigation URL as the course won't have been added to the navigation and thus
+                    // the navigation will mess up when trying to find it.
+                    navigation_node::override_active_url(new moodle_url('/'));
+                    notice(get_string('coursehidden'), $CFG->wwwroot .'/');
+                } else {
+                    // TODO: Comment code.
+                    $sql = 'SELECT DISTINCT cc.courseinstance, ca.method
+                                    FROM {course_completion_criteria} cc
+                                INNER JOIN {course_completion_aggr_methd} ca ON cc.course = ca.course AND ca.criteriatype = :criteriatype1
+                                    WHERE cc.criteriatype = :criteriatype2 AND cc.course = :course';
+                    $params = [
+                        'criteriatype1' => 8, // TODO: Use constant if possible.
+                        'criteriatype2' => 8, // TODO: Use constant if possible.
+                        'course' => $course->id,
+                    ];
+                    $dependantcourses = $DB->get_records_sql($sql, $params);
+                    if (!empty($dependantcourses)) {
+                        $params = [$USER->id];
+                        $sqlcourses = '';
+                        $completionmethod = null;
+                        foreach ($dependantcourses as $depcourse) {
+                            if (!empty($sqlcourses)) {
+                                if ($completionmethod == 2) { // TODO: Use constant if possible.
+                                    $sqlcourses .= ' OR ';
+                                } else {
+                                    $sqlcourses .= ' AND ';
+                                }
+                            } else {
+                                $completionmethod = $depcourse->method;
+                            }
+                            $sqlcourses .= 'cc.course = ?';
+                            $params[] = $depcourse->courseinstance;
+                        }
+                        $sql = "SELECT *
+                                FROM {course_completions} cc
+                                WHERE cc.userid = ? AND ($sqlcourses)";
+                        $dependantcoursescompleted = $DB->get_records_sql($sql, $params);
+                        if (empty($dependantcoursescompleted)) {
+                            if ($preventredirect) {
+                                throw new require_login_exception('Course has dependencies');
+                            }
+                            $PAGE->set_context(null);
+                            // We need to override the navigation URL as the course won't have been added to the navigation and thus
+                            // the navigation will mess up when trying to find it.
+                            navigation_node::override_active_url(new moodle_url('/'));
+                            $message = 'coursewithalldependencies';
+                            if ($completionmethod == 2) { // TODO: Use constant if possible.
+                                $message = 'coursewithanydependencies';
+                            }
+                            $depcoursesstring = ''; // TODO: Find the course name and create a link to them.
+                            foreach ($dependantcourses as $depcourse) {
+                                if (!empty($depcoursesstring)) {
+                                    $depcoursesstring .= ', ';
+                                }
+                                $depcoursesstring .= $depcourse->courseinstance;
+                            }
+                            notice(get_string($message, 'core', $depcoursesstring), $CFG->wwwroot .'/');
+                        }
+                    }
                 }
-                $PAGE->set_context(null);
-                // We need to override the navigation URL as the course won't have been added to the navigation and thus
-                // the navigation will mess up when trying to find it.
-                navigation_node::override_active_url(new moodle_url('/'));
-                notice(get_string('coursehidden'), $CFG->wwwroot .'/');
             }
         }
     }
