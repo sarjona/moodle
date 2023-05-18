@@ -2947,7 +2947,7 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
                         navigation_node::override_active_url(new moodle_url('/'));
                         $message = 'coursewithalldependencies';
                         $blockedcourse = reset($blockedcourses);
-                        if ($blockedcourse['completionmethod'] == 2) { // TODO: Use constant if possible.
+                        if ($blockedcourse['completionmethod'] == COMPLETION_AGGREGATION_ANY) {
                              $message = 'coursewithanydependencies';
                         }
                         $depcoursesstring = implode(',', array_values($blockedcourse['courses'])); // TODO: Find the course name and create a link to them.
