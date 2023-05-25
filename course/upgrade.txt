@@ -1,6 +1,10 @@
 This files describes API changes in /course/*,
 information provided here is intended especially for developers.
 
+=== 4.3 ===
+* External function core_course_external::get_course_contents() now returns a new field activitybadge with the data to display
+  the activity badge when the module implements it.
+
 === 4.2 ===
 * course/mod.php now accepts parameter beforemod for adding course modules. It contains the course module id
   of an existing course module. The new module is inserted before this module.
