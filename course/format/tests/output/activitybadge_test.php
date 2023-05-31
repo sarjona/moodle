@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core_courseformat\output;
+
 use stdClass;
 
 /**
@@ -29,6 +30,7 @@ class activitybadge_test extends \advanced_testcase {
 
     /**
      * Test the behaviour of create_instance() and export_for_template() attributes.
+     * @runInSeparateProcess
      *
      * @covers ::export_for_template
      * @covers ::create_instance
@@ -104,13 +106,17 @@ class activitybadge_test extends \advanced_testcase {
         $this->setUser($teacher);
 
         // Create a forum with tracking forced and add a discussion.
-        $forumunread = $this->getDataGenerator()->create_module('forum', ['course' => $course->id, 'trackingtype' => 2]);
+        $record = new stdClass();
+        $record->introformat = FORMAT_HTML;
+        $record->course = $course->id;
+        $record->trackingtype = FORUM_TRACKING_FORCED;
+        $forumread = $this->getDataGenerator()->create_module('forum', $record);
+        $forumunread = $this->getDataGenerator()->create_module('forum', $record);
         $record = new stdClass();
         $record->course = $course->id;
         $record->userid = $teacher->id;
         $record->forum = $forumunread->id;
         $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion($record);
-        $forumread = $this->getDataGenerator()->create_module('forum', ['course' => $course->id, 'trackingtype' => 2]);
 
         // Create a file with all the options enabled.
         $record = new stdClass();
@@ -132,7 +138,7 @@ class activitybadge_test extends \advanced_testcase {
         $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
         $label = $this->getDataGenerator()->create_module('label', ['course' => $course->id]);
 
-        rebuild_course_cache($course->id, true, true);
+        rebuild_course_cache($course->id, true);
         $renderer = course_get_format($course->id)->get_renderer($PAGE);
         $modinfo = get_fast_modinfo($course->id);
 

@@ -38,22 +38,22 @@ abstract class activitybadge implements named_templatable, \renderable {
     protected $cminfo = null;
 
     /** @var string The content to be displayed in the activity badge.  */
-    protected $content;
+    protected $content = null;
 
     /** @var string The style for the activity badge.  */
     protected $style = 'badge-none';
 
     /** @var \moodle_url An optional URL to redirect the user when the activity badge is clicked.  */
-    protected $url;
+    protected $url = null;
 
     /** @var string An optional element id in case the module wants to add some code for the activity badge (events, CSS...). */
-    protected $elementid;
+    protected $elementid = null;
 
     /**
      * @var array An optional array of extra HTML attributes to add to the badge element (for example, data attributes).
      * The format for this array is [['name' => 'attr1', 'value' => 'attrval1'], ['name' => 'attr2', 'value' => 'attrval2']].
      */
-    protected $extraattributes;
+    protected $extraattributes = [];
 
     /**
      * Constructor.
