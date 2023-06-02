@@ -1738,6 +1738,10 @@ $activity-add-hover: theme-color-level('primary', -10) !default;
     width: 0;
 }
 
+.completionautomatic {
+    margin-left: 20px;
+}
+
 @include media-breakpoint-down(sm) {
     .bulkenabled .course-content {
         margin-left: 2rem;

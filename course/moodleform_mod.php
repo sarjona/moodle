@@ -821,11 +821,11 @@ abstract class moodleform_mod extends moodleform {
             $mform->addElement(
                 'checkbox',
                 'completionusegrade',
-                get_string('completionusegrade', 'completion'),
-                get_string('completionusegrade_desc', 'completion')
+                '',
+                get_string('completionusegrade', 'completion')
             );
             $mform->hideIf('completionusegrade', 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
-            $mform->addHelpButton('completionusegrade', 'completionusegrade', 'completion');
+            // $mform->addHelpButton('completionusegrade', 'completionusegrade', 'completion');
 
             // Complete if the user has reached the pass grade.
             $mform->addElement(
@@ -835,7 +835,7 @@ abstract class moodleform_mod extends moodleform {
             );
             $mform->hideIf('completionpassgrade', 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
             $mform->disabledIf('completionpassgrade', 'completionusegrade', 'notchecked');
-            $mform->addHelpButton('completionpassgrade', 'completionpassgrade', 'completion');
+            // $mform->addHelpButton('completionpassgrade', 'completionpassgrade', 'completion');
 
             // The disabledIf logic differs between ratings and other grade items due to different field types.
             if ($rating) {
