@@ -182,24 +182,34 @@ abstract class core_completion_edit_base_form extends moodleform {
         $mform->addElement('hidden', 'completionunlocked', 1);
         $mform->setType('completionunlocked', PARAM_INT);
 
-        $mform->addElement('select', 'completion', get_string('completion', 'completion'),
-            array(COMPLETION_TRACKING_NONE => get_string('completion_none', 'completion'),
-                COMPLETION_TRACKING_MANUAL => get_string('completion_manual', 'completion')));
-        $mform->addHelpButton('completion', 'completion', 'completion');
+        // $mform->addElement('select', 'completion', get_string('completion', 'completion'),
+        //     array(COMPLETION_TRACKING_NONE => get_string('completion_none', 'completion'),
+        //         COMPLETION_TRACKING_MANUAL => get_string('completion_manual', 'completion')));
+        // $mform->addHelpButton('completion', 'completion', 'completion');
+        // $mform->setDefault('completion', COMPLETION_TRACKING_NONE);
+
+        $mform->addElement('radio', 'completion', '', get_string('completion_none', 'completion'), COMPLETION_TRACKING_NONE);
+        $mform->addElement('radio', 'completion', '', get_string('completion_manual', 'completion'), COMPLETION_TRACKING_MANUAL);
+        $mform->addElement('radio', 'completion', '', get_string('completion_automatic', 'completion'), COMPLETION_TRACKING_AUTOMATIC);
+        $mform->setType('completion', PARAM_INT);
         $mform->setDefault('completion', COMPLETION_TRACKING_NONE);
+
+        $group = [];
 
         // Automatic completion once you view it.
         $autocompletionpossible = false;
         if ($this->support_views()) {
-            $mform->addElement('advcheckbox', 'completionview', get_string('completionview', 'completion'),
+            $group[] = $mform->createElement('advcheckbox', 'completionview', '',
                 get_string('completionview_desc', 'completion'));
-            $mform->disabledIf('completionview', 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
+            $mform->hideIf('completionview', 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
             $autocompletionpossible = true;
         }
 
         // Automatic completion according to module-specific rules.
         foreach ($this->add_custom_completion_rules() as $element) {
-            $mform->disabledIf($element, 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
+            $group[] = $mform->getElement($element);
+            $mform->removeElement($element);
+            $mform->hideIf($element, 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
             $autocompletionpossible = true;
         }
 
@@ -214,15 +224,35 @@ abstract class core_completion_edit_base_form extends moodleform {
             }
 
             moodleform_mod::add_completionusegrade_form($mform, $modname);
+            $usergradeelements = ['completionusegrade', 'completionpassgrade'];
+            foreach ($usergradeelements as $element) {
+                $group[] = $mform->getElement($element);
+                $mform->removeElement($element);
+            }
 
             $autocompletionpossible = true;
         }
 
+        if (!empty($group)) {
+            $mform->addElement('static', 'completionautomatic_text', '', 'Activity is completed when students do all of the following');
+            $element = $mform->addElement('group', 'completionautomatic_group', '', $group, '<br/>', false);
+            $element->setAttributes(['class' => 'completionautomatic']);
+            $mform->hideIf($element, 'completionautomatic_text', 'ne', COMPLETION_TRACKING_AUTOMATIC);
+        }
+
         // Automatic option only appears if possible.
-        if ($autocompletionpossible) {
-            $mform->getElement('completion')->addOption(
-                get_string('completion_automatic', 'completion'),
-                COMPLETION_TRACKING_AUTOMATIC);
+        if (!$autocompletionpossible) {
+        //     $mform->getElement('completion')->addOption(
+        //         get_string('completion_automatic', 'completion'),
+        //         COMPLETION_TRACKING_AUTOMATIC);
+        // } else {
+            $mform->removeElement('completion');
+            $mform->removeElement('completion');
+            $mform->removeElement('completion');
+            $mform->addElement('radio', 'completion', '', get_string('completion_none', 'completion'), COMPLETION_TRACKING_NONE);
+            $mform->addElement('radio', 'completion', '', get_string('completion_manual', 'completion'), COMPLETION_TRACKING_MANUAL);
+            $mform->setType('completion', PARAM_INT);
+            $mform->setDefault('completion', COMPLETION_TRACKING_NONE);
         }
 
         // Completion expected at particular date? (For progress tracking).

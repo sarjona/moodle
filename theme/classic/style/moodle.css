@@ -29192,6 +29192,10 @@ span.editinstructions .alert-link {
   width: 0;
 }
 
+.completionautomatic {
+  margin-left: 20px;
+}
+
 @media (max-width: 767.98px) {
   .bulkenabled .course-content {
     margin-left: 2rem;
