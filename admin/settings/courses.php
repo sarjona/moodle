@@ -214,7 +214,18 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
     $temp->add(new admin_setting_configselect('moodlecourse/groupmode', new lang_string('groupmode'), '', key($choices),$choices));
     $temp->add(new admin_setting_configselect('moodlecourse/groupmodeforce', new lang_string('force'), new lang_string('coursehelpforce'), 0,array(0 => new lang_string('no'), 1 => new lang_string('yes'))));
 
-    $ADMIN->add('courses', $temp);
+    $ADMIN->add('courses', new admin_category('coursesettingscat', new lang_string('coursesettings')));
+
+    $ADMIN->add('coursesettingscat', $temp);
+
+    // Course default completion settings.
+    if (!empty($CFG->enablecompletion)) {
+        $ADMIN->add('coursesettingscat', new admin_externalpage(
+            'coursedefaultcompletion',
+            new lang_string('defaultcompletion', 'completion'),
+            $CFG->wwwroot . '/course/defaultcompletion.php?id=3')
+        );
+    }
 
     // Download course content.
     $downloadcoursedefaulturl = new moodle_url('/admin/settings.php', ['section' => 'coursesettings']);
