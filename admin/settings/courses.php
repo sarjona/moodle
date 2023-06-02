@@ -228,6 +228,19 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
 
     $ADMIN->add('courses', $temp);
 
+    $ADMIN->add('courses', new admin_category('coursesettingscat', new lang_string('coursesettings')));
+
+    $ADMIN->add('coursesettingscat', $temp);
+
+    // Course default completion settings.
+    if (!empty($CFG->enablecompletion)) {
+        $ADMIN->add('coursesettingscat', new admin_externalpage(
+            'coursedefaultcompletion',
+            new lang_string('defaultcompletion', 'completion'),
+            $CFG->wwwroot . '/course/defaultcompletion.php?id=3')
+        );
+    }
+
     // Download course content.
     $downloadcoursedefaulturl = new moodle_url('/admin/settings.php', ['section' => 'coursesettings']);
     $temp = new admin_settingpage('downloadcoursecontent', new lang_string('downloadcoursecontent', 'course'));
