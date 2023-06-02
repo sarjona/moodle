@@ -197,6 +197,12 @@ abstract class core_completion_edit_base_form extends moodleform {
             $autocompletionpossible = true;
         }
 
+        // Automatic completion according to module-specific rules.
+        foreach ($this->add_custom_completion_rules() as $element) {
+            $mform->disabledIf($element, 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
+            $autocompletionpossible = true;
+        }
+
         // Automatic completion once it's graded.
         if ($this->support_grades()) {
             $group = [];
@@ -212,12 +218,6 @@ abstract class core_completion_edit_base_form extends moodleform {
             $mform->addGroup($group, 'completionpassgroup', get_string('completionpassgrade', 'completion'), ' &nbsp; ', false);
             $mform->disabledIf('completionpassgroup', 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
 
-            $autocompletionpossible = true;
-        }
-
-        // Automatic completion according to module-specific rules.
-        foreach ($this->add_custom_completion_rules() as $element) {
-            $mform->disabledIf($element, 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
             $autocompletionpossible = true;
         }
 

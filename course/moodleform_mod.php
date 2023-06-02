@@ -767,6 +767,12 @@ abstract class moodleform_mod extends moodleform {
                 $gotcompletionoptions = true;
             }
 
+            // Automatic completion according to module-specific rules
+            $this->_customcompletionelements = $this->add_completion_rules();
+            foreach ($this->_customcompletionelements as $element) {
+                $mform->hideIf($element, 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
+            }
+
             if (plugin_supports('mod', $this->_modname, FEATURE_GRADE_HAS_GRADE, false)) {
                 // This activity supports grading.
                 $gotcompletionoptions = true;
@@ -837,12 +843,6 @@ abstract class moodleform_mod extends moodleform {
                     $mform->disabledIf('completionpassgrade', 'completiongradeitemnumber', 'eq', '');
                     $mform->addHelpButton('completionpassgrade', 'completionpassgrade', 'completion');
                 }
-            }
-
-            // Automatic completion according to module-specific rules
-            $this->_customcompletionelements = $this->add_completion_rules();
-            foreach ($this->_customcompletionelements as $element) {
-                $mform->hideIf($element, 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
             }
 
             $gotcompletionoptions = $gotcompletionoptions ||
