@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_resource\output;
+namespace mod_resource\output\courseformat;
 
 /**
  * Activity badge resource class, used for displaying the file type.
