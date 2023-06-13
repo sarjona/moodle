@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_forum\output;
+namespace mod_forum\output\courseformat;
 
 /**
  * Activity badge forum class, used for rendering unread messages.
@@ -40,7 +40,7 @@ class activitybadge extends \core_courseformat\output\activitybadge {
                 } else {
                     $this->content = get_string('unreadpostsnumber', 'forum', $unread);
                 }
-                $this->style = 'badge-dark';
+                $this->style = self::STYLES['dark'];
             }
         }
     }
