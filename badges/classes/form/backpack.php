@@ -125,18 +125,16 @@ class backpack extends external_backpack {
      * Validates form data
      */
     public function validation($data, $files) {
-        global $CFG;
-
-        $errors = [];
         if (badges_open_badges_backpack_api() == OPEN_BADGES_V2P1) {
-            return $errors;
+            return [];
         }
 
         // We don't need to verify the email address if we're clearing a pending email verification attempt.
         if (isset($data['revertbutton'])) {
-            return $errors;
+            return [];
         }
 
+        $errors = [];
         // Email and password can't be blank.
         if (empty($data['backpackemail'])) {
             $errors['backpackemail'] = get_string('backpackemail_required', 'badges');
