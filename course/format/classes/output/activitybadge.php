@@ -34,6 +34,15 @@ use stdClass;
 abstract class activitybadge implements named_templatable, \renderable {
     use courseformat_named_templatable;
 
+    /** @var array Badge defined styles. */
+    public const STYLES = [
+        'none' => 'badge-none',
+        'dark' => 'badge-dark',
+        'danger' => 'badge-danger',
+        'warning' => 'badge-warning',
+        'info' => 'badge-info',
+    ];
+
     /** @var cm_info The course module information. */
     protected $cminfo = null;
 
@@ -41,7 +50,7 @@ abstract class activitybadge implements named_templatable, \renderable {
     protected $content = null;
 
     /** @var string The style for the activity badge.  */
-    protected $style = 'badge-none';
+    protected $style = self::STYLES['none'];
 
     /** @var \moodle_url An optional URL to redirect the user when the activity badge is clicked.  */
     protected $url = null;
@@ -103,7 +112,7 @@ abstract class activitybadge implements named_templatable, \renderable {
      * @return self|null An instance of activityclass for the given module or null if the module doesn't implement it.
      */
     final public static function create_instance(cm_info $cminfo): ?self {
-        $classname = '\mod_' . $cminfo->modname . '\output\activitybadge';
+        $classname = '\mod_' . $cminfo->modname . '\output\courseformat\activitybadge';
         if (!class_exists($classname)) {
             return null;
         }

@@ -87,20 +87,9 @@
         {{/cmname}}
 
         {{#activitybadge}}
-            <div
-                {{#badgeelementid}}id="{{.}}"{{/badgeelementid}}
-                class="m-2 d-flex align-items-center"
-                {{#badgeextraattributes}} {{name}}="{{value}}" {{/badgeextraattributes}}
-            >
-                <div class="activitybadge badge badge-pill {{badgestyle}}">
-                    {{#badgeurl}}
-                        <a href="{{.}}">{{badgecontent}}</a>
-                    {{/badgeurl}}
-                    {{^badgeurl}}
-                        {{badgecontent}}
-                    {{/badgeurl}}
-            </div>
-            </div>
+            {{$ core_courseformat/local/content/cm/activitybadge }}
+                {{> core_courseformat/local/content/cm/activitybadge }}
+            {{/ core_courseformat/local/content/cm/activitybadge }}
         {{/activitybadge}}
 
         {{#activityinfo}}
