@@ -1,5 +1,11 @@
-This files describes API changes in /completion/* - completion,
+This file describes API changes in /completion/* - completion,
 information provided here is intended especially for developers.
+
+=== 4.3 ===
+* A couple of protected new methods, add_completion_elements() and add_completiongrade_elements(), have been added to the
+  moodleform class, to include all the completion conditions and the completion graded elements respectively to the given form.
+  Forms extending from moodleform_mod can call add_completion_elements() without any parameters because they will be initialized
+  with the values from the form.
 
 === 4.0 ===
 * New method mark_course_completions_activity_criteria() has been added to mark course completions instantly. It is
