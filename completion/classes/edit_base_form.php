@@ -199,18 +199,13 @@ abstract class core_completion_edit_base_form extends moodleform {
 
         // Automatic completion once it's graded.
         if ($this->support_grades()) {
-            $group = [];
-            $group[] = $mform->createElement('advcheckbox', 'completionusegrade', get_string('completionusegrade', 'completion'),
-                get_string('completionusegrade_desc', 'completion'));
-            $mform->addHelpButton('completionusegrade', 'completionusegrade', 'completion', '', true);
-
-            $group[] = $mform->createElement('advcheckbox', 'completionpassgrade', get_string('completionpassgrade', 'completion'),
-                get_string('completionpassgrade_desc', 'completion'));
-            $mform->addHelpButton('completionpassgrade', 'completionpassgrade', 'completion', '', true);
-            $mform->disabledIf('completionpassgrade', 'completionusegrade', 'notchecked');
-
-            $mform->addGroup($group, 'completionpassgroup', get_string('completionpassgrade', 'completion'), ' &nbsp; ', false);
-            $mform->disabledIf('completionpassgroup', 'completion', 'ne', COMPLETION_TRACKING_AUTOMATIC);
+            $modname = null;
+            $modnames = $this->get_module_names();
+            if (!empty($modnames) && count($modnames) == 1) {
+                $modnamekeys = array_keys($modnames);
+                $modname = reset($modnamekeys);
+            }
+            \core_completion\api::add_completiongrade_elements($mform, $modname, false, true);
 
             $autocompletionpossible = true;
         }
