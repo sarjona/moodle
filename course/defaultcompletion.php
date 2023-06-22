@@ -70,8 +70,6 @@ echo $renderer->render_course_completion_action_bar($actionbar);
 
 echo $OUTPUT->heading(get_string('defaultcompletion', 'completion'));
 
-$PAGE->requires->js_call_amd('core_form/changechecker', 'watchFormById', ['theform']);
-
 echo $renderer->defaultcompletion($activityresourcedata);
 
 echo $OUTPUT->footer();

@@ -224,12 +224,24 @@ class manager {
         $course = get_course($this->courseid);
         foreach ($data->modules as $module) {
             $module->icon = $OUTPUT->image_url('monologo', $module->name)->out();
-            $module->formattedname = format_string(get_string('modulenameplural', 'mod_' . $module->name),
+            $module->formattedname = format_string(get_string('modulename', 'mod_' . $module->name),
                 true, ['context' => $coursecontext]);
             $module->canmanage = $canmanage && course_allowed_module($course, $module->name);
             $defaults = self::get_default_completion($course, $module, false);
             $defaults->modname = $module->name;
             $module->completionstatus = $this->get_completion_detail($defaults);
+            if ($module->canmanage) {
+                // If the user can manage this module, then the activity completion form needs to be returned too, without the
+                // cancel button (so only "Save changes" button is displayed).
+                $form = new \core_completion_defaultedit_form(null, [
+                    'course' => $course,
+                    'modules' => [
+                        $module->id => $module,
+                    ],
+                    'displaycancel' => false,
+                ]);
+                $module->formhtml = $form->render();
+            }
         }
 
         return $data;

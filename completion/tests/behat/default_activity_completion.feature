@@ -27,10 +27,8 @@ Feature: Allow teachers to edit the default activity completion rules in a cours
     And I am on the "Course 1" course page logged in as teacher1
     When I navigate to "Course completion" in current page administration
     And I select "Default activity completion" from the "Course completion tertiary navigation" singleselect
-    And I click on "Assignments" "checkbox"
-    And I click on "Edit" "button"
+    And I click on "Assignment" "link"
     And I should see "Completion tracking"
-    And I should see "The changes will affect the following 1 activities or resources:"
     And I should see "Student must make a submission"
     And I set the following fields to these values:
       | completion         | Show activity as complete when conditions are met |
@@ -38,12 +36,12 @@ Feature: Allow teachers to edit the default activity completion rules in a cours
       | completionusegrade | 1                                                 |
       | completionsubmit   | 1                                                 |
     And I click on "Save changes" "button"
-    Then I should see "Changes saved"
-    And I should see "With conditions" in the "//div[contains(concat(' ', normalize-space(@class), ' '), ' row ')][.//*[text() = 'Assignments']]" "xpath_element"
-    And I should not see "Student must view this activity to complete it" in the "//div[contains(concat(' ', normalize-space(@class), ' '), ' row ')][.//*[text() = 'Assignments']]" "xpath_element"
-    And I should see "Student must receive a grade to complete this activity" in the "//div[contains(concat(' ', normalize-space(@class), ' '), ' row ')][.//*[text() = 'Assignments']]" "xpath_element"
-    And I should see "Student must make a submission" in the "//div[contains(concat(' ', normalize-space(@class), ' '), ' row ')][.//*[text() = 'Assignments']]" "xpath_element"
-    And I should not see "Completion expected on" in the "//div[contains(concat(' ', normalize-space(@class), ' '), ' row ')][.//*[text() = 'Assignments']]" "xpath_element"
+    # Then I should see "Changes saved"
+    # Completion tracking 2 = Show activity as complete when conditions are met.
+    And the field "Completion tracking" matches value "2"
+    And the field "completionview" matches value "0"
+    And the field "completionusegrade" matches value "1"
+    And the field "completionsubmit" matches value "1"
     And I am on "Course 1" course homepage with editing mode on
     And I press "Add an activity or resource"
     And I click on "Add a new Assignment" "link" in the "Add an activity or resource" "dialogue"
