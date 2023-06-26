@@ -229,6 +229,13 @@ class assign {
         $this->useridlistid = clean_param(uniqid('', true), PARAM_ALPHANUM);
     }
 
+    public function get_id(): int {
+        if (!$this->coursemodule) {
+            $this->coursemodule = get_coursemodule_from_id('assign', $this->get_context()->instanceid);
+        }
+        return $this->coursemodule->instance;
+    }
+
     /**
      * Set the action and parameters that can be used to return to the current page.
      *
@@ -823,7 +830,7 @@ class assign {
                                $this->get_course()->id,
                                'mod',
                                'assign',
-                               $this->get_instance()->id,
+                               $this->get_id(),
                                0,
                                null,
                                array('deleted'=>1));
@@ -861,11 +868,11 @@ class assign {
         $this->delete_all_overrides();
 
         // Delete_records will throw an exception if it fails - so no need for error checking here.
-        $DB->delete_records('assign_submission', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_grades', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_plugin_config', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_user_flags', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_user_mapping', array('assignment' => $this->get_instance()->id));
+        $DB->delete_records('assign_submission', array('assignment' => $this->get_id()));
+        $DB->delete_records('assign_grades', array('assignment' => $this->get_id()));
+        $DB->delete_records('assign_plugin_config', array('assignment' => $this->get_id()));
+        $DB->delete_records('assign_user_flags', array('assignment' => $this->get_id()));
+        $DB->delete_records('assign_user_mapping', array('assignment' => $this->get_id()));
 
         // Delete items from the gradebook.
         if (! $this->delete_grades()) {
@@ -874,7 +881,7 @@ class assign {
 
         // Delete the instance.
         // We must delete the module record after we delete the grade item.
-        $DB->delete_records('assign', array('id'=>$this->get_instance()->id));
+        $DB->delete_records('assign', ['id' => $this->get_id()]);
 
         return $result;
     }
@@ -890,6 +897,7 @@ class assign {
 
         require_once($CFG->dirroot . '/calendar/lib.php');
 
+        // TODO: Check if this method is also called from the delete_instance() and remove get_instance() call if that's the case.
         $cm = $this->get_course_module();
         if (empty($cm)) {
             $instance = $this->get_instance();
@@ -946,7 +954,7 @@ class assign {
     public function delete_all_overrides() {
         global $DB;
 
-        $overrides = $DB->get_records('assign_overrides', array('assignid' => $this->get_instance()->id), 'id');
+        $overrides = $DB->get_records('assign_overrides', ['assignid' => $this->get_id()], 'id');
         foreach ($overrides as $override) {
             $this->delete_override($override->id);
         }

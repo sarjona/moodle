@@ -593,7 +593,7 @@ class assign_feedback_comments extends assign_feedback_plugin {
         global $DB;
         // Will throw exception on failure.
         $DB->delete_records('assignfeedback_comments',
-                            array('assignment'=>$this->assignment->get_instance()->id));
+                            ['assignment' => $this->assignment->get_id()]);
         return true;
     }
 

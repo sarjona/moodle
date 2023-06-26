@@ -341,9 +341,10 @@ class assign_feedback_file extends assign_feedback_plugin {
      */
     public function delete_instance() {
         global $DB;
+
         // Will throw exception on failure.
         $DB->delete_records('assignfeedback_file',
-                            array('assignment'=>$this->assignment->get_instance()->id));
+                            ['assignment' => $this->assignment->get_id()]);
 
         return true;
     }

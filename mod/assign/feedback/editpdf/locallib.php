@@ -406,7 +406,8 @@ class assign_feedback_editpdf extends assign_feedback_plugin {
      */
     public function delete_instance() {
         global $DB;
-        $grades = $DB->get_records('assign_grades', array('assignment'=>$this->assignment->get_instance()->id), '', 'id');
+
+        $grades = $DB->get_records('assign_grades', ['assignment' => $this->assignment->get_id()], '', 'id');
         if ($grades) {
             list($gradeids, $params) = $DB->get_in_or_equal(array_keys($grades), SQL_PARAMS_NAMED);
             $DB->delete_records_select('assignfeedback_editpdf_annot', 'gradeid ' . $gradeids, $params);
