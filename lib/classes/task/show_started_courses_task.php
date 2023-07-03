@@ -48,23 +48,25 @@ class show_started_courses_task extends scheduled_task {
         date_default_timezone_set($CFG->timezone);
 
         $start = time();
-        $courses = [];
 
         // Get list of courses to update.
         mtrace('\n  Searching for courses to set visibility to ' . $this->get_trace_message() . ' ...');
         $fielddate = $this->get_field_date();
         // Only process courses with dates in the past 24 hours with start/end dates higher than the current, to avoid updating
         // the course visibility early.
-        $select = "visible = :visibility AND {$fielddate} BETWEEN :beginofday AND :endofday AND :current >= {$fielddate}";
+        $select = "visible = :visibility AND
+                   {$fielddate} BETWEEN :beginofday AND :endofday AND
+                   :current >= {$fielddate}";
         $params = [
+            // Get courses that have the opposite visibility to the one we want to set.
             'visibility' => !$this->get_visibility(),
             'beginofday' => strtotime('-1 day', $start),
             'endofday' => $start,
             'current' => $start,
         ];
-        if ($courses = $DB->get_records_select('course', $select, $params)) {
-            $this->update_courses_visibility($courses, $this->get_visibility());
-        }
+        $courses = $DB->get_recordset_select('course', $select, $params);
+        $this->update_courses_visibility($courses, $this->get_visibility());
+        $courses->close();
 
         $end = time();
         mtrace(($end - $start) / 60 . ' mins');
@@ -73,17 +75,17 @@ class show_started_courses_task extends scheduled_task {
     /**
      * Make course visible or hidden if the start date has become due.
      *
-     * @param array $courses
+     * @param \moodle_recordset $courses
      * @param int $visibility The given courses will be set to this visibility
      * @return void
      */
-    private function update_courses_visibility(array $courses, int $visibility): void {
+    private function update_courses_visibility(\moodle_recordset $courses, int $visibility): void {
         global $DB;
 
         mtrace("\n  There are courses to change visibility...");
         foreach ($courses as $course) {
             if (!$DB->set_field('course', 'visible', $visibility, ['id' => $course->id])) {
-                mtrace("    {$course->id}: {$course->shortname} could not be updated for some reason.");
+                mtrace("    Error updating course visibility for {$course->id}: {$course->shortname}.");
             } else {
                 mtrace("    {$course->id}: {$course->shortname} visibility is now '" . $this->get_trace_message() . "'");
                 $this->trigger_event($course);

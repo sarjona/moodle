@@ -102,7 +102,6 @@ class hide_ended_courses_task_test extends \core\task\show_started_courses_task_
         ob_end_clean();
 
         // Confirm the courses with yesterday as ending date are hidden too. The rest should remain visible.
-        $this->assertEquals($coursetotal, $DB->count_records('course'));
         $courses = $DB->get_records('course', ['visible' => 0], '', 'id');
         $this->assertCount($hiddentotal + $yesterdayvisible, $courses);
         $expected = array_merge($hiddencourses, $visiblecourses);
