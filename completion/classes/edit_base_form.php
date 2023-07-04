@@ -191,7 +191,8 @@ abstract class core_completion_edit_base_form extends moodleform {
         $this->add_completion_elements(
             $this->get_module_name(),
             $this->support_views(),
-            $this->support_grades()
+            $this->support_grades(),
+            true
         );
 
         if ($conflicts = $this->get_modules_with_hidden_rules()) {

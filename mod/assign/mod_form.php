@@ -319,10 +319,16 @@ class mod_assign_mod_form extends moodleform_mod {
     public function add_completion_rules() {
         $mform =& $this->_form;
 
-        $mform->addElement('advcheckbox', 'completionsubmit', '', get_string('completionsubmit', 'assign'));
+        // TODO: Implement it properly.
+        // $addsufix = $this->_customdata['addsufix'] ?? false;
+        $addsufix = true;
+
+        $completionsubmitel = $addsufix ? 'completionsubmit_assign' : 'completionsubmit';
+        $mform->addElement('advcheckbox', $completionsubmitel, '', get_string('completionsubmit', 'assign'));
         // Enable this completion rule by default.
-        $mform->setDefault('completionsubmit', 1);
-        return array('completionsubmit');
+        $mform->setDefault($completionsubmitel, 1);
+
+        return [$completionsubmitel];
     }
 
     /**
