@@ -219,12 +219,19 @@ class manager {
         $data->helpicon = $OUTPUT->help_icon('bulkcompletiontracking', 'core_completion');
         // Add icon information.
         $data->modules = array_values($modules);
+        // TODO: Remove this hack.
+        // foreach ($data->modules as $module) {
+        //     if ($module->name === 'book' || $module->name === 'assign') {
+        //         continue;
+        //     }
+        //     unset($data->modules[$module->id]);
+        // }
         $coursecontext = context_course::instance($this->courseid);
         $canmanage = has_capability('moodle/course:manageactivities', $coursecontext);
         $course = get_course($this->courseid);
         foreach ($data->modules as $module) {
             $module->icon = $OUTPUT->image_url('monologo', $module->name)->out();
-            $module->formattedname = format_string(get_string('modulenameplural', 'mod_' . $module->name),
+            $module->formattedname = format_string(get_string('modulename', 'mod_' . $module->name),
                 true, ['context' => $coursecontext]);
             $module->canmanage = $canmanage && course_allowed_module($course, $module->name);
             $defaults = self::get_default_completion($course, $module, false);
