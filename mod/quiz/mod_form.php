@@ -607,23 +607,36 @@ class mod_quiz_mod_form extends moodleform_mod {
      */
     public function add_completion_rules() {
         $mform = $this->_form;
+        $suffix = $this->get_suffix();
         $items = [];
 
-        $mform->addElement('advcheckbox', 'completionattemptsexhausted', null,
+        $completionattemptsexhaustedel = 'completionattemptsexhausted' . $suffix;
+        $mform->addElement(
+            'advcheckbox',
+            $completionattemptsexhaustedel,
+            null,
             get_string('completionattemptsexhausted', 'quiz'),
-            ['group' => 'cattempts']);
-        $mform->disabledIf('completionattemptsexhausted', 'completionpassgrade', 'notchecked');
-        $items[] = 'completionattemptsexhausted';
+            ['group' => 'cattempts']
+        );
+        $completionpassgradeel = 'completionpassgrade' . $suffix;
+        $mform->disabledIf($completionattemptsexhaustedel, $completionpassgradeel, 'notchecked');
+        $items[] = $completionattemptsexhaustedel;
 
         $group = [];
-        $group[] = $mform->createElement('checkbox', 'completionminattemptsenabled', '',
-            get_string('completionminattempts', 'quiz'));
-        $group[] = $mform->createElement('text', 'completionminattempts', '', ['size' => 3]);
-        $mform->setType('completionminattempts', PARAM_INT);
-        $mform->addGroup($group, 'completionminattemptsgroup', get_string('completionminattemptsgroup', 'quiz'), [' '], false);
-        $mform->disabledIf('completionminattempts', 'completionminattemptsenabled', 'notchecked');
-
-        $items[] = 'completionminattemptsgroup';
+        $completionminattemptsenabledel = 'completionminattemptsenabled' . $suffix;
+        $group[] = $mform->createElement(
+            'checkbox',
+            $completionminattemptsenabledel,
+            '',
+            get_string('completionminattempts', 'quiz')
+        );
+        $completionminattemptsel = 'completionminattempts' . $suffix;
+        $group[] = $mform->createElement('text', $completionminattemptsel, '', ['size' => 3]);
+        $mform->setType($completionminattemptsel, PARAM_INT);
+        $completionminattemptsgroupel = 'completionminattemptsgroup' . $suffix;
+        $mform->addGroup($group, $completionminattemptsgroupel, get_string('completionminattemptsgroup', 'quiz'), ' ', false);
+        $mform->disabledIf($completionminattemptsel, $completionminattemptsenabledel, 'notchecked');
+        $items[] = $completionminattemptsgroupel;
 
         return $items;
     }
@@ -635,8 +648,9 @@ class mod_quiz_mod_form extends moodleform_mod {
      * @return bool True if one or more rules is enabled, false if none are.
      */
     public function completion_rule_enabled($data) {
-        return  !empty($data['completionattemptsexhausted']) ||
-                !empty($data['completionminattemptsenabled']);
+        $suffix = $this->get_suffix();
+        return  !empty($data['completionattemptsexhausted' . $suffix]) ||
+                !empty($data['completionminattemptsenabled' . $suffix]);
     }
 
     /**

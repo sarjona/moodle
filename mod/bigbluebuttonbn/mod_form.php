@@ -251,12 +251,13 @@ class mod_bigbluebuttonbn_mod_form extends moodleform_mod {
      * @return bool True if one or more rules is enabled, false if none are.
      */
     public function completion_rule_enabled($data) {
-        return (!empty($data['completionattendanceenabled']) && $data['completionattendance'] != 0)
-            || !empty($data['completionengagementchats'])
-            || !empty($data['completionengagementtalks'])
-            || !empty($data['completionengagementraisehand'])
-            || !empty($data['completionengagementpollvotes'])
-            || !empty($data['completionengagementemojis']);
+        $suffix = $this->get_suffix();
+        return (!empty($data['completionattendanceenabled' . $suffix]) && $data['completionattendance' . $suffix] != 0)
+            || !empty($data['completionengagementchats' . $suffix])
+            || !empty($data['completionengagementtalks' . $suffix])
+            || !empty($data['completionengagementraisehand' . $suffix])
+            || !empty($data['completionengagementpollvotes' . $suffix])
+            || !empty($data['completionengagementemojis' . $suffix]);
     }
 
     /**

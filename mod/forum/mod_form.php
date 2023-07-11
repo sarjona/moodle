@@ -438,36 +438,54 @@ class mod_forum_mod_form extends moodleform_mod {
      * @return array Array of string IDs of added items, empty array if none
      */
     public function add_completion_rules() {
-        $mform =& $this->_form;
+        $mform = $this->_form;
 
-        $group=array();
-        $group[] =& $mform->createElement('checkbox', 'completionpostsenabled', '', get_string('completionposts','forum'));
-        $group[] =& $mform->createElement('text', 'completionposts', '', array('size'=>3));
-        $mform->setType('completionposts',PARAM_INT);
-        $mform->addGroup($group, 'completionpostsgroup', get_string('completionpostsgroup','forum'), array(' '), false);
-        $mform->disabledIf('completionposts','completionpostsenabled','notchecked');
+        $suffix = $this->get_suffix();
 
-        $group=array();
-        $group[] =& $mform->createElement('checkbox', 'completiondiscussionsenabled', '', get_string('completiondiscussions','forum'));
-        $group[] =& $mform->createElement('text', 'completiondiscussions', '', array('size'=>3));
-        $mform->setType('completiondiscussions',PARAM_INT);
-        $mform->addGroup($group, 'completiondiscussionsgroup', get_string('completiondiscussionsgroup','forum'), array(' '), false);
-        $mform->disabledIf('completiondiscussions','completiondiscussionsenabled','notchecked');
+        $group = [];
+        $completionpostsenabledel = 'completionpostsenabled' . $suffix;
+        $group[] =& $mform->createElement('checkbox', $completionpostsenabledel, '', get_string('completionposts', 'forum'));
+        $completionpostsel = 'completionposts' . $suffix;
+        $group[] =& $mform->createElement('text', $completionpostsel, '', ['size' => 3]);
+        $mform->setType($completionpostsel, PARAM_INT);
+        $completionpostsgroupel = 'completionpostsgroup' . $suffix;
+        $mform->addGroup($group, $completionpostsgroupel, get_string('completionpostsgroup', 'forum'), ' ', false);
+        $mform->disabledIf($completionpostsel, $completionpostsenabledel, 'notchecked');
 
-        $group=array();
-        $group[] =& $mform->createElement('checkbox', 'completionrepliesenabled', '', get_string('completionreplies','forum'));
-        $group[] =& $mform->createElement('text', 'completionreplies', '', array('size'=>3));
-        $mform->setType('completionreplies',PARAM_INT);
-        $mform->addGroup($group, 'completionrepliesgroup', get_string('completionrepliesgroup','forum'), array(' '), false);
-        $mform->disabledIf('completionreplies','completionrepliesenabled','notchecked');
+        $group = [];
+        $completiondiscussionsenabledel = 'completiondiscussionsenabled' . $suffix;
+        $group[] =& $mform->createElement(
+            'checkbox',
+            $completiondiscussionsenabledel,
+            '',
+            get_string('completiondiscussions',
+            'forum')
+        );
+        $completiondiscussionsel = 'completiondiscussions' . $suffix;
+        $group[] =& $mform->createElement('text', $completiondiscussionsel, '', ['size' => 3]);
+        $mform->setType($completiondiscussionsel, PARAM_INT);
+        $completiondiscussionsgroupel = 'completiondiscussionsgroup' . $suffix;
+        $mform->addGroup($group, $completiondiscussionsgroupel, get_string('completiondiscussionsgroup', 'forum'), ' ', false);
+        $mform->disabledIf($completiondiscussionsel, $completiondiscussionsenabledel, 'notchecked');
 
-        return array('completiondiscussionsgroup','completionrepliesgroup','completionpostsgroup');
+        $group = [];
+        $completionrepliesenabledel = 'completionrepliesenabled' . $suffix;
+        $group[] =& $mform->createElement('checkbox', $completionrepliesenabledel, '', get_string('completionreplies', 'forum'));
+        $completionrepliesel = 'completionreplies' . $suffix;
+        $group[] =& $mform->createElement('text', $completionrepliesel, '', ['size' => 3]);
+        $mform->setType($completionrepliesel, PARAM_INT);
+        $completionrepliesgroupel = 'completionrepliesgroup' . $suffix;
+        $mform->addGroup($group, $completionrepliesgroupel, get_string('completionrepliesgroup', 'forum'), ' ', false);
+        $mform->disabledIf($completionrepliesel, $completionrepliesenabledel, 'notchecked');
+
+        return [$completiondiscussionsgroupel, $completionrepliesgroupel, $completionpostsgroupel];
     }
 
-    function completion_rule_enabled($data) {
-        return (!empty($data['completiondiscussionsenabled']) && $data['completiondiscussions']!=0) ||
-            (!empty($data['completionrepliesenabled']) && $data['completionreplies']!=0) ||
-            (!empty($data['completionpostsenabled']) && $data['completionposts']!=0);
+    public function completion_rule_enabled($data) {
+        $suffix = $this->get_suffix();
+        return (!empty($data['completiondiscussionsenabled' . $suffix]) && $data['completiondiscussions' . $suffix] != 0) ||
+            (!empty($data['completionrepliesenabled' . $suffix]) && $data['completionreplies' . $suffix] != 0) ||
+            (!empty($data['completionpostsenabled' . $suffix]) && $data['completionposts' . $suffix] != 0);
     }
 
     /**

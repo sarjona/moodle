@@ -185,21 +185,31 @@ class mod_glossary_mod_form extends moodleform_mod {
         }
     }
 
-    function add_completion_rules() {
-        $mform =& $this->_form;
+    public function add_completion_rules() {
+        $mform = $this->_form;
+        $suffix = $this->get_suffix();
 
-        $group=array();
-        $group[] =& $mform->createElement('checkbox', 'completionentriesenabled', '', get_string('completionentries','glossary'));
-        $group[] =& $mform->createElement('text', 'completionentries', '', array('size'=>3));
-        $mform->setType('completionentries', PARAM_INT);
-        $mform->addGroup($group, 'completionentriesgroup', get_string('completionentriesgroup','glossary'), array(' '), false);
-        $mform->disabledIf('completionentries','completionentriesenabled','notchecked');
+        $group = [];
+        $completionentriesenabledel = 'completionentriesenabled' . $suffix;
+        $group[] =& $mform->createElement(
+            'checkbox',
+            $completionentriesenabledel,
+            '',
+            get_string('completionentries', 'glossary')
+        );
+        $completionentriesel = 'completionentries' . $suffix;
+        $group[] =& $mform->createElement('text', $completionentriesel, '', ['size' => 3]);
+        $mform->setType($completionentriesel, PARAM_INT);
+        $completionentriesgroupel = 'completionentriesgroup' . $suffix;
+        $mform->addGroup($group, $completionentriesgroupel, get_string('completionentriesgroup', 'glossary'), ' ', false);
+        $mform->disabledIf($completionentriesel, $completionentriesenabledel, 'notchecked');
 
-        return array('completionentriesgroup');
+        return [$completionentriesgroupel];
     }
 
-    function completion_rule_enabled($data) {
-        return (!empty($data['completionentriesenabled']) && $data['completionentries']!=0);
+    public function completion_rule_enabled($data) {
+        $suffix = $this->get_suffix();
+        return (!empty($data['completionentriesenabled' . $suffix]) && $data['completionentries' . $suffix] != 0);
     }
 
     /**
@@ -232,4 +242,3 @@ class mod_glossary_mod_form extends moodleform_mod {
     }
 
 }
-
