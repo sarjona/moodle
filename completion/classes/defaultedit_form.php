@@ -121,4 +121,18 @@ class core_completion_defaultedit_form extends core_completion_edit_base_form {
     protected function get_cm(): ?\stdClass {
         return null;
     }
+
+    /**
+     * This method has been overridden because the form identifier must be unique for each module type.
+     * Otherwise, the form will display the same data for each module type once it's submitted.
+     */
+    protected function get_form_identifier() {
+        if (!array_key_exists('modules', $this->_customdata) || count($this->_customdata['modules']) !== 1) {
+            return parent::get_form_identifier();
+        }
+
+        $module = reset($this->_customdata['modules']);
+        return parent::get_form_identifier() . '_' . $module->name;
+
+    }
 }
