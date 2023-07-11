@@ -206,16 +206,20 @@ class mod_feedback_mod_form extends moodleform_mod {
     public function add_completion_rules() {
         $mform =& $this->_form;
 
+        $suffix = $this->get_suffix();
+        $completionsubmitel = 'completionsubmit' . $suffix;
         $mform->addElement('checkbox',
-                           'completionsubmit',
-                           '',
-                           get_string('completionsubmit', 'feedback'));
+            $completionsubmitel,
+            '',
+            get_string('completionsubmit', 'feedback')
+        );
         // Enable this completion rule by default.
-        $mform->setDefault('completionsubmit', 1);
-        return array('completionsubmit');
+        $mform->setDefault($completionsubmitel, 1);
+        return [$completionsubmitel];
     }
 
     public function completion_rule_enabled($data) {
-        return !empty($data['completionsubmit']);
+        $suffix = $this->get_suffix();
+        return !empty($data['completionsubmit' . $suffix]);
     }
 }
