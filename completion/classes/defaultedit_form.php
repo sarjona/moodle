@@ -75,6 +75,7 @@ class core_completion_defaultedit_form extends core_completion_edit_base_form {
         $mformclassname = 'mod_'.$modname.'_mod_form';
         $PAGE->start_collecting_javascript_requirements();
         $this->_moduleform = new $mformclassname($data, 0, $cmrec, $course);
+        $this->_moduleform->set_suffix('_' . $modname);
         $PAGE->end_collecting_javascript_requirements();
 
         return $this->_moduleform;
@@ -86,6 +87,10 @@ class core_completion_defaultedit_form extends core_completion_edit_base_form {
     public function definition() {
         $this->course = $this->_customdata['course'];
         $this->modules = $this->_customdata['modules'];
+        if ($modname = $this->get_module_name()) {
+            // Set the form suffix to the module name so that the form identifier is unique for each module type.
+            $this->set_suffix('_' . $modname);
+        }
 
         $mform = $this->_form;
 
