@@ -219,17 +219,30 @@ class manager {
         $data->helpicon = $OUTPUT->help_icon('bulkcompletiontracking', 'core_completion');
         // Add icon information.
         $data->modules = array_values($modules);
+        // TODO: Remove this hack.
+        // $allmodules = $data->modules;
+        // $data->modules = [];
+        // foreach ($allmodules as $module) {
+        //     if ($module->name == 'assign'
+        //         || $module->name == 'data'
+        //         || $module->name == 'choice'
+        //         || $module->name == 'quiz'
+        //     ) {
+        //         $data->modules[] = $module;
+        //     }
+        // }
         $coursecontext = context_course::instance($this->courseid);
         $canmanage = has_capability('moodle/course:manageactivities', $coursecontext);
         $course = get_course($this->courseid);
         foreach ($data->modules as $module) {
             $module->icon = $OUTPUT->image_url('monologo', $module->name)->out();
-            $module->formattedname = format_string(get_string('modulenameplural', 'mod_' . $module->name),
+            $module->formattedname = format_string(get_string('modulename', 'mod_' . $module->name),
                 true, ['context' => $coursecontext]);
             $module->canmanage = $canmanage && course_allowed_module($course, $module->name);
             $defaults = self::get_default_completion($course, $module, false);
             $defaults->modname = $module->name;
-            $module->completionstatus = $this->get_completion_detail($defaults);
+            // TODO: Add parameter to get this information only when needed.
+            // $module->completionstatus = $this->get_completion_detail($defaults);
         }
 
         return $data;
@@ -447,6 +460,30 @@ class manager {
     public function apply_default_completion($data, $updatecustomrules) {
         global $DB;
 
+        // Fields were renamed to avoid conflicts, but they need to be stored in DB with the original name.
+        $modules = property_exists($data, 'modules') ? $data->modules : null;
+        if ($modules !== null) {
+            unset($data->modules);
+            $module = reset($modules);
+            $data = (array)$data;
+            foreach ($data as $name => $value) {
+                if (str_ends_with($name, '_' . $module->name)) {
+                    $data[substr($name, 0, strpos($name, '_' . $module->name))] = $value;
+                    unset($data[$name]);
+                } else if ($name == 'customdata') {
+                    $customrules = $value['customcompletionrules'];
+                    foreach ($customrules as $rulename => $rulevalue) {
+                        if (str_ends_with($rulename, '_' . $module->name)) {
+                            $customrules[substr($rulename, 0, strpos($rulename, '_' . $module->name))] = $rulevalue;
+                            unset($customrules[$rulename]);
+                        }
+                    }
+                    $data['customdata'] = $customrules;
+                }
+            }
+            $data = (object)$data;
+        }
+
         $courseid = $data->id;
         // MDL-72375 Unset the id here, it should not be stored in customrules.
         unset($data->id);
@@ -541,6 +578,26 @@ class manager {
                 }
             }
         }
+
+        // Rename completion fields to avoid conflicts.
+        $data = (array)$data;
+        foreach ($data as $name => $value) {
+            if (str_starts_with($name, 'completion')) {
+                $data[$name . '_' . $module->name] = $value;
+                unset($data[$name]);
+            } else if ($name == 'customdata') {
+                $customrules = $value['customcompletionrules'];
+                foreach ($customrules as $rulename => $rulevalue) {
+                    if (str_starts_with($rulename, 'completion')) {
+                        $customrules[$rulename . '_' . $module->name] = $rulevalue;
+                        unset($customrules[$rulename]);
+                    }
+                }
+                $data['customdata'] = $customrules;
+            }
+        }
+        $data = (object)$data;
+
         return $data;
     }
 }
