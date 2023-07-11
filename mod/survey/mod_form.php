@@ -72,19 +72,21 @@ class mod_survey_mod_form extends moodleform_mod {
      */
     public function add_completion_rules() {
         $mform =& $this->_form;
-        $mform->addElement('checkbox', 'completionsubmit', '', get_string('completionsubmit', 'survey'));
+        $suffix = $this->get_suffix();
+        $completionsubmitel = 'completionsubmit' . $suffix;
+        $mform->addElement('checkbox', $completionsubmitel, '', get_string('completionsubmit', 'survey'));
         // Enable this completion rule by default.
-        $mform->setDefault('completionsubmit', 1);
-        return array('completionsubmit');
+        $mform->setDefault($completionsubmitel, 1);
+        return [$completionsubmitel];
     }
 
     /**
      * Enable completion rules
-     * @param stdclass $data
-     * @return array
+     * @param array $data
+     * @return bool
      */
     public function completion_rule_enabled($data) {
-        return !empty($data['completionsubmit']);
+        $suffix = $this->get_suffix();
+        return !empty($data['completionsubmit' . $suffix]);
     }
 }
-
