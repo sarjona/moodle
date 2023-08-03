@@ -86,6 +86,13 @@ information provided here is intended especially for developers.
 * New behat behat_navigation::i_close_block_drawer_if_open() and behat_navigation::i_keep_block_drawer_closed()
 to ensure in some test that the block drawer is closed. This helps with random failures due to the block drawer
 being forced open in all behat tests.
+* The parameter $size of the following functions has been deprecated and is not used any more:
+  - file_extension_icon
+  - file_file_icon
+  - file_folder_icon
+  - file_mimetype_icon
+  - mimeinfo_from_type
+  - url_guess_icon
 
 === 4.2 ===
 
