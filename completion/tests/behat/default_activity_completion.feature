@@ -139,6 +139,16 @@ Feature: Allow teachers to edit the default activity completion rules in a cours
       | completionsubmit_assign   | 1                                                 |
     And I click on "Save changes" "button" in the "[data-region='activitycompletion-assign']" "css_element"
     And I should see "Changes saved"
+    And I click on "Expand Forum" "button"
+    And I set the following fields to these values:
+      | completion_forum                   | Show activity as complete when conditions are met |
+      | completionview_forum               | 0                                                 |
+      | completionpostsenabled_forum       | 1                                                 |
+      | completionposts_forum              | 3                                                 |
+      | completiondiscussionsenabled_forum | 0                                                 |
+      | completionrepliesenabled_forum     | 0                                                 |
+    And I click on "Save changes" "button" in the "[data-region='activitycompletion-forum']" "css_element"
+    And I should see "Changes saved"
     And I click on "Expand Book" "button"
     And I set the following fields to these values:
       | completion_book         | Do not indicate activity completion                 |
@@ -149,8 +159,11 @@ Feature: Allow teachers to edit the default activity completion rules in a cours
       | completion_chat         | Students can manually mark the activity as completed  |
     And I click on "Save changes" "button" in the "[data-region='activitycompletion-chat']" "css_element"
     And I should see "Changes saved"
+    # Change current page and go back to "Default activity completion", to confirm the form values have been saved properly.
+    And I set the field "Course completion tertiary navigation" to "Course completion settings"
+    And I set the field "Course completion tertiary navigation" to "Default activity completion"
     Then the field "completion_chat" matches value "1"
-    # Check that the rules for book and assignment are still the same.
+    # Check that the rules for book, assignment and forum are still the same.
     And I click on "Expand Book" "button"
     And the field "completion_book" matches value "0"
     And I click on "Expand Assignment" "button"
@@ -158,6 +171,12 @@ Feature: Allow teachers to edit the default activity completion rules in a cours
     And the field "completionview_assign" matches value "0"
     And the field "completionusegrade_assign" matches value "0"
     And the field "completionsubmit_assign" matches value "1"
+    And the field "completion_forum" matches value "2"
+    And the field "completionview_forum" matches value "0"
+    And the field "completionpostsenabled_forum" matches value "1"
+    And the field "completionposts_forum" matches value "3"
+    And the field "completiondiscussionsenabled_forum" matches value "0"
+    And the field "completionrepliesenabled_forum" matches value "0"
 
   Scenario: Edit default activity completion without rules for automatic completion
     Given I am on the "Course 1" course page logged in as teacher1
