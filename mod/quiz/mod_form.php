@@ -513,9 +513,11 @@ class mod_quiz_mod_form extends moodleform_mod {
         parent::data_postprocessing($data);
         if (!empty($data->completionunlocked)) {
             // Turn off completion settings if the checkboxes aren't ticked.
-            $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
-            if (empty($data->completionminattemptsenabled) || !$autocompletion) {
-                $data->completionminattempts = 0;
+            $suffix = $this->get_suffix();
+            $completion = $data->{'completion' . $suffix};
+            $autocompletion = !empty($completion) && $completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completionminattemptsenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completionminattempts' . $suffix} = 0;
             }
         }
     }

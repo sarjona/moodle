@@ -290,9 +290,11 @@ class mod_bigbluebuttonbn_mod_form extends moodleform_mod {
         parent::data_postprocessing($data);
         // Turn off completion settings if the checkboxes aren't ticked.
         if (!empty($data->completionunlocked)) {
-            $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
-            if (empty($data->completionattendanceenabled) || !$autocompletion) {
-                $data->completionattendance = 0;
+            $suffix = $this->get_suffix();
+            $completion = $data->{'completion' . $suffix};
+            $autocompletion = !empty($completion) && $completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completionattendanceenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completionattendance' . $suffix} = 0;
             }
         }
     }

@@ -459,12 +459,14 @@ class mod_lesson_mod_form extends moodleform_mod {
         parent::data_postprocessing($data);
         // Turn off completion setting if the checkbox is not ticked.
         if (!empty($data->completionunlocked)) {
-            $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
-            if (empty($data->completiontimespentenabled) || !$autocompletion) {
-                $data->completiontimespent = 0;
+            $suffix = $this->get_suffix();
+            $completion = $data->{'completion' . $suffix};
+            $autocompletion = !empty($completion) && $completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completiontimespentenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completiontimespent' . $suffix} = 0;
             }
-            if (empty($data->completionendreached) || !$autocompletion) {
-                $data->completionendreached = 0;
+            if (empty($data->{'completionendreached' . $suffix}) || !$autocompletion) {
+                $data->{'completionendreached' . $suffix} = 0;
             }
         }
     }

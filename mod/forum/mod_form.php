@@ -530,17 +530,19 @@ class mod_forum_mod_form extends moodleform_mod {
      */
     public function data_postprocessing($data) {
         parent::data_postprocessing($data);
-        // Turn off completion settings if the checkboxes aren't ticked
+        // Turn off completion settings if the checkboxes aren't ticked.
         if (!empty($data->completionunlocked)) {
-            $autocompletion = !empty($data->completion) && $data->completion==COMPLETION_TRACKING_AUTOMATIC;
-            if (empty($data->completiondiscussionsenabled) || !$autocompletion) {
-                $data->completiondiscussions = 0;
+            $suffix = $this->get_suffix();
+            $completion = $data->{'completion' . $suffix};
+            $autocompletion = !empty($completion) && $completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completiondiscussionsenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completiondiscussions' . $suffix} = 0;
             }
-            if (empty($data->completionrepliesenabled) || !$autocompletion) {
-                $data->completionreplies = 0;
+            if (empty($data->{'completionrepliesenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completionreplies' . $suffix} = 0;
             }
-            if (empty($data->completionpostsenabled) || !$autocompletion) {
-                $data->completionposts = 0;
+            if (empty($data->{'completionpostsenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completionposts' . $suffix} = 0;
             }
         }
     }

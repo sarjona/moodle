@@ -227,10 +227,12 @@ class mod_glossary_mod_form extends moodleform_mod {
     public function data_postprocessing($data) {
         parent::data_postprocessing($data);
         if (!empty($data->completionunlocked)) {
-            // Turn off completion settings if the checkboxes aren't ticked
-            $autocompletion = !empty($data->completion) && $data->completion==COMPLETION_TRACKING_AUTOMATIC;
-            if (empty($data->completionentriesenabled) || !$autocompletion) {
-                $data->completionentries = 0;
+            // Turn off completion settings if the checkboxes aren't ticked.
+            $suffix = $this->get_suffix();
+            $completion = $data->{'completion' . $suffix};
+            $autocompletion = !empty($completion) && $completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completionentriesenabled' . $suffix}) || !$autocompletion) {
+                $data->{'completionentries' . $suffix} = 0;
             }
         }
     }

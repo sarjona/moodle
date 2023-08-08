@@ -523,7 +523,7 @@ class mod_scorm_mod_form extends moodleform_mod {
         $completionstatusrequiredel = 'completionstatusrequired' . $suffix;
         foreach (scorm_status_options(true) as $key => $value) {
             $name = null;
-            $key = $completionstatusrequiredel . '['.$key.']';
+            $key = 'completionstatusrequired' . '['.$key.']' . $suffix;
             if ($first) {
                 $name = get_string('completionstatusrequired', 'scorm');
                 $first = false;
@@ -565,7 +565,8 @@ class mod_scorm_mod_form extends moodleform_mod {
         parent::data_postprocessing($data);
         // Convert completionstatusrequired to a proper integer, if any.
         $total = 0;
-        if (isset($data->completionstatusrequired) && is_array($data->completionstatusrequired)) {
+        $suffix = $this->get_suffix();
+        if (isset($data->{'completionstatusrequired' . $suffix}) && is_array($data->{'completionstatusrequired' . $suffix})) {
             foreach ($data->completionstatusrequired as $state => $value) {
                 if ($value) {
                     $total |= $state;
@@ -579,16 +580,16 @@ class mod_scorm_mod_form extends moodleform_mod {
 
         if (!empty($data->completionunlocked)) {
             // Turn off completion settings if the checkboxes aren't ticked.
-            $autocompletion = isset($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
+            $completion = $data->{'completion' . $suffix};
+            $autocompletion = isset($completion) && $completion == COMPLETION_TRACKING_AUTOMATIC;
 
-            if (!(isset($data->completionstatusrequired) && $autocompletion)) {
-                $data->completionstatusrequired = null;
+            if (!(isset($data->{'completionstatusrequired' . $suffix}) && $autocompletion)) {
+                $data->{'completionstatusrequired' . $suffix} = null;
             }
-            // Else do nothing: completionstatusrequired has been already converted
-            //             into a correct integer representation.
+            // Else do nothing: completionstatusrequired has been already converted into a correct integer representation.
 
-            if (!empty($data->completionscoredisabled) || !$autocompletion) {
-                $data->completionscorerequired = null;
+            if (!empty($data->{'completionscoredisabled' . $suffix}) || !$autocompletion) {
+                $data->{'completionscorerequired' . $suffix} = null;
             }
         }
     }
