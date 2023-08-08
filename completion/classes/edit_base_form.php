@@ -111,6 +111,17 @@ abstract class core_completion_edit_base_form extends moodleform {
             $moduleform->_form = $this->_form;
             if ($customcompletionelements = $moduleform->add_completion_rules()) {
                 $this->hascustomrules = true;
+                foreach ($customcompletionelements as $customcompletionelement) {
+                    if (!str_ends_with($customcompletionelement, $this->get_suffix())) {
+                        debugging(
+                            'Custom completion rule '  . $customcompletionelement . ' of module ' . $modnames[0] .
+                            ' has wrong suffix and has been removed from the form. This has to be fixed by the developer',
+                            DEBUG_DEVELOPER
+                        );
+                        $moduleform->_form->removeElement($customcompletionelement);
+                    }
+                }
+
             }
             return $customcompletionelements;
         } catch (Exception $e) {
