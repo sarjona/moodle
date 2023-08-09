@@ -149,6 +149,16 @@ Feature: Allow teachers to edit the default activity completion rules in a cours
       | completionrepliesenabled_forum     | 0                                                 |
     And I click on "Save changes" "button" in the "[data-region='activitycompletion-forum']" "css_element"
     And I should see "Changes saved"
+    And I click on "Expand SCORM package" "button"
+    And I set the following fields to these values:
+      | completion_scorm                   | Show activity as complete when conditions are met |
+      | completionview_scorm               | 0                                                 |
+      | completionscorerequired_scorm      | 3                                                 |
+      | completionstatusrequired_scorm[2]  | 1                                                 |
+      | completionstatusrequired_scorm[4]  | 0                                                 |
+      | completionstatusallscos_scorm      | 1                                                 |
+    And I click on "Save changes" "button" in the "[data-region='activitycompletion-scorm']" "css_element"
+    And I should see "Changes saved"
     And I click on "Expand Book" "button"
     And I set the following fields to these values:
       | completion_book         | Do not indicate activity completion                 |
@@ -177,6 +187,12 @@ Feature: Allow teachers to edit the default activity completion rules in a cours
     And the field "completionposts_forum" matches value "3"
     And the field "completiondiscussionsenabled_forum" matches value "0"
     And the field "completionrepliesenabled_forum" matches value "0"
+    And the field "completion_scorm" matches value "2"
+    And the field "completionview_scorm" matches value "0"
+    And the field "completionscorerequired_scorm" matches value "3"
+    And the field "completionstatusrequired_scorm[2]" matches value "1"
+    And the field "completionstatusrequired_scorm[4]" matches value "0"
+    And the field "completionstatusallscos_scorm" matches value "1"
 
   Scenario: Edit default activity completion without rules for automatic completion
     Given I am on the "Course 1" course page logged in as teacher1
