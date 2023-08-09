@@ -337,17 +337,18 @@ class mod_scorm_mod_form extends moodleform_mod {
         $suffix = $this->get_suffix();
         $completionstatusrequiredel = 'completionstatusrequired' . $suffix;
         $cvalues = array();
-        if (empty($this->_instance)) {
-            // When in add mode, set a default completion rule that requires the SCORM's status be set to "Completed".
-            $cvalues[4] = 1;
-        } else if (!empty($defaultvalues[$completionstatusrequiredel]) && !is_array($defaultvalues[$completionstatusrequiredel])) {
+        if (!empty($defaultvalues[$completionstatusrequiredel]) && !is_array($defaultvalues[$completionstatusrequiredel])) {
             // Unpack values.
             foreach (scorm_status_options() as $key => $value) {
                 if (($defaultvalues[$completionstatusrequiredel] & $key) == $key) {
                     $cvalues[$key] = 1;
                 }
             }
+        } else if (empty($this->_instance)) {
+            // When in add mode, set a default completion rule that requires the SCORM's status be set to "Completed".
+            $cvalues[4] = 1;
         }
+
         if (!empty($cvalues)) {
             $defaultvalues[$completionstatusrequiredel] = $cvalues;
         }
@@ -523,7 +524,7 @@ class mod_scorm_mod_form extends moodleform_mod {
         $completionstatusrequiredel = 'completionstatusrequired' . $suffix;
         foreach (scorm_status_options(true) as $key => $value) {
             $name = null;
-            $key = 'completionstatusrequired' . '['.$key.']' . $suffix;
+            $key = $completionstatusrequiredel . '['.$key.']';
             if ($first) {
                 $name = get_string('completionstatusrequired', 'scorm');
                 $first = false;
@@ -567,7 +568,7 @@ class mod_scorm_mod_form extends moodleform_mod {
         $total = 0;
         $suffix = $this->get_suffix();
         if (isset($data->{'completionstatusrequired' . $suffix}) && is_array($data->{'completionstatusrequired' . $suffix})) {
-            foreach ($data->completionstatusrequired as $state => $value) {
+            foreach ($data->{'completionstatusrequired' . $suffix} as $state => $value) {
                 if ($value) {
                     $total |= $state;
                 }
@@ -575,7 +576,7 @@ class mod_scorm_mod_form extends moodleform_mod {
             if (!$total) {
                 $total  = null;
             }
-            $data->completionstatusrequired = $total;
+            $data->{'completionstatusrequired' . $suffix} = $total;
         }
 
         if (!empty($data->completionunlocked)) {
