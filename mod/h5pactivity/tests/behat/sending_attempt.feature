@@ -34,7 +34,8 @@ Feature: Do a H5P attempt
   @javascript
   Scenario: Do an attempt and check on course log report
     When I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
-    And I wait until the page is ready
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should not see "This content is displayed in preview mode"
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
@@ -50,30 +51,37 @@ Feature: Do a H5P attempt
   @javascript
   Scenario: Do various attempts and check them with the attempts and user grades reports
     Given I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
-    And I wait until the page is ready
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should not see "This content is displayed in preview mode"
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I click on "Wrong one" "text" in the ".h5p-question-content" "css_element"
     And I click on "Check" "button" in the ".h5p-question-buttons" "css_element"
     And I click on "Retry" "button" in the ".h5p-question-buttons" "css_element"
     # We need to wait 1 second here because, in very quick environments, the 2nd
     # attempts happen too close to the 1st one and it's not sent properly. See MDL-76010.
-    And I wait "1" seconds
+    And I wait "5" seconds
     And I click on "Correct one" "text" in the ".h5p-question-content" "css_element"
     And I click on "Check" "button" in the ".h5p-question-buttons" "css_element"
     # H5P does not allow to Retry if the user checks the correct answer, we need to refresh the page.
     And I switch to the main frame
     And I reload the page
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     # Because of the steps above, the 2nd and 3rd attempts are enough "separated" and we don't
     # need to add any wait here.
     And I click on "Wrong one" "text" in the ".h5p-question-content" "css_element"
     And I click on "Check" "button" in the ".h5p-question-buttons" "css_element"
     And I click on "Retry" "button" in the ".h5p-question-buttons" "css_element"
     # Again, the wait between 3rd and 4th attempt, to separate them a little bit.
-    And I wait "1" seconds
+    And I wait "5" seconds
     And I click on "Correct one" "text" in the ".h5p-question-content" "css_element"
     And I click on "Check" "button" in the ".h5p-question-buttons" "css_element"
     And I switch to the main frame

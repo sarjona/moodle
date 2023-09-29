@@ -5,7 +5,9 @@ Feature: Users can save the current state of an H5P activity
   I need to be able to save the current state
 
   Background:
-    Given the following "users" exist:
+    Given the following config values are set as admin:
+      | enablesavestate | 1 | mod_h5pactivity|
+    And the following "users" exist:
       | username | firstname | lastname | email                |
       | student1 | Student   | 1        | student1@example.com |
       | student2 | Student   | 2        | student2@example.com |
@@ -31,6 +33,8 @@ Feature: Users can save the current state of an H5P activity
     Given the following config values are set as admin:
       | enablesavestate | 0 | mod_h5pactivity|
     And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" to "Narnia"
@@ -42,9 +46,7 @@ Feature: Users can save the current state of an H5P activity
     Then the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" does not match value "Narnia"
 
   Scenario: Content state is saved when enablesavestate is enabled
-    Given the following config values are set as admin:
-      | enablesavestate | 1 | mod_h5pactivity|
-    And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    Given I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" to "Narnia"
@@ -56,9 +58,7 @@ Feature: Users can save the current state of an H5P activity
     Then the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" matches value "Narnia"
 
   Scenario: Content state is not saved for teachers when enablesavestate is enabled
-    Given the following config values are set as admin:
-      | enablesavestate | 1 | mod_h5pactivity|
-    And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as teacher1
+    Given I am on the "Awesome H5P package" "h5pactivity activity" page logged in as teacher1
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" to "Narnia"
@@ -70,15 +70,19 @@ Feature: Users can save the current state of an H5P activity
     Then the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" does not match value "Narnia"
 
   Scenario: Content state is reseted when content changes
-    Given the following config values are set as admin:
-      | enablesavestate | 1 | mod_h5pactivity|
-    And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    Given I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" to "Narnia"
     And I switch to the main frame
     And I am on the "Course 1" course page
     When I am on the "Awesome H5P package" "h5pactivity activity" page logged in as admin
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     # Change the content.
     And I follow "Edit H5P content"
     And I switch to "h5p-editor-iframe" class iframe
@@ -86,10 +90,14 @@ Feature: Users can save the current state of an H5P activity
     And I switch to the main frame
     And I click on "Save changes" "button"
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I should see "Check"
     # Check the content state has been reseted.
     And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     Then I should see "Data Reset"
@@ -98,15 +106,19 @@ Feature: Users can save the current state of an H5P activity
     And the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" does not match value "Narnia"
 
   Scenario: Content state is not reseted when content edition is cancelled
-    Given the following config values are set as admin:
-      | enablesavestate | 1 | mod_h5pactivity|
-    And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    Given I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" to "Narnia"
     And I switch to the main frame
     And I am on the "Course 1" course page
     When I am on the "Awesome H5P package" "h5pactivity activity" page logged in as admin
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     # Start content edition.
     And I follow "Edit H5P content"
     And I switch to "h5p-editor-iframe" class iframe
@@ -114,10 +126,14 @@ Feature: Users can save the current state of an H5P activity
     And I switch to the main frame
     And I click on "Cancel" "button"
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I should see "Check"
     # Check the content state hasn't been reseted.
     And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should see "Awesome H5P package"
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
@@ -126,10 +142,8 @@ Feature: Users can save the current state of an H5P activity
     And the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" matches value "Narnia"
 
   Scenario: Content state is removed when an attempt is created
-    Given the following config values are set as admin:
-      | enablesavestate | 1 | mod_h5pactivity|
     # Save state content for student2, to check this data is not removed when student1 finishes their attempt.
-    And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student2
+    Given I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student2
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" to "Vallhonesta"
@@ -140,6 +154,8 @@ Feature: Users can save the current state of an H5P activity
     And the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" matches value "Vallhonesta"
     # Create an attempt for student1.
     And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should not see "Attempts report"
     When I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
@@ -155,6 +171,8 @@ Feature: Users can save the current state of an H5P activity
     And I switch to the main frame
     # Check the state content for student2 is still there.
     And I am on the "Awesome H5P package" "h5pactivity activity" page logged in as student2
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" matches value "Vallhonesta"

@@ -47,12 +47,16 @@ Feature: Inline editing H5P content
     And I click on "Link to the file" "radio"
     And I click on "Select this file" "button"
     And I click on "Save and display" "button"
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I should see "Hello world!"
     And I switch to the main frame
     # Modify the H5P content using the edit button (which opens the H5P editor).
     And I follow "Edit H5P content"
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should see "This content may be in use in other places."
     And I switch to "h5p-editor-iframe" class iframe
     And I set the field "Greeting text" to "It's a Wonderful Life!"
@@ -70,21 +74,31 @@ Feature: Inline editing H5P content
     And I click on "Content bank" "link" in the "Navigation" "block"
     And I click on "Greeting card" "link"
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I should not see "Hello world!"
     And I should see "It's a Wonderful Life!"
     And I switch to the main frame
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I log out
     # Check teacher1 can see the Edit button (because she is the author of this file in the content bank).
     And I am on the "H5P package added as link to content bank" "h5pactivity activity" page logged in as teacher1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should see "Edit H5P content"
     And I log out
     # Check teacher2 can't see the Edit button (because the file was created by the teacher1).
     When I am on the "H5P package added as link to content bank" "h5pactivity activity" page logged in as teacher2
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     Then I should not see "Edit H5P content"
     And I log out
     # Check student1 can't see the Edit button.
     And I am on the "H5P package added as link to content bank" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should not see "Edit H5P content"
 
   @javascript
@@ -109,6 +123,8 @@ Feature: Inline editing H5P content
     And I click on "Make a copy of the file" "radio"
     And I click on "Select this file" "button"
     And I click on "Save and display" "button"
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I should see "Hello world!"
@@ -131,22 +147,32 @@ Feature: Inline editing H5P content
     And I click on "Site pages" "list_item" in the "Navigation" "block"
     And I click on "Content bank" "link" in the "Navigation" "block"
     And I click on "Greeting card" "link"
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I should see "Hello world!"
     And I should not see "The nightmare before Christmas"
     And I switch to the main frame
     And I log out
     # Check teacher1 can see the Edit button (because the file is a copy).
     And I am on the "H5P package added as copy to content bank" "h5pactivity activity" page logged in as teacher1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should see "Edit H5P content"
     And I log out
     # Check teacher2 can also see the Edit button (because the file is a copy).
     When I am on the "H5P package added as copy to content bank" "h5pactivity activity" page logged in as teacher2
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     Then I should see "Edit H5P content"
     And I log out
     # Check student1 can't see the Edit button.
     And I am on the "H5P package added as copy to content bank" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should not see "Edit H5P content"
 
   @javascript
@@ -168,6 +194,8 @@ Feature: Inline editing H5P content
     And I click on "Link to the file" "radio"
     And I click on "Select this file" "button"
     And I click on "Save and display" "button"
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I should see "Hello world!"
@@ -179,21 +207,31 @@ Feature: Inline editing H5P content
     And I set the field "Greeting text" to "Little women"
     And I switch to the main frame
     And I click on "Save changes" "button"
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     # Check the H5P content has changed.
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I should not see "Hello world!"
     And I should see "Little women"
     And I switch to the main frame
     And I log out
     # Check admin can't see the Edit button (because the file belongs to teacher1).
     And I am on the "H5P package added as private user file" "h5pactivity activity" page logged in as admin
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should not see "Edit H5P content"
     And I log out
     # Check teacher2 can't see the Edit button (because the file belongs to teacher1).
     When I am on the "H5P package added as private user file" "h5pactivity activity" page logged in as teacher2
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     Then I should not see "Edit H5P content"
     And I log out
     # Check student1 can't see the Edit button.
     And I am on the "H5P package added as private user file" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I should not see "Edit H5P content"

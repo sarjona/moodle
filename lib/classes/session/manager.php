@@ -429,7 +429,7 @@ class manager {
             if (!$newsid) {
                 if (!empty($_SESSION['USER']->id)) {
                     // This should not happen, just log it, we MUST not produce any output here!
-                    error_log("Cannot find session record $sid for user ".$_SESSION['USER']->id.", creating new session.");
+                    error_log("Cannot find session record $sid for user ".$_SESSION['USER']->username.", creating new session.");
                 }
                 // Prevent session fixation attacks.
                 session_regenerate_id(true);

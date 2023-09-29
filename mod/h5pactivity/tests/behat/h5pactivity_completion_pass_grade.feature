@@ -39,19 +39,27 @@ Feature: Pass grade activity completion information in the h5p activity
   Scenario: View automatic completion items
     # Teacher view.
     Given I am on the "Music history" "h5pactivity activity" page logged in as teacher1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And "Music history" should have the "View" completion condition
     And "Music history" should have the "Receive a grade" completion condition
     And "Music history" should have the "Receive a passing grade" completion condition
     And I log out
     # Student view.
     When I am on the "Music history" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
     And I switch to "h5p-iframe" class iframe
     And I click on "Check" "button" in the ".h5p-question-buttons" "css_element"
     And I reload the page
     And I am on the "Music history" "h5pactivity activity" page logged in as student2
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And I switch to "h5p-player" class iframe
+    And I wait until the page is ready
     And I switch to "h5p-iframe" class iframe
+    And I wait until the page is ready
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 1 of 4\")]" to "Brasilia"
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 2 of 4\")]" to "Washington"
     And I set the field with xpath "//input[contains(@aria-label,\"Blank input 3 of 4\")]" to "Berlin"
@@ -59,11 +67,15 @@ Feature: Pass grade activity completion information in the h5p activity
     And I click on "Check" "button" in the ".h5p-question-buttons" "css_element"
     And I switch to the main frame
     And I reload the page
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     Then the "View" completion condition of "Music history" is displayed as "done"
     And the "Receive a grade" completion condition of "Music history" is displayed as "done"
     And the "Receive a passing grade" completion condition of "Music history" is displayed as "done"
     And I log out
     And I am on the "Music history" "h5pactivity activity" page logged in as student1
+    # Need to wait for the content to avoid random errors in logs.
+    And I wait "5" seconds
     And the "View" completion condition of "Music history" is displayed as "done"
     And the "Receive a grade" completion condition of "Music history" is displayed as "done"
     And the "Receive a passing grade" completion condition of "Music history" is displayed as "failed"
