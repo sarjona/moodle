@@ -14,19 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
+use \core_badges\badge;
+
 /**
- * Local stuff for category enrolment plugin.
+ * Event observer for badges.
  *
  * @package    core_badges
  * @copyright  2013 Rajesh Taneja <rajesh@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-
-use \core_badges\badge;
-/**
- * Event observer for badges.
  */
 class core_badges_observer {
     /**
@@ -45,8 +42,7 @@ class core_badges_observer {
             $mod = $event->contextinstanceid;
 
             if ($eventdata->completionstate == COMPLETION_COMPLETE
-                || $eventdata->completionstate == COMPLETION_COMPLETE_PASS
-                || $eventdata->completionstate == COMPLETION_COMPLETE_FAIL) {
+                || $eventdata->completionstate == COMPLETION_COMPLETE_PASS) {
                 // Need to take into account that there can be more than one badge with the same activity in its criteria.
                 if ($rs = $DB->get_records('badge_criteria_param', array('name' => 'module_' . $mod, 'value' => $mod))) {
                     foreach ($rs as $r) {
