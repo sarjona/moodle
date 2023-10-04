@@ -188,7 +188,8 @@ class award_criteria_activity extends award_criteria {
      * @return bool Whether criteria is complete
      */
     public function review($userid, $filtered = false) {
-        $completionstates = array(COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS, COMPLETION_COMPLETE_FAIL);
+        // Only award successfull completions.
+        $completionstates = [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS];
 
         if ($this->course->startdate > time()) {
             return false;
@@ -249,11 +250,9 @@ class award_criteria_activity extends award_criteria {
             if (!empty($moduledata)) {
                 $extraon = implode(' OR ', $moduledata);
                 $join = " JOIN {course_modules_completion} cmc ON cmc.userid = u.id AND
-                          ( cmc.completionstate = :completionfail OR
-                          cmc.completionstate = :completionpass OR
+                          ( cmc.completionstate = :completionpass OR
                           cmc.completionstate = :completioncomplete ) AND ({$extraon})";
                 $params["completionpass"] = COMPLETION_COMPLETE_PASS;
-                $params["completionfail"] = COMPLETION_COMPLETE_FAIL;
                 $params["completioncomplete"] = COMPLETION_COMPLETE;
             }
             return array($join, $where, $params);
@@ -265,10 +264,9 @@ class award_criteria_activity extends award_criteria {
             // Create a sql query to get all users who have worked on these course modules.
             $sql = "SELECT DISTINCT userid FROM {course_modules_completion} cmc "
             . "WHERE coursemoduleid " . $cmcmodulessql . " AND "
-            . "( cmc.completionstate IN ( :completionpass, :completionfail, :completioncomplete ) )";
+            . "( cmc.completionstate IN ( :completionpass, :completioncomplete ) )";
             $paramscmcs = [
                 'completionpass' => COMPLETION_COMPLETE_PASS,
-                'completionfail' => COMPLETION_COMPLETE_FAIL,
                 'completioncomplete' => COMPLETION_COMPLETE
             ];
             $paramscmc = array_merge($paramscmc, $paramscmcs);
