@@ -184,6 +184,8 @@ class Client implements ClientInterface, \Psr\Http\Client\ClientInterface
     public function request(string $method, $uri = '', array $options = []): ResponseInterface
     {
         $options[RequestOptions::SYNCHRONOUS] = true;
+        // Disable certificate verification temporarily.
+        $options['verify'] = false;
         return $this->requestAsync($method, $uri, $options)->wait();
     }
 
