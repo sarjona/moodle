@@ -1173,11 +1173,13 @@ class completion_info {
                 if (in_array($newstate, [COMPLETION_COMPLETE_FAIL, COMPLETION_COMPLETE_FAIL_HIDDEN])) {
                     $data['completiongrade'] = COMPLETION_COMPLETE;
 
-                    // If the grade received by the user is a failing grade for a hidden grade item,
-                    // the 'Require passing grade' criterion is considered incomplete.
-                    if ($newstate == COMPLETION_COMPLETE_FAIL_HIDDEN) {
-                        $newstate = COMPLETION_INCOMPLETE;
-                    }
+                    // If the grade received by the user is a failing grade,
+                    // the 'Receive a grade - Passing grade' criterion is considered incomplete.
+                    $newstate = COMPLETION_INCOMPLETE;
+                } else if ($newstate == COMPLETION_COMPLETE_PASS) {
+                    // If the grade received by the user is a passing grade,
+                    // the 'Receive a grade - Passing grade' criterion is considered complete.
+                    $newstate = COMPLETION_COMPLETE;
                 }
                 $data['passgrade'] = $newstate;
             }
