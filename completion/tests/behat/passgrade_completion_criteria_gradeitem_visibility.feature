@@ -59,13 +59,13 @@ Feature: Students will be shown relevant completion state based on grade item vi
     And I press "Save changes"
     And I am on "Course 1" course homepage
     And "Student First" user has not completed "Test assignment name" activity
-    And "Student Second" user has completed "Test assignment name" activity
+    And "Student Second" user has not completed "Test assignment name" activity
     And I am on the "Course 1" course page logged in as student1
-    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
+    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "todo"
     And the "Receive a passing grade" completion condition of "Test assignment name" is displayed as "todo"
     And I am on the "Course 1" course page logged in as student2
-    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
-    And the "Receive a passing grade" completion condition of "Test assignment name" is displayed as "done"
+    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "todo"
+    And the "Receive a passing grade" completion condition of "Test assignment name" is displayed as "todo"
 
   Scenario: Receive a grade completion for visible grade item (passgrade completion disabled)
     Given I am on the "Test assignment name" "assign activity editing" page logged in as teacher1
@@ -84,8 +84,7 @@ Feature: Students will be shown relevant completion state based on grade item vi
     And "Student First" user has completed "Test assignment name" activity
     And "Student Second" user has completed "Test assignment name" activity
     When I am on the "Course 1" course page logged in as student1
-    # Once MDL-75582 is fixed "failed" should be changed to "done"
-    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "failed"
+    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
     And I should not see "Receive a passing grade"
     And I am on the "Course 1" course page logged in as student2
     Then the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
@@ -106,10 +105,10 @@ Feature: Students will be shown relevant completion state based on grade item vi
     And I give the grade "50" to the user "Student Second" for the grade item "Test assignment name"
     And I press "Save changes"
     And I am on "Course 1" course homepage
-    And "Student First" user has completed "Test assignment name" activity
-    And "Student Second" user has completed "Test assignment name" activity
+    And "Student First" user has not completed "Test assignment name" activity
+    And "Student Second" user has not completed "Test assignment name" activity
     When I am on the "Course 1" course page logged in as student1
-    Then the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
+    Then the "Receive a grade" completion condition of "Test assignment name" is displayed as "todo"
     And I should not see "Receive a passing grade"
     And I am on the "Course 1" course page logged in as student2
-    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
+    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "todo"

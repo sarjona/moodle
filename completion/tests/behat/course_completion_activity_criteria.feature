@@ -10,6 +10,7 @@ Feature: Course completion state should match completion criteria
       | teacher1 | Teacher | 1 | teacher1@example.com | T1 |
       | teacher2 | Teacher | 2 | teacher1@example.com | T2 |
       | student1 | Student | 1 | student1@example.com | S1 |
+      | student2 | Student | 2 | student2@example.com | S2 |
     And the following "courses" exist:
       | fullname | shortname | category | enablecompletion | showcompletionconditions |
       | Course 1 | C1        | 0        | 1                | 1                        |
@@ -18,14 +19,19 @@ Feature: Course completion state should match completion criteria
       | teacher1 | C1     | editingteacher |
       | teacher2 | C1     | teacher        |
       | student1 | C1     | student        |
+      | student2 | C1     | student        |
     And the following "activity" exists:
       | activity                            | assign                  |
       | course                              | C1                      |
       | name                                | Test assignment name    |
       | completion                          | 1                       |
       | assignsubmission_onlinetext_enabled | 1                       |
-      | grade[modgrade_type] | Point |
-      | grade[modgrade_point] | 100 |
+      | grade[modgrade_type]                | Point                   |
+      | grade[modgrade_point]               | 100                     |
+      | completion                          | 2                       |
+      | completionusegrade                  | 1                       |
+      | completionpassgrade                 | 1                       |
+      | gradepass                           | 70                      |
     And the following "blocks" exist:
       | blockname        | contextlevel | reference | pagetypepattern | defaultregion |
       | completionstatus | Course       | C1        | course-view-*   | side-pre      |
@@ -34,66 +40,35 @@ Feature: Course completion state should match completion criteria
     And I click on "Condition: Activity completion" "link"
     And I set the field "Assignment - Test assignment name" to "1"
     And I press "Save changes"
-    And I am on the "Test assignment name" "assign activity editing" page
-    And I set the following fields to these values:
-      | Add requirements | 1  |
-      | Receive a grade  | 1  |
-      | Passing grade    | 1  |
-      | gradepass        | 70 |
-    And I press "Save and return to course"
 
-  Scenario: Completion status show match completion criteria when passgrage condition is set.
-    Given I am on the "Course 1" course page logged in as "student1"
-    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "todo"
-    And the "Receive a passing grade" completion condition of "Test assignment name" is displayed as "todo"
-    And I should see "Status: Not yet started" in the "Course completion status" "block"
-    And I am on the "Test assignment name" "assign activity" page
-    And I press "Add submission"
-    And I set the following fields to these values:
-      | Online text | I'm the student1 submission |
-    And I press "Save changes"
-    And I press "Submit assignment"
-    And I press "Continue"
-    And I am on the "Test assignment name" "assign activity" page logged in as teacher1
-    And I follow "View all submissions"
-    And I click on "Grade" "link" in the "Student 1" "table_row"
-    And I set the following fields to these values:
-      | Grade out of 100 | 50.0 |
+  Scenario: Completion status show match completion criteria when passgrage condition is set
+    Given I am on the "Course 1" course page logged in as "teacher1"
+    And I navigate to "View > Grader report" in the course gradebook
+    And I turn editing mode on
+    And I give the grade "50" to the user "Student 1" for the grade item "Test assignment name"
+    And I give the grade "75" to the user "Student 2" for the grade item "Test assignment name"
     And I press "Save changes"
     And I am on the "Course 1" course page
-    And I navigate to "Reports" in current page administration
-    And I click on "Activity completion" "link"
-    And "Student 1, Test assignment name: Completed (did not achieve pass grade)" "icon" should exist in the "Student 1" "table_row"
-    And I navigate to "Reports" in current page administration
-    And I click on "Course completion" "link" in the "region-main" "region"
+    And I navigate to "Reports > Activity completion" in current page administration
+    Then "Student 1, Test assignment name: Completed (did not achieve pass grade)" "icon" should exist in the "Student 1" "table_row"
+    And "Student 2, Test assignment name: Completed (achieved pass grade)" "icon" should exist in the "Student 2" "table_row"
+    And I navigate to "Reports > Course completion" in current page administration
     And "Student 1, Test assignment name: Completed (did not achieve pass grade)" "icon" should exist in the "Student 1" "table_row"
     And "Student 1, Course complete: Not completed" "icon" should exist in the "Student 1" "table_row"
-    When I am on the "Course 1" course page logged in as "student1"
+    And "Student 2, Test assignment name: Completed (achieved pass grade)" "icon" should exist in the "Student 2" "table_row"
+    And "Student 2, Course complete: Completed" "icon" should exist in the "Student 2" "table_row"
+    And I am on the "Course 1" course page logged in as "student1"
     And I should see "Status: Pending" in the "Course completion status" "block"
     And the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
     And the "Receive a passing grade" completion condition of "Test assignment name" is displayed as "failed"
     And I am on the "My courses" page
     And I should not see "100%" in the "Course overview" "block"
-    And I am on the "Test assignment name" "assign activity" page logged in as teacher1
-    And I follow "View all submissions"
-    And I click on "Grade" "link" in the "Student 1" "table_row"
-    And I set the following fields to these values:
-      | Grade out of 100 | 75.0 |
-    And I press "Save changes"
-    And I am on the "Course 1" course page
-    And I navigate to "Reports" in current page administration
-    And I click on "Activity completion" "link"
-    And "Student 1, Test assignment name: Completed (achieved pass grade)" "icon" should exist in the "Student 1" "table_row"
-    And I navigate to "Reports" in current page administration
-    And I click on "Course completion" "link" in the "region-main" "region"
-    And "Student 1, Test assignment name: Completed (achieved pass grade)" "icon" should exist in the "Student 1" "table_row"
-    And "Student 1, Course complete: Completed" "icon" should exist in the "Student 1" "table_row"
-    And I am on the "Course 1" course page logged in as "student1"
+    And I am on the "Course 1" course page logged in as "student2"
     And I should see "Status: Complete" in the "Course completion status" "block"
     And the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
     And the "Receive a passing grade" completion condition of "Test assignment name" is displayed as "done"
     And I am on the "My courses" page
-    Then I should see "100%" in the "Course overview" "block"
+    And I should see "100%" in the "Course overview" "block"
 
   Scenario: Completion status show match completion criteria when passgrage condition is not set.
     Given I am on the "Test assignment name" "assign activity editing" page logged in as teacher1
@@ -120,8 +95,7 @@ Feature: Course completion state should match completion criteria
       | Grade out of 100 | 50.0 |
     And I press "Save changes"
     And I am on the "Course 1" course page
-    And I navigate to "Reports" in current page administration
-    And I click on "Activity completion" "link"
+    And I navigate to "Reports > Activity completion" in current page administration
     And "Student 1, Test assignment name: Completed (did not achieve pass grade)" "icon" should exist in the "Student 1" "table_row"
     And I navigate to "Reports" in current page administration
     And I click on "Course completion" "link" in the "region-main" "region"
@@ -129,8 +103,7 @@ Feature: Course completion state should match completion criteria
     And "Student 1, Course complete: Completed" "icon" should exist in the "Student 1" "table_row"
     When I am on the "Course 1" course page logged in as "student1"
     And I should see "Status: Complete" in the "Course completion status" "block"
-    # Once MDL-75582 is fixed "failed" should be changed to "done"
-    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "failed"
+    And the "Receive a grade" completion condition of "Test assignment name" is displayed as "done"
     And I am on the "My courses" page
     And I should see "100%" in the "Course overview" "block"
     And I am on the "Test assignment name" "assign activity" page logged in as teacher1
@@ -140,8 +113,7 @@ Feature: Course completion state should match completion criteria
       | Grade out of 100 | 75.0 |
     And I press "Save changes"
     And I am on the "Course 1" course page
-    And I navigate to "Reports" in current page administration
-    And I click on "Activity completion" "link"
+    And I navigate to "Reports > Activity completion" in current page administration
     And "Student 1, Test assignment name: Completed (achieved pass grade)" "icon" should exist in the "Student 1" "table_row"
     And I navigate to "Reports" in current page administration
     And I click on "Course completion" "link" in the "region-main" "region"

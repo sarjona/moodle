@@ -1563,8 +1563,12 @@ class completion_info {
         // a) Completion criteria to achieve pass grade is enabled
         // or
         // a) Grade has pass mark (default is 0.00000 which is boolean true so be careful)
-        // b) Grade is visible (neither hidden nor hidden-until)
-        if ($item->gradepass && $item->gradepass > 0.000009 && ($returnpassfail || !$item->hidden)) {
+        // b) Grade is visible (neither hidden nor hidden-until).
+        if ($item->hidden) {
+            return COMPLETION_INCOMPLETE;
+        }
+
+        if ($returnpassfail && $item->gradepass && $item->gradepass > 0.000009) {
             // Use final grade if set otherwise raw grade
             $score = !is_null($grade->finalgrade) ? $grade->finalgrade : $grade->rawgrade;
 
