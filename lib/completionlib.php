@@ -612,14 +612,18 @@ class completion_info {
             }
         }
 
-        // Get current value of completion state and do nothing if it's same as
-        // the possible result of this change. If the change is to COMPLETE and the
-        // current value is one of the COMPLETE_xx subtypes, ignore that as well
+        // Get current value of completion state and do nothing if it's same as the possible result of this change.
+        // If the change is to COMPLETE and the current value is one of the COMPLETE_xx subtypes (in case pass grade
+        // is defined), ignore that as well.
         $current = $this->get_data($cm, false, $userid);
-        if ($possibleresult == $current->completionstate ||
-            ($possibleresult == COMPLETION_COMPLETE &&
-                ($current->completionstate == COMPLETION_COMPLETE_PASS ||
-                $current->completionstate == COMPLETION_COMPLETE_FAIL))) {
+        if ($possibleresult == $current->completionstate) {
+            return;
+        }
+        // Completion states depend on the completion settings.
+        // Any of the following states are also considered as complete when passgrade is not defined.
+        $completionstates = [COMPLETION_COMPLETE_PASS, COMPLETION_COMPLETE_FAIL];
+        if (!isset($current->passgrade) &&
+                $possibleresult == COMPLETION_COMPLETE && in_array($current->completionstate, $completionstates)) {
             return;
         }
 
@@ -1545,12 +1549,23 @@ class completion_info {
         // a) Completion criteria to achieve pass grade is enabled
         // or
         // a) Grade has pass mark (default is 0.00000 which is boolean true so be careful)
-        // b) Grade is visible (neither hidden nor hidden-until)
-        if ($item->gradepass && $item->gradepass > 0.000009 && ($returnpassfail || !$item->hidden)) {
-            // Use final grade if set otherwise raw grade
+        // b) Grade is visible (neither hidden nor hidden-until).
+        if ($item->hidden) {
+            if ($returnpassfail) {
+                // Use final grade if set otherwise raw grade.
+                $score = !is_null($grade->finalgrade) ? $grade->finalgrade : $grade->rawgrade;
+                if ($score < $item->gradepass) {
+                    return COMPLETION_COMPLETE_FAIL_HIDDEN;
+                }
+            }
+            return COMPLETION_INCOMPLETE;
+        }
+
+        if ($returnpassfail && $item->gradepass && $item->gradepass > 0.000009) {
+            // Use final grade if set otherwise raw grade.
             $score = !is_null($grade->finalgrade) ? $grade->finalgrade : $grade->rawgrade;
 
-            // We are displaying and tracking pass/fail
+            // We are displaying and tracking pass/fail.
             if ($score >= $item->gradepass) {
                 return COMPLETION_COMPLETE_PASS;
             } else if ($item->hidden) {

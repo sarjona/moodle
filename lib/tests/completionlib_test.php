@@ -418,7 +418,7 @@ class completionlib_test extends advanced_testcase {
                     'gradepass' => 50,
                 ],
                 50,
-                COMPLETION_COMPLETE_PASS
+                COMPLETION_COMPLETE,
             ],
             "Passing grade not enabled with passing grade not set." => [
                 [
@@ -1256,7 +1256,7 @@ class completionlib_test extends advanced_testcase {
             ->will($this->returnValue(true));
         $c->expects($this->once())
             ->method('update_state')
-            ->with($cm, COMPLETION_COMPLETE_PASS, 31337)
+            ->with($cm, COMPLETION_COMPLETE, 31337)
             ->will($this->returnValue(true));
         $c->inform_grade_changed($cm, $item, $grade, false);
 
@@ -1292,25 +1292,25 @@ class completionlib_test extends advanced_testcase {
 
         // Grade has pass mark and is not hidden,  user passes.
         $this->assertEquals(
-            COMPLETION_COMPLETE_PASS,
+            COMPLETION_COMPLETE,
             completion_info::internal_get_grade_state($item, $grade));
 
         // Same but user fails.
         $grade->rawgrade = 3.9;
         $this->assertEquals(
-            COMPLETION_COMPLETE_FAIL,
+            COMPLETION_COMPLETE,
             completion_info::internal_get_grade_state($item, $grade));
 
         // User fails on raw grade but passes on final.
         $grade->finalgrade = 4.0;
         $this->assertEquals(
-            COMPLETION_COMPLETE_PASS,
+            COMPLETION_COMPLETE,
             completion_info::internal_get_grade_state($item, $grade));
 
         // Item is hidden.
         $item->hidden = 1;
         $this->assertEquals(
-            COMPLETION_COMPLETE,
+            COMPLETION_INCOMPLETE,
             completion_info::internal_get_grade_state($item, $grade));
 
         // Item isn't hidden but has no pass mark.
@@ -1325,7 +1325,7 @@ class completionlib_test extends advanced_testcase {
         $item->gradepass = 4;
         $grade->finalgrade = 5.0;
         $this->assertEquals(
-            COMPLETION_COMPLETE_PASS,
+            COMPLETION_INCOMPLETE,
             completion_info::internal_get_grade_state($item, $grade, true));
 
         // Item is hidden, but returnpassfail is true and the grade is failing.
@@ -1342,6 +1342,14 @@ class completionlib_test extends advanced_testcase {
         $grade->finalgrade = 3.0;
         $this->assertEquals(
             COMPLETION_COMPLETE_FAIL,
+            completion_info::internal_get_grade_state($item, $grade, true));
+
+        // Item is not hidden, but returnpassfail is true and the grade is passing.
+        $item->hidden = 0;
+        $item->gradepass = 4;
+        $grade->finalgrade = 5.0;
+        $this->assertEquals(
+            COMPLETION_COMPLETE_PASS,
             completion_info::internal_get_grade_state($item, $grade, true));
     }
 
@@ -1600,8 +1608,8 @@ class completionlib_test extends advanced_testcase {
             'Grade not required' => [false, false, null, null, null],
             'Grade required, but has no grade yet' => [true, false, null, null, COMPLETION_INCOMPLETE],
             'Grade required, grade received' => [true, true, null, null, COMPLETION_COMPLETE],
-            'Grade required, passing grade received' => [true, true, 70, null, COMPLETION_COMPLETE_PASS],
-            'Grade required, failing grade received' => [true, true, 80, null, COMPLETION_COMPLETE_FAIL],
+            'Grade required, passing grade received' => [true, true, 70, null, COMPLETION_COMPLETE],
+            'Grade required, failing grade received' => [true, true, 80, null, COMPLETION_COMPLETE],
         ];
     }
 
