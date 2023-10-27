@@ -30,7 +30,7 @@ Feature: Course reuse navigation
     Examples:
       | adminpage     | title                              |
       |   Backup      | Backup settings                    |
-      |   Restore     | Import a backup file               |
+      |   Restore     | Upload a backup file               |
       |   Import      | Find a course to import data from: |
       |   Reset       | Reset course                       |
 
