@@ -111,3 +111,5 @@ passwordrecovery,core
 passwordconfirmchange,core
 passwordnohelp,core
 grade,core_grades
+copycourseheading,core_backup
+backupcourse,core_backup
