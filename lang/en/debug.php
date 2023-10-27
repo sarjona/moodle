@@ -45,6 +45,7 @@ $string['mustbeoveride'] = 'Abstract {$a} method must be overridden.';
 $string['noadminrole'] = 'No admin role could be found';
 $string['noblocks'] = 'No blocks installed!';
 $string['nocate'] = 'No categories!';
+$string['nocoursereuseactions'] = 'No actions accessible for course reuse';
 $string['nomodules'] = 'No modules found!!';
 $string['nopageclass'] = 'Imported {$a} but found no page classes';
 $string['noreports'] = 'No reports accessible';
