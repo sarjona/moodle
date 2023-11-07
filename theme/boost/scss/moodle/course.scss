@@ -375,14 +375,6 @@ body:not(.editing)  .sitetopic ul.section {
     margin: 2px 5px 2px 5px;
 }
 
-.course-content .section-summary .section-summary-activities .activity-count {
-    color: $text-muted;
-    font-size: $font-size-sm;
-    margin: 3px;
-    white-space: nowrap;
-    display: inline-block;
-}
-
 .course-content .section-summary .summary {
     margin-top: 5px;
 }
@@ -1366,6 +1358,13 @@ $activity-add-hover: theme-color-level('primary', -10) !default;
     padding-left: 0;
     border-bottom: $border-width solid $border-color;
 
+    .course-section-header > h3 > a {
+        color: $gray-900;
+        &:hover {
+            text-decoration: none;
+        }
+    }
+
     &:last-child:not(.section-summary) {
         border-bottom: 0;
     }
@@ -1424,11 +1423,28 @@ $activity-add-hover: theme-color-level('primary', -10) !default;
     }
 
     .section-summary-activities .activity-count {
-        color: $text-muted;
-        font-size: $font-size-sm;
+        font-size: $font-size-base;
         margin: 3px;
         white-space: nowrap;
         display: inline-block;
+        .icon {
+            width: 20px;
+            filter: invert(25%) sepia(86%) saturate(1158%) hue-rotate(189deg) brightness(104%) contrast(92%);
+        }
+    }
+
+    .section-summary-activities + .section {
+        border-top: $border-width solid $border-color;
+        border-radius: unset;
+        margin-top: 20px !important;  // stylelint-disable-line declaration-no-important
+        padding-top: 20px !important; // stylelint-disable-line declaration-no-important
+    }
+
+    .section_goto .icon {
+        font-size: 25px;
+        width: 48px;
+        padding-bottom: 6px;
+        color: $primary;
     }
 
     // Legacy dndupload classes. Can be removed in 4.4 as part of MDL-77124.

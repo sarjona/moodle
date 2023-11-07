@@ -28251,14 +28251,6 @@ body:not(.editing) .sitetopic ul.section .label .mod-indent-outer {
   margin: 2px 5px 2px 5px;
 }
 
-.course-content .section-summary .section-summary-activities .activity-count {
-  color: #6a737b;
-  font-size: 0.8203125rem;
-  margin: 3px;
-  white-space: nowrap;
-  display: inline-block;
-}
-
 .course-content .section-summary .summary {
   margin-top: 5px;
 }
@@ -29140,6 +29132,12 @@ span.editinstructions .alert-link {
   padding-left: 0;
   border-bottom: 1px solid #dee2e6;
 }
+.course-section .course-section-header > h3 > a {
+  color: #1d2125;
+}
+.course-section .course-section-header > h3 > a:hover {
+  text-decoration: none;
+}
 .course-section:last-child:not(.section-summary) {
   border-bottom: 0;
 }
@@ -29181,11 +29179,26 @@ span.editinstructions .alert-link {
   border-radius: 0.5rem;
 }
 .course-section .section-summary-activities .activity-count {
-  color: #6a737b;
-  font-size: 0.8203125rem;
+  font-size: 0.9375rem;
   margin: 3px;
   white-space: nowrap;
   display: inline-block;
+}
+.course-section .section-summary-activities .activity-count .icon {
+  width: 20px;
+  filter: invert(25%) sepia(86%) saturate(1158%) hue-rotate(189deg) brightness(104%) contrast(92%);
+}
+.course-section .section-summary-activities + .section {
+  border-top: 1px solid #dee2e6;
+  border-radius: unset;
+  margin-top: 20px !important;
+  padding-top: 20px !important;
+}
+.course-section .section_goto .icon {
+  font-size: 25px;
+  width: 48px;
+  padding-bottom: 6px;
+  color: #0f6cbf;
 }
 .course-section.dndupload-dropzone {
   border: 2px dashed #0f6cbf;

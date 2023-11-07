@@ -35,13 +35,17 @@
         "modprogress": "Total 5"
     }
 }}
-<div class="section-summary-activities pr-2 mdl-right">
-    {{#mods}}
-    <span class="activity-count">{{name}}: {{count}}</span>
-    {{/mods}}
-</div>
-{{#showcompletion}}
-    <div class="section-summary-activities pr-2 mdl-right">
-        <span class="activity-count">{{modprogress}}</span>
+<div class="section-summary-activities d-flex pr-2">
+    <div>
+        <span class="activity-count">
+            {{#pix}}i/broken-square-plus, moodle{{/pix}}{{totalactivitiesstr}}
+        </span>
     </div>
-{{/showcompletion}}
+    <div class="ml-auto">
+        {{#showcompletion}}
+            <div class="activity-count">
+                {{#pix}}i/stats, moodle{{/pix}}{{modprogress}}
+            </div>
+        {{/showcompletion}}
+    </div>
+ </div>
