@@ -266,4 +266,19 @@ class format_topics_test extends \advanced_testcase {
         $this->assertStringContainsString('course/section.php', $format->get_view_url(0, ['sr' => 0]));
         $this->assertStringContainsString('course/section.php', $format->get_view_url(1, ['sr' => 0]));
     }
+
+    /**
+     * Test get_required_jsfiles().
+     *
+     * @covers ::get_required_jsfiles
+     */
+    public function test_get_required_jsfiles(): void {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+
+        $course = $generator->create_course(['format' => 'topics']);
+        $format = course_get_format($course);
+        $this->assertNotEmpty($format->get_required_jsfiles());
+    }
 }

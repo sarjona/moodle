@@ -755,6 +755,21 @@ class base_test extends advanced_testcase {
             ],
         ];
     }
+
+    /**
+     * Test get_required_jsfiles().
+     *
+     * @covers ::get_required_jsfiles
+     */
+    public function test_get_required_jsfiles(): void {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+
+        $course = $generator->create_course(['format' => 'testformat']);
+        $format = course_get_format($course);
+        $this->assertEmpty($format->get_required_jsfiles());
+    }
 }
 
 /**

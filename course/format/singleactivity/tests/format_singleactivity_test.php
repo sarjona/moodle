@@ -59,4 +59,19 @@ class format_singleactivity_test extends \advanced_testcase {
         $this->assertStringContainsString('course/view.php', $format->get_view_url(0, ['sr' => 0]));
         $this->assertStringContainsString('course/view.php', $format->get_view_url(1, ['sr' => 0]));
     }
+
+    /**
+     * Test get_required_jsfiles().
+     *
+     * @covers ::get_required_jsfiles
+     */
+    public function test_get_required_jsfiles(): void {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+
+        $course = $generator->create_course(['format' => 'singleactivity']);
+        $format = course_get_format($course);
+        $this->assertEmpty($format->get_required_jsfiles());
+    }
 }
