@@ -112,3 +112,5 @@ passwordconfirmchange,core
 passwordnohelp,core
 grade,core_grades
 taskdeletecachetext,core_admin
+linkcoursesections,core_admin
+linkcoursesections_help,core_admin
