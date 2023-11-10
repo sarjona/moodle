@@ -41,7 +41,9 @@ Feature: Sections can be moved
     And I set the following fields to these values:
       | Course layout | Show one section per page |
     And I press "Save and display"
+    And I turn editing mode off
     When I follow "Topic 2"
+    And I turn editing mode on
     Then "Topic 1" "section" should not exist
     And "Topic 3" "section" should not exist
     And "Move down" "link" should not exist

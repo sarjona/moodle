@@ -188,7 +188,6 @@ class content implements named_templatable, renderable {
         $singlesection = $this->format->get_section_number();
         if ($singlesection) {
             return [
-                $modinfo->get_section_info(0),
                 $modinfo->get_section_info($singlesection),
             ];
         }
