@@ -70,16 +70,13 @@ class cmsummary implements named_templatable, renderable {
 
         list($mods, $complete, $total, $showcompletion) = $this->calculate_section_stats();
 
-        $totalactivities = array_reduce($mods, function ($carry, $item) {
-            return $carry + ($item["count"] ?? 0);
-        }, 0);
+        $totalactivities = array_reduce($mods, fn($carry, $item) => $carry + ($item["count"] ?? 0), 0);
         $data = (object)[
             'showcompletion' => $showcompletion,
             'total' => $total,
             'complete' => $complete,
             'mods' => array_values($mods),
             'totalactivities' => $totalactivities,
-            'totalactivitiesstr' => get_string('totalactivities', 'course', $totalactivities),
         ];
 
         $data->modprogress = get_string('progresstotal', 'completion', $data);

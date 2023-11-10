@@ -29132,10 +29132,10 @@ span.editinstructions .alert-link {
   padding-left: 0;
   border-bottom: 1px solid #dee2e6;
 }
-.course-section .course-section-header > h3 > a {
+.course-section .sectionname > a {
   color: #1d2125;
 }
-.course-section .course-section-header > h3 > a:hover {
+.course-section .sectionname > a:hover {
   text-decoration: none;
 }
 .course-section:last-child:not(.section-summary) {
@@ -29178,26 +29178,17 @@ span.editinstructions .alert-link {
   margin-top: 0.5rem;
   border-radius: 0.25rem;
 }
-.course-section .section-summary-activities .activity-count {
-  font-size: 0.9375rem;
-  margin: 3px;
-  white-space: nowrap;
-  display: inline-block;
-}
-.course-section .section-summary-activities .activity-count .icon {
-  width: 20px;
+.course-section .section-summary-activities .icon {
+  width: inherit;
   filter: invert(25%) sepia(86%) saturate(1158%) hue-rotate(189deg) brightness(104%) contrast(92%);
 }
 .course-section .section-summary-activities + .section {
   border-top: 1px solid #dee2e6;
-  border-radius: unset;
-  margin-top: 20px !important;
-  padding-top: 20px !important;
+  margin-top: 1rem !important;
+  padding-top: 1rem !important;
 }
 .course-section .section_goto .icon {
-  font-size: 25px;
-  width: 48px;
-  padding-bottom: 6px;
+  font-size: 1.171875rem;
   color: #0f6cbf;
 }
 .course-section.dndupload-dropzone {

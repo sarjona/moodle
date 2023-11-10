@@ -32,20 +32,17 @@
                 "count": "2"
             }
         ],
-        "modprogress": "Total 5"
+        "modprogress": "Progress: 1 / 5",
+        "totalactivities": "5"
     }
 }}
-<div class="section-summary-activities d-flex pr-2">
-    <div>
-        <span class="activity-count">
-            {{#pix}}i/broken-square-plus, moodle{{/pix}}{{totalactivitiesstr}}
-        </span>
+<div class="section-summary-activities d-flex">
+    <div class="d-flex align-items-center">
+        {{#pix}}i/broken-square-plus, moodle{{/pix}}{{#str}} totalactivities, course, {{totalactivities}} {{/str}}
     </div>
-    <div class="ml-auto">
-        {{#showcompletion}}
-            <div class="activity-count">
-                {{#pix}}i/stats, moodle{{/pix}}{{modprogress}}
-            </div>
-        {{/showcompletion}}
-    </div>
+    {{#showcompletion}}
+        <div class="d-flex ml-auto align-items-center">
+            {{#pix}}i/stats, moodle{{/pix}}{{modprogress}}
+        </div>
+    {{/showcompletion}}
  </div>
