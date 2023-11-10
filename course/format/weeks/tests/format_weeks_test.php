@@ -235,8 +235,6 @@ class format_weeks_test extends \advanced_testcase {
         global $CFG;
         $this->resetAfterTest();
 
-        $linkcoursesections = $CFG->linkcoursesections;
-
         // Generate a course with two sections (0 and 1) and two modules.
         $generator = $this->getDataGenerator();
         $course1 = $generator->create_course(array('format' => 'weeks'));
@@ -247,20 +245,11 @@ class format_weeks_test extends \advanced_testcase {
         $format->update_course_format_options($data);
 
         // In page.
-        $CFG->linkcoursesections = 0;
-        $this->assertNotEmpty($format->get_view_url(null));
-        $this->assertNotEmpty($format->get_view_url(0));
-        $this->assertNotEmpty($format->get_view_url(1));
-        $CFG->linkcoursesections = 1;
         $this->assertNotEmpty($format->get_view_url(null));
         $this->assertNotEmpty($format->get_view_url(0));
         $this->assertNotEmpty($format->get_view_url(1));
 
         // Navigation.
-        $CFG->linkcoursesections = 0;
-        $this->assertNull($format->get_view_url(1, ['navigation' => 1]));
-        $this->assertNull($format->get_view_url(0, ['navigation' => 1]));
-        $CFG->linkcoursesections = 1;
         $this->assertNotEmpty($format->get_view_url(1, ['navigation' => 1]));
         $this->assertNotEmpty($format->get_view_url(0, ['navigation' => 1]));
     }
