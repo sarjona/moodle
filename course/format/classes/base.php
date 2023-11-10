@@ -1917,4 +1917,13 @@ abstract class base {
 
         return get_fast_modinfo($course)->get_section_info_by_id($newsection->id);
     }
+
+    /**
+     * Get the required javascript files for the course format.
+     *
+     * @return array The list of javascript files required by the course format.
+     */
+    public function get_required_jsfiles(): array {
+        return [];
+    }
 }

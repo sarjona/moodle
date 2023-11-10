@@ -20,11 +20,13 @@ Feature: Verify that the inplace editable field works as expected
   Scenario: Using an inplace editable updates the name of an activity
     When I set the field "Edit title" in the "My first assignment" "activity" to "Coursework submission"
     Then I should see "Coursework submission"
-    And I should not see "My first assignment"
+    # The 'in the "region-main" "region"' part can be removed once MDL-80155 is fixed.
+    And I should not see "My first assignment" in the "region-main" "region"
     But I should see "My first forum"
     And I should see "My first quiz"
     And I set the field "Edit title" in the "Coursework submission" "activity" to "My first assignment"
-    And I should not see "Coursework submission"
+    # The 'in the "region-main" "region"' part can be removed once MDL-80155 is fixed.
+    And I should not see "Coursework submission" in the "region-main" "region"
     But I should see "My first assignment"
     And I should see "My first forum"
     And I should see "My first quiz"
