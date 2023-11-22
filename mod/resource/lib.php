@@ -218,6 +218,7 @@ function resource_get_coursemodule_info($coursemodule) {
     }
 
     if ($resource->tobemigrated) {
+        $info->icon = 'i/invalid';
         return $info;
     }
 
@@ -227,6 +228,7 @@ function resource_get_coursemodule_info($coursemodule) {
     if (count($files) >= 1) {
         $mainfile = reset($files);
         $resource->mainfile = $mainfile->get_filename();
+        $info->icon = file_file_icon($mainfile, 24);
     }
 
     $display = resource_get_final_display_type($resource);
