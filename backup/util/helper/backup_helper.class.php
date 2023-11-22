@@ -422,7 +422,7 @@ abstract class backup_helper {
             }
 
             $selectmenu = new \core\output\select_menu('coursereusetype', $menuarray, $activeurl);
-            $selectmenu->set_label(get_string($current), ['class' => 'sr-only']);
+            $selectmenu->set_label(get_string('coursereusenavigationmenu'), ['class' => 'sr-only']);
             $options = \html_writer::tag(
                 'div',
                 $OUTPUT->render_from_template('core/tertiary_navigation_selector', $selectmenu->export_for_template($OUTPUT)),

@@ -420,6 +420,7 @@ $string['courserequestsupport'] = 'Supporting information to help the administra
 $string['courserequestwarning'] = 'The user requesting this course will be automatically enrolled and assigned the role of {$a}.';
 $string['courserestore'] = 'Course restore';
 $string['coursereuse'] = 'Course reuse';
+$string['coursereusenavigationmenu'] = 'Course reuse navigation menu';
 $string['courses'] = 'Courses';
 $string['coursesectionsummaries'] = 'Course section summaries';
 $string['coursesectiontitle'] = '{$a->sectionname}: {$a->sectiontitle} | {$a->course}';

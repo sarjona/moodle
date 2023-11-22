@@ -35,8 +35,13 @@ if (!$course = $DB->get_record('course', ['id' => $courseid])) {
 }
 require_login($course);
 
+$title = get_string('coursereuse');
+// Only append the course name if the course ID is not the site ID.
+if ($courseid != SITEID) {
+    $title .= moodle_page::TITLE_SEPARATOR . $course->fullname;
+}
 // Otherwise, output the page with a notification stating that there are no available course reuse actions.
-$PAGE->set_title(get_string('coursereuse'));
+$PAGE->set_title($title);
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_heading($course->fullname);
 $PAGE->set_pagetype('course-view-' . $course->format);
@@ -59,6 +64,10 @@ if ($coursereusenode = $PAGE->settingsnav->find('coursereuse', \navigation_node:
 if ($hasactions) {
     echo $OUTPUT->render_from_template('core/report_link_page', ['node' => $coursereusenode]);
 } else {
-    echo html_writer::div($OUTPUT->notification(get_string('nocoursereuseactions', 'debug'), 'error'), 'mt-3');
+    throw new \moodle_exception(
+        'accessdenied',
+        'admin',
+        new moodle_url('/course/view.php', ['id' => $courseid])
+    );
 }
 echo $OUTPUT->footer();
