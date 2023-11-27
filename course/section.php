@@ -163,7 +163,7 @@ if ($PAGE->user_is_editing()) {
     }
 }
 
-echo html_writer::start_tag('div', ['class' => 'course-content']);
+echo $renderer->container_start('course-content');
 
 // Include course AJAX.
 include_course_ajax($course, $modinfo->get_used_module_names());
@@ -179,7 +179,7 @@ foreach ($jsfiles as $jsfile) {
     $PAGE->requires->js($jsfile);
 }
 
-echo html_writer::end_tag('div');
+echo $renderer->container_end();
 
 // Trigger course viewed event.
 course_view($context, $section->section);

@@ -30,7 +30,6 @@ Feature: Bulk course section actions one section per page
     And I click on "Bulk actions" "button"
     And I should see "0 selected" in the "sticky-footer" "region"
 
-  @javascript
   Scenario: Bulk section edit is only available when multiple sections are displayed
     Given I click on "Select topic Topic 1" "checkbox"
     And I should see "1 selected" in the "sticky-footer" "region"
