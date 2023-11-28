@@ -78,8 +78,10 @@ abstract class base {
     protected $course = false;
     /** @var array caches format options, please use course_format::get_format_options() */
     protected $formatoptions = array();
-    /** @var int the section number in single section format, zero for multiple section formats. */
-    protected $singlesection = 0;
+    /** @var int|null the section number in single section format, null for multiple section formats. */
+    protected $singlesection = null;
+    /** @var int|null the sectionid when a single section is selected, null when multiple sections are displayed. */
+    protected $singlesectionid = null;
     /** @var course_modinfo the current course modinfo, please use course_format::get_modinfo() */
     private $modinfo = null;
     /** @var array cached instances */
@@ -564,24 +566,73 @@ abstract class base {
      * Set if the current format instance will show multiple sections or an individual one.
      *
      * Some formats has the hability to swith from one section to multiple sections per page,
-     * this method replaces the old print_multiple_section_page and print_single_section_page.
+     * this method replaces the old set_section_number, to start using the sectionid .
      *
-     * @param int $singlesection zero for all sections or a section number
+     * @param int|null $sectionid null for all sections or a sectionid.
      */
-    public function set_section_number(int $singlesection): void {
-        $this->singlesection = $singlesection;
+    public function set_sectionid(?int $sectionid): void {
+        if ($sectionid === null) {
+            // Early return: set the sectionid and sectionnum to null and done.
+            $this->singlesection = null;
+            $this->singlesectionid = null;
+            return;
+        }
+
+        // Update singlesectionid and also singlesection (sectionnum).
+        $modinfo = get_fast_modinfo($this->get_course());
+        $sectioninfo = $modinfo->get_section_info_by_id($sectionid);
+        if ($sectioninfo === null) {
+            throw new coding_exception('Invalid sectionid: '. $sectionid);
+        }
+
+        $this->singlesection = $sectioninfo->section;
+        $this->singlesectionid = $sectionid;
+    }
+
+    /**
+     * Get if the current format instance will show multiple sections or an individual one.
+     *
+     * Some formats has the hability to swith from one section to multiple sections per page,
+     * output components will use this method to know if the current display is a single or
+     * multiple sections.
+     *
+     * @return int|null null for all sections or the sectionid.
+     */
+    public function get_sectionid(): ?int {
+        return $this->singlesectionid;
     }
 
     /**
      * Set if the current format instance will show multiple sections or an individual one.
      *
      * Some formats has the hability to swith from one section to multiple sections per page,
+     * this method replaces the old print_multiple_section_page and print_single_section_page.
+     *
+     * @param int|null $sectionnum null for all sections or a sectionid.
+     */
+    public function set_section_number(?int $sectionnum): void {
+        // TODO: Deprecate this method (and replace all the places where it's used).
+        $modinfo = get_fast_modinfo($this->get_course());
+        $sectioninfo = $modinfo->get_section_info($sectionnum);
+        if ($sectioninfo === null) {
+            throw new coding_exception('Invalid sectionnum: '. $sectionnum);
+        }
+
+        $this->singlesection = $sectionnum;
+        $this->singlesectionid = $sectioninfo->id;
+    }
+
+    /**
+     * Get if the current format instance will show multiple sections or an individual one.
+     *
+     * Some formats has the hability to swith from one section to multiple sections per page,
      * output components will use this method to know if the current display is a single or
      * multiple sections.
      *
-     * @return int zero for all sections or the sectin number
+     * @return int|null the section number or null when there is no single section.
      */
-    public function get_section_number(): int {
+    public function get_section_number(): ?int {
+        // TODO: Replace it with the proper sectionid.
         return $this->singlesection;
     }
 

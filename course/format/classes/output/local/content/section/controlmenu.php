@@ -144,15 +144,18 @@ class controlmenu implements named_templatable, renderable {
         ];
 
         if (!$isstealth && has_capability('moodle/course:update', $coursecontext, $user)) {
-            if ($section->section > 0
-                && get_string_manager()->string_exists('editsection', 'format_'.$format->get_format())) {
+            $params = ['id' => $section->id];
+            if ($section->section > 0) {
+                $params['sr'] = $section->section;
+            }
+            if (get_string_manager()->string_exists('editsection', 'format_'.$format->get_format())) {
                 $streditsection = get_string('editsection', 'format_'.$format->get_format());
             } else {
                 $streditsection = get_string('editsection');
             }
 
             $controls['edit'] = [
-                'url'   => new moodle_url('/course/editsection.php', ['id' => $section->id, 'sr' => $sectionreturn]),
+                'url'   => new moodle_url('/course/editsection.php', $params),
                 'icon' => 'i/settings',
                 'name' => $streditsection,
                 'pixattr' => ['class' => ''],

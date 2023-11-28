@@ -28,7 +28,7 @@ require_once("lib.php");
 require_once($CFG->libdir . '/formslib.php');
 
 $id = required_param('id', PARAM_INT);    // course_sections.id
-$sectionreturn = optional_param('sr', 0, PARAM_INT);
+$sectionreturn = optional_param('sr', null, PARAM_INT);
 $deletesection = optional_param('delete', 0, PARAM_BOOL);
 $showonly = optional_param('showonly', 0, PARAM_TAGLIST);
 
