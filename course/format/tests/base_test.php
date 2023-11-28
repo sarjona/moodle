@@ -770,6 +770,91 @@ class base_test extends advanced_testcase {
         $format = course_get_format($course);
         $this->assertEmpty($format->get_required_jsfiles());
     }
+
+    /**
+     * Test set_sectionid().
+     *
+     * @covers ::set_sectionid
+     * @covers ::get_sectionid_from_sectionnum
+     * @covers ::get_sectionid
+     * @covers ::get_section_number
+     */
+    public function test_set_sectionid(): void {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 2]);
+        $format = course_get_format($course);
+
+        // No section.
+        $this->assertNull($format->get_sectionid());
+        $this->assertNull($format->get_section_number());
+
+        // Valid section.
+        $sectionnum = 1;
+        $sectionid = $format->get_sectionid_from_sectionnum($sectionnum);
+        $format->set_sectionid($sectionid);
+        $this->assertEquals($sectionid, $format->get_sectionid());
+        $this->assertEquals($sectionnum, $format->get_section_number());
+
+        // Invalid section.
+        $this->expectException(\coding_exception::class);
+        $format->set_sectionid(-1);
+    }
+
+    /**
+     * Test get_sectionid_from_sectionnum().
+     *
+     * @dataProvider get_sectionid_from_sectionnum_provider
+     * @covers ::get_sectionid_from_sectionnum
+     * @param int|null $sectionnum The section number
+     * @param bool $nullexpected If null is expected
+     */
+    public function test_get_sectionid_from_sectionnum(?int $sectionnum, $nullexpected = false): void {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 2]);
+        $format = course_get_format($course);
+
+        $sectionid = $format->get_sectionid_from_sectionnum($sectionnum);
+        if ($nullexpected) {
+            $this->assertNull($sectionid);
+        } else {
+            $this->assertNotNull($sectionid);
+        }
+    }
+
+    /**
+     * Data provider for test_get_sectionid_from_sectionnum.
+     *
+     * @return array The testing scenarios
+     */
+    public static function get_sectionid_from_sectionnum_provider(): array {
+        return [
+            'General sectionnumber' => [
+                'sectionnum' => 0,
+                '$nullexpected' => false,
+            ],
+            'Existing sectionnumber' => [
+                'sectionnum' => 1,
+                '$nullexpected' => false,
+            ],
+            'Another existing sectionnumber' => [
+                'sectionnum' => 2,
+                '$nullexpected' => false,
+            ],
+            'Unexisting sectionnumber' => [
+                'sectionnum' => 3,
+                '$nullexpected' => true,
+            ],
+            'Another unexisting sectionnumber' => [
+                'sectionnum' => -1,
+                '$nullexpected' => true,
+            ],
+        ];
+    }
+
 }
 
 /**
