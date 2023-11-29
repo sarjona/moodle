@@ -77,6 +77,7 @@ $string['backupcoursesections'] = 'Course sections';
 $string['backupdate'] = 'Date taken';
 $string['backupdetails'] = 'Backup details';
 $string['backupdetailsnonstandardinfo'] = 'The selected file is not a standard Moodle backup file. The restore process will try to convert the backup file into the standard format and then restore it.';
+$string['backupfile'] = 'Backup file';
 $string['backupformat'] = 'Format';
 $string['backupformatmoodle1'] = 'Moodle 1';
 $string['backupformatmoodle2'] = 'Moodle 2';

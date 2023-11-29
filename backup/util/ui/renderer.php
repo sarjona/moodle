@@ -623,9 +623,7 @@ class core_backup_renderer extends plugin_renderer_base {
         $files = $viewer->files;
         $filestodisplay = false;
         foreach ($files as $file) {
-            if ($file->is_directory()) {
-                $filestodisplay = false;
-            } else {
+            if (!$file->is_directory()) {
                 $filestodisplay = true;
                 break;
             }
