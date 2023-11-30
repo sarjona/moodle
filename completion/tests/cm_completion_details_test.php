@@ -231,7 +231,7 @@ class cm_completion_details_test extends advanced_testcase {
         return [
             'Automatic, require view, not viewed' => [
                 'expected' => false,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_INCOMPLETE,
                 'completionview' => COMPLETION_INCOMPLETE,
                 'completiongrade' => null,
@@ -239,7 +239,7 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Automatic, require view, viewed' => [
                 'expected' => true,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_COMPLETE,
                 'completionview' => COMPLETION_COMPLETE,
                 'completiongrade' => null,
@@ -247,7 +247,7 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Automatic, require grade, not graded' => [
                 'expected' => false,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_INCOMPLETE,
                 'completionview' => null,
                 'completiongrade' => COMPLETION_INCOMPLETE,
@@ -255,7 +255,7 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Automatic, require grade, graded with fail' => [
                 'expected' => true,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_COMPLETE_FAIL,
                 'completionview' => null,
                 'completiongrade' => COMPLETION_COMPLETE_FAIL,
@@ -263,7 +263,7 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Automatic, require grade, graded with passing' => [
                 'expected' => true,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_COMPLETE_PASS,
                 'completionview' => null,
                 'completiongrade' => COMPLETION_COMPLETE_PASS,
@@ -271,7 +271,7 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Automatic, require passgrade, not graded' => [
                 'expected' => false,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_INCOMPLETE,
                 'completionview' => null,
                 'completiongrade' => null,
@@ -279,7 +279,7 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Automatic, require passgrade, graded with fail' => [
                 'expected' => false,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_COMPLETE_FAIL,
                 'completionview' => null,
                 'completiongrade' => null,
@@ -287,7 +287,7 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Automatic, require passgrade, graded with passing' => [
                 'expected' => true,
-                'comletion' => COMPLETION_TRACKING_AUTOMATIC,
+                'completion' => COMPLETION_TRACKING_AUTOMATIC,
                 'completionstate' => COMPLETION_COMPLETE_PASS,
                 'completionview' => null,
                 'completiongrade' => null,
@@ -295,22 +295,22 @@ class cm_completion_details_test extends advanced_testcase {
             ],
             'Manual, incomplete' => [
                 'expected' => false,
-                'comletion' => COMPLETION_TRACKING_MANUAL,
+                'completion' => COMPLETION_TRACKING_MANUAL,
                 'completionstate' => COMPLETION_INCOMPLETE,
             ],
             'Manual, complete' => [
                 'expected' => true,
-                'comletion' => COMPLETION_TRACKING_MANUAL,
+                'completion' => COMPLETION_TRACKING_MANUAL,
                 'completionstate' => COMPLETION_COMPLETE,
             ],
             'None, incomplete' => [
                 'expected' => false,
-                'comletion' => COMPLETION_TRACKING_NONE,
+                'completion' => COMPLETION_TRACKING_NONE,
                 'completionstate' => COMPLETION_INCOMPLETE,
             ],
             'None, complete' => [
                 'expected' => false,
-                'comletion' => COMPLETION_TRACKING_NONE,
+                'completion' => COMPLETION_TRACKING_NONE,
                 'completionstate' => COMPLETION_COMPLETE,
             ],
         ];
