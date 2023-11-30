@@ -71,8 +71,7 @@ Feature: Course activity controls works as expected
     And <belowpage> "section" <should_see_other_sections> exist
     And I should see "1 2 3 4 5" in the "Section links" "block"
     And I click on "2" "link" in the "Section links" "block"
-    # The 'in the "region-main" "region"' part can be removed once MDL-80155 is fixed.
-    And I <should_see_other_sections_following_block_sections_links> see "Test forum name 2" in the "region-main" "region"
+    And I <should_see_other_sections_following_block_sections_links> see "Test forum name 2"
 
     Examples:
       | courseformat | coursedisplay | targetpage              | should_see_other_sections | should_see_other_sections_following_block_sections_links | belowpage                |
@@ -132,8 +131,7 @@ Feature: Course activity controls works as expected
     And I add the "Section links" block
     And I should see "1 2 3 4 5" in the "Section links" "block"
     And I click on "2" "link" in the "Section links" "block"
-    # The 'in the "region-main" "region"' part can be removed once MDL-80155 is fixed.
-    And I <should_see_other_sections_following_block_sections_links> see "Test forum name 2" in the "region-main" "region"
+    And I <should_see_other_sections_following_block_sections_links> see "Test forum name 2"
 
     Examples:
       | courseformat | coursedisplay | targetpage              | should_see_other_sections | should_see_other_sections_following_block_sections_links | belowpage                |
