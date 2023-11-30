@@ -346,7 +346,7 @@ class icon_system_fontawesome extends icon_system_font {
             'core:i/user' => 'fa-user',
             'core:i/users' => 'fa-users',
             'core:i/valid' => 'fa-check text-success',
-            'core:i/view' => 'fa-pager',
+            'core:i/viewsection' => 'fa-pager',
             'core:i/warning' => 'fa-exclamation text-warning',
             'core:i/window_close' => 'fa-window-close',
             'core:i/withsubcat' => 'fa-plus-square',

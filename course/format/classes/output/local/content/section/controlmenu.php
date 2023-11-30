@@ -137,7 +137,7 @@ class controlmenu implements named_templatable, renderable {
 
         $controls['view'] = [
             'url'   => new moodle_url('/course/section.php', ['id' => $section->id]),
-            'icon' => 'i/view',
+            'icon' => 'i/viewsection',
             'name' => get_string('view'),
             'pixattr' => ['class' => ''],
             'attr' => ['class' => 'icon view'],
