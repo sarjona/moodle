@@ -69,14 +69,14 @@ Feature: Single section course page
     And I should not see "Activity sample 1.3"
     And I should see "Activity sample 2.1" in the "region-main" "region"
     And I should see "Activity sample 2.1" in the "region-main" "region"
-    # The following steps will need to be changed in MDL-80248, when the General section will be displayed in isolation.
+    # The General section is also displayed in isolation.
     But I am on "Course 1" course homepage
     And I open section "0" edit menu
     And I click on "View" "link" in the "General" "section"
     And I should see "General" in the "region-main" "region"
     And I should see "Activity sample 0.1" in the "region-main" "region"
-    And I should see "Activity sample 1.1"
-    And I should see "Activity sample 1.2"
-    And I should see "Activity sample 1.3"
-    And I should see "Activity sample 2.1" in the "region-main" "region"
-    And I should see "Activity sample 2.1" in the "region-main" "region"
+    And I should not see "Activity sample 1.1" in the "region-main" "region"
+    And I should not see "Activity sample 1.2" in the "region-main" "region"
+    And I should not see "Activity sample 1.3" in the "region-main" "region"
+    And I should not see "Activity sample 2.1" in the "region-main" "region"
+    And I should not see "Activity sample 2.1" in the "region-main" "region"
