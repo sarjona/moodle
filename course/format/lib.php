@@ -219,8 +219,9 @@ function core_courseformat_output_fragment_cmitem($args): string {
     }
 
     $format = course_get_format($course);
-    if (!empty($args['sr'])) {
-        $format->set_section_number($args['sr']);
+    if (!is_null($args['sr'])) {
+        $sectionid = $format->get_sectionid_from_sectionnum($args['sr']);
+        $format->set_sectionid($sectionid);
     }
     $renderer = $format->get_renderer($PAGE);
     $section = $cm->get_section_info();
@@ -246,8 +247,9 @@ function core_courseformat_output_fragment_section($args): string {
     }
 
     $format = course_get_format($course);
-    if (!empty($args['sr'])) {
-        $format->set_section_number($args['sr']);
+    if (!is_null($args['sr'])) {
+        $sectionid = $format->get_sectionid_from_sectionnum($args['sr']);
+        $format->set_sectionid($sectionid);
     }
 
     $modinfo = $format->get_modinfo();
