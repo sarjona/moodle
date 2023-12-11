@@ -607,8 +607,16 @@ abstract class base {
      * this method replaces the old print_multiple_section_page and print_single_section_page.
      *
      * @param int|null $sectionnum null for all sections or a sectionid.
+     * @deprecated Since 4.4. Use set_sectionid instead.
+     * @todo MDL-80116 This will be deleted in Moodle 4.8.
      */
     public function set_section_number(?int $sectionnum): void {
+
+        debugging(
+            'The method core_courseformat\base::set_section_number() has been deprecated, please use set_sectionid() instead.',
+            DEBUG_DEVELOPER
+        );
+
         $sectionid = $this->get_sectionid_from_sectionnum($sectionnum);
         if ($sectionid === null) {
             throw new coding_exception('Invalid sectionnum: '. $sectionnum);
@@ -1869,7 +1877,8 @@ abstract class base {
         }
 
         if ($sr) {
-            $this->set_section_number($sr);
+            $sectionid = $this->get_sectionid_from_sectionnum($sr);
+            $this->set_sectionid($sectionid);
         }
 
         switch($action) {

@@ -3640,7 +3640,8 @@ class core_course_external extends external_api {
         self::validate_context($modcontext);
         $format = course_get_format($course);
         if ($sectionreturn) {
-            $format->set_section_number($sectionreturn);
+            $sectionid = $format->get_sectionid_from_sectionnum($sectionreturn);
+            $format->set_sectionid($sectionid);
         }
         $renderer = $format->get_renderer($PAGE);
 
@@ -3768,7 +3769,8 @@ class core_course_external extends external_api {
 
         $format = course_get_format($course);
         if ($sectionreturn) {
-            $format->set_section_number($sectionreturn);
+            $sectionid = $format->get_sectionid_from_sectionnum($sectionreturn);
+            $format->set_sectionid($sectionid);
         }
         $renderer = $format->get_renderer($PAGE);
 

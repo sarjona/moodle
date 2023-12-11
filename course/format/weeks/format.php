@@ -44,8 +44,9 @@ course_create_sections_if_missing($format->get_course(), 0);
 
 $renderer = $PAGE->get_renderer('format_weeks');
 
-if (!empty($displaysection)) {
-    $format->set_section_number($displaysection);
+if (!is_null($displaysection)) {
+    $tmpsectionid = $format->get_sectionid_from_sectionnum($displaysection);
+    $format->set_sectionid($tmpsectionid);
 }
 
 $outputclass = $format->get_output_classname('content');
