@@ -4,6 +4,7 @@ Feature: In a lesson activity, students can review the answers they gave to ques
   As a student
   I need to complete a lesson answering all of the questions.
 
+  @javascript
   Scenario: Student answers questions and then reviews them.
     Given the following "users" exist:
       | username | firstname | lastname | email |
@@ -55,12 +56,22 @@ Feature: In a lesson activity, students can review the answers they gave to ques
       | True | 1 |
     And I press "Submit"
     And I should see "You have answered 2 correctly out of 3 attempts."
+    And I should see "Paper is made from trees."
     And I press "Continue"
     When I follow "Review lesson"
     Then I should see "You have answered 2 correctly out of 3 attempts."
+    And I should see "1 + 1?"
     And I press "Next page"
     And I should see "You have answered 2 correctly out of 3 attempts."
+    And I should see "1 + 1?"
     And I press "Continue"
     And I should see "You have answered 2 correctly out of 3 attempts."
+    And I should see "Paper is made from trees."
     And I press "Next page"
     And I should see "You have answered 2 correctly out of 3 attempts."
+    And I should see "Paper is made from trees."
+    And I press "Continue"
+    And I should see "Congratulations - end of lesson reached"
+    And I should see "Number of questions answered: 2"
+    And I should see "Number of correct answers: 2"
+    And I should see "Your score is 2 (out of 3)."
