@@ -1998,4 +1998,14 @@ abstract class base {
     public function get_required_jsfiles(): array {
         return [];
     }
+
+    /**
+     * Whether this course format supports the section items removal from the navigation.
+     * By default, it returns false but can be overridden by the course format to change the behaviour.
+     *
+     * @return bool True if the sections can be removed, false otherwise.
+     */
+    public function can_sections_be_removed_from_navigation(): bool {
+        return false;
+    }
 }

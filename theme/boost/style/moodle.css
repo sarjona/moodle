@@ -28270,10 +28270,6 @@ body:not(.editing) .sitetopic ul.section .label .mod-indent-outer {
   margin-top: 5px;
 }
 
-.course-content .single-section {
-  margin-top: 1em;
-}
-
 .course-content .single-section .section-navigation {
   display: block;
   padding: 0.5em;
@@ -28355,6 +28351,11 @@ body:not(.editing) .sitetopic ul.section .label .mod-indent-outer {
   padding: 0 6px 0;
   text-align: right;
   width: auto;
+}
+
+.course-content .single-section ul.topics li.section,
+.course-content .single-section ul.weeks li.section {
+  padding-top: 0;
 }
 
 @media (max-width: 767.98px) {
@@ -28480,6 +28481,10 @@ li.section.hidden span.commands a.editing_show {
 .single-section h3.sectionname {
   text-align: center;
   clear: both;
+}
+
+.single-section-page .header-action {
+  display: inline-block;
 }
 
 input.titleeditor {

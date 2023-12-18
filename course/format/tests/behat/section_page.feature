@@ -73,7 +73,7 @@ Feature: Single section course page
     But I am on "Course 1" course homepage
     And I open section "0" edit menu
     And I click on "View" "link" in the "General" "section"
-    And I should see "General" in the "region-main" "region"
+    And I should see "General" in the "page" "region"
     And I should see "Activity sample 0.1" in the "region-main" "region"
     And I should not see "Activity sample 1.1" in the "region-main" "region"
     And I should not see "Activity sample 1.2" in the "region-main" "region"
