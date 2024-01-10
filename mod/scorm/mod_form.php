@@ -338,16 +338,14 @@ class mod_scorm_mod_form extends moodleform_mod {
         $suffix = $this->get_suffix();
         $completionstatusrequiredel = 'completionstatusrequired' . $suffix;
         $cvalues = array();
-        if (!empty($defaultvalues[$completionstatusrequiredel]) && !is_array($defaultvalues[$completionstatusrequiredel])) {
+        if (array_key_exists($completionstatusrequiredel, $defaultvalues) && !is_array($defaultvalues[$completionstatusrequiredel])) {
             // Unpack values.
             foreach (scorm_status_options() as $key => $value) {
-                if (($defaultvalues[$completionstatusrequiredel] & $key) == $key) {
-                    $cvalues[$key] = 1;
-                }
+                $completionstatusrequiredkeyel = $completionstatusrequiredel . '['.$key.']';
+                $defaultvalue = (($defaultvalues[$completionstatusrequiredel] & $key) == $key);
+                $cvalues[$key] = $defaultvalue;
+                $defaultvalues[$completionstatusrequiredkeyel] = $defaultvalue;
             }
-        } else if (empty($this->_instance)) {
-            // When in add mode, set a default completion rule that requires the SCORM's status be set to "Completed".
-            $cvalues[4] = 1;
         }
 
         if (!empty($cvalues)) {
@@ -527,10 +525,12 @@ class mod_scorm_mod_form extends moodleform_mod {
         // Require status.
         $completionstatusrequiredel = 'completionstatusrequired' . $suffix;
         foreach (scorm_status_options(true) as $key => $value) {
+            $defaultvalue = $key === 4 ? 1 : 0;
             $key = $completionstatusrequiredel . '['.$key.']';
             $mform->addElement('checkbox', $key, '', $value);
             $mform->setType($key, PARAM_BOOL);
             $mform->hideIf($key, $completionstatusrequiredel, 'notchecked');
+            $mform->setDefault($key, $defaultvalue);
             $items[] = $key;
         }
 
