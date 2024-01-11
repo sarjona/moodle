@@ -1,6 +1,11 @@
 This files describes API changes in /mod/h5pactivity/*,
 information provided here is intended especially for developers.
 
+=== 4.4 ===
+
+* The is_tracking_enabled() function just checks if tracking is on for an activity, without considering user capabilities. A new
+function called can_submit() has been created to find out if users are allowed to submit an activity.
+
 === 4.2 ===
 
 * The WebService mod_h5pactivity_get_h5pactivities_by_courses now returns a `h5pglobalsettings` property that includes the global settings for H5P activities.
