@@ -775,9 +775,8 @@ class base_test extends advanced_testcase {
      * Test set_sectionid().
      *
      * @covers ::set_sectionid
-     * @covers ::get_sectionid_from_sectionnum
      * @covers ::get_sectionid
-     * @covers ::get_section_number
+     * @covers ::get_sectionnum
      */
     public function test_set_sectionid(): void {
         $this->resetAfterTest();
@@ -788,14 +787,21 @@ class base_test extends advanced_testcase {
 
         // No section.
         $this->assertNull($format->get_sectionid());
-        $this->assertNull($format->get_section_number());
+        $this->assertNull($format->get_sectionnum());
 
         // Valid section.
         $sectionnum = 1;
-        $sectionid = $format->get_sectionid_from_sectionnum($sectionnum);
+        $modinfo = get_fast_modinfo($course);
+        $sectioninfo = $modinfo->get_section_info($sectionnum);
+        $sectionid = $sectioninfo->id;
         $format->set_sectionid($sectionid);
         $this->assertEquals($sectionid, $format->get_sectionid());
-        $this->assertEquals($sectionnum, $format->get_section_number());
+        $this->assertEquals($sectionnum, $format->get_sectionnum());
+
+        // Null section.
+        $format->set_sectionid(null);
+        $this->assertNull($format->get_sectionid());
+        $this->assertNull($format->get_sectionnum());
 
         // Invalid section.
         $this->expectException(\coding_exception::class);
@@ -803,54 +809,66 @@ class base_test extends advanced_testcase {
     }
 
     /**
-     * Test get_sectionid_from_sectionnum().
+     * Test set_sectionnum().
      *
-     * @dataProvider get_sectionid_from_sectionnum_provider
-     * @covers ::get_sectionid_from_sectionnum
+     * @dataProvider set_sectionnum_provider
+     * @covers ::set_sectionnum
      * @param int|null $sectionnum The section number
      * @param bool $nullexpected If null is expected
+     * @param bool $exceptionexpected If an exception is expected
      */
-    public function test_get_sectionid_from_sectionnum(?int $sectionnum, $nullexpected = false): void {
+    public function test_set_sectionnum(?int $sectionnum, bool $nullexpected = false, bool $exceptionexpected = false): void {
         $this->resetAfterTest();
 
         $generator = $this->getDataGenerator();
         $course = $generator->create_course(['numsections' => 2]);
         $format = course_get_format($course);
 
-        $sectionid = $format->get_sectionid_from_sectionnum($sectionnum);
+        if ($exceptionexpected) {
+            $this->expectException(\coding_exception::class);
+        }
+        $format->set_sectionnum($sectionnum);
         if ($nullexpected) {
-            $this->assertNull($sectionid);
+            $this->assertNull($format->get_sectionid());
+            $this->assertNull($format->get_sectionnum());
         } else {
-            $this->assertNotNull($sectionid);
+            $this->assertNotNull($format->get_sectionid());
+            $this->assertNotNull($format->get_sectionnum());
         }
     }
 
     /**
-     * Data provider for test_get_sectionid_from_sectionnum.
+     * Data provider for test_set_sectionnum.
      *
      * @return array The testing scenarios
      */
-    public static function get_sectionid_from_sectionnum_provider(): array {
+    public static function set_sectionnum_provider(): array {
         return [
             'General sectionnumber' => [
                 'sectionnum' => 0,
-                '$nullexpected' => false,
+                'nullexpected' => false,
             ],
             'Existing sectionnumber' => [
                 'sectionnum' => 1,
-                '$nullexpected' => false,
+                'nullexpected' => false,
             ],
             'Another existing sectionnumber' => [
                 'sectionnum' => 2,
-                '$nullexpected' => false,
+                'nullexpected' => false,
             ],
-            'Unexisting sectionnumber' => [
+            'Null sectionnumber' => [
+                'sectionnum' => null,
+                'nullexpected' => true,
+            ],
+            'Invalid sectionnumber' => [
                 'sectionnum' => 3,
-                '$nullexpected' => true,
+                'nullexpected' => true,
+                'exceptionexpected' => true,
             ],
-            'Another unexisting sectionnumber' => [
+            'Another invalid sectionnumber' => [
                 'sectionnum' => -1,
-                '$nullexpected' => true,
+                'nullexpected' => true,
+                'exceptionexpected' => true,
             ],
         ];
     }
