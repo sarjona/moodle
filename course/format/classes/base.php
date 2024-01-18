@@ -570,14 +570,12 @@ abstract class base {
      */
     public function set_sectionid(?int $sectionid): void {
         if ($sectionid === null) {
-            // Early return: set the sectionid and sectionnum to null.
             $this->singlesection = null;
             $this->singlesectionid = null;
             return;
         }
 
-        // Update singlesectionid and also singlesection (sectionnum).
-        $modinfo = get_fast_modinfo($this->get_course());
+        $modinfo = get_fast_modinfo($this->courseid);
         $sectioninfo = $modinfo->get_section_info_by_id($sectionid);
         if ($sectioninfo === null) {
             throw new coding_exception('Invalid sectionid: '. $sectionid);
@@ -632,13 +630,12 @@ abstract class base {
      */
     public function set_sectionnum(?int $sectionnum): void {
         if ($sectionnum === null) {
-            // Early return: set the sectionid and sectionnum to null.
             $this->singlesection = null;
             $this->singlesectionid = null;
             return;
         }
 
-        $modinfo = get_fast_modinfo($this->get_course());
+        $modinfo = get_fast_modinfo($this->courseid);
         $sectioninfo = $modinfo->get_section_info($sectionnum);
         if ($sectioninfo === null) {
             throw new coding_exception('Invalid sectionnum: '. $sectionnum);

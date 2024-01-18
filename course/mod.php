@@ -55,7 +55,8 @@ foreach (compact('indent','update','hide','show','copy','moveto','movetosection'
 if ($sectionreturn < 0) {
     $sectionreturn = null;
 }
-if (!is_null($sectionreturn)) {
+$notnullsectionreturn = !is_null($sectionreturn);
+if ($notnullsectionreturn) {
     $url->param('sr', $sectionreturn);
 }
 if ($add !== '') {
@@ -87,7 +88,7 @@ if (!empty($add)) {
         'return' => $returntomod,
         'beforemod' => $beforemod,
     ];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $params['sr'] = $sectionreturn;
     }
 
@@ -106,7 +107,7 @@ if (!empty($add)) {
         'update' => $update,
         'return' => $returntomod,
     ];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $params['sr'] = $sectionreturn;
     }
     redirect(
@@ -126,7 +127,7 @@ if (!empty($add)) {
     // Duplicate the module.
     $newcm = duplicate_module($course, $cm);
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $cm->sectionnum, $options));
@@ -140,7 +141,7 @@ if (!empty($add)) {
     require_capability('moodle/course:manageactivities', $modcontext);
 
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     $return = course_get_url($course, $cm->sectionnum, $options);
@@ -153,7 +154,7 @@ if (!empty($add)) {
             'delete' => $cm->id,
             'sesskey' => sesskey(),
         ];
-        if (!is_null($sectionreturn)) {
+        if ($notnullsectionreturn) {
             $optionsyes['sr'] = $sectionreturn;
         }
         $strdeletecheck = get_string('deletecheck', '', $fullmodulename);
@@ -220,7 +221,7 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
     unset($USER->activitycopysectionreturn);
 
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $section->section, $options));
@@ -249,7 +250,7 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
     rebuild_course_cache($cm->course, false, true);
 
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $cm->sectionnum, $options));
@@ -267,7 +268,7 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
         \core\event\course_module_updated::create_from_cm($cm, $modcontext)->trigger();
     }
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $cm->sectionnum, $options));
@@ -292,7 +293,7 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
         \core\event\course_module_updated::create_from_cm($cm)->trigger();
     }
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $section->section, $options));
@@ -311,7 +312,7 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
     set_coursemodule_groupmode($cm->id, $groupmode);
     \core\event\course_module_updated::create_from_cm($cm, $modcontext)->trigger();
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $cm->sectionnum, $options));
@@ -333,7 +334,7 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
     $USER->activitycopysectionreturn = $sectionreturn;
 
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $section->section, $options));
@@ -350,7 +351,7 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
     unset($USER->activitycopyname);
     unset($USER->activitycopysectionreturn);
     $options = [];
-    if (!is_null($sectionreturn)) {
+    if ($notnullsectionreturn) {
         $options['sr'] = $sectionreturn;
     }
     redirect(course_get_url($course, $cm->sectionnum, $options));
