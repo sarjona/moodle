@@ -27,17 +27,3 @@ table {
         padding: $table-cell-padding-sm;
     }
 }
-
-.forumheaderlist,
-.generaltable,
-table.flexible,
-.category_subcategories,
-table#modules,
-table#permissions {
-    tbody tr {
-        @include hover {
-            color: $table-hover-color;
-            background-color: $table-hover-bg;
-        }
-    }
-}
