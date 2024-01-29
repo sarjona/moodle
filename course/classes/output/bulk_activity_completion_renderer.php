@@ -82,12 +82,63 @@ class core_course_bulk_activity_completion_renderer extends plugin_renderer_base
                     );
                     $module->modulecollapsed = true;
                 }
-                $module->formhtml = $modform->render();
+                if ($this->can_print_custom_completion_form($module, $course)) {
+                    $module->formhtml = $modform->render();
+                } else {
+                    $module->formhtml = $this->output->notification(
+                        get_string('incompatibleplugin', 'completion'),
+                        \core\output\notification::NOTIFY_INFO,
+                        false
+                    );
+                }
             }
         }
         $data->issite = $course->id == SITEID;
 
         return parent::render_from_template('core_course/defaultactivitycompletion', $data);
+    }
+
+
+    /**
+     * Determines if the custom completion form can be printed for a given module and course.
+     *
+     * @param stdClass $module The module object.
+     * @param stdClass $course The course object.
+     * @return bool Returns true if the custom completion form can be printed, false otherwise.
+     */
+    private function can_print_custom_completion_form(stdClass $module, stdClass $course): bool {
+        global $CFG;
+        $moduleformfile = "$CFG->dirroot/mod/$module->name/mod_form.php";
+        $moduleformclass = 'mod_' . $module->name . '_mod_form';
+        $result = false;
+
+        try {
+            // Some third party plugins might throw an error for completion conditions, so we need to check
+            // everything is OK with the third party plugin before adding common completion conditions.
+            if (file_exists($moduleformfile)) {
+                require_once($moduleformfile);
+            } else {
+                throw new \moodle_exception('noformdesc');
+            }
+
+            [$modulerecord, $coursecontext, $sectioninfo, $cm, $moduledata,] = prepare_new_moduleinfo_data(
+                $course,
+                $module->name,
+                0,
+            );
+
+            $this->page->start_collecting_javascript_requirements();
+            $moduleform = new $moduleformclass($moduledata, 0, $cm, $course);
+            $result = true;
+        } catch (Exception $e) {
+            // The form class has thrown an error when instantiating.
+            // This could happen because some conditions for the module are not met.
+            $result = false;
+
+        } finally {
+            $this->page->end_collecting_javascript_requirements();
+        }
+        return $result;
     }
 
     /**

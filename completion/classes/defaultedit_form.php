@@ -93,9 +93,16 @@ class core_completion_defaultedit_form extends core_completion_edit_base_form {
         // Initialise the form but discard all JS requirements it adds, our form has already added them.
         $mformclassname = 'mod_'.$modname.'_mod_form';
         $PAGE->start_collecting_javascript_requirements();
-        $this->_moduleform = new $mformclassname($data, 0, $cmrec, $course);
-        $this->_moduleform->set_suffix('_' . $modname);
-        $PAGE->end_collecting_javascript_requirements();
+        try {
+            $this->_moduleform = new $mformclassname($data, 0, $cmrec, $course);
+            $this->_moduleform->set_suffix('_' . $modname);
+            $PAGE->end_collecting_javascript_requirements();
+        } catch (Exception $e) {
+            // The form class has thrown an error when instantiating.
+            // This could happen because some conditions for the module are not met.
+            $PAGE->end_collecting_javascript_requirements();
+            return null;
+        }
 
         return $this->_moduleform;
     }

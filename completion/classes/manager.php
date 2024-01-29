@@ -238,7 +238,12 @@ class manager {
         $context = $this->get_context();
         $canmanage = has_capability('moodle/course:manageactivities', $context);
         $course = get_course($this->courseid);
+        $availablemodules = [];
         foreach ($data->modules as $module) {
+            $libfile = "$CFG->dirroot/mod/$module->name/lib.php";
+            if (!file_exists($libfile)) {
+                continue;
+            }
             $module->icon = $OUTPUT->image_url('monologo', $module->name)->out();
             $module->formattedname = format_string(get_string('modulename', 'mod_' . $module->name),
                 true, ['context' => $context]);
@@ -248,13 +253,13 @@ class manager {
                 $defaults->modname = $module->name;
                 $module->completionstatus = $this->get_completion_detail($defaults);
             }
+            $availablemodules[] = $module;
         }
         // Order modules by displayed name.
-        $modules = (array) $data->modules;
-        usort($modules, function($a, $b) {
+        usort($availablemodules, function($a, $b) {
             return strcmp($a->formattedname, $b->formattedname);
         });
-        $data->modules = $modules;
+        $data->modules = $availablemodules;
 
         return $data;
     }
