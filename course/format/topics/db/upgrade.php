@@ -29,6 +29,8 @@
  * @return bool result
  */
 function xmldb_format_topics_upgrade($oldversion) {
+    global $DB;
+
     // Automatically generated Moodle v4.1.0 release upgrade line.
     // Put any upgrade step following this.
 
@@ -48,6 +50,37 @@ function xmldb_format_topics_upgrade($oldversion) {
 
     // Automatically generated Moodle v4.3.0 release upgrade line.
     // Put any upgrade step following this.
+
+    if ($oldversion < 2023100901) {
+        // During the migration to version 4.4, ensure that sections with null names are renamed to their corresponding
+        // previous 'Topic X' for continuity.
+        $sql = <<<EOF
+                    SELECT cs.id, cs.course, cs.section AS sectionnum
+                      FROM {course_sections} cs
+                      JOIN {course} c ON c.id = cs.course and c.format='topics'
+                     WHERE cs.name IS NULL
+        EOF;
+        $rs = $DB->get_recordset_sql(
+            sql: $sql,
+        );
+        foreach ($rs as $section) {
+            if ($section->sectionnum != 0) {
+                // Replace the section name to the previous 'Topic X' except for the General section.
+                $DB->set_field(
+                    table: 'course_sections',
+                    newfield: 'name',
+                    newvalue: get_string('legacysectionname', 'format_topics') . ' ' . $section->sectionnum,
+                    conditions: [
+                        'id' => $section->id,
+                    ],
+                );
+            }
+        }
+        $rs->close();
+
+        // Main savepoint reached.
+        upgrade_plugin_savepoint(true, 2023100901, 'format', 'topics');
+    }
 
     return true;
 }
