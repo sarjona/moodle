@@ -24,6 +24,7 @@
 
 $string['currentsection'] = 'Current section';
 $string['hidefromothers'] = 'Hide';
+$string['newsection'] = 'New section';
 $string['page-course-view-topics'] = 'Any course main page in custom sections format';
 $string['page-course-view-topics-x'] = 'Any course page in custom sections format';
 $string['pluginname'] = 'Custom sections';

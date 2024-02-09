@@ -104,7 +104,7 @@ $editoroptions = array(
 );
 
 $courseformat = course_get_format($course);
-$defaultsectionname = $courseformat->get_default_section_name($section);
+$defaultsectionname = $courseformat->get_new_section_name($section->section);
 
 $customdata = [
     'cs' => $sectioninfo,

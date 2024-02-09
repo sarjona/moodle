@@ -87,6 +87,7 @@ class format_weeks extends core_courseformat\base {
      * @return string The default value for the section name.
      */
     public function get_default_section_name($section) {
+        $section = $this->get_section($section);
         if ($section->section == 0) {
             // Return the general section.
             return get_string('section0name', 'format_weeks');

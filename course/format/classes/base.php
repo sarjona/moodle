@@ -553,6 +553,16 @@ abstract class base {
     }
 
     /**
+     * Retrieves the name for a new section.
+     *
+     * @param int $sectionnum The section number.
+     * @return string The name for the new section.
+     */
+    public function get_new_section_name(int $sectionnum) {
+        return $this->get_default_section_name($sectionnum);
+    }
+
+    /**
      * Returns the name for the highlighted section.
      *
      * @return string The name for the highlighted section based on the given course format.

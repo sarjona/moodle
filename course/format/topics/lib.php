@@ -68,7 +68,7 @@ class format_topics extends core_courseformat\base {
             return format_string($section->name, true,
                 ['context' => context_course::instance($this->courseid)]);
         } else {
-            return $this->get_default_section_name($section);
+            return $this->get_new_section_name($section->sectionnum);
         }
     }
 
@@ -83,6 +83,7 @@ class format_topics extends core_courseformat\base {
      * @return string The default value for the section name.
      */
     public function get_default_section_name($section) {
+        $section = $this->get_section($section);
         if ($section->section == 0) {
             // Return the general section.
             return get_string('section0name', 'format_topics');
@@ -91,6 +92,15 @@ class format_topics extends core_courseformat\base {
             // will display the section name in "Topic n" format.
             return parent::get_default_section_name($section);
         }
+    }
+
+    #[Override]
+    public function get_new_section_name(int $sectionnum) {
+        if ($sectionnum == 0) {
+            return get_string('section0name', 'format_topics');
+        }
+
+        return get_string('newsection', 'format_topics');
     }
 
     /**
