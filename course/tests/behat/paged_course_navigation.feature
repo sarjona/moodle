@@ -7,8 +7,8 @@ Feature: Course paged mode
   @javascript @_cross_browser
   Scenario Outline: Weekly and topics course formats with Javascript enabled
     Given the following "courses" exist:
-      | fullname | shortname | category | format         | coursedisplay | numsections | startdate |
-      | Course 1 | C1        | 0        | <courseformat> | 1             | 2           | 0         |
+      | fullname | shortname | category | format         | coursedisplay | numsections | startdate | initsections   |
+      | Course 1 | C1        | 0        | <courseformat> | 1             | 2           | 0         | <initsections> |
     And I log in as "admin"
     And I am on "Course 1" course homepage
     And I click on <section1> "link" in the <section1> "section"
@@ -30,15 +30,15 @@ Feature: Course paged mode
     And I should not see <nextunexistingsection> in the ".single-section" "css_element"
 
     Examples:
-      | courseformat | general   | section1                | section2                 | prevunexistingsection       | nextunexistingsection     |
-      | topics       | "General" | "Topic 1"               | "Topic 2"                | "Topic 0"                   | "Topic 3"                 |
-      | weeks        | "General" | "1 January - 7 January" | "8 January - 14 January" | "25 December - 31 December" | "15 January - 21 January" |
+      | courseformat | initsections | general   | section1                | section2                 | prevunexistingsection       | nextunexistingsection     |
+      | topics       | 1            | "General" | "Section 1"             | "Section 2"              | "Section 0"                 | "Section 3"               |
+      | weeks        | 0            | "General" | "1 January - 7 January" | "8 January - 14 January" | "25 December - 31 December" | "15 January - 21 January" |
 
   @javascript
   Scenario Outline: Paged section redirect after creating an activity
     Given the following "courses" exist:
-      | fullname | shortname | category | format | coursedisplay | numsections | startdate |
-      | Course 1 | C1        | 0        | <courseformat> | 1     | 3           | 0         |
+      | fullname | shortname | category | format | coursedisplay | numsections | startdate | initsections   |
+      | Course 1 | C1        | 0        | <courseformat> | 1     | 3           | 0         | <initsections> |
     And the following "activities" exist:
       | activity | course | name      |
       | chat     | C1     | Chat room |
@@ -54,14 +54,14 @@ Feature: Course paged mode
     And I should not see <prevunexistingsection> in the ".single-section" "css_element"
 
     Examples:
-      | courseformat | section1                | sectionnumber1 | section2                 | prevunexistingsection       |
-      | topics       | "Topic 1"               | "1"            | "Topic 2"                | "Topic 0"                   |
-      | weeks        | "1 January - 7 January" | "1"            | "8 January - 14 January" | "25 December - 31 December" |
+      | courseformat | initsections | section1                | sectionnumber1 | section2                 | prevunexistingsection       |
+      | topics       | 1            | "Section 1"             | "1"            | "Section 2"              | "Section 0"                 |
+      | weeks        | 0            | "1 January - 7 January" | "1"            | "8 January - 14 January" | "25 December - 31 December" |
 
   Scenario Outline: Weekly and topics course formats with Javascript disabled
     Given the following "courses" exist:
-      | fullname | shortname | category | format         | coursedisplay | numsections | startdate |
-      | Course 1 | C1        | 0        | <courseformat> | 1             | 2           | 0         |
+      | fullname | shortname | category | format         | coursedisplay | numsections | startdate | initsections   |
+      | Course 1 | C1        | 0        | <courseformat> | 1             | 2           | 0         | <initsections> |
     And I log in as "admin"
     And I am on "Course 1" course homepage
     Then I click on <section1> "link" in the <section1> "section"
@@ -83,6 +83,6 @@ Feature: Course paged mode
     And I should not see <nextunexistingsection> in the ".single-section" "css_element"
 
     Examples:
-      | courseformat | general   | section1                | section2                 | prevunexistingsection       | nextunexistingsection     |
-      | topics       | "General" | "Topic 1"               | "Topic 2"                | "Topic 0"                   | "Topic 3"                 |
-      | weeks        | "General" | "1 January - 7 January" | "8 January - 14 January" | "25 December - 31 December" | "15 January - 21 January" |
+      | courseformat | initsections | general   | section1                | section2                 | prevunexistingsection       | nextunexistingsection     |
+      | topics       | 1            | "General" | "Section 1"             | "Section 2"              | "Section 0"                 | "Section 3"               |
+      | weeks        | 0            | "General" | "1 January - 7 January" | "8 January - 14 January" | "25 December - 31 December" | "15 January - 21 January" |
