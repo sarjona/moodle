@@ -17,9 +17,9 @@
 namespace core_courseformat;
 
 /**
- * Section delaegate tests.
+ * Section delegate tests.
  *
- * @package    core_course
+ * @package    core_courseformat
  * @copyright  2023 Ferran Recio <ferran@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \core_courseformat\sectiondelegate
@@ -73,9 +73,76 @@ class sectiondelegate_test extends \advanced_testcase {
         $this->assertNull(sectiondelegate::instance($sectioninfos[3]));
     }
 
+    /**
+     * Test has_delegate_class().
+     *
+     * @covers ::has_delegate_class
+     */
     public function test_has_delegate_class(): void {
         $this->assertFalse(sectiondelegate::has_delegate_class('missing_component'));
         $this->assertFalse(sectiondelegate::has_delegate_class('mod_label'));
         $this->assertTrue(sectiondelegate::has_delegate_class('test_component'));
+    }
+
+    /**
+     * Test get_section_action_menu().
+     *
+     * @covers ::get_section_action_menu
+     */
+    public function test_get_section_action_menu(): void {
+        global $DB, $PAGE;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course(['format' => 'topics', 'numsections' => 1]);
+        // Section 1 has an existing delegate class.
+        course_update_section(
+            $course,
+            $DB->get_record('course_sections', ['course' => $course->id, 'section' => 1]),
+            [
+                'component' => 'test_component',
+                'itemid' => 1,
+            ]
+        );
+        $modinfo = get_fast_modinfo($course->id);
+        $sectioninfos = $modinfo->get_section_info_all();
+        $sectioninfo = $sectioninfos[1];
+        $delegated = sectiondelegate::instance($sectioninfo);
+        $format = course_get_format($course);
+
+        $outputclass = $format->get_output_classname('content\\section\\controlmenu');
+        $controlmenu = new $outputclass($format, $sectioninfo);
+        $renderer = $PAGE->get_renderer('format_' . $course->format);
+        $sectionmenu = $controlmenu->get_action_menu($renderer);
+
+        // When the delegate class returns the same action menu, calculated from the given $controlmenu.
+        $result = $delegated->get_section_action_menu($format, $controlmenu, $renderer);
+        // The $result and $sectionmenu are the same but can't be compared directly because they have different ids.
+        $this->assertEquals(
+            count($result->get_primary_actions()),
+            count($sectionmenu->get_primary_actions()),
+        );
+        $this->assertEquals(
+            count($result->get_secondary_actions()),
+            count($sectionmenu->get_secondary_actions())
+        );
+        $this->assertEquals(
+            $result->get_secondary_actions()[0]->url,
+            $sectionmenu->get_secondary_actions()[0]->url
+        );
+
+        // When the delegated class returns an empty action menu.
+        $delegated->set_section_action_menu('empty');
+        $result = $delegated->get_section_action_menu($format, $controlmenu, $renderer);
+        // The $result and $sectionmenu are different.
+        $this->assertNotEquals(
+            count($result->get_secondary_actions()),
+            count($sectionmenu->get_secondary_actions())
+        );
+
+        // When the delegated class return a null action menu.
+        $delegated->set_section_action_menu(null);
+        $result = $delegated->get_section_action_menu($format, $controlmenu, $renderer);
+        $this->assertNull($result);
     }
 }

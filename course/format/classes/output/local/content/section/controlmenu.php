@@ -72,12 +72,39 @@ class controlmenu implements named_templatable, renderable {
      */
     public function export_for_template(\renderer_base $output): stdClass {
 
-        $section = $this->section;
+        $sectiondelegate = $this->section->get_component_instance();
+        if ($sectiondelegate) {
+            // Allow delegate plugin to modify the available section menu.
+            $menu = $sectiondelegate->get_section_action_menu($this->format, $this, $output);
+        } else {
+            $menu = $this->get_action_menu($output);
+        }
 
-        $controls = $this->section_control_items();
-
-        if (empty($controls)) {
+        if (empty($menu)) {
             return new stdClass();
+        }
+
+        $data = (object)[
+            'menu' => $output->render($menu),
+            'hasmenu' => true,
+            'id' => $this->section->id,
+        ];
+
+        return $data;
+    }
+
+    /**
+     * Generate the action menu element.
+     *
+     * This method is public in case some block needs to modify the menu before output it.
+     *
+     * @param \renderer_base $output typically, the renderer that's calling this function
+     * @return action_menu|null the activity action menu
+     */
+    public function get_action_menu(\renderer_base $output): ?action_menu {
+        $controls = $this->section_control_items();
+        if (empty($controls)) {
+            return null;
         }
 
         // Convert control array into an action_menu.
@@ -99,13 +126,7 @@ class controlmenu implements named_templatable, renderable {
             $menu->add($al);
         }
 
-        $data = (object)[
-            'menu' => $output->render($menu),
-            'hasmenu' => true,
-            'id' => $section->id,
-        ];
-
-        return $data;
+        return $menu;
     }
 
     /**
