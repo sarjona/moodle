@@ -142,15 +142,25 @@ if (!empty($bulkbutton)) {
     $PAGE->add_header_action($bulkbutton);
 }
 
+$outputclass = $format->get_output_classname('content');
+
 // Add to the header the control menu for the section.
+$headingset = false;
 if ($format->show_editor()) {
-    $sectionclass = new \core_courseformat\output\local\content\section($format, $sectioninfo);
+    $sectionclass = new $outputclass($format, $sectioninfo);
     $renderable = $sectionclass->export_for_template($renderer);
-    $controlmenuhtml = $renderable->controlmenu->menu;
-    $PAGE->add_header_action($controlmenuhtml);
-    $sectionheading = $OUTPUT->render($format->inplace_editable_render_section_name($sectioninfo, false));
-    $PAGE->set_heading($sectionheading, false, false);
+    $menu = $renderable->singlesection?->controlmenu?->menu;
+    if (!empty($menu) && is_string($menu)) {
+        $PAGE->add_header_action($menu);
+        $sectionheading = $OUTPUT->render($format->inplace_editable_render_section_name($sectioninfo, false));
+        $PAGE->set_heading($sectionheading, false, false);
+        $headingset = true;
+    }
 } else {
+    $sectionclass = new $outputclass($format);
+    $renderable = $sectionclass->export_for_template($renderer);
+}
+if (!$headingset) {
     $PAGE->set_heading($sectiontitle);
 }
 
@@ -182,9 +192,10 @@ echo $renderer->container_start('course-content');
 // Include course AJAX.
 include_course_ajax($course, $modinfo->get_used_module_names());
 
-$outputclass = $format->get_output_classname('content');
-$widget = new $outputclass($format);
-echo $renderer->render($widget);
+echo $renderer->render_from_template(
+    $sectionclass->get_template_name($renderer),
+    $renderable,
+);
 
 // Include course format javascript files.
 $jsfiles = $format->get_required_jsfiles();
