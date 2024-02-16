@@ -295,8 +295,7 @@ class section implements named_templatable, renderable {
         }
 
         if (empty($this->hidecontrols)) {
-            $controlmenu = new $this->controlmenuclass($this->format, $this->section);
-            $data->controlmenu = $controlmenu->export_for_template($output);
+            $data->controlmenu = $this->get_section_action_menu()->export_for_template($output);
         }
         if (!$this->isstealth) {
             $data->cmcontrols = $output->course_section_add_cm_control(
@@ -306,6 +305,17 @@ class section implements named_templatable, renderable {
             );
         }
         return true;
+    }
+
+    public function get_section_action_menu() {
+        $sectiondelegate = $this->section->get_component_instance();
+        if ($sectiondelegate) {
+            // Allow delegate plugin to modify the available section action menu.
+            $controlmenu = $sectiondelegate->get_section_action_menu($this->format, $this->controlmenuclass);
+        } else {
+            $controlmenu = new $this->controlmenuclass($this->format, $this->section);
+        }
+        return $controlmenu;
     }
 
     /**

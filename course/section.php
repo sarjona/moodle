@@ -143,14 +143,21 @@ if (!empty($bulkbutton)) {
 }
 
 // Add to the header the control menu for the section.
+$headingset = false;
 if ($format->show_editor()) {
     $sectionclass = new \core_courseformat\output\local\content\section($format, $sectioninfo);
     $renderable = $sectionclass->export_for_template($renderer);
-    $controlmenuhtml = $renderable->controlmenu->menu;
-    $PAGE->add_header_action($controlmenuhtml);
-    $sectionheading = $OUTPUT->render($format->inplace_editable_render_section_name($sectioninfo, false));
-    $PAGE->set_heading($sectionheading, false, false);
-} else {
+    if (!empty($renderable->controlmenu?->menu)) {
+        $controlmenuhtml = $renderable->controlmenu->menu;
+        if (is_string($controlmenuhtml)) {
+            $PAGE->add_header_action($controlmenuhtml);
+            $sectionheading = $OUTPUT->render($format->inplace_editable_render_section_name($sectioninfo, false));
+            $PAGE->set_heading($sectionheading, false, false);
+            $headingset = true;
+        }
+    }
+}
+if (!$headingset) {
     $PAGE->set_heading($sectiontitle);
 }
 

@@ -17,6 +17,7 @@
 namespace core_courseformat;
 
 use section_info;
+use core_courseformat\base as course_format;
 
 /**
  * Section delegate base class.
@@ -76,5 +77,11 @@ abstract class sectiondelegate {
      */
     public static function has_delegate_class(string $pluginname): bool {
         return self::get_delegate_class_name($pluginname) !== null;
+    }
+    public function get_section_action_menu(
+        course_format $format,
+        string $controlmenuclass,
+    ): \templatable {
+        return new $controlmenuclass($format, $this->sectioninfo);
     }
 }
