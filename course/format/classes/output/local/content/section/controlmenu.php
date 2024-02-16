@@ -74,7 +74,13 @@ class controlmenu implements named_templatable, renderable {
 
         $section = $this->section;
 
-        $controls = $this->section_control_items();
+        $sectiondelegate = $section->get_component_instance();
+        if ($sectiondelegate) {
+            // Allow delegate plugin to modify the available section actions.
+            $controls = $sectiondelegate->get_section_options($this->format, $this);
+        } else {
+            $controls = $this->section_control_items();
+        }
 
         if (empty($controls)) {
             return new stdClass();
@@ -85,18 +91,25 @@ class controlmenu implements named_templatable, renderable {
         $menu->set_kebab_trigger(get_string('edit'));
         $menu->attributes['class'] .= ' section-actions';
         foreach ($controls as $value) {
-            $url = empty($value['url']) ? '' : $value['url'];
-            $icon = empty($value['icon']) ? '' : $value['icon'];
-            $name = empty($value['name']) ? '' : $value['name'];
-            $attr = empty($value['attr']) ? [] : $value['attr'];
-            $class = empty($value['pixattr']['class']) ? '' : $value['pixattr']['class'];
-            $al = new action_menu_link_secondary(
-                new moodle_url($url),
-                new pix_icon($icon, '', null, ['class' => "smallicon " . $class]),
-                $name,
-                $attr
-            );
-            $menu->add($al);
+            if ($sectiondelegate) {
+                if ($value instanceof action_menu_link) {
+                    $value->add_class('cm-edit-action');
+                }
+                $menu->add($value);
+            } else {
+                $url = empty($value['url']) ? '' : $value['url'];
+                $icon = empty($value['icon']) ? '' : $value['icon'];
+                $name = empty($value['name']) ? '' : $value['name'];
+                $attr = empty($value['attr']) ? [] : $value['attr'];
+                $class = empty($value['pixattr']['class']) ? '' : $value['pixattr']['class'];
+                $al = new action_menu_link_secondary(
+                    new moodle_url($url),
+                    new pix_icon($icon, '', null, ['class' => "smallicon " . $class]),
+                    $name,
+                    $attr
+                );
+                $menu->add($al);
+            }
         }
 
         $data = (object)[
