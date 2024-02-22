@@ -596,4 +596,37 @@ class manager {
 
         return $data;
     }
+
+    public static function get_module_form(string $modname, $course, string $suffix = '') {
+        global $CFG, $PAGE;
+
+        $modmoodleform = "$CFG->dirroot/mod/$modname/mod_form.php";
+        if (file_exists($modmoodleform)) {
+            require_once($modmoodleform);
+        } else {
+            throw new \moodle_exception('noformdesc');
+        }
+
+        list($module, $context, $cw, $cmrec, $data) = prepare_new_moduleinfo_data($course, $modname, 0, $suffix);
+        $data->return = 0;
+        $data->sr = 0;
+        $data->add = $modname;
+
+        // Initialise the form but discard all JS requirements it adds, our form has already added them.
+        $mformclassname = 'mod_'.$modname.'_mod_form';
+        $PAGE->start_collecting_javascript_requirements();
+        $moduleform = null;
+        try {
+            $moduleform = new $mformclassname($data, 0, $cmrec, $course);
+            $moduleform->set_suffix('_' . $modname);
+        } catch (\Exception $e) {
+            // The form class has thrown an error when instantiating.
+            // This could happen because some conditions for the module are not met.
+            $moduleform = null;
+        } finally {
+            $PAGE->end_collecting_javascript_requirements();
+        }
+
+        return $moduleform;
+    }
 }
