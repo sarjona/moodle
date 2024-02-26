@@ -28,6 +28,8 @@ About the categories supported by the FEATURE_MOD_PURPOSE:
   * A new category has been added: MOD_PURPOSE_INTERACTIVECONTENT.
   * The MOD_PURPOSE_INTERFACE category has been deprecated. The styles associated with this category have been removed.
 The colors for all these purposes and the filters applied to outline them are defined in theme/boost/scss/moodle/variables.scss
+* New behat step in the \behat_course class:
+  - I view section number "<sectionnumber>"
 
 === 4.3 ===
 * The `core_course_renderer::course_section_cm_completion` method has been removed, and can no longer be used

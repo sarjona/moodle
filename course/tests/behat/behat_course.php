@@ -395,6 +395,33 @@ class behat_course extends behat_base {
     }
 
     /**
+     * Go to the specified section page. You need to be in the course page and on editing mode.
+     *
+     * @Given /^I view section number "(?P<section_number>\d+)"$/
+     * @param int $sectionnumber
+     */
+    public function i_view_sectionnumber($sectionnumber) {
+        // Ensures the section exists.
+        $xpath = $this->section_exists($sectionnumber);
+
+        // Ensure section edit menu is open before interacting with it.
+        if ($this->running_javascript()) {
+            $this->i_open_section_edit_menu($sectionnumber);
+        }
+
+        // Click on view section link.
+        $this->execute(
+            'behat_general::i_click_on_in_the',
+            [
+                get_string('view'),
+                "link",
+                $this->escape($xpath),
+                "xpath_element",
+            ],
+        );
+    }
+
+    /**
      * Shows the specified hidden section. You need to be in the course page and on editing mode.
      *
      * @Given /^I show section "(?P<section_number>\d+)"$/
