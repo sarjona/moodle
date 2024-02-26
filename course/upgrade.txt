@@ -33,6 +33,9 @@ The colors for all these purposes and the filters applied to outline them are de
  - core_course\hook\after_form_definition_after_data
  - core_course\hook\after_form_validation
  - core_course\hook\after_form_submission
+* New behat steps using the URL resolvers:
+  - When I am on the "Course > <sectionname> "course > section" page logged in as "<username>"
+  - When I am on the "Course > <sectionnum>" "course > sectionnum" page logged in as "<username>"
 
 === 4.3 ===
 * The `core_course_renderer::course_section_cm_completion` method has been removed, and can no longer be used
