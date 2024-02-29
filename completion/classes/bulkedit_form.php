@@ -72,7 +72,11 @@ class core_completion_bulkedit_form extends core_completion_edit_base_form {
         }
 
         $cm = reset($this->cms);
-        $this->_moduleform = manager::get_module_form($cm->modname, $this->course);
+        $this->_moduleform = manager::get_module_form(
+            modname: $cm->modname,
+            course: $this->course,
+            cm: $cm,
+        );
 
         return $this->_moduleform;
     }

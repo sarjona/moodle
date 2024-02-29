@@ -597,7 +597,7 @@ class manager {
         return $data;
     }
 
-    public static function get_module_form(string $modname, $course, string $suffix = '') {
+    public static function get_module_form(string $modname, $course, string $suffix = '', ?cm_info $cm = null) {
         global $CFG, $PAGE;
 
         $modmoodleform = "$CFG->dirroot/mod/$modname/mod_form.php";
@@ -607,10 +607,15 @@ class manager {
             throw new \moodle_exception('noformdesc');
         }
 
-        list($module, $context, $cw, $cmrec, $data) = prepare_new_moduleinfo_data($course, $modname, 0, $suffix);
+        if ($cm) {
+            list($cmrec, $context, $module, $data, $cw) = get_moduleinfo_data($cm, $course);
+            $data->update = $modname;
+        } else {
+            list($module, $context, $cw, $cmrec, $data) = prepare_new_moduleinfo_data($course, $modname, 0, $suffix);
+            $data->add = $modname;
+        }
         $data->return = 0;
         $data->sr = 0;
-        $data->add = $modname;
 
         // Initialise the form but discard all JS requirements it adds, our form has already added them.
         $mformclassname = 'mod_'.$modname.'_mod_form';
@@ -618,7 +623,9 @@ class manager {
         $moduleform = null;
         try {
             $moduleform = new $mformclassname($data, 0, $cmrec, $course);
-            $moduleform->set_suffix('_' . $modname);
+            if (!$cm) {
+                $moduleform->set_suffix('_' . $modname);
+            }
         } catch (\Exception $e) {
             // The form class has thrown an error when instantiating.
             // This could happen because some conditions for the module are not met.
