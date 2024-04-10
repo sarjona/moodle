@@ -36207,6 +36207,10 @@ body.behat-site .stickyfooter {
   position: relative;
   z-index: inherit;
 }
+body.behat-site.hasstickyfooter .stickyfooter .bulkcancel,
+body.behat-site .stickyfooter .bulkcancel {
+  position: inherit;
+}
 body.behat-site .dropdown-item {
   margin-top: 4px !important; /* stylelint-disable declaration-no-important */
 }
