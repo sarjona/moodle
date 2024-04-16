@@ -85,4 +85,20 @@ class tiny_test extends advanced_testcase {
         $this->assertFalse(tiny::change_plugin_order('tiny_h5p', \core\plugininfo\base::MOVE_UP));
         $this->assertFalse(tiny::change_plugin_order('tiny_h5p', \core\plugininfo\base::MOVE_DOWN));
     }
+
+    /**
+     * Test the helplinktext language string is defined for all tiny plugins.
+     */
+    public function test_check_helplinktext_lang(): void {
+        $pluginmanager = \core_plugin_manager::instance();
+        $plugins = $pluginmanager->get_installed_plugins('tiny');
+
+        $stringmanager = get_string_manager();
+        foreach ($plugins as $plugin => $notused) {
+            $this->assertTrue(
+                $stringmanager->string_exists('helplinktext', 'tiny_' . $plugin),
+                'helplinktext string not found for tiny_' . $plugin,
+            );
+        }
+    }
 }
