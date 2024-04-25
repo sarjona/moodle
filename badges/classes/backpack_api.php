@@ -577,6 +577,12 @@ class backpack_api {
                 }
             }
         }
+
+        // Authentication is not required when email is not set.
+        if (empty($this->email)) {
+            return false;
+        }
+
         return $this->curl_request('user', $this->email);
     }
 

@@ -374,6 +374,19 @@ class backpack_api_mapping {
         $response = json_decode($response);
         if (isset($response->result)) {
             $response = $response->result;
+        } else if (isset($response->error)) {
+            $error = 'Error: '. $response->error;
+            if (isset($response->message)) {
+                $error .= '. Message: ' . $response->message;
+            }
+            if (isset($response->status)) {
+                $error .= '. Status: ' . $response->status;
+            }
+            \core\notification::add(
+                get_string('backpackconnectionunexpectedmessage', 'badges', $error),
+                \core\notification::ERROR,
+            );
+            return null;
         }
         $context = context_system::instance();
         $exporter = $this->responseexporter;

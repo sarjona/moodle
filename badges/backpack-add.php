@@ -141,7 +141,8 @@ if (!empty($issuedbadge->recipient->id)) {
         $userapi->authenticate();
         $response = $userapi->import_badge_assertion($assertionentityid);
         if (!$response) {
-            throw new moodle_exception('invalidrequest', 'error');
+            // Redirect to mybadges page to display the error raised by the API.
+            redirect(new moodle_url('/badges/mybadges.php'));
         }
         $assertionentityid = $response->id;
         $badgeadded = true;
