@@ -38,6 +38,7 @@ class course_reset_form extends moodleform {
         $mform->addHelpButton('reset_start_date', 'startdate');
         $mform->addElement('date_time_selector', 'reset_end_date', get_string('enddate'), ['optional' => true]);
         $mform->addHelpButton('reset_end_date', 'enddate');
+        $mform->addElement('static', 'generaldelete', get_string('delete'));
         $mform->addElement('checkbox', 'reset_events', get_string('deleteevents', 'calendar'));
         $mform->addElement('checkbox', 'reset_notes', get_string('deletenotes', 'notes'));
         $mform->addElement('checkbox', 'reset_comments', get_string('deleteallcomments', 'moodle'));
@@ -50,25 +51,31 @@ class course_reset_form extends moodleform {
         $roles = get_assignable_roles(context_course::instance($COURSE->id));
         $roles[0] = get_string('noroles', 'role');
         $roles = array_reverse($roles, true);
-        $mform->addElement('select', 'unenrol_users', get_string('unenrolroleusers', 'enrol'), $roles, ['multiple' => 'multiple']);
-        $mform->addElement('checkbox', 'reset_roles_overrides', get_string('deletecourseoverrides', 'role'));
-        $mform->setAdvanced('reset_roles_overrides');
+        $attributes = [
+            'multiple' => 1,
+            'size' => min(count($roles), 10),
+        ];
+        $mform->addElement('select', 'unenrol_users', get_string('unenrolroleusers', 'enrol'), $roles, $attributes);
+        $mform->addElement('static', 'rolesdelete', get_string('delete'));
         $mform->addElement('checkbox', 'reset_roles_local', get_string('deletelocalroles', 'role'));
+        $mform->addElement('checkbox', 'reset_roles_overrides', get_string('deletecourseoverrides', 'role'));
 
         $mform->addElement('header', 'gradebookheader', get_string('gradebook', 'grades'));
+        $mform->addElement('static', 'gradebookdelete', get_string('delete'));
         $mform->addElement('checkbox', 'reset_gradebook_items', get_string('removeallcourseitems', 'grades'));
         $mform->addHelpButton('reset_gradebook_items', 'removeallcourseitems', 'grades');
         $mform->addElement('checkbox', 'reset_gradebook_grades', get_string('removeallcoursegrades', 'grades'));
         $mform->addHelpButton('reset_gradebook_grades', 'removeallcoursegrades', 'grades');
-        $mform->disabledIf('reset_gradebook_grades', 'reset_gradebook_items', 'checked');
+        $mform->hideIf('reset_gradebook_grades', 'reset_gradebook_items', 'checked');
 
         $mform->addElement('header', 'groupheader', get_string('groups'));
+        $mform->addElement('static', 'groupdelete', get_string('delete'));
         $mform->addElement('checkbox', 'reset_groups_remove', get_string('deleteallgroups', 'group'));
         $mform->addElement('checkbox', 'reset_groups_members', get_string('removegroupsmembers', 'group'));
-        $mform->disabledIf('reset_groups_members', 'reset_groups_remove', 'checked');
+        $mform->hideIf('reset_groups_members', 'reset_groups_remove', 'checked');
         $mform->addElement('checkbox', 'reset_groupings_remove', get_string('deleteallgroupings', 'group'));
         $mform->addElement('checkbox', 'reset_groupings_members', get_string('removegroupingsmembers', 'group'));
-        $mform->disabledIf('reset_groupings_members', 'reset_groupings_remove', 'checked');
+        $mform->hideIf('reset_groupings_members', 'reset_groupings_remove', 'checked');
 
         $unsupportedmods = [];
         if ($allmods = $DB->get_records('modules') ) {
@@ -97,7 +104,6 @@ class course_reset_form extends moodleform {
             $mform->addElement('header', 'unsupportedheader', get_string('resetnotimplemented'));
             foreach ($unsupportedmods as $mod) {
                 $mform->addElement('static', 'unsup'.$mod->name, get_string('modulenameplural', $mod->name));
-                $mform->setAdvanced('unsup'.$mod->name);
             }
         }
 
