@@ -81,7 +81,11 @@ if ($mform->is_cancelled()) {
             $line = [];
             $line[] = $item['component'];
             $line[] = $item['item'];
-            $line[] = ($item['error'] === false) ? get_string('statusok') : '<div class="notifyproblem">'.$item['error'].'</div>';
+            if ($item['error'] === false) {
+                $line[] = get_string('statusdone');
+            } else {
+                $line[] = '<div class="notifyerror">' . $OUTPUT->pix_icon('i/invalid', get_string('error')) . $item['error'] . '</div>';
+            }
             $data[] = $line;
         }
 

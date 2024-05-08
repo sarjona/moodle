@@ -252,6 +252,10 @@ button.close,
     color: map-get($theme-colors, 'warning');
 }
 
+.notifyerror {
+    color: map-get($theme-colors, 'danger');
+}
+
 .green,
 .notifysuccess {
     color: map-get($theme-colors, 'success');

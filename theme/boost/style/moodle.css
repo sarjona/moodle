@@ -23209,6 +23209,10 @@ button.close:focus:hover,
   color: #f0ad4e;
 }
 
+.notifyerror {
+  color: #ca3120;
+}
+
 .green,
 .notifysuccess {
   color: #357a32;

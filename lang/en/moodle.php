@@ -2170,6 +2170,7 @@ $string['statswrites'] = 'Posts';
 $string['status'] = 'Status';
 $string['statuschecks'] = 'Status checks';
 $string['statuscritical'] = 'Critical';
+$string['statusdone'] = 'Done';
 $string['statusinfo'] = 'Info';
 $string['statusna'] = 'N/A';
 $string['statusok'] = 'OK';
