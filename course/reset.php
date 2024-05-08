@@ -97,8 +97,12 @@ if ($mform->is_cancelled()) {
         echo $OUTPUT->footer();
         exit;
     }
+} else {
+    $mform = new course_reset_form();
+    $mform->load_defaults();
 }
 
+$PAGE->requires->js_call_amd('core_course/resetcourse', 'init');
 echo $OUTPUT->header();
 \backup_helper::print_coursereuse_selector('reset');
 
