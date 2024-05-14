@@ -1255,7 +1255,7 @@ class assign {
                 'assignid IN (SELECT id FROM {assign} WHERE course = ?) AND userid IS NOT NULL', [$data->courseid]);
             $status[] = [
                 'component' => $componentstr,
-                'item' => get_string('useroverridesdeleted', 'assign'),
+                'item' => get_string('useroverrides', 'assign'),
                 'error' => false,
             ];
             $purgeoverrides = true;
@@ -1266,7 +1266,7 @@ class assign {
                 'assignid IN (SELECT id FROM {assign} WHERE course = ?) AND groupid IS NOT NULL', [$data->courseid]);
             $status[] = [
                 'component' => $componentstr,
-                'item' => get_string('groupoverridesdeleted', 'assign'),
+                'item' => get_string('groupoverrides', 'assign'),
                 'error' => false,
             ];
             $purgeoverrides = true;
@@ -1308,7 +1308,7 @@ class assign {
             );
             $status[] = [
                 'component' => $componentstr,
-                'item' => get_string('datechanged'),
+                'item' => get_string('date'),
                 'error' => false,
             ];
         }

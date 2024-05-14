@@ -707,7 +707,6 @@ $string['subscriptionauto'] = 'Auto subscription';
 $string['subscriptiondisabled'] = 'Subscription disabled';
 $string['subscriptions'] = 'Subscriptions';
 $string['tagarea_forum_posts'] = 'Forum posts';
-$string['tagsdeleted'] = 'Forum tags have been deleted';
 $string['thisforumisthrottled'] = 'This forum has a limit to the number of forum postings you can make in a given time period - this is currently set at {$a->blockafter} posting(s) in {$a->blockperiod}';
 $string['thisforumisdue'] = 'The due date for posting to this forum was {$a}.';
 $string['thisforumhasduedate'] = 'The due date for posting to this forum is {$a}.';
@@ -798,3 +797,6 @@ $string['completiondiscussionsgroup'] = 'Require discussions';
 $string['completiondiscussionshelp'] = 'requiring discussions to complete';
 $string['completionrepliesgroup'] = 'Require replies';
 $string['completionreplieshelp'] = 'requiring replies to complete';
+
+// Deprecated since Moodle 4.5.
+$string['tagsdeleted'] = 'Forum tags have been deleted';
