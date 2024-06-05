@@ -43,19 +43,19 @@ if (empty($CFG->badges_allowcoursebadges) && ($type == BADGE_TYPE_COURSE)) {
 $title = get_string('create', 'badges');
 $PAGE->add_body_class('limitedwidth');
 
-if (($type == BADGE_TYPE_COURSE) && ($course = $DB->get_record('course', array('id' => $courseid)))) {
+if (($type == BADGE_TYPE_COURSE) && ($course = $DB->get_record('course', ['id' => $courseid]))) {
     require_login($course);
     $coursecontext = context_course::instance($course->id);
     $PAGE->set_context($coursecontext);
     $PAGE->set_pagelayout('incourse');
-    $PAGE->set_url('/badges/newbadge.php', array('type' => $type, 'id' => $course->id));
-    $heading = format_string($course->fullname, true, array('context' => $coursecontext)) . ": " . $title;
+    $PAGE->set_url('/badges/newbadge.php', ['type' => $type, 'id' => $course->id]);
+    $heading = format_string($course->fullname, true, ['context' => $coursecontext]) . ": " . $title;
     $PAGE->set_heading($heading);
     $PAGE->set_title($heading);
 } else {
     $PAGE->set_context(context_system::instance());
     $PAGE->set_pagelayout('admin');
-    $PAGE->set_url('/badges/newbadge.php', array('type' => $type));
+    $PAGE->set_url('/badges/newbadge.php', ['type' => $type]);
     $PAGE->set_heading($title);
     $PAGE->set_title($title);
 }
@@ -65,10 +65,10 @@ require_capability('moodle/badges:createbadge', $PAGE->context);
 $fordb = new stdClass();
 $fordb->id = null;
 
-$form = new \core_badges\form\badge($PAGE->url, array('action' => 'new'));
+$form = new \core_badges\form\badge($PAGE->url, ['action' => 'new']);
 
 if ($form->is_cancelled()) {
-    redirect(new moodle_url('/badges/index.php', array('type' => $type, 'id' => $courseid)));
+    redirect(new moodle_url('/badges/index.php', ['type' => $type, 'id' => $courseid]));
 } else if ($data = $form->get_data()) {
     // Creating new badge here.
     $now = time();
@@ -111,7 +111,7 @@ if ($form->is_cancelled()) {
     $newid = $DB->insert_record('badge', $fordb, true);
 
     // Trigger event, badge created.
-    $eventparams = array('objectid' => $newid, 'context' => $PAGE->context);
+    $eventparams = ['objectid' => $newid, 'context' => $PAGE->context];
     $event = \core\event\badge_created::create($eventparams);
     $event->trigger();
 
@@ -120,9 +120,9 @@ if ($form->is_cancelled()) {
     badges_process_badge_image($newbadge, $form->save_temp_file('image'));
     // If a user can configure badge criteria, they will be redirected to the criteria page.
     if (has_capability('moodle/badges:configurecriteria', $PAGE->context)) {
-        redirect(new moodle_url('/badges/criteria.php', array('id' => $newid)));
+        redirect(new moodle_url('/badges/criteria.php', ['id' => $newid]));
     }
-    redirect(new moodle_url('/badges/overview.php', array('id' => $newid)));
+    redirect(new moodle_url('/badges/overview.php', ['id' => $newid]));
 }
 
 echo $OUTPUT->header();

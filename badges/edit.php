@@ -39,7 +39,7 @@ if (empty($CFG->enablebadges)) {
 
 $badge = new badge($badgeid);
 $context = $badge->get_context();
-$navurl = new moodle_url('/badges/index.php', array('type' => $badge->type));
+$navurl = new moodle_url('/badges/index.php', ['type' => $badge->type]);
 
 if ($action == 'message') {
     require_capability('moodle/badges:configuremessages', $context);
@@ -54,7 +54,7 @@ if ($badge->type == BADGE_TYPE_COURSE) {
     require_login($badge->courseid);
     $course = get_course($badge->courseid);
     $heading = format_string($course->fullname, true, ['context' => $context]);
-    $navurl = new moodle_url('/badges/index.php', array('type' => $badge->type, 'id' => $badge->courseid));
+    $navurl = new moodle_url('/badges/index.php', ['type' => $badge->type, 'id' => $badge->courseid]);
     $PAGE->set_pagelayout('incourse');
     navigation_node::override_active_url($navurl);
 } else {
@@ -63,7 +63,7 @@ if ($badge->type == BADGE_TYPE_COURSE) {
     navigation_node::override_active_url($navurl, true);
 }
 
-$currenturl = new moodle_url('/badges/edit.php', array('id' => $badge->id, 'action' => $action));
+$currenturl = new moodle_url('/badges/edit.php', ['id' => $badge->id, 'action' => $action]);
 
 $PAGE->set_context($context);
 $PAGE->set_url($currenturl);
@@ -72,27 +72,29 @@ $PAGE->set_title($badge->name);
 $PAGE->add_body_class('limitedwidth');
 $PAGE->navbar->add($badge->name);
 
+/** @var \core_badges_renderer $output*/
 $output = $PAGE->get_renderer('core', 'badges');
 $statusmsg = '';
 $errormsg  = '';
 
 $badge->message = clean_text($badge->message, FORMAT_HTML);
-$editoroptions = array(
-        'subdirs' => 0,
-        'maxbytes' => 0,
-        'maxfiles' => 0,
-        'changeformat' => 0,
-        'context' => $context,
-        'noclean' => false,
-        'trusttext' => false
-        );
-$badge = file_prepare_standard_editor($badge, 'message', $editoroptions, $context);
+$editoroptions = [
+    'subdirs' => 0,
+    'maxbytes' => 0,
+    'maxfiles' => 0,
+    'changeformat' => 0,
+    'context' => $context,
+    'noclean' => false,
+    'trusttext' => false,
+];
+/** @var core_badges\badge $badge */
+$badge = file_prepare_standard_editor((object) $badge, 'message', $editoroptions, $context);
 
 $formclass = '\core_badges\form' . '\\' . $action;
-$form = new $formclass($currenturl, array('badge' => $badge, 'action' => $action, 'editoroptions' => $editoroptions));
+$form = new $formclass($currenturl, ['badge' => $badge, 'action' => $action, 'editoroptions' => $editoroptions]);
 
 if ($form->is_cancelled()) {
-    redirect(new moodle_url('/badges/overview.php', array('id' => $badgeid)));
+    redirect(new moodle_url('/badges/overview.php', ['id' => $badgeid]));
 } else if ($form->is_submitted() && $form->is_validated() && ($data = $form->get_data())) {
     if ($action == 'badge') {
         $badge->name = $data->name;
@@ -149,20 +151,20 @@ if ($form->is_cancelled()) {
     }
 }
 
-echo $OUTPUT->header();
+echo $output->header();
 $actionbar = new \core_badges\output\manage_badge_action_bar($badge, $PAGE);
 echo $output->render_tertiary_navigation($actionbar);
 
-echo $OUTPUT->heading(print_badge_image($badge, $context, 'small') . ' ' . $badge->name);
+echo $output->heading(print_badge_image($badge, $context, 'small') . ' ' . $badge->name);
 
 if ($errormsg !== '') {
-    echo $OUTPUT->notification($errormsg);
+    echo $output->notification($errormsg);
 
 } else if ($statusmsg !== '') {
-    echo $OUTPUT->notification($statusmsg, 'notifysuccess');
+    echo $output->notification($statusmsg, 'notifysuccess');
 }
 echo $output->print_badge_status_box($badge);
 
 $form->display();
 
-echo $OUTPUT->footer();
+echo $output->footer();
