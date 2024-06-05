@@ -97,7 +97,7 @@ if ($form->is_cancelled()) {
     redirect(new moodle_url('/badges/overview.php', ['id' => $badgeid]));
 } else if ($form->is_submitted() && $form->is_validated() && ($data = $form->get_data())) {
     if ($action == 'badge') {
-        $badge->name = $data->name;
+        $badge->name = trim($data->name);
         $badge->version = trim($data->version);
         $badge->language = $data->language;
         $badge->description = $data->description;

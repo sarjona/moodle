@@ -65,7 +65,7 @@ require_capability('moodle/badges:createbadge', $PAGE->context);
 $fordb = new stdClass();
 $fordb->id = null;
 
-$form = new \core_badges\form\badge($PAGE->url, ['action' => 'new']);
+$form = new \core_badges\form\badge($PAGE->url, ['action' => 'new', 'courseid' => $courseid]);
 
 if ($form->is_cancelled()) {
     redirect(new moodle_url('/badges/index.php', ['type' => $type, 'id' => $courseid]));
@@ -73,7 +73,7 @@ if ($form->is_cancelled()) {
     // Creating new badge here.
     $now = time();
 
-    $fordb->name = $data->name;
+    $fordb->name = trim($data->name);
     $fordb->version = $data->version;
     $fordb->language = $data->language;
     $fordb->description = $data->description;
