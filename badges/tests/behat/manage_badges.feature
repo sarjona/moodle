@@ -129,3 +129,41 @@ Feature: Manage badges
       | Badge #1 | Not available | 2          |
       | Badge #2 | Available     | 1          |
       | Badge #3 | Available     | 0          |
+
+  @_file_upload
+  Scenario: Badge names are unique by context
+    Given the following "courses" exist:
+      | fullname | shortname | category |
+      | Course 1 | C1        | 0        |
+    And the following "core_badges > Badge" exists:
+      | name           | Badge #2                     |
+      | status         | 0                            |
+      | course         | C1                           |
+      | type           | 1                            |
+      | version        | 1.0                          |
+      | language       | en                           |
+      | description    | Test badge description       |
+      | image          | badges/tests/behat/badge.png |
+      | imageauthorurl | http://author.example.com    |
+      | imagecaption   | Test caption image           |
+    And I log in as "admin"
+    And I navigate to "Badges > Add a new badge" in site administration
+    And I set the following fields to these values:
+      | name           | Badge #1                     |
+      | description    | Test badge description       |
+    And I upload "badges/tests/behat/badge.png" file to "Image" filemanager
+    When I press "Create badge"
+    Then I should see "A site badge with this name already exists. Choose a different name."
+    # Set name for a site badge with existing badge name in a course is allowed.
+    But I set the field "name" to "Badge #2"
+    And I press "Create badge"
+    And I should not see "A site badge with this name already exists. Choose a different name."
+    # Edit badge.
+    And I select "Edit details" from the "jump" singleselect
+    And I set the field "name" to "Badge #1"
+    And I press "Save changes"
+    And I should see "A site badge with this name already exists. Choose a different name."
+    # Set name for a site badge with existing badge name in a course is allowed.
+    And I set the field "name" to "Badge #2"
+    And I press "Save changes"
+    And I should not see "A site badge with this name already exists. Choose a different name."
