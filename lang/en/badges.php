@@ -302,7 +302,6 @@ $string['error:cannotrevokebadge'] = 'Cannot revoke badge from a user.';
 $string['error:cannotdeletecriterion'] = 'This criterion cannot be deleted. ';
 $string['error:connectionunknownreason'] = 'The connection was unsuccessful but no reason was given.';
 $string['error:clone'] = 'Cannot clone the badge.';
-$string['error:duplicatename'] = 'Badge with such name already exists in the system.';
 $string['error:externalbadgedoesntexist'] = 'Badge not found';
 $string['error:guestuseraccess'] = 'You are currently using guest access. To see badges you need to log in with your user account.';
 $string['error:invalidcriteriatype'] = 'Invalid criteria type.';
@@ -595,3 +594,6 @@ $string['includeauthdetails'] = "Include authentication details with the backpac
 // Deprecated since Moodle 4.3.
 $string['backpackemail'] = 'Email address';
 $string['backpackemail_help'] = 'The email address associated with your backpack. While you are connected, any badges earned on this site will be associated with this email address.';
+
+// Deprecated since Moodle 4.5.
+$string['error:duplicatename'] = 'Badge with such name already exists in the system.';
