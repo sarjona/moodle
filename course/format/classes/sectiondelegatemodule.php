@@ -28,8 +28,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class sectiondelegatemodule extends sectiondelegate {
-    /** @var section_info $sectioninfo The section_info object of the delegated section module */
-
     /** @var cm_info|null $cm The cm_info object of the delegated section module */
     private $cm = null;
 
@@ -38,7 +36,7 @@ abstract class sectiondelegatemodule extends sectiondelegate {
 
     /**
      * Constructor.
-     * @param section_info $sectioninfo
+     * @param section_info $sectioninfo The section_info object of the delegated section module
      */
     public function __construct(
         protected section_info $sectioninfo

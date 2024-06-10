@@ -34,13 +34,14 @@ use core_courseformat\base as course_format;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class sectiondelegate {
+    /** @var section_info $sectioninfo The section_info object of the delegated section module */
 
     /**
      * Constructor.
-     * @param section_info $sectioninfo
+     * @param section_info $sectioninfo The section_info object of the delegated section module.
      */
     public function __construct(
-        protected section_info $sectioninfo
+        protected section_info $sectioninfo,
     ) {
     }
 

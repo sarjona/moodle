@@ -153,7 +153,7 @@ class sectiondelegate_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course(['format' => 'topics', 'numsections' => 1]);
         $sectioninfo = formatactions::section($course)->create_delegated('test_component', 1);
 
-        /** @var testsectiondelegate */
+        /** @var testsectiondelegate $delegated */
         $delegated = $sectioninfo->get_component_instance();
 
         $this->assertNull($delegated->get_parent_section());
