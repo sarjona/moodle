@@ -114,3 +114,5 @@ blocknotexist,core_debug
 modulenotexist,core_debug
 coursecalendar,core_calendar
 datechanged,core
+error:cannotact,core_badges
+reviewbadge,core_badges

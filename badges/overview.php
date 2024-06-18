@@ -28,7 +28,6 @@ require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
 
 $badgeid = required_param('id', PARAM_INT);
-$awards = optional_param('awards', '', PARAM_ALPHANUM);
 
 require_login();
 
@@ -73,11 +72,6 @@ $actionbar = new \core_badges\output\manage_badge_action_bar($badge, $PAGE);
 echo $output->render_tertiary_navigation($actionbar);
 echo $OUTPUT->heading(print_badge_image($badge, $context, 'small') . ' ' . $badge->name);
 
-if ($awards == 'cron') {
-    echo $OUTPUT->notification(get_string('awardoncron', 'badges'), 'notifysuccess');
-} else if ($awards != 0) {
-    echo $OUTPUT->notification(get_string('numawardstat', 'badges', $awards), 'notifysuccess');
-}
 echo $output->print_badge_status_box($badge);
 echo $output->print_badge_overview($badge, $context);
 
