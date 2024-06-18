@@ -74,9 +74,12 @@ echo $output->render_tertiary_navigation($actionbar);
 echo $OUTPUT->heading(print_badge_image($badge, $context, 'small') . ' ' . $badge->name);
 
 if ($awards == 'cron') {
-    echo $OUTPUT->notification(get_string('awardoncron', 'badges'), 'notifysuccess');
+    echo $OUTPUT->notification(get_string('awardoncron', 'badges', ['badgename' => $badge->name]), 'notifysuccess');
 } else if ((int)$awards > 0) {
-    echo $OUTPUT->notification(get_string('numawardstat', 'badges', $awards), 'notifysuccess');
+    echo $OUTPUT->notification(
+        get_string('numawardstat', 'badges', ['badgename' => $badge->name, 'awards' => $awards]),
+        'notifysuccess'
+    );
 }
 echo $output->print_badge_status_box($badge);
 echo $output->print_badge_overview($badge, $context);
