@@ -26,6 +26,11 @@ import Notification from 'core/notification';
 import {prefetchStrings} from 'core/prefetch';
 import {getString} from 'core/str';
 import Ajax from 'core/ajax';
+import Pending from 'core/pending';
+import {dispatchEvent} from 'core/event_dispatcher';
+import {add as addToast} from 'core/toast';
+import * as reportEvents from 'core_reportbuilder/local/events';
+import * as reportSelectors from 'core_reportbuilder/local/selectors';
 
 /**
  * Initialize module
@@ -33,6 +38,10 @@ import Ajax from 'core/ajax';
 export const init = () => {
     prefetchStrings('core_badges', [
         'reviewconfirm',
+        'activatesuccess',
+        'deactivatesuccess',
+        'awardoncron',
+        'numawardstat',
     ]);
     prefetchStrings('core', [
         'confirm',
@@ -48,37 +57,35 @@ export const init = () => {
 const registerEventListeners = () => {
     document.addEventListener('click', (event) => {
         const enableOption = event.target.closest(selectors.actions.enablebadge);
+
         if (enableOption) {
             event.preventDefault();
-            enableBadgeConfirm(enableOption);
+
+            // Use triggerElement to return focus to the action menu toggle.
+            const reportElement = event.target.closest(reportSelectors.regions.report);
+            const triggerElement = reportElement ? enableOption.closest('.dropdown').querySelector('.dropdown-toggle') : null;
+            const badgeId = enableOption.dataset.badgeid;
+            const badgeName = enableOption.dataset.badgename;
+            Notification.saveCancelPromise(
+                getString('confirm', 'core'),
+                getString('reviewconfirm', 'core_badges', badgeName),
+                getString('enable', 'core'),
+                {triggerElement}
+            ).then(() => {
+                return enableBadge(badgeId, badgeName, reportElement);
+            }).catch(() => {
+                return;
+            });
         }
 
         const disableOption = event.target.closest(selectors.actions.disablebadge);
         if (disableOption) {
             event.preventDefault();
-            const badgeId = disableOption.getAttribute('data-badgeid');
-            disableBadge(badgeId);
+            const badgeId = disableOption.dataset.badgeid;
+            const badgeName = disableOption.dataset.badgename;
+            const reportElement = event.target.closest(reportSelectors.regions.report);
+            disableBadge(badgeId, badgeName, reportElement);
         }
-    });
-};
-
-/**
- * Show the confirmation modal to enable badge.
- *
- * @param {HTMLElement} enableOption the badge to enable.
- */
-const enableBadgeConfirm = (enableOption) => {
-    const badgeId = enableOption.getAttribute('data-badgeid');
-    const badgeName = enableOption.getAttribute('data-badgename');
-
-    Notification.saveCancelPromise(
-        getString('confirm', 'core'),
-        getString('reviewconfirm', 'core_badges', badgeName),
-        getString('enable', 'core'),
-    ).then(() => {
-        return enableBadge(badgeId);
-    }).catch(() => {
-        return;
     });
 };
 
@@ -86,9 +93,11 @@ const enableBadgeConfirm = (enableOption) => {
  * Enable the badge.
  *
  * @param {int} badgeId The id of the badge to enable.
+ * @param {string} badgeName The name of the badge to enable.
+ * @param {HTMLElement} reportElement the report element.
  * @return {promise} Resolved with the result and warnings of enabling a badge.
  */
-async function enableBadge(badgeId) {
+function enableBadge(badgeId, badgeName, reportElement) {
     var request = {
         methodname: 'core_badges_enable_badges',
         args: {
@@ -97,21 +106,62 @@ async function enableBadge(badgeId) {
             },
         }
     };
-    try {
-        await Ajax.call([request])[0];
-        document.location.reload();
-    } catch (error) {
-        Notification.exception(error);
-    }
+
+    const pendingPromise = new Pending('core_badges/enable');
+    Ajax.call([request])[0]
+    .then((result) => {
+        if (reportElement) {
+            if (result.result?.length > 0) {
+                addToast(
+                    getString('activatesuccess', 'core_badges', badgeName),
+                    {
+                        type: 'success',
+                    },
+                );
+                const awards = result.result?.pop().awards;
+                if (awards == 'cron') {
+                    addToast(
+                        getString('awardoncron', 'core_badges', {badgename: badgeName}),
+                    );
+                } else if (awards > 0) {
+                    addToast(
+                        getString('numawardstat', 'core_badges', {badgename: badgeName, awards: awards}),
+                    );
+                }
+            } else if (result.warnings.length > 0) {
+                addToast(
+                    result.warnings[0].message,
+                    {
+                        type: 'danger',
+                    },
+                );
+            }
+        }
+        return result;
+    })
+    .then((result) => {
+        if (reportElement) {
+            // Report element is present, reload the table.
+            dispatchEvent(reportEvents.tableReload, {preservePagination: true}, reportElement);
+        } else {
+            // Report element is not present, add the parameters to the current page to display the message.
+            const awards = result.result?.pop().awards;
+            document.location = document.location.pathname + `?id=${badgeId}&awards=${awards}`;
+        }
+        return pendingPromise.resolve();
+    })
+    .catch(Notification.exception);
 }
 
 /**
  * Disable the badge.
  *
  * @param {int} badgeId The id of the badge to disable.
+ * @param {string} badgeName The name of the badge to enable.
+ * @param {HTMLElement} reportElement the report element.
  * @return {promise} Resolved with the result and warnings of disabling a badge.
  */
-async function disableBadge(badgeId) {
+function disableBadge(badgeId, badgeName, reportElement) {
     var request = {
         methodname: 'core_badges_disable_badges',
         args: {
@@ -120,10 +170,36 @@ async function disableBadge(badgeId) {
             },
         }
     };
-    try {
-        await Ajax.call([request])[0];
-        document.location.reload();
-    } catch (error) {
-        Notification.exception(error);
-    }
+
+    Ajax.call([request])[0]
+    .then((result) => {
+        if (reportElement) {
+            if (result.result) {
+                addToast(
+                    getString('deactivatesuccess', 'core_badges', badgeName),
+                    {
+                        type: 'success',
+                    },
+                );
+            } else if (result.warnings.length > 0) {
+                addToast(
+                    result.warnings[0].message,
+                    {
+                        type: 'danger',
+                    },
+                );
+            }
+        }
+        return;
+    })
+    .then(() => {
+        if (reportElement) {
+            dispatchEvent(reportEvents.tableReload, {preservePagination: true}, reportElement);
+        } else {
+            // Report element is not present, the page should be reloaded.
+            document.location = document.location.pathname + `?id=${badgeId}`;
+        }
+        return;
+    })
+    .catch(Notification.exception);
 }
