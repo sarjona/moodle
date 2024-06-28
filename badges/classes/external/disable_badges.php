@@ -104,11 +104,6 @@ class disable_badges extends external_api {
             $status = ($badge->status == BADGE_STATUS_ACTIVE) ? BADGE_STATUS_INACTIVE : BADGE_STATUS_INACTIVE_LOCKED;
             // Deactivate the badge.
             $badge->set_status($status);
-
-            \core\notification::add(
-                get_string('deactivatesuccess', 'core_badges', $badge->name),
-                \core\notification::SUCCESS
-            );
         }
 
         return [

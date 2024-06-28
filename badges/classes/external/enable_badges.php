@@ -116,7 +116,6 @@ class enable_badges extends external_api {
             $status = ($badge->status == BADGE_STATUS_INACTIVE) ? BADGE_STATUS_ACTIVE : BADGE_STATUS_ACTIVE_LOCKED;
             $badge->set_status($status);
 
-            $awardsmessage = 'numawardstat';
             if ($badge->type == BADGE_TYPE_SITE) {
                 // Review on cron if there are more than 1000 users who can earn a site-level badge.
                 $sql = 'SELECT COUNT(u.id) as num
@@ -135,21 +134,9 @@ class enable_badges extends external_api {
                     $awards = $badge->review_all_criteria();
                 } else {
                     $awards = 'cron';
-                    $awardsmessage = 'awardoncron';
                 }
             } else {
                 $awards = $badge->review_all_criteria();
-            }
-
-            \core\notification::add(
-                get_string('activatesuccess', 'core_badges', $badge->name),
-                \core\notification::SUCCESS
-            );
-            if ($awards != 0) {
-                \core\notification::add(
-                    get_string($awardsmessage, 'core_badges', ['badgename' => $badge->name, 'awards' => $awards]),
-                    \core\notification::SUCCESS
-                );
             }
 
             $result[] = [
