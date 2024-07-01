@@ -111,36 +111,18 @@ function enableBadge(badgeId, badgeName, reportElement) {
     Ajax.call([request])[0]
     .then((result) => {
         if (reportElement) {
+            // Report element is present, show the message in a toast and reload the table.
             if (result.result?.length > 0) {
-                addToast(
-                    getString('activatesuccess', 'core_badges', badgeName),
-                    {
-                        type: 'success',
-                    },
-                );
+                addToast(getString('activatesuccess', 'core_badges', badgeName), {type: 'success'});
                 const awards = result.result?.pop().awards;
                 if (awards == 'cron') {
-                    addToast(
-                        getString('awardoncron', 'core_badges', {badgename: badgeName}),
-                    );
+                    addToast(getString('awardoncron', 'core_badges', {badgename: badgeName}));
                 } else if (awards > 0) {
-                    addToast(
-                        getString('numawardstat', 'core_badges', {badgename: badgeName, awards: awards}),
-                    );
+                    addToast(getString('numawardstat', 'core_badges', {badgename: badgeName, awards: awards}));
                 }
             } else if (result.warnings.length > 0) {
-                addToast(
-                    result.warnings[0].message,
-                    {
-                        type: 'danger',
-                    },
-                );
+                addToast(result.warnings[0].message, {type: 'danger'});
             }
-        }
-        return result;
-    })
-    .then((result) => {
-        if (reportElement) {
             // Report element is present, reload the table.
             dispatchEvent(reportEvents.tableReload, {preservePagination: true}, reportElement);
         } else {
@@ -174,26 +156,12 @@ function disableBadge(badgeId, badgeName, reportElement) {
     Ajax.call([request])[0]
     .then((result) => {
         if (reportElement) {
+            // Report element is present, show the message in a toast and reload the table.
             if (result.result) {
-                addToast(
-                    getString('deactivatesuccess', 'core_badges', badgeName),
-                    {
-                        type: 'success',
-                    },
-                );
+                addToast(getString('deactivatesuccess', 'core_badges', badgeName), {type: 'success'});
             } else if (result.warnings.length > 0) {
-                addToast(
-                    result.warnings[0].message,
-                    {
-                        type: 'danger',
-                    },
-                );
+                addToast(result.warnings[0].message, {type: 'danger'});
             }
-        }
-        return;
-    })
-    .then(() => {
-        if (reportElement) {
             dispatchEvent(reportEvents.tableReload, {preservePagination: true}, reportElement);
         } else {
             // Report element is not present, the page should be reloaded.
