@@ -1,0 +1,8 @@
+issueNumber: MDL-82210
+notes:
+  theme_boost:
+    - message: >-
+        Added support to FontAwesome families for the icon_system_font. From
+        now, icons can add the fa family (fa-regular, fa-brands, fa-solid) near
+        the icon name to display it using this styling.
+      type: improved
