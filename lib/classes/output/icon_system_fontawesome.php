@@ -473,10 +473,44 @@ class icon_system_fontawesome extends icon_system_font {
                         }
                     }
                 }
+
+                // Add the solid class by default to all icons that have not specific family.
+                foreach ($this->map as $from => $to) {
+                    if ($this->has_family($to)) {
+                        continue;
+                    }
+                    $this->map[$from] = 'fa ' . $to;
+                }
+
                 $cache->set($mapkey, $this->map);
             }
         }
         return $this->map;
+    }
+
+    /**
+     * Check if the given icon has a family defined.
+     *
+     * @param string $key The icon.
+     * @return bool True if the icon includes a family (fa-regular, fa-brands, fa-solid...), false otherwise.
+     */
+    protected function has_family(string $key): bool {
+        $families = [
+            'fa-brands',
+            'fa-solid',
+            'fa-regular',
+            'light',
+            'thin',
+            'duotone',
+            'sharp',
+        ];
+
+        foreach ($families as $family) {
+            if (str_contains($key, $family)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     #[\Override]
