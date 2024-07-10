@@ -33,7 +33,7 @@ import * as reportEvents from 'core_reportbuilder/local/events';
 import * as reportSelectors from 'core_reportbuilder/local/selectors';
 
 /**
- * Initialize module
+ * Initialize module.
  */
 export const init = () => {
     prefetchStrings('core_badges', [
@@ -66,6 +66,7 @@ const registerEventListeners = () => {
             const triggerElement = reportElement ? enableOption.closest('.dropdown').querySelector('.dropdown-toggle') : null;
             const badgeId = enableOption.dataset.badgeid;
             const badgeName = enableOption.dataset.badgename;
+
             Notification.saveCancelPromise(
                 getString('confirm', 'core'),
                 getString('reviewconfirm', 'core_badges', badgeName),
@@ -92,37 +93,23 @@ const registerEventListeners = () => {
 /**
  * Enable the badge.
  *
- * @param {int} badgeId The id of the badge to enable.
- * @param {string} badgeName The name of the badge to enable.
+ * @param {Number} badgeId The id of the badge to enable.
+ * @param {String} badgeName The name of the badge to enable.
  * @param {HTMLElement} reportElement the report element.
- * @return {promise} Resolved with the result and warnings of enabling a badge.
  */
-function enableBadge(badgeId, badgeName, reportElement) {
+async function enableBadge(badgeId, badgeName, reportElement) {
     var request = {
         methodname: 'core_badges_enable_badges',
         args: {
-            badgeids: {
-                badgeid: badgeId,
-            },
+            badgeids: [badgeId],
         }
     };
 
     const pendingPromise = new Pending('core_badges/enable');
-    Ajax.call([request])[0]
-    .then((result) => {
+    try {
+        const result = await Ajax.call([request])[0];
         if (reportElement) {
-            // Report element is present, show the message in a toast and reload the table.
-            if (result.result?.length > 0) {
-                addToast(getString('activatesuccess', 'core_badges', badgeName), {type: 'success'});
-                const awards = result.result?.pop().awards;
-                if (awards == 'cron') {
-                    addToast(getString('awardoncron', 'core_badges', {badgename: badgeName}));
-                } else if (awards > 0) {
-                    addToast(getString('numawardstat', 'core_badges', {badgename: badgeName, awards: awards}));
-                }
-            } else if (result.warnings.length > 0) {
-                addToast(result.warnings[0].message, {type: 'danger'});
-            }
+            showEnableResultToast(badgeName, result);
             // Report element is present, reload the table.
             dispatchEvent(reportEvents.tableReload, {preservePagination: true}, reportElement);
         } else {
@@ -130,44 +117,78 @@ function enableBadge(badgeId, badgeName, reportElement) {
             const awards = result.result?.pop().awards;
             document.location = document.location.pathname + `?id=${badgeId}&awards=${awards}`;
         }
-        return pendingPromise.resolve();
-    })
-    .catch(Notification.exception);
+    } catch (error) {
+        Notification.exception(error);
+    }
+    pendingPromise.resolve();
+}
+
+/**
+ * Show the result of enabling a badge.
+ *
+ * @param {String} badgeName The name of the badge to enable.
+ * @param {Object} result The result of enabling a badge.
+ */
+function showEnableResultToast(badgeName, result) {
+    if (result.result?.length > 0) {
+        addToast(getString('activatesuccess', 'core_badges', badgeName), {type: 'success'});
+        const awards = result.result?.pop().awards;
+        if (awards == 'cron') {
+            addToast(getString('awardoncron', 'core_badges', {badgename: badgeName}));
+        } else if (awards > 0) {
+            addToast(getString('numawardstat', 'core_badges', {badgename: badgeName, awards: awards}));
+        }
+    } else if (result.warnings.length > 0) {
+        addToast(result.warnings[0].message, {type: 'danger'});
+    }
 }
 
 /**
  * Disable the badge.
  *
- * @param {int} badgeId The id of the badge to disable.
- * @param {string} badgeName The name of the badge to enable.
+ * @param {Number} badgeId The id of the badge to disable.
+ * @param {String} badgeName The name of the badge to enable.
  * @param {HTMLElement} reportElement the report element.
- * @return {promise} Resolved with the result and warnings of disabling a badge.
  */
-function disableBadge(badgeId, badgeName, reportElement) {
+async function disableBadge(badgeId, badgeName, reportElement) {
     var request = {
         methodname: 'core_badges_disable_badges',
         args: {
-            badgeids: {
-                badgeid: badgeId,
-            },
+            badgeids: [badgeId],
         }
     };
 
-    Ajax.call([request])[0]
-    .then((result) => {
+    try {
+        const result = await Ajax.call([request])[0];
         if (reportElement) {
             // Report element is present, show the message in a toast and reload the table.
-            if (result.result) {
-                addToast(getString('deactivatesuccess', 'core_badges', badgeName), {type: 'success'});
-            } else if (result.warnings.length > 0) {
-                addToast(result.warnings[0].message, {type: 'danger'});
-            }
+            showDisableResultToast(badgeName, result);
             dispatchEvent(reportEvents.tableReload, {preservePagination: true}, reportElement);
         } else {
             // Report element is not present, the page should be reloaded.
             document.location = document.location.pathname + `?id=${badgeId}`;
         }
-        return;
-    })
-    .catch(Notification.exception);
+    } catch (error) {
+        Notification.exception(error);
+    }
+}
+
+/**
+ * Show the result of disabling a badge.
+ *
+ * @param {String} badgeName The name of the badge to disable.
+ * @param {Object} result The result of disabling a badge.
+ */
+function showDisableResultToast(badgeName, result) {
+    if (result.result) {
+        addToast(
+            getString('deactivatesuccess', 'core_badges', badgeName),
+            {type: 'success'}
+        );
+    } else if (result.warnings.length > 0) {
+        addToast(
+            result.warnings[0].message,
+            {type: 'danger'}
+        );
+    }
 }
