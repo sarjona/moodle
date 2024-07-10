@@ -115,29 +115,7 @@ class enable_badges extends external_api {
             // Activate the badge.
             $status = ($badge->status == BADGE_STATUS_INACTIVE) ? BADGE_STATUS_ACTIVE : BADGE_STATUS_ACTIVE_LOCKED;
             $badge->set_status($status);
-
-            if ($badge->type == BADGE_TYPE_SITE) {
-                // Review on cron if there are more than 1000 users who can earn a site-level badge.
-                $sql = 'SELECT COUNT(u.id) as num
-                            FROM {user} u
-                        LEFT JOIN {badge_issued} bi
-                            ON u.id = bi.userid AND bi.badgeid = :badgeid
-                            WHERE bi.badgeid IS NULL AND u.id != :guestid AND u.deleted = 0';
-                $toearn = $DB->get_record_sql(
-                    $sql,
-                    [
-                        'badgeid' => $badge->id,
-                        'guestid' => $CFG->siteguest,
-                    ],
-                );
-                if ($toearn->num < 1000) {
-                    $awards = $badge->review_all_criteria();
-                } else {
-                    $awards = 'cron';
-                }
-            } else {
-                $awards = $badge->review_all_criteria();
-            }
+            $awards = self::review_criteria($badge);
 
             $result[] = [
                 'badgeid' => $badgeid,
@@ -166,5 +144,40 @@ class enable_badges extends external_api {
             ),
             'warnings' => new external_warnings(),
         ]);
+    }
+
+    /**
+     * Review the criteria of the badge.
+     *
+     * @param \core_badges\badge $badge The badge to review the criteria.
+     * @return string The number of awarded users or 'cron' when there are more than 1000 users.
+     */
+    private static function review_criteria(badge $badge): string {
+        global $CFG, $DB;
+
+        if ($badge->type == BADGE_TYPE_SITE) {
+            // Review on cron if there are more than 1000 users who can earn a site-level badge.
+            $sql = 'SELECT COUNT(u.id) as num
+                        FROM {user} u
+                    LEFT JOIN {badge_issued} bi
+                        ON u.id = bi.userid AND bi.badgeid = :badgeid
+                        WHERE bi.badgeid IS NULL AND u.id != :guestid AND u.deleted = 0';
+            $toearn = $DB->get_record_sql(
+                $sql,
+                [
+                    'badgeid' => $badge->id,
+                    'guestid' => $CFG->siteguest,
+                ],
+            );
+            if ($toearn->num < 1000) {
+                $awards = $badge->review_all_criteria();
+            } else {
+                $awards = 'cron';
+            }
+        } else {
+            $awards = $badge->review_all_criteria();
+        }
+
+        return $awards;
     }
 }
