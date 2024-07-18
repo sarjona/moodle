@@ -27047,8 +27047,11 @@ img.icon {
 }
 
 .block .block-controls .dropdown-toggle {
-  /* So that the caret takes the colour of the icon. */
+  /* So that the icon takes the colour of the icon. */
   color: #1d2125;
+}
+.block .block-controls .dropdown-toggle::after {
+  display: none;
 }
 
 [data-region=blocks-column] {
@@ -38173,7 +38176,6 @@ div.editor_atto_toolbar button .icon {
 }
 .reportbuilder-toggle-card .toggle-card-button i.toggle-card-icon {
   color: #6a737b;
-  font-size: 1.5em;
   font-weight: 700;
 }
 .reportbuilder-toggle-card .toggle-card-button .collapsed-icon-container {
