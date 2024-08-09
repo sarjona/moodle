@@ -487,9 +487,14 @@ class icon_system_fontawesome extends icon_system_font {
                     }
                 }
 
-                // Add the solid class by default to all icons that have not specific family.
+                $deprecated = $this->get_deprecated_icons();
                 foreach ($this->map as $from => $to) {
+                    // Add the solid class by default to all icons that have not specific family.
                     $this->map[$from] = $this->add_family($to);
+                    // Add the deprecated class to all deprecated icons.
+                    if (in_array($from, $deprecated)) {
+                        $this->map[$from] .= ' deprecated';
+                    }
                 }
 
                 $cache->set($mapkey, $this->map);
