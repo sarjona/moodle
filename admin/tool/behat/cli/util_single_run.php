@@ -54,6 +54,7 @@ list($options, $unrecognized) = cli_get_params(
         'add-core-features-to-theme' => false,
         'axe'         => true,
         'scss-deprecations' => false,
+        'icon-deprecations' => true,
     ),
     array(
         'h' => 'help',
@@ -82,6 +83,7 @@ Options:
 --updatesteps       Update feature step file.
 --no-axe            Disable axe accessibility tests.
 --scss-deprecations Enable SCSS deprecation checks.
+--icon-deprecations Enable icon deprecation checks.
 
 -o, --optimize-runs Split features with specified tags in all parallel runs.
 -a, --add-core-features-to-theme Add all core features to specified theme's
@@ -193,6 +195,9 @@ if ($options['install']) {
 
     // Define whether to run Behat with SCSS deprecation checks.
     behat_config_manager::set_behat_run_config_value('scss-deprecations', $options['scss-deprecations']);
+
+    // Define whether to run Behat with icon deprecation checks.
+    behat_config_manager::set_behat_run_config_value('icon-deprecations', $options['icon-deprecations']);
 
     // Enable test mode.
     $timestart = microtime(true);

@@ -59,6 +59,7 @@ list($options, $unrecognized) = cli_get_params(
         'add-core-features-to-theme' => false,
         'axe'         => true,
         'scss-deprecations' => false,
+        'icon-deprecations' => true,
     ),
     array(
         'h' => 'help',
@@ -74,7 +75,7 @@ $help = "
 Behat utilities to manage the test environment
 
 Usage:
-  php util.php  [--install|--drop|--enable|--disable|--diag|--updatesteps|--no-axe|--scss-deprecations|--help]
+  php util.php  [--install|--drop|--enable|--disable|--diag|--updatesteps|--no-axe|--scss-deprecations|--icon-deprecations|--help]
                 [--parallel=value [--maxruns=value]]
 
 Options:
@@ -86,6 +87,7 @@ Options:
 --updatesteps       Update feature step file.
 --no-axe            Disable axe accessibility tests.
 --scss-deprecations Enable SCSS deprecation checks.
+--icon-deprecations Enable icon deprecation checks.
 
 -j, --parallel Number of parallel behat run operation
 -m, --maxruns Max parallel processes to be executed at one time.

@@ -54,6 +54,7 @@ list($options, $unrecognized) = cli_get_params(
         'composer-upgrade' => true,
         'composer-self-update' => true,
         'scss-deprecations' => false,
+        'icon-deprecations' => true,
     ),
     array(
         'j' => 'parallel',
@@ -70,7 +71,8 @@ Behat utilities to initialise behat tests
 
 Usage:
   php init.php      [--parallel=value [--maxruns=value] [--fromrun=value --torun=value]]
-                    [--no-axe] [--scss-deprecations] [-o | --optimize-runs] [-a | --add-core-features-to-theme]
+                    [--no-axe] [--scss-deprecations] [--icon-deprecations] [-o | --optimize-runs]
+                    [-a | --add-core-features-to-theme]
                     [--no-composer-self-update] [--no-composer-upgrade]
                     [--disable-composer]
                     [--help]
@@ -82,6 +84,7 @@ Options:
 --torun             Execute run till (Used for parallel runs on different vms)
 --no-axe            Disable axe accessibility tests.
 --scss-deprecations Enable SCSS deprecation checks.
+--icon-deprecations Enable icon deprecation checks.
 
 -o, --optimize-runs
                     Split features with specified tags in all parallel runs.
@@ -134,6 +137,7 @@ if ($options['parallel'] && $options['parallel'] > 1) {
         'add-core-features-to-theme',
         'axe',
         'scss-deprecations',
+        'icon-deprecations',
     ];
 
     foreach ($cmdoptionsforsinglerun as $option) {
