@@ -20,9 +20,10 @@ namespace core_badges\reportbuilder\local\systemreports;
 
 use core\context\{course, system};
 use core_badges\reportbuilder\local\entities\badge;
+use core_badges\reportbuilder\local\entities\badge_issued;
 use core_reportbuilder\local\entities\user;
 use core_reportbuilder\local\helpers\database;
-use core_reportbuilder\local\report\{action, column};
+use core_reportbuilder\local\report\{action};
 use core_reportbuilder\system_report;
 use lang_string;
 use moodle_url;
@@ -47,6 +48,8 @@ class badges extends system_report {
      * Initialise report, we need to set the main table, load our entities and set columns/filters
      */
     protected function initialise(): void {
+        global $USER;
+
         // Our main entity, it contains all of the column definitions that we need.
         $badgeentity = new badge();
         $entityalias = $badgeentity->get_table_alias('badge');
@@ -75,11 +78,25 @@ class badges extends system_report {
                 [$paramtype => $type, $paramcourseid => $context->instanceid]);
         }
 
+        if (!$this->can_view_draft_badges()) {
+            $this->add_base_condition_sql("({$entityalias}.status = " . BADGE_STATUS_ACTIVE .
+            " OR {$entityalias}.status = " . BADGE_STATUS_ACTIVE_LOCKED . ")");
+        }
+
         // Any columns required by actions should be defined here to ensure they're always available.
         $this->add_base_fields("{$entityalias}.id, {$entityalias}.type, {$entityalias}.courseid, {$entityalias}.status");
 
+        $badgeissuedentity = new badge_issued();
+        $badgeissuedalias = $badgeissuedentity->get_table_alias('badge_issued');
+        $this->add_entity($badgeissuedentity
+            ->add_join("LEFT JOIN {badge_issued} {$badgeissuedalias}
+                ON {$entityalias}.id = {$badgeissuedalias}.badgeid AND {$badgeissuedalias}.userid = ".$USER->id)
+        );
+
+        $this->add_base_fields("{$badgeissuedalias}.uniquehash");
+
         // Now we can call our helper methods to add the content we want to include in the report.
-        $this->add_columns();
+        $this->add_columns($badgeissuedalias);
         $this->add_filters();
         $this->add_actions();
 
@@ -97,6 +114,7 @@ class badges extends system_report {
      */
     protected function can_view(): bool {
         return has_any_capability([
+            'moodle/badges:viewbadges',
             'moodle/badges:viewawarded',
             'moodle/badges:createbadge',
             'moodle/badges:awardbadge',
@@ -111,27 +129,57 @@ class badges extends system_report {
      *
      * They are provided by the entities we previously added in the {@see initialise} method, referencing each by their
      * unique identifier. If custom columns are needed just for this report, they can be defined here.
+     *
+     * @param string $badgeissuedalias
      */
-    protected function add_columns(): void {
-        $this->add_columns_from_entities([
+    public function add_columns(string $badgeissuedalias): void {
+        $columns = [
             'badge:image',
             'badge:namewithlink',
-            'badge:version',
             'badge:status',
             'badge:criteria',
             'user:username',
-        ]);
+            'badge_issued:issued',
+        ];
 
-        // Issued badges column.
-        $this->get_column('user:username')
-            ->set_title(new lang_string('awards', 'core_badges'))
-            ->set_aggregation('count');
+        if (!$this->can_view_draft_badges()) {
+            // Remove status and recipients column.
+            unset($columns[2]);
+            unset($columns[4]);
+        }
+        $this->add_columns_from_entities($columns);
 
         // Remove title from image column.
         $this->get_column('badge:image')->set_title(null);
 
         // Change title from namewithlink column.
         $this->get_column('badge:namewithlink')->set_title(new lang_string('name'));
+
+        // Issued badges column.
+        if (in_array('user:username', $columns)) {
+            $this->get_column('user:username')
+                ->set_title(new lang_string('awards', 'core_badges'))
+                ->set_aggregation('count');
+        }
+
+        // Add a new column to show the date the badge was issued.
+        $this->get_column('badge_issued:issued')
+            ->set_title(new lang_string('awardedtoyou', 'core_badges'))
+            ->add_fields("{$badgeissuedalias}.uniquehash")
+            ->set_callback(static function(?int $value, stdClass $row) {
+                global $OUTPUT;
+
+                if (!$value) {
+                    return '';
+                }
+                $format = get_string('strftimedatefullshort', 'core_langconfig');
+                $date = $value ? userdate($value, $format) : '';
+                $badgeurl = new moodle_url('/badges/badge.php', ['hash' => $row->uniquehash]);
+                $icon = new pix_icon('i/valid', get_string('dateearned', 'badges', $date));
+                return $OUTPUT->action_icon($badgeurl, $icon, null, null, true);
+            });
+
+        $this->set_initial_sort_column('badge:namewithlink', SORT_ASC);
     }
 
     /**
@@ -146,7 +194,13 @@ class badges extends system_report {
             'badge:version',
             'badge:status',
             'badge:expiry',
+            'badge_issued:issued',
         ];
+        if (!$this->can_view_draft_badges()) {
+            // Remove version and status filters.
+            unset($filters[1]);
+            unset($filters[2]);
+        }
         $this->add_filters_from_entities($filters);
     }
 
@@ -280,6 +334,22 @@ class badges extends system_report {
             default:
                 throw new \coding_exception('Wrong context');
         }
+    }
+
+    /**
+     * Check whether the user can view unpublished badges.
+     *
+     * @return bool True if the user can edit badges, false otherwise.
+     */
+    private function can_view_draft_badges(): bool {
+        return has_any_capability([
+            'moodle/badges:viewawarded',
+            'moodle/badges:createbadge',
+            'moodle/badges:awardbadge',
+            'moodle/badges:configurecriteria',
+            'moodle/badges:configuremessages',
+            'moodle/badges:configuredetails',
+            'moodle/badges:deletebadge'], $this->get_context());
     }
 
     /**
