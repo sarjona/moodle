@@ -37,13 +37,19 @@ require_once("{$CFG->libdir}/badgeslib.php");
  * @package    core_badges
  * @copyright  2023 David Carrillo <davidmc@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @deprecated since 4.5. Use badges system_report instead.
+ * @todo       MDL-82383 This class will be deleted in Moodle 6.0.
  */
 class course_badges extends system_report {
 
     /**
      * Initialise report, we need to set the main table, load our entities and set columns/filters
+     *
+     * @deprecated since 4.5. Use badges system_report instead.
      */
+    #[\core\attribute\deprecated('badges::initialise', since: '4.5', mdl: 'MDL-82503')]
     protected function initialise(): void {
+        \core\deprecation::emit_deprecation_if_present([$this, __FUNCTION__]);
         global $USER;
         // Our main entity, it contains all of the column definitions that we need.
         $badgeentity = new badge();
@@ -81,8 +87,11 @@ class course_badges extends system_report {
      * Validates access to view this report
      *
      * @return bool
+     * @deprecated since 4.5. Use badges system_report instead.
      */
+    #[\core\attribute\deprecated('badges::can_view', since: '4.5', mdl: 'MDL-82503')]
     protected function can_view(): bool {
+        \core\deprecation::emit_deprecation_if_present([$this, __FUNCTION__]);
         return has_capability('moodle/badges:viewbadges', $this->get_context());
     }
 
@@ -93,8 +102,11 @@ class course_badges extends system_report {
      * unique identifier. If custom columns are needed just for this report, they can be defined here.
      *
      * @param string $badgeissuedalias
+     * @deprecated since 4.5. Use badges system_report instead.
      */
+    #[\core\attribute\deprecated('course_badges::add_columns', since: '4.5', mdl: 'MDL-82503')]
     public function add_columns(string $badgeissuedalias): void {
+        \core\deprecation::emit_deprecation_if_present([$this, __FUNCTION__]);
         $columns = [
             'badge:image',
             'badge:name',
@@ -128,8 +140,12 @@ class course_badges extends system_report {
      *
      * They are all provided by the entities we previously added in the {@see initialise} method, referencing each by their
      * unique identifier
+     *
+     * @deprecated since 4.5. Use badges system_report instead.
      */
+    #[\core\attribute\deprecated('badges::add_filters', since: '4.5', mdl: 'MDL-82503')]
     protected function add_filters(): void {
+        \core\deprecation::emit_deprecation_if_present([$this, __FUNCTION__]);
         $filters = [
             'badge:name',
             'badge_issued:issued',
