@@ -1,4 +1,6 @@
 <?php
+
+use core_badges\backpackapi_base;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -62,7 +64,7 @@ if (!empty($issuedbadge->recipient->id)) {
     $badgeadded = false;
     if (badges_open_badges_backpack_api() == OPEN_BADGES_V2) {
         $sitebackpack = badges_get_site_primary_backpack();
-        $api = new \core_badges\backpack_api($sitebackpack);
+        $api = backpackapi_base::create_from_externalbackpack($userbackpack);
         $response = $api->authenticate();
 
         // A numeric response indicates a valid successful authentication. Else an error object will be returned.
@@ -137,7 +139,7 @@ if (!empty($issuedbadge->recipient->id)) {
     // based on email address.
     // - This is only needed when the backpacks are from different regions.
     if ($assertionentityid && !badges_external_get_mapping($userbackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionid)) {
-        $userapi = new \core_badges\backpack_api($userbackpack, $backpack);
+        $userapi = backpackapi_base::create_from_externalbackpack($userbackpack);
         $userapi->authenticate();
         $response = $userapi->import_badge_assertion($assertionentityid);
         if (!$response) {
