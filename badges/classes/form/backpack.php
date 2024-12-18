@@ -26,6 +26,8 @@
 
 namespace core_badges\form;
 
+use core_badges\backpackapi_base;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
@@ -170,7 +172,9 @@ class backpack extends external_backpack {
         $check->email = $data['backpackemail'];
         $check->password = $data['password'];
         $sitebackpack = badges_get_site_backpack($data['externalbackpackid']);
-        $bp = new \core_badges\backpack_api($sitebackpack, $check);
+        $sitebackpack->email = $data['backpackemail'];
+        $sitebackpack->password = $data['password'];
+        $bp = backpackapi_base::create_from_externalbackpack($sitebackpack);
 
         $result = $bp->authenticate();
         if ($result === false || !empty($result->error)) {

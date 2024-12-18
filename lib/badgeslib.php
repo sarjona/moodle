@@ -1,4 +1,6 @@
 <?php
+
+use core_badges\backpackapi_base;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -762,7 +764,11 @@ function get_backpack_settings($userid, $refresh = false) {
     $record = $DB->get_record('badge_backpack', array('userid' => $userid));
     if ($record) {
         $sitebackpack = badges_get_site_backpack($record->externalbackpackid);
-        $backpack = new \core_badges\backpack_api($sitebackpack, $record);
+        if ($sitebackpack->apiversion != OPEN_BADGES_V2) {
+            $sitebackpack->backpackid = $record->externalbackpackid;
+            return $sitebackpack;
+        }
+        $backpack = backpackapi_base::create_from_externalbackpack($sitebackpack);
         $out = new stdClass();
         $out->backpackid = $sitebackpack->id;
 
@@ -1523,7 +1529,7 @@ function badges_verify_backpack(int $backpackid) {
 
     $backpack = badges_get_site_backpack($backpackid);
     if (empty($backpack->apiversion) || ($backpack->apiversion == OPEN_BADGES_V2)) {
-        $backpackapi = new \core_badges\backpack_api($backpack);
+        $backpackapi = backpackapi_base::create_from_externalbackpack($backpack);
 
         // Clear any cached access tokens in the session.
         $backpackapi->clear_system_user_session();
