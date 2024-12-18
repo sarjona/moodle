@@ -1,4 +1,6 @@
 <?php
+
+use core_badges\backpackapi_base;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -52,7 +54,7 @@ $PAGE->set_pagelayout('standard');
 
 $redirecturl = new moodle_url('/badges/mybadges.php');
 if ($hash) {
-    $api = new core_badges\backpack_api2p1($backpack);
+    $api = backpackapi_base::create_from_externalbackpack($backpack);
     $notify = $api->put_assertions($hash);
     if (!empty($notify['status']) && $notify['status'] == \core\output\notification::NOTIFY_SUCCESS) {
         redirect($redirecturl, $notify['message'], null, \core\output\notification::NOTIFY_SUCCESS);
