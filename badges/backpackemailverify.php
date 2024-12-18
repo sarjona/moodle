@@ -1,4 +1,6 @@
 <?php
+
+use core_badges\backpackapi_base;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -40,12 +42,9 @@ if (!is_null($storedsecret)) {
         $password = get_user_preferences('badges_email_verify_password');
 
         $backpack = badges_get_site_backpack($backpackid);
-
-        $data = new stdClass();
-        $data->email = $storedemail;
-        $data->password = $password;
-        $data->externalbackpackid = $backpackid;
-        $bp = new \core_badges\backpack_api($backpack, $data);
+        $backpack->email = $storedemail;
+        $backpack->password = $password;
+        $bp = backpackapi_base::create_from_externalbackpack($backpack);
 
         // Make sure we have all the required information before trying to save the connection.
         $backpackuid = $bp->authenticate();
@@ -56,7 +55,7 @@ if (!is_null($storedsecret)) {
 
         $values = [
             'userid' => $USER->id,
-            'backpackemail' => $data->email,
+            'backpackemail' => $storedemail,
             'externalbackpackid' => $backpackid,
             'backpackuid' => $backpackuid,
             'autosync' => 0,
