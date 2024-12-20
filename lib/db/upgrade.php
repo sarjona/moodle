@@ -1341,5 +1341,15 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024121800.00);
     }
 
+    if ($oldversion < 2024121900.01) {
+        // Remove the default value for the apiversion field.
+        $table = new xmldb_table('badge_external_backpack');
+        $apiversionfield = new xmldb_field('apiversion', XMLDB_TYPE_CHAR, '12', null, XMLDB_NOTNULL, null, null);
+        $dbman->change_field_default($table, $apiversionfield);
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2024121900.01);
+    }
+
     return true;
 }
