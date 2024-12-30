@@ -61,6 +61,7 @@ class core_badges_assertion {
                 bi.dateexpire,
                 bi.uniquehash,
                 u.email,
+                u.id as userid,
                 b.*,
                 bb.email as backpackemail
             FROM
@@ -400,5 +401,9 @@ class core_badges_assertion {
      */
     public function get_tags(): array {
         return array_values(\core_tag_tag::get_item_tags_array('core_badges', 'badge', $this->get_badge_id()));
+    }
+
+    public function get_userid(): int {
+        return $this->_data->userid;
     }
 }
