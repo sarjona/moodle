@@ -25,6 +25,7 @@
 namespace core_badges;
 
 use coding_exception;
+use core_badges\local\backpack\v2p1\assertion_exporter;
 use moodle_url;
 use core_badges\oauth2\client;
 use stdClass;
@@ -234,7 +235,6 @@ class backpackapi_2p1 extends backpackapi_base {
      * @throws coding_exception
      */
     public function put_assertions(string $hash): array {
-        $data = [];
         if (!$hash) {
             return false;
         }
@@ -248,8 +248,9 @@ class backpackapi_2p1 extends backpackapi_base {
 
         $this->tokendata = $this->get_stored_token($this->externalbackpack->id);
 
-        $assertion = new \core_badges_assertion($hash, OPEN_BADGES_V2);
-        $data['assertion'] = $assertion->get_badge_assertion();
+        // $assertion = new \core_badges_assertion($hash, OPEN_BADGES_V2);
+        $assertion = new assertion_exporter($hash);
+        $data = ['assertion' => $assertion->export()];
         $response = $this->curl_request('post.assertions', $data);
         if ($response && isset($response->status->statusCode) && $response->status->statusCode == 200) {
             $msg['status'] = \core\output\notification::NOTIFY_SUCCESS;

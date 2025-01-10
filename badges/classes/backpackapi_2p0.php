@@ -24,6 +24,7 @@ use cache;
 use coding_exception;
 use core_badges\external\issuer_exporter;
 use core_badges\external\badgeclass_exporter;
+use core_badges\local\backpack\v2p0\assertion_exporter;
 use stdClass;
 use context_system;
 
@@ -537,8 +538,10 @@ class backpackapi_2p0 extends backpackapi_base {
             $badge = new badge($badgeid);
             $backpack = $DB->get_record('badge_backpack', array('userid' => $USER->id));
             $userbackpack = badges_get_site_backpack($backpack->externalbackpackid, $USER->id);
-            $assertion = new \core_badges_assertion($hash, OPEN_BADGES_V2);
-            $assertiondata = $assertion->get_badge_assertion(false, false);
+            // $assertion = new \core_badges_assertion($hash, OPEN_BADGES_V2);
+            // $assertiondata = $assertion->get_badge_assertion(false, false);
+            $assertion = new assertion_exporter($hash);
+            $assertiondata = $assertion->export(false, false);
             $assertionid = $assertion->get_assertion_hash();
             $assertionentityid = $assertiondata['id'];
             $badgeadded = false;
