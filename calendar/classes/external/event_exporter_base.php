@@ -33,6 +33,7 @@ use \core\external\exporter;
 use \core_calendar\local\event\container;
 use \core_calendar\local\event\entities\event_interface;
 use \core_calendar\local\event\entities\action_event_interface;
+use core_calendar\output\humantimeperiod;
 use \core_course\external\course_summary_exporter;
 use \core\external\coursecat_summary_exporter;
 use \renderer_base;
@@ -379,8 +380,13 @@ class event_exporter_base extends exporter {
                 'time' => $timesort]);
         $viewurl->set_anchor('event_' . $event->get_id());
         $values['viewurl'] = $viewurl->out(false);
-        $values['formattedtime'] = calendar_format_event_time($legacyevent, time(), null, false,
-                $timesort);
+        $legacyevent = container::get_event_mapper()->from_event_to_legacy_event($event);
+        $humanperiod = new humantimeperiod(
+                starttimestamp: $legacyevent->timestart,
+                endtimestamp: $legacyevent->timestart + $legacyevent->timeduration,
+                link: new moodle_url(CALENDAR_URL . 'view.php'),
+        );
+        $values['formattedtime'] = $output->render($humanperiod);
         $values['formattedlocation'] = calendar_format_event_location($legacyevent);
 
         if ($group = $event->get_group()) {

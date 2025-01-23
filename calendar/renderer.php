@@ -162,8 +162,12 @@ class core_calendar_renderer extends plugin_renderer_base {
         if (!empty($event->time)) {
             $output .= html_writer::tag('span', $event->time, array('class' => 'date float-sm-end me-1'));
         } else {
-            $attrs = array('class' => 'date float-sm-end me-1');
-            $output .= html_writer::tag('span', calendar_time_representation($event->timestart), $attrs);
+            $humantime = new \core_calendar\output\humandate(
+                timestamp: $event->timestart,
+                near: null,
+                timeonly: true,
+            );
+            $output .= html_writer::tag('span', $this->output->render($humantime));
         }
 
         if (!empty($event->actionurl)) {

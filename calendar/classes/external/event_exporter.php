@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . "/calendar/lib.php");
 
 use \core_calendar\local\event\container;
+use core_calendar\output\humantimeperiod;
 use \renderer_base;
 
 /**
@@ -86,7 +87,12 @@ class event_exporter extends event_exporter_base {
 
         // Override default formatted time to make sure the date portion of the time is always rendered.
         $legacyevent = container::get_event_mapper()->from_event_to_legacy_event($event);
-        $values['formattedtime'] = calendar_format_event_time($legacyevent, time(), null, false);
+        $humanperiod = new humantimeperiod(
+                starttimestamp: $legacyevent->timestart,
+                endtimestamp: $legacyevent->timestart + $legacyevent->timeduration,
+                link: new \moodle_url(CALENDAR_URL . 'view.php'),
+        );
+        $values['formattedtime'] = $output->render($humanperiod);
 
         return $values;
     }
