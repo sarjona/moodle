@@ -16,6 +16,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->libdir . '/badgeslib.php');
+require_once($CFG->dirroot . '/badges/renderer.php');
+
+use core_badges\local\backpack\ob\exporter_base;
+
 /**
  * Open Badges Assertions specification 2.0
  * {@link https://www.imsglobal.org/sites/default/files/Badges/OBv2p0Final/index.html#Assertion}
@@ -24,12 +29,6 @@ defined('MOODLE_INTERNAL') || die();
  * - Badge Assertion (information regarding a specific badge that was awarded to a badge earner)
  * - Badge Class (general information about a badge and what it is intended to represent)
  * - Issuer Class (general information of an issuing organisation)
- */
-require_once($CFG->libdir . '/badgeslib.php');
-require_once($CFG->dirroot . '/badges/renderer.php');
-
-/**
- * Class that represents badge assertion.
  *
  * @package    core_badges
  * @copyright  2012 onwards Totara Learning Solutions Ltd {@link http://www.totaralms.com/}
@@ -116,53 +115,11 @@ class core_badges_assertion {
      * @return array Badge assertion.
      */
     public function get_badge_assertion($issued = true, $usesalt = true) {
-        global $CFG;
-        $assertion = array();
-        if ($this->_data) {
-            $hash = $this->_data->uniquehash;
-            $email = empty($this->_data->backpackemail) ? $this->_data->email : $this->_data->backpackemail;
-            $assertionurl = new moodle_url('/badges/assertion.php', array('b' => $hash, 'obversion' => $this->_obversion));
-
-            if ($this->_obversion >= OPEN_BADGES_V2) {
-                $classurl = new moodle_url('/badges/badge_json.php', array('id' => $this->get_badge_id()));
-            } else {
-                $classurl = new moodle_url('/badges/assertion.php', array('b' => $hash, 'action' => 1));
-            }
-
-            // Required.
-            $assertion['uid'] = $hash;
-            $assertion['recipient'] = array();
-            if ($usesalt) {
-                $assertion['recipient']['identity'] = 'sha256$' . hash('sha256', $email . $CFG->badges_badgesalt);
-            } else {
-                $assertion['recipient']['identity'] = $email;
-            }
-            $assertion['recipient']['type'] = 'email'; // Currently the only supported type.
-            $assertion['recipient']['hashed'] = true; // We are always hashing recipient.
-            if ($usesalt) {
-                $assertion['recipient']['salt'] = $CFG->badges_badgesalt;
-            }
-            if ($issued) {
-                $assertion['badge'] = $classurl->out(false);
-            }
-            $assertion['verify'] = array();
-            $assertion['verify']['type'] = 'hosted'; // 'Signed' is not implemented yet.
-            $assertion['verify']['url'] = $assertionurl->out(false);
-            $assertion['issuedOn'] = $this->_data->dateissued;
-            if ($issued) {
-                $assertion['evidence'] = $this->_url->out(false); // Currently issued badge URL.
-            }
-            // Optional.
-            if (!empty($this->_data->dateexpire)) {
-                $assertion['expires'] = $this->_data->dateexpire;
-            }
-            $tags = $this->get_tags();
-            if (is_array($tags) && count($tags) > 0) {
-                $assertion['tags'] = $tags;
-            }
-            $this->embed_data_badge_version2($assertion, OPEN_BADGES_V2_TYPE_ASSERTION);
-        }
-        return $assertion;
+        $assertionexporter = exporter_base::create_assertion_exporter_from_hash(
+            $this->_data->uniquehash,
+            exporter_base::convert_apiversion(OPEN_BADGES_V2),
+        );
+        return $assertionexporter->export();
     }
 
     /**
@@ -172,48 +129,13 @@ class core_badges_assertion {
      * @return array Badge Class information.
      */
     public function get_badge_class($issued = true) {
-        $class = [];
-        if ($this->_data) {
-            if (empty($this->_data->courseid)) {
-                $context = context_system::instance();
-            } else {
-                $context = context_course::instance($this->_data->courseid);
-            }
-            // Required.
-            $class['name'] = $this->_data->name;
-            $class['description'] = $this->_data->description;
-            $storage = get_file_storage();
-            $imagefile = $storage->get_file($context->id, 'badges', 'badgeimage', $this->_data->id, '/', 'f3.png');
-            if ($imagefile) {
-                $imagedata = base64_encode($imagefile->get_content());
-            } else {
-                if (defined('PHPUNIT_TEST') && PHPUNIT_TEST) {
-                    // Unit tests the file might not exist yet.
-                    $imagedata = '';
-                } else {
-                    throw new coding_exception('Image file does not exist.');
-                }
-            }
-            $class['image'] = 'data:image/png;base64,' . $imagedata;
-
-            $params = ['id' => $this->get_badge_id()];
-            $badgeurl = new moodle_url('/badges/badgeclass.php', $params);
-            $class['criteria'] = $badgeurl->out(false); // Currently badge URL.
-            if ($issued) {
-                $params = ['id' => $this->get_badge_id()];
-                $issuerurl = new moodle_url('/badges/issuer_json.php', $params);
-                $class['issuer'] = $issuerurl->out(false);
-            }
-            $tags = $this->get_tags();
-            if (is_array($tags) && count($tags) > 0) {
-                $class['tags'] = $tags;
-            }
-            $this->embed_data_badge_version2($class, OPEN_BADGES_V2_TYPE_BADGE);
-            if (!$issued) {
-                unset($class['issuer']);
-            }
-        }
-        return $class;
+        // TODO: Should the image be added with the data:image/png;base64, prefix?
+        // TODO: This badge contains less information, for instance, version or language are not present).
+        $badgeexporter = exporter_base::create_badge_exporter_from_id(
+            $this->get_badge_id(),
+            exporter_base::convert_apiversion(OPEN_BADGES_V2),
+        );
+        return $badgeexporter->export();
     }
 
     /**
@@ -222,11 +144,11 @@ class core_badges_assertion {
      * @return array Issuer information.
      */
     public function get_issuer() {
-        $badge = new badge($this->get_badge_id());
-        $issuer = $badge->get_badge_issuer();
-
-        $this->embed_data_badge_version2($issuer, OPEN_BADGES_V2_TYPE_ISSUER);
-        return $issuer;
+        $issuerexporter = exporter_base::create_issuer_exporter_from_id(
+            $this->get_badge_id(),
+            exporter_base::convert_apiversion(OPEN_BADGES_V2),
+        );
+        return $issuerexporter->export();
     }
 
     /**
@@ -236,20 +158,11 @@ class core_badges_assertion {
      * @return array|bool List related badges.
      */
     public function get_related_badges(badge $badge) {
-        global $DB;
-        $arraybadges = array();
-        $relatedbadges = $badge->get_related_badges(true);
-        if ($relatedbadges) {
-            foreach ($relatedbadges as $rb) {
-                $url = new moodle_url('/badges/badge_json.php', array('id' => $rb->id));
-                $arraybadges[] = array(
-                    'id'        => $url->out(false),
-                    'version'   => $rb->version,
-                    '@language' => $rb->language
-                );
-            }
-        }
-        return $arraybadges;
+        $badgeexporter = exporter_base::create_badge_exporter_from_id(
+            $badge->id,
+            exporter_base::convert_apiversion(OPEN_BADGES_V2),
+        );
+        return $badgeexporter->export_related_badges();
     }
 
     /**
@@ -270,18 +183,11 @@ class core_badges_assertion {
      * @return array|string Criteria information.
      */
     public function get_criteria_badge_class() {
-        $badge = new badge($this->_data->id);
-        $narrative = $badge->markdown_badge_criteria();
-        $params = ['id' => $this->get_badge_id()];
-        $badgeurl = new moodle_url('/badges/badgeclass.php', $params);
-        if (!empty($narrative)) {
-            $criteria = [];
-            $criteria['id'] = $badgeurl->out(false);
-            $criteria['narrative'] = $narrative;
-            return $criteria;
-        } else {
-            return $badgeurl->out(false);
-        }
+        $badgeexporter = exporter_base::create_badge_exporter_from_id(
+            $this->get_badge_id(),
+            exporter_base::convert_apiversion(OPEN_BADGES_V2),
+        );
+        return $badgeexporter->export_criteria();
     }
 
     /**
@@ -290,24 +196,11 @@ class core_badges_assertion {
      * @return array information.
      */
     public function get_alignments() {
-        global $DB;
-        $badgeid = $this->_data->id;
-        $alignments = array();
-        $items = $DB->get_records_select('badge_alignment', 'badgeid = ?', array($badgeid));
-        foreach ($items as $item) {
-            $alignment = array('targetName' => $item->targetname, 'targetUrl' => $item->targeturl);
-            if ($item->targetdescription) {
-                $alignment['targetDescription'] = $item->targetdescription;
-            }
-            if ($item->targetframework) {
-                $alignment['targetFramework'] = $item->targetframework;
-            }
-            if ($item->targetcode) {
-                $alignment['targetCode'] = $item->targetcode;
-            }
-            $alignments[] = $alignment;
-        }
-        return $alignments;
+        $badgeexporter = exporter_base::create_badge_exporter_from_id(
+            $this->get_badge_id(),
+            exporter_base::convert_apiversion(OPEN_BADGES_V2),
+        );
+        return $badgeexporter->export_alignments();
     }
 
     /**
@@ -315,6 +208,7 @@ class core_badges_assertion {
      *
      * @param array $json for assertion, badges, issuer.
      * @param string $type Content type.
+     * TODO: Deprecate this method.
      */
     protected function embed_data_badge_version2(&$json, $type = OPEN_BADGES_V2_TYPE_ASSERTION) {
         // Specification Version 2.0.
