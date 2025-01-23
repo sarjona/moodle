@@ -854,3 +854,35 @@ function imagecopybicubic($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $d
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
     return imagecopyresampled($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
 }
+
+/**
+ * Get the default issuer for a badge from this site.
+ *
+ * @return array
+ *
+ * @deprecated Since Moodle 5.1
+ * @todo MDL-85730 Final deprecation in Moodle 6.0.
+ */
+#[\core\attribute\deprecated(
+    since: '5.1',
+    mdl: 'MDL-85621',
+    reason: 'It is no longer used.'
+)]
+function badges_get_default_issuer() {
+    global $CFG, $SITE;
+
+    $sitebackpack = badges_get_site_primary_backpack();
+    $issuer = array();
+    $issuerurl = new moodle_url('/');
+    $issuer['name'] = $CFG->badges_defaultissuername;
+    if (empty($issuer['name'])) {
+        $issuer['name'] = $SITE->fullname ? $SITE->fullname : $SITE->shortname;
+    }
+    $issuer['url'] = $issuerurl->out(false);
+    $issuer['email'] = $sitebackpack->backpackemail ?: $CFG->badges_defaultissuercontact;
+    $issuer['@context'] = OPEN_BADGES_V2_CONTEXT;
+    $issuerid = new moodle_url('/badges/issuer_json.php');
+    $issuer['id'] = $issuerid->out(false);
+    $issuer['type'] = OPEN_BADGES_V2_TYPE_ISSUER;
+    return $issuer;
+}
