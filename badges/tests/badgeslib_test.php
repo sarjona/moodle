@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 use core_badges\helper;
+use core_badges\local\backpack\ob_factory;
 use core_badges\tests\badges_testcase;
 use core\task\manager;
 
@@ -785,23 +786,50 @@ final class badgeslib_test extends badges_testcase {
         // Test Openbadge specification version 2.0.
         // Get assertion version 2.
         $award = reset($awards);
-        $assertion2 = new core_badges_assertion($award->uniquehash, OPEN_BADGES_V2);
+
+        $convertedobversion = \core_badges\local\backpack\helper::convert_apiversion(OPEN_BADGES_V2);
+        $assertionexporter = ob_factory::create_assertion_exporter_from_hash(
+            $award->uniquehash,
+            $convertedobversion,
+        );
+        $badgeexporter = ob_factory::create_badge_exporter_from_id(
+            $badge->id,
+            $convertedobversion,
+        );
+        $issuerexporter = ob_factory::create_issuer_exporter_from_id(
+            $badge->id,
+            $convertedobversion,
+        );
+
         $testassertion2 = $this->assertion2;
 
         // Make sure JSON strings have the same structure.
-        $this->assertStringMatchesFormat($testassertion2->badge, json_encode($assertion2->get_badge_assertion()));
-        $this->assertStringMatchesFormat($testassertion2->class, json_encode($assertion2->get_badge_class()));
-        $this->assertStringMatchesFormat($testassertion2->issuer, json_encode($assertion2->get_issuer()));
+        $this->assertStringMatchesFormat($testassertion2->badge, $assertionexporter->get_json());
+        $this->assertStringMatchesFormat($testassertion2->class, $badgeexporter->get_json());
+        $this->assertStringMatchesFormat($testassertion2->issuer, $issuerexporter->get_json());
 
         // Test Openbadge specification version 2.1. It has the same format as OBv2.0.
         // Get assertion version 2.1.
         $award = reset($awards);
-        $assertion2 = new core_badges_assertion($award->uniquehash, OPEN_BADGES_V2P1);
+
+        $convertedobversion = \core_badges\local\backpack\helper::convert_apiversion(OPEN_BADGES_V2P1);
+        $assertionexporter = ob_factory::create_assertion_exporter_from_hash(
+            $award->uniquehash,
+            $convertedobversion,
+        );
+        $badgeexporter = ob_factory::create_badge_exporter_from_id(
+            $badge->id,
+            $convertedobversion,
+        );
+        $issuerexporter = ob_factory::create_issuer_exporter_from_id(
+            $badge->id,
+            $convertedobversion,
+        );
 
         // Make sure JSON strings have the same structure.
-        $this->assertStringMatchesFormat($testassertion2->badge, json_encode($assertion2->get_badge_assertion()));
-        $this->assertStringMatchesFormat($testassertion2->class, json_encode($assertion2->get_badge_class()));
-        $this->assertStringMatchesFormat($testassertion2->issuer, json_encode($assertion2->get_issuer()));
+        $this->assertStringMatchesFormat($testassertion2->badge, $assertionexporter->get_json());
+        $this->assertStringMatchesFormat($testassertion2->class, $badgeexporter->get_json());
+        $this->assertStringMatchesFormat($testassertion2->issuer, $issuerexporter->get_json());
     }
 
     /**

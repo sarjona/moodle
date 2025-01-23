@@ -1,4 +1,7 @@
 <?php
+
+use core_badges\local\backpack\helper;
+use core_badges\local\backpack\ob_factory;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -708,7 +711,7 @@ function print_badge_image(badge $badge, stdClass $context, $size = 'small') {
  * @return string|moodle_url|null Returns either new file path hash or new file URL
  */
 function badges_bake($hash, $badgeid, $userid = 0, $pathhash = false) {
-    global $CFG, $USER;
+    global $USER;
 
     $badge = new badge($badgeid);
     $badge_context = $badge->get_context();
@@ -721,10 +724,17 @@ function badges_bake($hash, $badgeid, $userid = 0, $pathhash = false) {
             $contents = $file->get_content();
 
             $filehandler = new png_metadata_handler($contents);
-            // For now, the site backpack OB version will be used as default.
-            $obversion = badges_open_badges_backpack_api();
-            $assertion = new core_badges_assertion($hash, $obversion);
-            $assertionjson = json_encode($assertion->get_badge_assertion());
+            // For now, the user backpack OB version will be used as default (or site if the user doesn't have).
+            // TODO: Make OB version configurable in the future, to let users choose which use.
+            $obversion = badges_get_user_backpack($userid);
+            if (!$obversion) {
+                $obversion = badges_open_badges_backpack_api();
+            }
+            $assertionexporter = ob_factory::create_assertion_exporter_from_hash(
+                $hash,
+                helper::convert_apiversion($obversion),
+            );
+            $assertionjson = $assertionexporter->get_json();
             if ($filehandler->check_chunks("iTXt", "openbadges")) {
                 // Add assertion URL iTXt chunk.
                 $newcontents = $filehandler->add_chunks("iTXt", "openbadges", $assertionjson);
