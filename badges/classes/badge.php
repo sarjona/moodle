@@ -16,6 +16,8 @@
 
 namespace core_badges;
 
+use core_badges\local\backpack\ob\exporter_base;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/lib/badgeslib.php');
@@ -946,14 +948,11 @@ class badge {
      * @return array Issuer informations of the badge.
      */
     public function get_badge_issuer(?int $obversion = null) {
-        return [
-            'name' => $this->issuername,
-            'url' => $this->issuerurl,
-            'email' => $this->issuercontact,
-            '@context' => OPEN_BADGES_V2_CONTEXT,
-            'id' => (new moodle_url('/badges/issuer_json.php', ['id' => $this->id]))->out(false),
-            'type' => OPEN_BADGES_V2_TYPE_ISSUER,
-        ];
+        $issuerexporter = exporter_base::create_issuer_exporter_from_id(
+            $this->id,
+            exporter_base::convert_apiversion($obversion),
+        );
+        return $issuerexporter->export();
     }
 
     /**
