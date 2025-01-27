@@ -782,7 +782,7 @@ function badges_bake($hash, $badgeid, $userid = 0, $pathhash = false) {
  * @return null|object Returns null is there is no backpack or object with backpack settings.
  */
 function get_backpack_settings($userid, $refresh = false) {
-    global $DB;
+    global $DB, $USER;
 
     // Try to get badges from cache first.
     $badgescache = cache::make('core', 'externalbadges');
@@ -793,8 +793,13 @@ function get_backpack_settings($userid, $refresh = false) {
     // Get badges through curl request to the backpack.
     $record = $DB->get_record('badge_backpack', array('userid' => $userid));
     if ($record) {
-        $sitebackpack = badges_get_site_backpack($record->externalbackpackid);
-        $backpack = new \core_badges\backpack_api($sitebackpack, $record);
+        $sitebackpack = badges_get_site_backpack($record->externalbackpackid, $USER->id);
+        if ($sitebackpack->apiversion != OPEN_BADGES_V2) {
+            $sitebackpack->backpackid = $record->externalbackpackid;
+            return $sitebackpack;
+        }
+        $remote = ob_factory::create_remote_from_externalbackpack($sitebackpack);
+
         $out = new stdClass();
         $out->backpackid = $sitebackpack->id;
 
@@ -803,7 +808,7 @@ function get_backpack_settings($userid, $refresh = false) {
             $out->totalbadges = 0;
             $out->badges = array();
             foreach ($collections as $collection) {
-                $badges = $backpack->get_badges($collection, true);
+                $badges = $remote->get_badges($collection, true);
                 if (!empty($badges)) {
                     $out->badges = array_merge($out->badges, $badges);
                     $out->totalbadges += count($badges);
@@ -1555,7 +1560,7 @@ function badges_verify_backpack(int $backpackid) {
 
     $backpack = badges_get_site_backpack($backpackid);
     if (empty($backpack->apiversion) || ($backpack->apiversion == OPEN_BADGES_V2)) {
-        $backpackapi = new \core_badges\backpack_api($backpack);
+        $backpackapi = ob_factory::create_remote_from_externalbackpack($backpack);
 
         // Clear any cached access tokens in the session.
         $backpackapi->clear_system_user_session();

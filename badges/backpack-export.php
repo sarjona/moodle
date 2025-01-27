@@ -25,6 +25,8 @@
 require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
 
+use core_badges\local\backpack\ob_factory;
+
 $hash = optional_param('hash', null, PARAM_RAW);
 
 $PAGE->set_pagelayout('admin');
@@ -52,8 +54,10 @@ $PAGE->set_pagelayout('standard');
 
 $redirecturl = new moodle_url('/badges/mybadges.php');
 if ($hash) {
-    $api = new core_badges\backpack_api2p1($backpack);
-    $notify = $api->put_assertions($hash);
+    $remote = ob_factory::create_remote_from_externalbackpack($backpack);
+    // TODO: Can this call be replaced with the new API?
+    $remote = new core_badges\backpack_api2p1($backpack);
+    $notify = $remote->put_assertions($hash);
     if (!empty($notify['status']) && $notify['status'] == \core\output\notification::NOTIFY_SUCCESS) {
         redirect($redirecturl, $notify['message'], null, \core\output\notification::NOTIFY_SUCCESS);
     } else if (!empty($notify['status']) && $notify['status'] == \core\output\notification::NOTIFY_ERROR) {

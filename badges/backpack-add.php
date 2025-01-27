@@ -26,6 +26,7 @@ require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
 
 use core_badges\local\backpack\helper;
+use core_badges\local\backpack\ob_factory;
 
 require_login();
 
@@ -62,15 +63,16 @@ if (!empty($issuedbadge->recipient->id)) {
     $badgeadded = false;
     if (badges_open_badges_backpack_api() == OPEN_BADGES_V2) {
         $sitebackpack = badges_get_site_primary_backpack();
-        $api = new \core_badges\backpack_api($sitebackpack);
-        $response = $api->authenticate();
+        $remote = ob_factory::create_remote_from_externalbackpack($sitebackpack);
+        $response = $remote->authenticate();
 
         // A numeric response indicates a valid successful authentication. Else an error object will be returned.
         if (is_numeric($response)) {
+            // TODO: Test it using a paid Badgr account.
             // Create issuer.
             $issuer = helper::export_issuer(OPEN_BADGES_V2, $badgeid);
             if (!($issuerentityid = badges_external_get_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_ISSUER, $issuer['email']))) {
-                $response = $api->put_issuer($issuer);
+                $response = $remote->put_issuer($issuer);
                 if (!$response) {
                     throw new moodle_exception('invalidrequest', 'error');
                 }
@@ -85,7 +87,7 @@ if (!empty($issuedbadge->recipient->id)) {
                 false,
             );
             if (!($badgeentityid = badges_external_get_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_BADGE, $badgeid))) {
-                $response = $api->put_badgeclass($issuerentityid, $badge);
+                $response = $remote->put_badgeclass($issuerentityid, $badge);
                 if (!$response) {
                     throw new moodle_exception('invalidrequest', 'error');
                 }
@@ -111,7 +113,7 @@ if (!empty($issuedbadge->recipient->id)) {
 
             // Create an assertion for the recipient in the issuer's account.
             if (!$assertionentityid) {
-                $response = $api->put_badgeclass_assertion($badgeentityid, $assertiondata);
+                $response = $remote->put_badgeclass_assertion($badgeentityid, $assertiondata);
                 if (!$response) {
                     throw new moodle_exception('invalidrequest', 'error');
                 }
@@ -127,7 +129,7 @@ if (!empty($issuedbadge->recipient->id)) {
                     $assertionhash,
                     'externalid'
                 );
-                $response = $api->update_assertion($internalid, $assertiondata);
+                $response = $remote->update_assertion($internalid, $assertiondata);
                 if (!$response) {
                     throw new moodle_exception('invalidrequest', 'error');
                 }
@@ -140,9 +142,9 @@ if (!empty($issuedbadge->recipient->id)) {
     // based on email address.
     // - This is only needed when the backpacks are from different regions.
     if ($assertionentityid && !badges_external_get_mapping($userbackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionhash)) {
-        $userapi = new \core_badges\backpack_api($userbackpack, $backpack);
-        $userapi->authenticate();
-        $response = $userapi->import_badge_assertion($assertionentityid);
+        $userremote = ob_factory::create_remote_from_externalbackpack($userbackpack);
+        $userremote->authenticate();
+        $response = $userremote->import_badge_assertion($assertionentityid);
         if (!$response) {
             throw new moodle_exception('invalidrequest', 'error');
         }
