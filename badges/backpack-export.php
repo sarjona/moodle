@@ -16,6 +16,7 @@
 
 /**
  * Export badges to the backpack site.
+ * TODO: Deprecate or delete this file.
  *
  * @package    core_badges
  * @copyright  2020 Tung Thai

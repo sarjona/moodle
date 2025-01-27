@@ -233,11 +233,7 @@ class issued_badge implements renderable {
             if (!empty($CFG->badges_allowexternalbackpack) && ($expiration > $now)
                 && $userbackpack = badges_get_user_backpack($USER->id)) {
 
-                if (badges_open_badges_backpack_api($userbackpack->id) == OPEN_BADGES_V2P1) {
-                    $addtobackpackurl = new moodle_url('/badges/backpack-export.php', ['hash' => $this->hash]);
-                } else {
-                    $addtobackpackurl = new moodle_url('/badges/backpack-add.php', ['hash' => $this->hash]);
-                }
+                $addtobackpackurl = new moodle_url('/badges/backpack-add.php', ['hash' => $this->hash]);
                 $data->addtobackpackurl = $addtobackpackurl->out(false);
             }
         }

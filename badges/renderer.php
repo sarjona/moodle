@@ -92,15 +92,9 @@ class core_badges_renderer extends plugin_renderer_base {
                 $notexpiredbadge = (empty($badge->dateexpire) || $badge->dateexpire > time());
                 $userbackpack = badges_get_user_backpack();
                 if (!empty($CFG->badges_allowexternalbackpack) && $notexpiredbadge && $userbackpack) {
-                    $assertion = new moodle_url('/badges/assertion.php', array('b' => $badge->uniquehash));
                     $icon = new pix_icon('t/backpack', get_string('addtobackpack', 'badges'));
-                    if (badges_open_badges_backpack_api($userbackpack->id) == OPEN_BADGES_V2) {
-                        $addurl = new moodle_url('/badges/backpack-add.php', array('hash' => $badge->uniquehash));
-                        $push = $this->output->action_icon($addurl, $icon);
-                    } else if (badges_open_badges_backpack_api($userbackpack->id) == OPEN_BADGES_V2P1) {
-                        $addurl = new moodle_url('/badges/backpack-export.php', array('hash' => $badge->uniquehash));
-                        $push = $this->output->action_icon($addurl, $icon);
-                    }
+                    $addurl = new moodle_url('/badges/backpack-add.php', ['hash' => $badge->uniquehash]);
+                    $push = $this->output->action_icon($addurl, $icon);
                 }
 
                 $download = $this->output->action_icon($url, new pix_icon('t/download', get_string('download')));
@@ -374,6 +368,7 @@ class core_badges_renderer extends plugin_renderer_base {
     protected function render_badge_user_collection(\core_badges\output\badge_user_collection $badges) {
         global $CFG, $USER, $SITE;
         $backpack = $badges->backpack;
+
         $mybackpack = new moodle_url('/badges/mybackpack.php');
 
         $paging = new paging_bar($badges->totalcount, $badges->page, $badges->perpage, $this->page->url, 'page');
@@ -412,6 +407,12 @@ class core_badges_renderer extends plugin_renderer_base {
         $localhtml .= html_writer::end_tag('div');
 
         // External badges.
+
+        // TODO: Remove this check and move it to the API.
+        if (badges_open_badges_backpack_api($badges->backpack->backpackid) != OPEN_BADGES_V2) {
+            return $localhtml;
+        }
+
         $externalhtml = "";
         if (!empty($CFG->badges_allowexternalbackpack)) {
             $externalhtml .= html_writer::start_tag('div', array('class' => 'generalbox'));

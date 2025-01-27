@@ -87,6 +87,14 @@ abstract class api_base {
     abstract public function disconnect_backpack(): bool;
 
     /**
+     * Send an assertion to the backpack.
+     *
+     * @param string $hash The assertion hash
+     * @return array
+     */
+    abstract public function put_assertions(string $hash): array;
+
+    /**
      * Create a new backpackapi instance from an external backpack record.
      *
      * @param \stdClass $externalbackpack The external backpack record
