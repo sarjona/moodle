@@ -27,6 +27,8 @@
 require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
 
+use core_badges\local\backpack\ob\api_base;
+
 require_login();
 
 if (empty($CFG->enablebadges)) {
@@ -55,53 +57,66 @@ $badgescache = cache::make('core', 'externalbadges');
 
 if ($disconnect && $backpack) {
     require_sesskey();
+
     $sitebackpack = badges_get_user_backpack();
-    if ($sitebackpack->apiversion == OPEN_BADGES_V2P1) {
-        $bp = new \core_badges\backpack_api2p1($sitebackpack);
-        $bp->disconnect_backpack($backpack);
-        redirect(new moodle_url('/badges/mybackpack.php'), get_string('backpackdisconnected', 'badges'), null,
-            \core\output\notification::NOTIFY_SUCCESS);
-    } else {
-        // If backpack is connected, need to select collections.
-        $bp = new \core_badges\backpack_api($sitebackpack, $backpack);
-        $bp->disconnect_backpack($USER->id, $backpack->id);
-        redirect(new moodle_url('/badges/mybackpack.php'));
-    }
+    $bp = api_base::create_from_externalbackpack($sitebackpack);
+    $bp->disconnect_backpack();
+    redirect(
+        new moodle_url('/badges/mybackpack.php'),
+        get_string('backpackdisconnected', 'badges'),
+        null,
+        \core\output\notification::NOTIFY_SUCCESS,
+    );
 }
 $warning = '';
 if ($backpack) {
 
     $sitebackpack = badges_get_user_backpack();
 
+    $params['email'] = $backpack->email;
+    $params['backpackweburl'] = $sitebackpack->backpackweburl;
+    $params['selected'] = '';
+
     // If backpack is connected, need to select collections.
-    $bp = new \core_badges\backpack_api($sitebackpack, $backpack);
-    $request = $bp->get_collections();
-    $groups = $request;
-    if (isset($request->groups)) {
-        $groups = $request->groups;
-    }
-    if (empty($groups)) {
+    if ($sitebackpack->apiversion == OPEN_BADGES_V2P1) {
+        // TODO: Implement the funcionality for displaying external badges in profile for 2.1.
+        // $bp = new \core_badges\backpack_api2p1(externalbackpack: $sitebackpack);
+        // $groups = $bp->get_assertions();
+
         $err = get_string('error:nogroupssummary', 'badges');
         $err .= get_string('error:nogroupslink', 'badges', $sitebackpack->backpackweburl);
         $params['nogroups'] = $err;
-    } else {
-        $params['groups'] = $groups;
-    }
-    $params['email'] = $backpack->email;
-    $params['selected'] = $bp->get_collection_record($backpack->id);
-    $params['backpackweburl'] = $sitebackpack->backpackweburl;
-    $form = new \core_badges\form\collections(new moodle_url('/badges/mybackpack.php'), $params);
 
-    if ($form->is_cancelled()) {
-        redirect(new moodle_url('/badges/mybadges.php'));
-    } else if ($data = $form->get_data()) {
-        if (empty($data->group)) {
-            redirect(new moodle_url('/badges/mybadges.php'));
-        } else {
-            $groups = array_filter($data->group);
+        $form = new \core_badges\form\collections(new moodle_url('/badges/mybackpack.php'), $params);
+    } else {
+        $bp = api_base::create_from_externalbackpack($sitebackpack);
+        $request = $bp->get_collections();
+        $groups = $request;
+        if (isset($request->groups)) {
+            $groups = $request->groups;
         }
-        $bp->set_backpack_collections($backpack->id, $groups);
-        redirect(new moodle_url('/badges/mybadges.php'));
+
+        if (empty($groups)) {
+            $err = get_string('error:nogroupssummary', 'badges');
+            $err .= get_string('error:nogroupslink', 'badges', $sitebackpack->backpackweburl);
+            $params['nogroups'] = $err;
+        } else {
+            $params['groups'] = $groups;
+        }
+        $params['selected'] = $bp->get_collection_record($backpack->id);
+        $form = new \core_badges\form\collections(new moodle_url('/badges/mybackpack.php'), $params);
+
+        if ($form->is_cancelled()) {
+            redirect(new moodle_url('/badges/mybadges.php'));
+        } else if ($data = $form->get_data()) {
+            if (empty($data->group)) {
+                redirect(new moodle_url('/badges/mybadges.php'));
+            } else {
+                $groups = array_filter($data->group);
+            }
+            $bp->set_backpack_collections($backpack->id, $groups);
+            redirect(new moodle_url('/badges/mybadges.php'));
+        }
     }
 } else {
     // If backpack is not connected, need to connect first.

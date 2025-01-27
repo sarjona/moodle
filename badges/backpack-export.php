@@ -25,6 +25,8 @@
 require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
 
+use core_badges\local\backpack\ob\api_base;
+
 $hash = optional_param('hash', null, PARAM_RAW);
 
 $PAGE->set_pagelayout('admin');
@@ -52,6 +54,7 @@ $PAGE->set_pagelayout('standard');
 
 $redirecturl = new moodle_url('/badges/mybadges.php');
 if ($hash) {
+    $api = api_base::create_from_externalbackpack($backpack);
     $api = new core_badges\backpack_api2p1($backpack);
     $notify = $api->put_assertions($hash);
     if (!empty($notify['status']) && $notify['status'] == \core\output\notification::NOTIFY_SUCCESS) {

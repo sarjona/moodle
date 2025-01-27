@@ -34,6 +34,7 @@ require_once($CFG->libdir . '/badgeslib.php');
 use html_writer;
 use moodleform;
 use stdClass;
+use core_badges\local\backpack\ob\api_base;
 
 /**
  * Form to edit backpack initial details.
@@ -166,11 +167,10 @@ class backpack extends external_backpack {
         }
 
         // Check the given credentials (email and password) are valid for this backpack.
-        $check = new stdClass();
-        $check->email = $data['backpackemail'];
-        $check->password = $data['password'];
         $sitebackpack = badges_get_site_backpack($data['externalbackpackid']);
-        $bp = new \core_badges\backpack_api($sitebackpack, $check);
+        $sitebackpack->email = $data['backpackemail'];
+        $sitebackpack->password = $data['password'];
+        $bp = api_base::create_from_externalbackpack($sitebackpack);
 
         $result = $bp->authenticate();
         if ($result === false || !empty($result->error)) {
