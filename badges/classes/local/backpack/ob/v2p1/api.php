@@ -228,7 +228,7 @@ class api extends api_base {
      * @throws \moodle_exception
      * @throws coding_exception
      */
-    public function put_assertions($hash) {
+    public function put_assertions(string $hash): array {
         $data = [];
         if (!$hash) {
             return false;
