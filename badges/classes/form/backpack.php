@@ -34,6 +34,7 @@ require_once($CFG->libdir . '/badgeslib.php');
 use html_writer;
 use moodleform;
 use stdClass;
+use core_badges\local\backpack\ob\api_base;
 
 /**
  * Form to edit backpack initial details.
@@ -143,40 +144,9 @@ class backpack extends external_backpack {
             return $errors;
         }
 
-        // We don't need to verify anything for OBv2.1.
-        if (badges_open_badges_backpack_api() == OPEN_BADGES_V2P1) {
-            return [];
-        }
-
-        // We don't need to verify the email address if we're clearing a pending email verification attempt.
-        if (isset($data['revertbutton'])) {
-            return [];
-        }
-
-        $errors = [];
-        // Email and password can't be blank.
-        if (empty($data['backpackemail'])) {
-            $errors['backpackemail'] = get_string('backpackemail_required', 'badges');
-        }
-        if (empty($data['password'])) {
-            $errors['password'] = get_string('password_required', 'badges');
-        }
-        if (!empty($errors)) {
-            return $errors;
-        }
-
-        // Check the given credentials (email and password) are valid for this backpack.
-        $check = new stdClass();
-        $check->email = $data['backpackemail'];
-        $check->password = $data['password'];
+        // If the user has selected a backpack, verify specific backpack fields, which may change depending on the API version.
         $sitebackpack = badges_get_site_backpack($data['externalbackpackid']);
-        $bp = new \core_badges\backpack_api($sitebackpack, $check);
-
-        $result = $bp->authenticate();
-        if ($result === false || !empty($result->error)) {
-            $msg = $bp->get_authentication_error();
-            $errors['backpackemail'] = get_string('backpackconnectionunexpectedresult', 'badges', $msg);
-        }
-        return $errors;
+        $api = api_base::create_from_externalbackpack($sitebackpack);
+        return $api->validate_backpack_form($data);
     }
 }
