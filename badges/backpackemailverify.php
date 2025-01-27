@@ -25,6 +25,8 @@
 require_once(__DIR__ . '/../config.php');
 require_once($CFG->libdir . '/badgeslib.php');
 
+use core_badges\local\backpack\ob\api_base;
+
 $data = optional_param('data', '', PARAM_RAW);
 require_login();
 $PAGE->set_url('/badges/backpackemailverify.php');
@@ -41,11 +43,9 @@ if (!is_null($storedsecret)) {
 
         $backpack = badges_get_site_backpack($backpackid);
 
-        $data = new stdClass();
-        $data->email = $storedemail;
-        $data->password = $password;
-        $data->externalbackpackid = $backpackid;
-        $bp = new \core_badges\backpack_api($backpack, $data);
+        $backpack->email = $storedemail;
+        $backpack->password = $password;
+        $bp = api_base::create_from_externalbackpack($backpack);
 
         // Make sure we have all the required information before trying to save the connection.
         $backpackuid = $bp->authenticate();
@@ -56,7 +56,7 @@ if (!is_null($storedsecret)) {
 
         $values = [
             'userid' => $USER->id,
-            'backpackemail' => $data->email,
+            'backpackemail' => $storedemail,
             'externalbackpackid' => $backpackid,
             'backpackuid' => $backpackuid,
             'autosync' => 0,
