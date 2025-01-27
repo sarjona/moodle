@@ -1,0 +1,287 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+namespace core_badges\local\backpack\ob\v2p1;
+
+use core\url;
+use stdClass;
+use coding_exception;
+use core\oauth2\issuer;
+use core\oauth2\endpoint;
+use core_badges\oauth2\client;
+use core_badges\local\backpack\helper;
+use core\oauth2\discovery\imsbadgeconnect;
+use core_badges\oauth2\badge_backpack_oauth2;
+use core_badges\local\backpack\ob\remote_base;
+use core_badges\local\backpack\request\request_base;
+use core_badges\local\backpack\request\request_token;
+
+/**
+ * To process badges with backpack and control api request and this class using for Open Badge API v2.1 methods.
+ *
+ * @package    core_badges
+ * @copyright  2025 Sara Arjona <sara@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class remote extends remote_base {
+
+    /** @var false|null|stdClass The token data to connect to the backpack */
+    private $tokendata;
+
+    /** @var null clientid. */
+    private $clientid = null;
+
+    /** @var issuer The OAuth2 Issuer for this backpack */
+    protected issuer $issuer;
+
+    /** @var endpoint The apiBase endpoint */
+    protected endpoint $apibase;
+
+    /**
+     * Create a wrapper to communicate with the backpack.
+     *
+     * The resulting class can only do either site backpack communication or
+     * user backpack communication.
+     *
+     * @param stdClass $externalbackpack The external backpack record
+     */
+    public function __construct(
+        /** @var stdClass The external backpack record. */
+        protected stdClass $externalbackpack,
+    ) {
+        parent::__construct($externalbackpack);
+
+        $this->get_clientid($externalbackpack->oauth2_issuerid);
+        if (empty($this->issuer) || empty($this->clientid)) {
+            throw new coding_exception('Backpack incorrect');
+        }
+    }
+
+    #[\Override]
+    protected static function get_api_version(): string {
+        return OPEN_BADGES_V2P1;
+    }
+
+    #[\Override]
+    public function connect_backpack($data): ?url {
+        return new url('/badges/backpack-connect.php', ['backpackid' => $this->externalbackpack->id]);
+    }
+
+    #[\Override]
+    public function validate_backpack_form($data): array {
+        // No validation needed for this API version.
+        return [];
+    }
+
+    /**
+     * Get the class to handle the request to the backpack.
+     *
+     * @param string $action The action to be sent to the backpack.
+     * @param string $posturl The request URL.
+     * @param string $method The HTTP method to use (post, get...).
+     * @param bool $isjson Whether the request should be JSON decoded.
+     * @param bool $authrequired Whether authentication is required for this request.
+     * @return request_base The class to handle backpack request.
+     */
+    protected static function create_request_class(
+        string $action,
+        string $posturl,
+        string $method = 'post',
+        bool $isjson = true,
+        bool $authrequired = true,
+    ): request_base {
+        return new request_token(
+            $action,
+            $posturl,
+            $method,
+            $isjson,
+            $authrequired,
+            self::get_api_version(),
+        );
+    }
+
+    /**
+     * Make an API request.
+     *
+     * @param request_base $request The mapping to call the request.
+     * @param array|null $postdata The data to send in the request.
+     * @return mixed
+     */
+    protected function request(
+        request_base $mapping,
+        ?array $postdata = null,
+    ) {
+        return $mapping->curl_request(
+            $this->get_request_url($mapping->url, $this->get_api_base_url()),
+            $postdata,
+            $this->get_tokendata()?->token,
+        );
+    }
+
+    protected function get_tokendata(): ?stdClass {
+        if (!isset($this->tokendata)) {
+            $this->tokendata = $this->get_stored_token($this->externalbackpack->id);
+        }
+
+        return $this->tokendata;
+    }
+
+    /**
+     * Gets the apiBase url associated to this backpack.
+     *
+     * @return string
+     */
+    protected function get_api_base_url(): string {
+        if (!isset($this->apibase)) {
+            $apibase = endpoint::get_record([
+                'issuerid' => $this->externalbackpack->oauth2_issuerid,
+                'name' => 'apiBase',
+            ]);
+
+            if (empty($apibase)) {
+                imsbadgeconnect::create_endpoints($this->get_oauth2_issuer());
+                $apibase = endpoint::get_record([
+                    'issuerid' => $this->externalbackpack->oauth2_issuerid,
+                    'name' => 'apiBase',
+                ]);
+            }
+
+            $this->apibase = $apibase;
+        }
+
+        return $this->apibase->get('url');
+    }
+
+    /**
+     * Initialises or returns the OAuth2 issuer associated to this backpack.
+     *
+     * @return issuer
+     */
+    protected function get_oauth2_issuer(): issuer {
+        if (!isset($this->issuer)) {
+            $this->issuer = new issuer($this->externalbackpack->oauth2_issuerid);
+        }
+        return $this->issuer;
+    }
+
+    #[\Override]
+    public function disconnect_backpack(): bool {
+        global $USER;
+
+        $db = \core\di::get(\moodle_database::class);
+
+        $badgebackpack = $this->externalbackpack->badgebackpack;
+        $db->delete_records_select('badge_external', 'backpackid = :backpack', ['backpack' => $badgebackpack]);
+        $db->delete_records('badge_backpack', ['id' => $badgebackpack]);
+        $db->delete_records('badge_backpack_oauth2', ['externalbackpackid' => $this->externalbackpack->id, 'userid' => $USER->id]);
+
+        return true;
+    }
+
+    /**
+     * Get token.
+     *
+     * @param int $externalbackpackid ID of external backpack.
+     * @return badge_backpack_oauth2|false|stdClass|null
+     */
+    protected function get_stored_token($externalbackpackid) {
+        global $USER;
+
+        $token = badge_backpack_oauth2::get_record(
+            ['externalbackpackid' => $externalbackpackid, 'userid' => $USER->id]);
+        if ($token !== false) {
+            $token = $token->to_record();
+            return $token;
+        }
+        return null;
+    }
+
+    /**
+     * Get client id.
+     *
+     * @param int $issuerid id of Oauth2 service.
+     * @throws coding_exception
+     */
+    private function get_clientid($issuerid) {
+        $issuer = \core\oauth2\api::get_issuer($issuerid);
+        if (!empty($issuer)) {
+            $this->issuer = $issuer;
+            $this->clientid = $issuer->get('clientid');
+        }
+    }
+
+    #[\Override]
+    public function put_assertions(string $hash): array {
+        $data = [];
+        if (!$hash) {
+            return false;
+        }
+
+        $issuer = $this->get_oauth2_issuer();
+        $client = new client($issuer, new url('/badges/mybadges.php'), '', $this->externalbackpack);
+        if (!$client->is_logged_in()) {
+            $redirecturl = new url('/badges/mybadges.php', ['error' => 'backpackexporterror']);
+            redirect($redirecturl);
+        }
+
+        $data['assertion'] = helper::export_achievement_credential(
+            OPEN_BADGES_V2P1,
+            $hash,
+        );
+
+        $mapping = self::create_request_class(
+            action: 'post.assertions',
+            posturl: '[URL]/assertions',
+        );
+
+        //TODO: Confirm whether $data is array or string.
+        $response = $this->request($mapping, $data);
+        if ($response && isset($response->status->statusCode) && $response->status->statusCode == 200) {
+            $msg['status'] = \core\output\notification::NOTIFY_SUCCESS;
+            $msg['message'] = get_string('addedtobackpack', 'badges');
+        } else {
+            if ($response) {
+                // Although the specification defines that status error is a string, some providers, like Badgr, are wrongly
+                // returning an array. It has been reported, but adding these extra checks doesn't hurt, just in case.
+                if (
+                    property_exists($response, 'status') &&
+                    is_object($response->status) &&
+                    property_exists($response->status, 'error')
+                ) {
+                    $statuserror = $response->status->error;
+                    if (is_array($statuserror)) {
+                        $statuserror = implode($statuserror);
+                    }
+                } else if (property_exists($response, 'error')) {
+                    $statuserror = $response->error;
+                    if (property_exists($response, 'message')) {
+                        $statuserror .= '. Message: ' . $response->message;
+                    }
+                }
+            } else {
+                $statuserror = 'Empty response';
+            }
+            $data = [
+                'badgename' => $data['assertion']['badge']['name'],
+                'error' => $statuserror,
+            ];
+
+            $msg['status'] = \core\output\notification::NOTIFY_ERROR;
+            $msg['message'] = get_string('backpackexporterrorwithinfo', 'badges', $data);
+        }
+        return $msg;
+    }
+}

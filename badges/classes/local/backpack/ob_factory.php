@@ -16,9 +16,10 @@
 
 namespace core_badges\local\backpack;
 
-use core_badges\local\backpack\ob\assertion_exporter_interface;
+use core_badges\local\backpack\ob\remote_base;
 use core_badges\local\backpack\ob\badge_exporter_interface;
 use core_badges\local\backpack\ob\issuer_exporter_interface;
+use core_badges\local\backpack\ob\assertion_exporter_interface;
 
 /**
  * Factory class for Open Badges, used to decouple the construction of Open Badges related objects.
@@ -117,5 +118,25 @@ abstract class ob_factory {
         }
 
         return new $classname($badgeid);
+    }
+
+    /**
+     * Create a new remote backpack instance from an external backpack record.
+     *
+     * @param \stdClass $externalbackpack The external backpack record
+     * @throws \coding_exception
+     * @return remote_base The new remote backpack instance.
+     */
+    public static function create_remote_from_externalbackpack(
+        \stdClass $externalbackpack,
+    ): remote_base {
+
+        $apiversion = helper::convert_apiversion($externalbackpack->apiversion);
+        $classname = __NAMESPACE__ . '\\ob\\' . $apiversion . '\\remote';
+        if (!class_exists($classname)) {
+            throw new \coding_exception('Invalid backpack version');
+        }
+
+        return new $classname($externalbackpack);
     }
 }
