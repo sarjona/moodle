@@ -29,9 +29,6 @@ use core_badges\local\backpack\mapping\mapping_base;
  */
 abstract class api_base {
 
-    /** @var mapping_base[] List of backpack API requests. */
-    protected $mappings = [];
-
     /**
      * Base constructor.
      *
@@ -40,18 +37,14 @@ abstract class api_base {
      * make use of parameters in newer versions even if they don't exist in older versions.
      *
      * @param stdClass $externalbackpack The external backpack record
-     * @param mixed ...$extra Extra arguments to allow for future versions to add more options
      */
     public function __construct(
         /** @var stdClass The external backpack record. */
         protected stdClass $externalbackpack,
-        mixed ...$extra,
     ) {
         if ($this->externalbackpack->apiversion != $this->get_api_version()) {
             throw new coding_exception('Incorrect backpack version');
         }
-
-        $this->define_mappings();
     }
 
     /**
@@ -59,25 +52,7 @@ abstract class api_base {
      *
      * @return string The API version.
      */
-    abstract protected function get_api_version(): string;
-
-    /**
-     * Define the mappings supported by this usage and api version.
-     */
-    protected function define_mappings(): void {
-        foreach ($this->get_mappings() as $mapping) {
-            $this->mappings[] = new ($this->get_mapping_class())(...$mapping);
-        }
-    }
-
-    abstract protected function get_mapping_class(): string;
-
-    /**
-     * Get the mappings supported by this usage and api version.
-     *
-     * @return array The mappings.
-     */
-    abstract protected function get_mappings(): array;
+    abstract protected static function get_api_version(): string;
 
     /**
      * Disconnect the backpack from current user.
@@ -95,16 +70,37 @@ abstract class api_base {
     abstract public function put_assertions(string $hash): array;
 
     /**
+     * Parse the method URL and insert parameters.
+     *
+     * @param string $requesturl The request URL.
+     * @param string $apiurl The raw API URL.
+     * @param array $params Optional parameters.
+     * @return string
+     */
+    protected function get_request_url(string $requesturl, string $apiurl, array $params = []): string {
+        $urlscheme = parse_url($apiurl, PHP_URL_SCHEME);
+        $urlhost = parse_url($apiurl, PHP_URL_HOST);
+
+        $url = $requesturl;
+        $url = str_replace('[SCHEME]', $urlscheme, $url);
+        $url = str_replace('[HOST]', $urlhost, $url);
+        $url = str_replace('[URL]', $apiurl, $url);
+        foreach ($params as $index => $param) {
+            $url = str_replace("[PARAM" . ($index + 1) . "]", $param, $url);
+        }
+
+        return $url;
+    }
+
+    /**
      * Create a new backpackapi instance from an external backpack record.
      *
      * @param \stdClass $externalbackpack The external backpack record
-     * @param mixed ...$extra Extra arguments
      * @throws \coding_exception
      * @return api_base The new backpackapi instance
      */
     public static function create_from_externalbackpack(
         stdClass $externalbackpack,
-        mixed ...$extra,
     ): self {
         $apiversion = $externalbackpack->apiversion;
         if ($apiversion == OPEN_BADGES_V2) {
@@ -118,7 +114,7 @@ abstract class api_base {
             throw new coding_exception('Invalid backpack version');
         }
 
-        return new $classname($externalbackpack, $extra);
+        return new $classname($externalbackpack);
     }
 
 }

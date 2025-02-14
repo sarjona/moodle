@@ -34,23 +34,16 @@ abstract class mapping_base {
      *
      * @param string $action The action of this method.
      * @param string $url The base url of this backpack.
-     * @param mixed $postparams List of parameters for this method.
-     * @param bool $multiple This method returns an array of responses.
      * @param string $method get or post methods.
      * @param bool $isjson json decode the response.
      * @param bool $authrequired Authentication is required for this request.
      * @param int $backpackapiversion OpenBadges version.
-     * @param mixed ...$extra Extra arguments to allow for future versions to add more options
      */
     public function __construct(
         /** @var string $action The action of this method. */
         protected string $action,
         /** @var string $url The base URL of this backpack. */
-        protected string $url,
-        /** @var mixed $postparams List of parameters for this method. */
-        protected mixed $postparams,
-        /** @var bool $multiple This method returns an array of responses. */
-        protected bool $multiple,
+        public string $url,
         /** @var string $method GET or POST method. */
         protected string $method,
         /** @var bool $json JSON decode the response. */
@@ -59,7 +52,6 @@ abstract class mapping_base {
         protected bool $authrequired,
         /** @var int OpenBadges version. */
         protected $backpackapiversion,
-        mixed ...$extra,
     ) {
 
     }
@@ -68,45 +60,15 @@ abstract class mapping_base {
      * Make an API request and parse the response.
      *
      * @param string $apiurl Raw request URL
+     * @param array|string|null $postdata Data to post
      * @param mixed ...$extra Extra arguments to allow for specific mappings to add more options
      * @return mixed
      */
-    abstract public function request(
+    abstract public function curl_request(
         string $apiurl,
+        $postdata = null,
         mixed ...$extra,
     );
-
-    /**
-     * Does the action match this mapping?
-     *
-     * @param string $action The action.
-     * @return bool
-     */
-    public function is_match($action): bool {
-        return $this->action == $action;
-    }
-
-    /**
-     * Parse the method URL and insert parameters.
-     *
-     * @param string $apiurl The raw API URL.
-     * @param string ...$params Optional parameters.
-     * @return string
-     */
-    protected function get_url(string $apiurl, string ...$params): string {
-        $urlscheme = parse_url($apiurl, PHP_URL_SCHEME);
-        $urlhost = parse_url($apiurl, PHP_URL_HOST);
-
-        $url = $this->url;
-        $url = str_replace('[SCHEME]', $urlscheme, $url);
-        $url = str_replace('[HOST]', $urlhost, $url);
-        $url = str_replace('[URL]', $apiurl, $url);
-        foreach ($params as $index => $param) {
-            $url = str_replace("[PARAM" . ($index + 1) . "]", $param, $url);
-        }
-
-        return $url;
-    }
 
     /**
      * Standard options used for all curl requests.
