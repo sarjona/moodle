@@ -33,52 +33,8 @@ use curl;
  */
 class mapping_session extends mapping_base {
 
-
     /** @var string Error string from authentication request. */
     private static $authenticationerror = '';
-
-    /**
-     * Base constructor.
-     *
-     * The $extra parameter has been added here for future-proofing.
-     * This allows named parameters to be used and allows classes extending to
-     * make use of parameters in newer versions even if they don't exist in older versions.
-     *
-     * @param string $action The action of this method.
-     * @param string $url The base url of this backpack.
-     * @param mixed $postparams List of parameters for this method.
-     * @param bool $multiple This method returns an array of responses.
-     * @param string $method get or post methods.
-     * @param bool $isjson json decode the response.
-     * @param bool $authrequired Authentication is required for this request.
-     * @param int $backpackapiversion OpenBadges version.
-     * @param string $requestexporter Name of a class to export parameters for this method.
-     * @param string $responseexporter Name of a class to export response for this method.
-     * @param mixed ...$extra Extra arguments to allow for future versions to add more options
-     */
-    public function __construct(
-        /** @var string $action The action of this method. */
-        protected string $action,
-        /** @var string $url The base URL of this backpack. */
-        protected string $url,
-        /** @var mixed $postparams List of parameters for this method. */
-        protected mixed $postparams,
-        /** @var bool $multiple This method returns an array of responses. */
-        protected bool $multiple,
-        /** @var string $method GET or POST method. */
-        protected string $method,
-        /** @var bool $json JSON decode the response. */
-        protected bool $isjson,
-        /** @var bool $authrequired Authentication is required for this request. */
-        protected bool $authrequired,
-        /** @var int OpenBadges version. */
-        protected $backpackapiversion,
-        protected string $requestexporter,
-        protected string $responseexporter,
-        mixed ...$extra,
-    ) {
-
-    }
 
     /**
      * Get the unique key for the token.
@@ -86,7 +42,7 @@ class mapping_session extends mapping_base {
      * @param string $type The type of token.
      * @return string
      */
-    private function get_token_key($type): string {
+    public static function get_token_key($type): string {
         return 'badges_backpack_' . $type . '_token';
     }
 
@@ -109,57 +65,6 @@ class mapping_session extends mapping_base {
     }
 
     /**
-     * Parse the post parameters and insert replacements.
-     *
-     * @param string $email The api username.
-     * @param string $password The api password.
-     * @param string $param The parameter.
-     * @return mixed
-     */
-    private function get_post_params($email, $password, $param) {
-        global $PAGE;
-
-        if ($this->method == 'get') {
-            return '';
-        }
-
-        $request = $this->postparams;
-        if ($request === '[PARAM]') {
-            $value = $param;
-            foreach ($value as $key => $keyvalue) {
-                if (gettype($value[$key]) == 'array') {
-                    $newkey = 'related_' . $key;
-                    $value[$newkey] = $value[$key];
-                    unset($value[$key]);
-                }
-            }
-        } else if (is_array($request)) {
-            foreach ($request as $key => $value) {
-                if ($value == '[EMAIL]') {
-                    $value = $email;
-                    $request[$key] = $value;
-                } else if ($value == '[PASSWORD]') {
-                    $value = $password;
-                    $request[$key] = $value;
-                } else if ($value == '[PARAM]') {
-                    $request[$key] = is_array($param) ? $param[0] : $param;
-                }
-            }
-        }
-        $context = context_system::instance();
-        $exporter = $this->requestexporter;
-        $output = $PAGE->get_renderer('core', 'badges');
-        if (!empty($exporter)) {
-            $exporterinstance = new $exporter($value, ['context' => $context]);
-            $request = $exporterinstance->export($output);
-        }
-        if ($this->isjson) {
-            return json_encode($request);
-        }
-        return $request;
-    }
-
-    /**
      * Get the user id from a previous user request.
      *
      * @return int
@@ -177,7 +82,7 @@ class mapping_session extends mapping_base {
      * @param integer $backpackid The id of the backpack.
      * @return mixed
      */
-    private function oauth_token_response($response, $backpackid) {
+    public function oauth_token_response($response, $backpackid) {
         global $SESSION;
 
         if (isset($response->access_token) && isset($response->refresh_token)) {
@@ -209,28 +114,19 @@ class mapping_session extends mapping_base {
     /**
      * Make an API request and parse the response.
      *
-     * @param string $apiurl Raw request URL
+     * @param string $url Request URL
+     * @param array|string|null $postdata Data to post
      * @param mixed ...$extra Extra arguments to allow for specific mappings to add more options
      * @return mixed TODO: Replace mixed with more specific type.
      */
-    public function request(
-        string $apiurl,
+    public function curl_request(
+        string $url,
+        $postdata = null,
         mixed ...$extra,
     ) {
         global $SESSION, $PAGE;
 
-        // Extract parameters from $extra
-        $urlparam1 = $extra[0] ?? '';
-        $urlparam2 = $extra[1] ?? '';
-        $email = $extra[2] ?? '';
-        $password = $extra[3] ?? '';
-        $postparam = $extra[4] ?? '';
-        $backpackid = $extra[5] ?? '';
-
         $curl = new curl();
-
-        $url = $this->get_url($apiurl, $urlparam1, $urlparam2);
-
         if ($this->authrequired) {
             $accesskey = $this->get_token_key(BADGE_ACCESS_TOKEN);
             if (isset($SESSION->$accesskey)) {
@@ -244,49 +140,18 @@ class mapping_session extends mapping_base {
         $curl->setHeader(array('Accept: application/json', 'Expect:'));
         $options = $this->get_curl_options();
 
-        $post = $this->get_post_params($email, $password, $postparam);
-
         if ($this->method == 'get') {
-            $response = $curl->get($url, $post, $options);
+            $response = $curl->get($url, $postdata, $options);
         } else if ($this->method == 'post') {
-            $response = $curl->post($url, $post, $options);
+            $response = $curl->post($url, $postdata, $options);
         } else if ($this->method == 'put') {
-            $response = $curl->put($url, $post, $options);
+            $response = $curl->put($url, $postdata, $options);
         }
         $response = json_decode($response);
         if (isset($response->result)) {
             $response = $response->result;
         }
-        $context = context_system::instance();
-        $exporter = $this->responseexporter;
-        if (class_exists($exporter)) {
-            $output = $PAGE->get_renderer('core', 'badges');
-            if (!$this->multiple) {
-                if (count($response)) {
-                    $response = $response[0];
-                }
-                if (empty($response)) {
-                    return null;
-                }
-                $apidata = $exporter::map_external_data($response, $this->backpackapiversion);
-                $exporterinstance = new $exporter($apidata, ['context' => $context]);
-                $data = $exporterinstance->export($output);
-                return $data;
-            } else {
-                $multiple = [];
-                if (empty($response)) {
-                    return $multiple;
-                }
-                foreach ($response as $data) {
-                    $apidata = $exporter::map_external_data($data, $this->backpackapiversion);
-                    $exporterinstance = new $exporter($apidata, ['context' => $context]);
-                    $multiple[] = $exporterinstance->export($output);
-                }
-                return $multiple;
-            }
-        } else if (method_exists($this, $exporter)) {
-            return $this->$exporter($response, $backpackid);
-        }
+
         return $response;
     }
 }

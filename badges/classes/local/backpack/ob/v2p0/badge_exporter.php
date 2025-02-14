@@ -86,18 +86,9 @@ class badge_exporter extends exporter_base implements badge_exporter_interface {
 
         // Image.
         $urlimage = moodle_url::make_pluginfile_url($context->id, 'badges', 'badgeimage', $badgeid, '/', 'f3')->out(false);
-        if ($this->_badge->imageauthorname || $this->_badge->imageauthoremail || $this->_badge->imageauthorurl ||
-                $this->_badge->imagecaption) {
-            $data['image']['id'] = $urlimage;
-            if ($this->_badge->imageauthorname || $this->_badge->imageauthoremail || $this->_badge->imageauthorurl) {
-                $authorimage = new moodle_url('/badges/image_author_json.php', ['id' => $badgeid]);
-                $data['image']['author'] = $authorimage->out(false);
-            }
-            if ($this->_badge->imagecaption) {
-                $data['image']['caption'] = $this->_badge->imagecaption;
-            }
-        } else {
-            $data['image'] = $urlimage;
+        $data['image']['id'] = $urlimage;
+        if ($this->_badge->imagecaption) {
+            $data['image']['caption'] = $this->_badge->imagecaption;
         }
 
         // Criteria.
