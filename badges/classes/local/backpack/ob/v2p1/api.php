@@ -19,6 +19,7 @@ namespace core_badges\local\backpack\ob\v2p1;
 use coding_exception;
 use moodle_url;
 use stdClass;
+use core_badges\local\backpack\mapping\mapping_base;
 use core_badges\local\backpack\mapping\mapping_token;
 use core_badges\local\backpack\ob\api_base;
 use core_badges\oauth2\client;
@@ -55,14 +56,12 @@ class api extends api_base {
      * user backpack communication.
      *
      * @param stdClass $externalbackpack The external backpack record
-     * @param mixed ...$extra Extra arguments to allow for future versions to add more options
      */
     public function __construct(
         /** @var stdClass The external backpack record. */
         protected stdClass $externalbackpack,
-        mixed ...$extra,
     ) {
-        parent::__construct(externalbackpack: $externalbackpack);
+        parent::__construct($externalbackpack);
 
         $this->get_clientid($externalbackpack->oauth2_issuerid);
         if (!$this->tokendata = $this->get_stored_token($externalbackpack->id)) {
@@ -71,55 +70,44 @@ class api extends api_base {
 
     }
 
-    protected function get_api_version(): string {
+    protected static function get_api_version(): string {
         return OPEN_BADGES_V2P1;
     }
 
-    protected function get_mapping_class(): string {
-        return mapping_token::class;
+    protected static function create_mapping_class(
+        string $action,
+        string $posturl,
+        string $method = 'post',
+        bool $isjson = true,
+        bool $authrequired = true,
+    ): mapping_base {
+        return new mapping_token(
+            $action,
+            $posturl,
+            $method,
+            $isjson,
+            $authrequired,
+            self::get_api_version(),
+        );
     }
 
     /**
-     * Get the mappings supported by this usage and api version.
+     * Make an API request.
      *
-     * @return array The mappings.
+     * #[\Override]
+     * @param mapping_base $mapping The mapping to call the request.
+     * @param array|null $postdata The data to send in the request.
+     * @return mixed
      */
-    protected function get_mappings(): array {
-        $mapping[] = [
-            'post.assertions',          // Action.
-            '[URL]/assertions',         // URL
-            '[PARAM]',                  // Post params.
-            false,                      // Multiple.
-            'post',                     // Method.
-            true,                       // JSON Encoded.
-            true,                       // Auth required.
-            $this->get_api_version(),   // Backpack version.
-        ];
-
-        $mapping[] = [
-            'get.assertions',           // Action.
-            '[URL]/assertions',         // URL
-            '[PARAM]',                  // Post params.
-            false,                      // Multiple.
-            'get',                      // Method.
-            true,                       // JSON Encoded.
-            true,                       // Auth required.
-            $this->get_api_version(),   // Backpack version.
-        ];
-
-        return $mapping;
-    }
-
-    /**
-     * Initialises or returns the OAuth2 issuer associated to this backpack.
-     *
-     * @return issuer
-     */
-    protected function get_issuer(): issuer {
-        if (!isset($this->issuer)) {
-            $this->issuer = new issuer($this->externalbackpack->oauth2_issuerid);
-        }
-        return $this->issuer;
+    protected function request(
+        mapping_base $mapping,
+        ?array $postdata = null,
+    ) {
+        return $mapping->curl_request(
+            $this->get_request_url($mapping->url, $this->get_api_base_url()),
+            $postdata,
+            $this->tokendata->token,
+        );
     }
 
     /**
@@ -135,7 +123,7 @@ class api extends api_base {
             ]);
 
             if (empty($apibase)) {
-                imsbadgeconnect::create_endpoints($this->get_issuer());
+                imsbadgeconnect::create_endpoints($this->get_oauth2_issuer());
                 $apibase = endpoint::get_record([
                     'issuerid' => $this->externalbackpack->oauth2_issuerid,
                     'name' => 'apiBase',
@@ -148,6 +136,17 @@ class api extends api_base {
         return $this->apibase->get('url');
     }
 
+    /**
+     * Initialises or returns the OAuth2 issuer associated to this backpack.
+     *
+     * @return issuer
+     */
+    protected function get_oauth2_issuer(): issuer {
+        if (!isset($this->issuer)) {
+            $this->issuer = new issuer($this->externalbackpack->oauth2_issuerid);
+        }
+        return $this->issuer;
+    }
 
     /**
      * Disconnect the backpack from current user.
@@ -164,28 +163,6 @@ class api extends api_base {
         $DB->delete_records('badge_backpack_oauth2', ['externalbackpackid' => $badgebackpack, 'userid' => $USER->id]);
 
         return true;
-    }
-
-    /**
-     * Make an api request.
-     *
-     * @param string $action The api function.
-     * @param string $postdata The body of the api request.
-     * @return mixed
-     */
-    public function curl_request($action, $postdata = null) {
-        $tokenkey = $this->tokendata->token;
-        foreach ($this->mappings as $mapping) {
-            if ($mapping->is_match($action)) {
-                return $mapping->request(
-                    $this->get_api_base_url(),
-                    $tokenkey,
-                    $postdata
-                );
-            }
-        }
-
-        throw new coding_exception('Unknown request');
     }
 
     /**
@@ -234,7 +211,7 @@ class api extends api_base {
             return false;
         }
 
-        $issuer = $this->get_issuer();
+        $issuer = $this->get_oauth2_issuer();
         $client = new client($issuer, new moodle_url('/badges/mybadges.php'), '', $this->externalbackpack);
         if (!$client->is_logged_in()) {
             $redirecturl = new moodle_url('/badges/mybadges.php', ['error' => 'backpackexporterror']);
@@ -245,7 +222,13 @@ class api extends api_base {
 
         $assertion = new \core_badges_assertion($hash, OPEN_BADGES_V2);
         $data['assertion'] = $assertion->get_badge_assertion();
-        $response = $this->curl_request('post.assertions', $data);
+        $mapping = self::create_mapping_class(
+            action: 'post.assertions',
+            posturl: '[URL]/assertions',
+        );
+
+        //TODO: Confirm whether $data is array or string.
+        $response = $this->request($mapping, $data);
         if ($response && isset($response->status->statusCode) && $response->status->statusCode == 200) {
             $msg['status'] = \core\output\notification::NOTIFY_SUCCESS;
             $msg['message'] = get_string('addedtobackpack', 'badges');
@@ -291,7 +274,7 @@ class api extends api_base {
     //     // TODO: Implement the funcionality for displaying external badges in profile for 2.1.
     //     $msg = [];
 
-    //     $issuer = $this->get_issuer();
+    //     $issuer = $this->get_oauth2_issuer();
     //     $client = new client($issuer, new moodle_url('/badges/mybadges.php'), '', $this->externalbackpack);
     //     if (!$client->is_logged_in()) {
     //         $redirecturl = new moodle_url('/badges/mybadges.php', ['error' => 'backpackexporterror']);
@@ -299,7 +282,12 @@ class api extends api_base {
     //     }
 
     //     $this->tokendata = $this->get_stored_token($this->externalbackpack->id);
-    //     $response = $this->curl_request('get.assertions');
+    //     $response = $this->request(
+    //         action: 'get.assertions',
+    //         posturl: '[URL]/assertions',
+    //         postparams: '[PARAM]',
+    //         method: 'get',
+    //     );
     //     if ($response && isset($response->status->statusCode) && $response->status->statusCode == 200) {
     //         $msg['status'] = \core\output\notification::NOTIFY_SUCCESS;
     //         $msg['message'] = 'Success';

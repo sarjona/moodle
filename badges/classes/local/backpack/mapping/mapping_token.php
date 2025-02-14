@@ -35,20 +35,20 @@ class mapping_token extends mapping_base {
     /**
      * Make an API request and parse the response.
      *
-     * @param string $apiurl Raw request URL
+     * @param string $apiurl Request URL
+     * @param array|string|null $postdata Data to post
      * @param mixed ...$extra Extra arguments to allow for specific mappings to add more options
      * @return mixed TODO: Replace mixed with more specific type.
      */
-    public function request(
-        string $apiurl,
+    public function curl_request(
+        string $url,
+        $postdata = null,
         mixed ...$extra,
     ) {
         // Extract parameters from $extra
         $tokenkey = $extra[0] ?? '';
-        $post = $extra[1] ?? [];
 
         $curl = new curl();
-        $url = $this->get_url($apiurl);
         if ($tokenkey) {
             $curl->setHeader('Authorization: Bearer ' . $tokenkey);
         }
@@ -56,16 +56,16 @@ class mapping_token extends mapping_base {
         if ($this->isjson) {
             $curl->setHeader(array('Content-type: application/json'));
             if ($this->method == 'post') {
-                $post = json_encode($post);
+                $postdata = json_encode($postdata);
             }
         }
 
         $curl->setHeader(array('Accept: application/json', 'Expect:'));
         $options = $this->get_curl_options();
         if ($this->method == 'get') {
-            $response = $curl->get($url, $post, $options);
+            $response = $curl->get($url, $postdata, $options);
         } else if ($this->method == 'post') {
-            $response = $curl->post($url, $post, $options);
+            $response = $curl->post($url, $postdata, $options);
         }
         $response = json_decode($response);
         if (isset($response->result)) {

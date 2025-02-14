@@ -16,6 +16,7 @@
 
 namespace core_badges\local\backpack\ob\v2p0;
 
+use core_badges\local\backpack\mapping\mapping_base;
 use core_badges\local\backpack\mapping\mapping_session;
 
 defined('MOODLE_INTERNAL') || die();
@@ -53,12 +54,10 @@ class api extends api_base {
      * user backpack communication.
      *
      * @param stdClass $externalbackpack The external backpack record
-     * @param mixed ...$extra Extra arguments to allow for future versions to add more options
      */
     public function __construct(
         /** @var stdClass The external backpack record. */
         protected stdClass $externalbackpack,
-        mixed ...$extra,
     ) {
         if (!property_exists($externalbackpack, 'email')) {
             $externalbackpack->email = $externalbackpack->backpackemail;
@@ -66,142 +65,12 @@ class api extends api_base {
 
         parent::__construct($externalbackpack);
 
-        // Clear the last authentication error.
-        $this->get_mapping_class()::set_authentication_error('');
+        // TODO: Clear the last authentication error.
+        // $this->get_mapping_class()::set_authentication_error('');
     }
 
-    protected function get_api_version(): string {
+    protected static function get_api_version(): string {
         return OPEN_BADGES_V2;
-    }
-
-    protected function get_mapping_class(): string {
-        return mapping_session::class;
-    }
-
-    /**
-     * Get the mappings supported by this usage and api version.
-     *
-     * @return array The mappings.
-     */
-    protected function get_mappings(): array {
-        $mapping[] = [
-            'collections',                              // Action.
-            '[URL]/backpack/collections',               // URL.
-            [],                                         // Post params.
-            true,                                       // Multiple.
-            'get',                                      // Method.
-            true,                                       // JSON Encoded.
-            true,                                       // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            '',                                         // Request exporter.
-            'core_badges\external\collection_exporter', // Response exporter.
-        ];
-        $mapping[] = [
-            'user',                                     // Action.
-            '[SCHEME]://[HOST]/o/token',                // URL.
-            ['username' => '[EMAIL]', 'password' => '[PASSWORD]'], // Post params.
-            false,                                      // Multiple.
-            'post',                                     // Method.
-            false,                                      // JSON Encoded.
-            false,                                      // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            '',                                         // Request exporter.
-            'oauth_token_response',                     // Response exporter.
-        ];
-        $mapping[] = [
-            'assertion',                                // Action.
-            // Badgr.io does not return the public information about a badge
-            // if the issuer is associated with another user. We need to pass
-            // the expand parameters which are not in any specification to get
-            // additional information about the assertion in a single request.
-            '[URL]/backpack/assertions/[PARAM2]?expand=badgeclass&expand=issuer',
-            [],                                         // Post params.
-            false,                                      // Multiple.
-            'get',                                      // Method.
-            true,                                       // JSON Encoded.
-            true,                                       // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            '',                                         // Request exporter.
-            'core_badges\external\assertion_exporter',  // Response exporter.
-        ];
-        $mapping[] = [
-            'importbadge',                                // Action.
-            // Badgr.io does not return the public information about a badge
-            // if the issuer is associated with another user. We need to pass
-            // the expand parameters which are not in any specification to get
-            // additional information about the assertion in a single request.
-            '[URL]/backpack/import',
-            ['url' => '[PARAM]'],  // Post params.
-            false,                                          // Multiple.
-            'post',                                         // Method.
-            true,                                           // JSON Encoded.
-            true,                                           // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            '',                                             // Request exporter.
-            'core_badges\external\assertion_exporter',      // Response exporter.
-        ];
-        $mapping[] = [
-            'badges',                                   // Action.
-            '[URL]/backpack/collections/[PARAM1]',      // URL.
-            [],                                         // Post params.
-            true,                                       // Multiple.
-            'get',                                      // Method.
-            true,                                       // JSON Encoded.
-            true,                                       // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            '',                                         // Request exporter.
-            'core_badges\external\collection_exporter', // Response exporter.
-        ];
-        $mapping[] = [
-            'issuers',                                  // Action.
-            '[URL]/issuers',                            // URL.
-            '[PARAM]',                                  // Post params.
-            false,                                      // Multiple.
-            'post',                                     // Method.
-            true,                                       // JSON Encoded.
-            true,                                       // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            'core_badges\external\issuer_exporter',     // Request exporter.
-            'core_badges\external\issuer_exporter',     // Response exporter.
-        ];
-        $mapping[] = [
-            'badgeclasses',                             // Action.
-            '[URL]/issuers/[PARAM2]/badgeclasses',      // URL.
-            '[PARAM]',                                  // Post params.
-            false,                                      // Multiple.
-            'post',                                     // Method.
-            true,                                       // JSON Encoded.
-            true,                                       // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            'core_badges\external\badgeclass_exporter', // Request exporter.
-            'core_badges\external\badgeclass_exporter', // Response exporter.
-        ];
-        $mapping[] = [
-            'assertions',                               // Action.
-            '[URL]/badgeclasses/[PARAM2]/assertions',   // URL.
-            '[PARAM]',                                  // Post params.
-            false,                                      // Multiple.
-            'post',                                     // Method.
-            true,                                       // JSON Encoded.
-            true,                                       // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            'core_badges\external\assertion_exporter',  // Request exporter.
-            'core_badges\external\assertion_exporter',  // Response exporter.
-        ];
-        $mapping[] = [
-            'updateassertion',                          // Action.
-            '[URL]/assertions/[PARAM2]?expand=badgeclass&expand=issuer',
-            '[PARAM]',                                  // Post params.
-            false,                                      // Multiple.
-            'put',                                      // Method.
-            true,                                       // JSON Encoded.
-            true,                                       // Auth required.
-            $this->get_api_version(),                   // Backpack version.
-            'core_badges\external\assertion_exporter',  // Request exporter.
-            'core_badges\external\assertion_exporter',  // Response exporter.
-        ];
-
-        return $mapping;
     }
 
     /**
@@ -228,30 +97,137 @@ class api extends api_base {
     }
 
     /**
-     * Make an api request
+     * Get the last error message returned during an authentication request.
      *
-     * @param string $action The api function.
-     * @param string $collection An api parameter
-     * @param string $entityid An api parameter
-     * @param string $postdata The body of the api request.
+     * @return string
+     */
+    public function get_authentication_error() {
+        return $this->$this->get_mapping_class()::get_authentication_error();
+    }
+
+    protected static function create_mapping_class(
+        string $action,
+        string $posturl,
+        string $method = 'post',
+        bool $isjson = true,
+        bool $authrequired = true,
+    ): mapping_base {
+        return new mapping_session(
+            $action,
+            $posturl,
+            $method,
+            $isjson,
+            $authrequired,
+            self::get_api_version(),
+        );
+    }
+
+    /**
+     * Parse the post parameters and insert replacements.
+     *
+     * @param array|string $postparams The post parameters.
+     * @param array $param The parameter value.
      * @return mixed
      */
-    private function curl_request($action, $collection = null, $entityid = null, $postdata = null) {
-        foreach ($this->mappings as $mapping) {
-            if ($mapping->is_match($action)) {
-                return $mapping->request(
-                    $this->externalbackpack->backpackapiurl,
-                    $collection,
-                    $entityid,
-                    $this->externalbackpack->email,
-                    $this->externalbackpack->password,
-                    $postdata,
-                    $this->externalbackpack->id,
-                );
+    private function get_postdata(
+        mixed $postparams = '',
+        mixed $paramvalue = [],
+        string $requestexporter = '',
+        bool $isjson = true,
+    ) {
+        global $PAGE;
+
+        $request = $postparams;
+        $email = $this->externalbackpack->email;
+        $password = $this->externalbackpack->password;
+        if ($request === '[PARAM]') {
+            $value = $paramvalue;
+            foreach ($value as $key => $keyvalue) {
+                if (gettype($value[$key]) == 'array') {
+                    $newkey = 'related_' . $key;
+                    $value[$newkey] = $value[$key];
+                    unset($value[$key]);
+                }
+            }
+        } else if (is_array($request)) {
+            foreach ($request as $key => $value) {
+                if ($value == '[EMAIL]') {
+                    $value = $email;
+                    $request[$key] = $value;
+                } else if ($value == '[PASSWORD]') {
+                    $value = $password;
+                    $request[$key] = $value;
+                } else if ($value == '[PARAM]') {
+                    $request[$key] = is_array($paramvalue) ? $paramvalue[0] : $paramvalue;
+                }
             }
         }
+        $context = context_system::instance();
+        $exporter = $requestexporter;
+        $output = $PAGE->get_renderer('core', 'badges');
+        if (!empty($exporter)) {
+            $exporterinstance = new $exporter($value, ['context' => $context]);
+            $request = $exporterinstance->export($output);
+        }
+        if ($isjson) {
+            return json_encode($request);
+        }
+        return $request;
+    }
 
-        throw new coding_exception('Unknown request');
+
+    /**
+     * Make an API request.
+     *
+     * @param mapping_base $mapping The mapping to call the request.
+     * @param array|string|null $postdata The data to send in the request.
+     * @return mixed
+     */
+    protected function request(
+        mapping_base $mapping,
+        $postdata = null,
+        array $postparams = [],
+        string $responseexporter = '',
+        bool $ismultiple = false,
+        ?int $backpackid = null,
+    ) {
+        global $PAGE;
+
+        $response = $mapping->curl_request(
+            $this->get_request_url($mapping->url, $this->externalbackpack->backpackapiurl, $postparams),
+            $postdata,
+        );
+
+        $context = context_system::instance();
+        if (class_exists($responseexporter)) {
+            $output = $PAGE->get_renderer('core', 'badges');
+            if (!$ismultiple) {
+                if (count($response)) {
+                    $response = $response[0];
+                }
+                if (empty($response)) {
+                    return null;
+                }
+                $apidata = $responseexporter::map_external_data($response, self::get_api_version());
+                $exporterinstance = new $responseexporter($apidata, ['context' => $context]);
+                $data = $exporterinstance->export($output);
+                return $data;
+            } else {
+                $result = [];
+                if (empty($response)) {
+                    return $result;
+                }
+                foreach ($response as $data) {
+                    $apidata = $responseexporter::map_external_data($data, self::get_api_version());
+                    $exporterinstance = new $responseexporter($apidata, ['context' => $context]);
+                    $result[] = $exporterinstance->export($output);
+                }
+                return $result;
+            }
+        } else if (method_exists($mapping, $responseexporter)) {
+            return $mapping->$responseexporter($response, $backpackid);
+        }
+
     }
 
     /**
@@ -266,23 +242,27 @@ class api extends api_base {
     }
 
     /**
-     * Get the name of the key to store this access token type.
-     *
-     * @param string $type
-     * @return string
-     */
-    private function get_token_key($type): string {
-        return 'badges_backpack_' . $type . '_token';
-    }
-
-    /**
      * Make an api request to get an assertion
      *
      * @param string $entityid The id of the assertion.
      * @return mixed
      */
     public function get_assertion($entityid) {
-        return $this->curl_request('assertion', null, $entityid);
+        $mapping = self::create_mapping_class(
+            action: 'assertion',
+            // Badgr.io does not return the public information about a badge
+            // if the issuer is associated with another user. We need to pass
+            // the expand parameters which are not in any specification to get
+            // additional information about the assertion in a single request.
+            posturl: '[URL]/backpack/assertions/[PARAM1]?expand=badgeclass&expand=issuer',
+            method: 'get',
+        );
+
+        return $this->request(
+            mapping: $mapping,
+            postparams: [$entityid],
+            responseexporter: 'core_badges\external\assertion_exporter',
+        );
     }
 
     /**
@@ -293,7 +273,19 @@ class api extends api_base {
      * @return mixed
      */
     public function put_badgeclass_assertion($entityid, $data) {
-        return $this->curl_request('assertions', null, $entityid, $data);
+        $mapping = self::create_mapping_class(
+            action: 'assertions',
+            posturl: '[URL]/badgeclasses/[PARAM1]/assertions',
+        );
+
+        $postdata = $this->get_postdata('[PARAM]', $data, 'core_badges\external\assertion_exporter');
+        return $this->request(
+            mapping: $mapping,
+            postdata: $postdata,
+            postparams: [$entityid],
+            responseexporter: 'core_badges\external\assertion_exporter',
+            backpackid: $this->externalbackpack->id,
+        );
     }
 
     /**
@@ -304,7 +296,20 @@ class api extends api_base {
      * @return mixed
      */
     public function update_assertion(string $entityid, array $data) {
-        return $this->curl_request('updateassertion', null, $entityid, $data);
+        $mapping = self::create_mapping_class(
+            action: 'updateassertion',
+            posturl: '[URL]/assertions/[PARAM1]?expand=badgeclass&expand=issuer',
+            method: 'put',
+        );
+
+        $postdata = $this->get_postdata('[PARAM]', $data, 'core_badges\external\assertion_exporter');
+        return $this->request(
+            mapping: $mapping,
+            postdata: $postdata,
+            postparams: [$entityid],
+            responseexporter: 'core_badges\external\assertion_exporter',
+            backpackid: $this->externalbackpack->id,
+        );
     }
 
     /**
@@ -315,37 +320,22 @@ class api extends api_base {
      * @throws coding_exception
      */
     public function import_badge_assertion(string $data) {
-        return $this->curl_request('importbadge', null, null, $data);
-    }
+        $mapping = self::create_mapping_class(
+            action: 'importbadge',
+            // Badgr.io does not return the public information about a badge
+            // if the issuer is associated with another user. We need to pass
+            // the expand parameters which are not in any specification to get
+            // additional information about the assertion in a single request.
+            posturl: '[URL]/backpack/import',
+        );
 
-    /**
-     * Select collections from a backpack.
-     *
-     * @param string $backpackid The id of the backpack
-     * @param stdClass[] $collections List of collections with collectionid or entityid.
-     * @return boolean
-     */
-    public function set_backpack_collections($backpackid, $collections) {
-        global $DB, $USER;
-
-        // Delete any previously selected collections.
-        $sqlparams = array('backpack' => $backpackid);
-        $select = 'backpackid = :backpack ';
-        $DB->delete_records_select('badge_external', $select, $sqlparams);
-        $badgescache = cache::make('core', 'externalbadges');
-
-        // Insert selected collections if they are not in database yet.
-        foreach ($collections as $collection) {
-            $obj = new stdClass();
-            $obj->backpackid = $backpackid;
-            $obj->entityid = $collection;
-            $obj->collectionid = -1;
-            if (!$DB->record_exists('badge_external', (array) $obj)) {
-                $DB->insert_record('badge_external', $obj);
-            }
-        }
-        $badgescache->delete($USER->id);
-        return true;
+        $postdata = $this->get_postdata(['url' => '[PARAM]'], $data);
+        return $this->request(
+            mapping: $mapping,
+            postdata: $postdata,
+            responseexporter: 'core_badges\external\assertion_exporter',
+            backpackid: $this->externalbackpack->id,
+        );
     }
 
     /**
@@ -356,7 +346,19 @@ class api extends api_base {
      * @return mixed
      */
     public function put_badgeclass($entityid, $data) {
-        return $this->curl_request('badgeclasses', null, $entityid, $data);
+        $mapping = self::create_mapping_class(
+            action: 'badgeclasses',
+            posturl: '[URL]/issuers/[PARAM1]/badgeclasses',
+        );
+
+        $postdata = $this->get_postdata('[PARAM]', $data, 'core_badges\external\badgeclass_exporter');
+        return $this->request(
+            mapping: $mapping,
+            postdata: $postdata,
+            postparams: [$entityid],
+            responseexporter: 'core_badges\external\badgeclass_exporter',
+            backpackid: $this->externalbackpack->id,
+        );
     }
 
     /**
@@ -366,7 +368,18 @@ class api extends api_base {
      * @return mixed
      */
     public function put_issuer($data) {
-        return $this->curl_request('issuers', null, null, $data);
+        $mapping = self::create_mapping_class(
+            action: 'issuers',
+            posturl: '[URL]/issuers',
+        );
+
+        $postdata = $this->get_postdata('[PARAM]', $data, 'core_badges\external\issuer_exporter');
+        return $this->request(
+            mapping: $mapping,
+            postdata: $postdata,
+            responseexporter: 'core_badges\external\issuer_exporter',
+            backpackid: $this->externalbackpack->id,
+        );
     }
 
     /**
@@ -377,10 +390,10 @@ class api extends api_base {
     public function clear_system_user_session() {
         global $SESSION;
 
-        $useridkey = $this->get_token_key(BADGE_USER_ID_TOKEN);
+        $useridkey = mapping_session::get_token_key(BADGE_USER_ID_TOKEN);
         unset($SESSION->$useridkey);
 
-        $expireskey = $this->get_token_key(BADGE_EXPIRES_TOKEN);
+        $expireskey = mapping_session::get_token_key(BADGE_EXPIRES_TOKEN);
         unset($SESSION->$expireskey);
     }
 
@@ -393,14 +406,14 @@ class api extends api_base {
     public function authenticate() {
         global $SESSION;
 
-        $backpackidkey = $this->get_token_key(BADGE_BACKPACK_ID_TOKEN);
+        $backpackidkey = mapping_session::get_token_key(BADGE_BACKPACK_ID_TOKEN);
         $backpackid = isset($SESSION->$backpackidkey) ? $SESSION->$backpackidkey : 0;
         // If the backpack is changed we need to expire sessions.
         if ($backpackid == $this->externalbackpack->id) {
-            $useridkey = $this->get_token_key(BADGE_USER_ID_TOKEN);
+            $useridkey = mapping_session::get_token_key(BADGE_USER_ID_TOKEN);
             $authuserid = isset($SESSION->$useridkey) ? $SESSION->$useridkey : 0;
             if ($authuserid == $this->get_auth_user_id()) {
-                $expireskey = $this->get_token_key(BADGE_EXPIRES_TOKEN);
+                $expireskey = mapping_session::get_token_key(BADGE_EXPIRES_TOKEN);
                 if (isset($SESSION->$expireskey)) {
                     $expires = $SESSION->$expireskey;
                     if ($expires > time()) {
@@ -411,7 +424,25 @@ class api extends api_base {
                 }
             }
         }
-        return $this->curl_request('user', $this->externalbackpack->email);
+
+        $mapping = self::create_mapping_class(
+            action: 'user',
+            posturl: '[SCHEME]://[HOST]/o/token',
+            isjson: false,
+            authrequired: false,
+        );
+
+        $postdata = $this->get_postdata(
+            postparams: ['username' => '[EMAIL]', 'password' => '[PASSWORD]'],
+            isjson: false,
+        );
+        return $this->request(
+            mapping: $mapping,
+            postdata: $postdata,
+            postparams: [$this->externalbackpack->email],
+            responseexporter: 'oauth_token_response',
+            backpackid: $this->externalbackpack->id,
+        );
     }
 
     /**
@@ -421,24 +452,24 @@ class api extends api_base {
      */
     public function get_collections() {
         if ($this->authenticate()) {
-            $result = $this->curl_request('collections');
+            $mapping = self::create_mapping_class(
+                action: 'collections',
+                posturl: '[URL]/backpack/collections',
+                method: 'get',
+            );
+
+            $result = $this->request(
+                mapping: $mapping,
+                ismultiple: true,
+                responseexporter: 'core_badges\external\collection_exporter',
+                backpackid: $this->externalbackpack->id,
+            );
+
             if ($result) {
                 return $result;
             }
         }
         return [];
-    }
-
-    /**
-     * Get one collection by id.
-     *
-     * @param integer $collectionid
-     * @return array The collection.
-     */
-    public function get_collection_record($collectionid) {
-        global $DB;
-
-        return $DB->get_fieldset_select('badge_external', 'entityid', 'backpackid = :bid', ['bid' => $collectionid]);
     }
 
     /**
@@ -449,15 +480,6 @@ class api extends api_base {
      */
     public function get_collection_id_from_response($data) {
         return $data->entityId;
-    }
-
-    /**
-     * Get the last error message returned during an authentication request.
-     *
-     * @return string
-     */
-    public function get_authentication_error() {
-        return $this->$this->get_mapping_class()::get_authentication_error();
     }
 
     /**
@@ -475,7 +497,20 @@ class api extends api_base {
                 return [];
             }
             // Now we can make requests.
-            $badges = $this->curl_request('badges', $collection->entityid);
+            $mapping = self::create_mapping_class(
+                action: 'badges',
+                posturl: '[URL]/backpack/collections/[PARAM1]',
+                method: 'get',
+            );
+
+            $badges = $this->request(
+                mapping: $mapping,
+                postparams: [$collection->entityid],
+                ismultiple: true,
+                responseexporter: 'core_badges\external\collection_exporter',
+                backpackid: $this->externalbackpack->id,
+            );
+
             if (count($badges) == 0) {
                 return [];
             }
@@ -521,7 +556,7 @@ class api extends api_base {
      * @return array
      */
     public function put_assertions(string $hash): array {
-        global $USER, $DB;
+        global $DB;
 
         $issuedbadge = new \core_badges\output\issued_badge($hash);
         if (!empty($issuedbadge->recipient->id)) {
@@ -534,100 +569,147 @@ class api extends api_base {
             // Else we will attempt at pushing the assertion to the user's backpack. In this case, the id set against the assertion
             // has to be a publicly accessible resource.
             // Get the backpack.
-            $badgeid = $issuedbadge->badgeid;
-            $badge = new badge($badgeid);
-            $backpack = $DB->get_record('badge_backpack', array('userid' => $USER->id));
-            $userbackpack = badges_get_site_backpack($backpack->externalbackpackid, $USER->id);
+            // $badgeid = $issuedbadge->badgeid;
+            // $badge = new badge($badgeid);
+            // $backpack = $DB->get_record('badge_backpack', array('userid' => $USER->id));
+            // $userbackpack = badges_get_site_backpack($backpack->externalbackpackid, $USER->id);
             $assertion = new \core_badges_assertion($hash, OPEN_BADGES_V2);
             $assertiondata = $assertion->get_badge_assertion(false, false);
             $assertionid = $assertion->get_assertion_hash();
             $assertionentityid = $assertiondata['id'];
             $badgeadded = false;
-            if (badges_open_badges_backpack_api() == OPEN_BADGES_V2) {
-                $sitebackpack = badges_get_site_primary_backpack();
-                $api = api_base::create_from_externalbackpack($userbackpack);
-                $response = $api->authenticate();
-                // A numeric response indicates a valid successful authentication. Else an error object will be returned.
-                if (is_numeric($response)) {
-                    // Create issuer.
-                    $issuer = $assertion->get_issuer();
-                    if (!($issuerentityid = badges_external_get_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_ISSUER, $issuer['email']))) {
-                        $response = $api->put_issuer($issuer);
-                        if (!$response) {
-                            throw new \moodle_exception('invalidrequest', 'error');
-                        }
-                        $issuerentityid = $response->id;
-                        badges_external_create_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_ISSUER, $issuer['email'],
-                            $issuerentityid);
-                    }
-                    // Create badge.
-                    $badge = $assertion->get_badge_class(false);
-                    $badgeid = $assertion->get_badge_id();
-                    if (!($badgeentityid = badges_external_get_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_BADGE, $badgeid))) {
-                        $response = $api->put_badgeclass($issuerentityid, $badge);
-                        if (!$response) {
-                            throw new \moodle_exception('invalidrequest', 'error');
-                        }
-                        $badgeentityid = $response->id;
-                        badges_external_create_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_BADGE, $badgeid,
-                            $badgeentityid);
-                    }
-                    // Create assertion (Award the badge!).
-                    $assertionentityid = badges_external_get_mapping(
-                        $sitebackpack->id,
-                        OPEN_BADGES_V2_TYPE_ASSERTION,
-                        $assertionid
-                    );
-                    if ($assertionentityid && strpos($sitebackpack->backpackapiurl, 'badgr')) {
-                        $assertionentityid = badges_generate_badgr_open_url(
-                            $sitebackpack,
-                            OPEN_BADGES_V2_TYPE_ASSERTION,
-                            $assertionentityid
-                        );
-                    }
-                    // Create an assertion for the recipient in the issuer's account.
-                    if (!$assertionentityid) {
-                        $response = $api->put_badgeclass_assertion($badgeentityid, $assertiondata);
-                        if (!$response) {
-                            throw new \moodle_exception('invalidrequest', 'error');
-                        }
-                        $assertionentityid = badges_generate_badgr_open_url($sitebackpack, OPEN_BADGES_V2_TYPE_ASSERTION, $response->id);
-                        $badgeadded = true;
-                        badges_external_create_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionid,
-                            $response->id);
-                    } else {
-                        // An assertion already exists. Make sure it's up to date.
-                        $internalid = badges_external_get_mapping(
-                            $sitebackpack->id,
-                            OPEN_BADGES_V2_TYPE_ASSERTION,
-                            $assertionid,
-                            'externalid'
-                        );
-                        $response = $api->update_assertion($internalid, $assertiondata);
-                        if (!$response) {
-                            throw new \moodle_exception('invalidrequest', 'error');
-                        }
-                    }
-                }
-            }
-            // Now award/upload the badge to the user's account.
+            // TODO: Is this part still needed? It needs to be tested adding Site Backpack email and password to the backpack.
+            // if (badges_open_badges_backpack_api() == OPEN_BADGES_V2) {
+            //     $sitebackpack = badges_get_site_primary_backpack();
+            //     $api = api_base::create_from_externalbackpack($sitebackpack);
+            //     $response = $api->authenticate();
+            //     // A numeric response indicates a valid successful authentication. Else an error object will be returned.
+            //     if (is_numeric($response)) {
+            //         // Create issuer.
+            //         $issuer = $assertion->get_issuer();
+            //         if (!($issuerentityid = badges_external_get_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_ISSUER, $issuer['email']))) {
+            //             $response = $api->put_issuer($issuer);
+            //             if (!$response) {
+            //                 throw new \moodle_exception('invalidrequest', 'error');
+            //             }
+            //             $issuerentityid = $response->id;
+            //             badges_external_create_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_ISSUER, $issuer['email'],
+            //                 $issuerentityid);
+            //         }
+            //         // Create badge.
+            //         $badge = $assertion->get_badge_class(false);
+            //         $badgeid = $assertion->get_badge_id();
+            //         if (!($badgeentityid = badges_external_get_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_BADGE, $badgeid))) {
+            //             $response = $api->put_badgeclass($issuerentityid, $badge);
+            //             if (!$response) {
+            //                 throw new \moodle_exception('invalidrequest', 'error');
+            //             }
+            //             $badgeentityid = $response->id;
+            //             badges_external_create_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_BADGE, $badgeid,
+            //                 $badgeentityid);
+            //         }
+            //         // Create assertion (Award the badge!).
+            //         $assertionentityid = badges_external_get_mapping(
+            //             $sitebackpack->id,
+            //             OPEN_BADGES_V2_TYPE_ASSERTION,
+            //             $assertionid
+            //         );
+            //         if ($assertionentityid && strpos($sitebackpack->backpackapiurl, 'badgr')) {
+            //             $assertionentityid = badges_generate_badgr_open_url(
+            //                 $sitebackpack,
+            //                 OPEN_BADGES_V2_TYPE_ASSERTION,
+            //                 $assertionentityid
+            //             );
+            //         }
+            //         // Create an assertion for the recipient in the issuer's account.
+            //         if (!$assertionentityid) {
+            //             $response = $api->put_badgeclass_assertion($badgeentityid, $assertiondata);
+            //             if (!$response) {
+            //                 throw new \moodle_exception('invalidrequest', 'error');
+            //             }
+            //             $assertionentityid = badges_generate_badgr_open_url($sitebackpack, OPEN_BADGES_V2_TYPE_ASSERTION, $response->id);
+            //             $badgeadded = true;
+            //             badges_external_create_mapping($sitebackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionid,
+            //                 $response->id);
+            //         } else {
+            //             // An assertion already exists. Make sure it's up to date.
+            //             $internalid = badges_external_get_mapping(
+            //                 $sitebackpack->id,
+            //                 OPEN_BADGES_V2_TYPE_ASSERTION,
+            //                 $assertionid,
+            //                 'externalid'
+            //             );
+            //             $response = $api->update_assertion($internalid, $assertiondata);
+            //             if (!$response) {
+            //                 throw new \moodle_exception('invalidrequest', 'error');
+            //             }
+            //         }
+            //     }
+            // }
+
+            // Award/upload the badge to the user's account.
             // - If a user and site backpack have the same provider we can skip this as Badgr automatically maps recipients
             // based on email address.
             // - This is only needed when the backpacks are from different regions.
-            if ($assertionentityid && !badges_external_get_mapping($userbackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionid)) {
-                $userapi = api_base::create_from_externalbackpack($userbackpack);
-                $userapi->authenticate();
-                $response = $userapi->import_badge_assertion($assertionentityid);
+            if ($assertionentityid && !badges_external_get_mapping($this->externalbackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionid)) {
+                $this->authenticate();
+                $response = $this->import_badge_assertion($assertionentityid);
                 if (!$response) {
-                    throw new \moodle_exception('invalidrequest', 'error');
+                    throw new \moodle_exception('invalidrequest', 'error', '', null, $response);
                 }
                 $assertionentityid = $response->id;
                 $badgeadded = true;
-                badges_external_create_mapping($userbackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionid,
+                badges_external_create_mapping($this->externalbackpack->id, OPEN_BADGES_V2_TYPE_ASSERTION, $assertionid,
                     $assertionentityid);
             }
             $response = $badgeadded ? ['success' => 'addedtobackpack'] : ['warning' => 'existsinbackpack'];
         }
+
         return $response;
     }
+
+
+    /**
+     * Select collections from a backpack.
+     * TODO: Check if this method can be moved outside of the versioned OB class.
+     *
+     * @param string $backpackid The id of the backpack
+     * @param stdClass[] $collections List of collections with collectionid or entityid.
+     * @return boolean
+     */
+    public function set_backpack_collections($backpackid, $collections) {
+        global $DB, $USER;
+
+        // Delete any previously selected collections.
+        $sqlparams = array('backpack' => $backpackid);
+        $select = 'backpackid = :backpack ';
+        $DB->delete_records_select('badge_external', $select, $sqlparams);
+        $badgescache = cache::make('core', 'externalbadges');
+
+        // Insert selected collections if they are not in database yet.
+        foreach ($collections as $collection) {
+            $obj = new stdClass();
+            $obj->backpackid = $backpackid;
+            $obj->entityid = $collection;
+            $obj->collectionid = -1;
+            if (!$DB->record_exists('badge_external', (array) $obj)) {
+                $DB->insert_record('badge_external', $obj);
+            }
+        }
+        $badgescache->delete($USER->id);
+        return true;
+    }
+
+    /**
+     * Get one collection by id.
+     *
+     * @param integer $collectionid
+     * @return array The collection.
+     */
+    public function get_collection_record($collectionid) {
+        global $DB;
+
+        return $DB->get_fieldset_select('badge_external', 'entityid', 'backpackid = :bid', ['bid' => $collectionid]);
+    }
+
 }
