@@ -24,6 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+use core_calendar\output\humandate;
+use core_calendar\output\humantimeperiod;
+
 /**
  * Return the representation day.
  *
@@ -92,27 +95,16 @@ function calendar_day_representation($tstamp, $now = false, $usecommonwords = tr
     mdl: 'MDL-83873',
 )]
 function calendar_time_representation($time) {
-    static $langtimeformat = null;
-
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
 
-    if ($langtimeformat === null) {
-        $langtimeformat = get_string('strftimetime');
-    }
+    global $OUTPUT;
 
-    $timeformat = get_user_preferences('calendar_timeformat');
-    if (empty($timeformat)) {
-        $timeformat = get_config(null, 'calendar_site_timeformat');
-    }
-
-    // Allow language customization of selected time format.
-    if ($timeformat === CALENDAR_TF_12) {
-        $timeformat = get_string('strftimetime12', 'langconfig');
-    } else if ($timeformat === CALENDAR_TF_24) {
-        $timeformat = get_string('strftimetime24', 'langconfig');
-    }
-
-    return userdate($time, empty($timeformat) ? $langtimeformat : $timeformat);
+    $humantime = new humandate(
+        timestamp: $time,
+        near: null,
+        timeonly: true
+    );
+    return $OUTPUT->render($humantime);
 }
 
 /**
@@ -136,82 +128,14 @@ function calendar_time_representation($time) {
 function calendar_format_event_time($event, $now, $linkparams = null, $usecommonwords = true, $showtime = 0) {
     \core\deprecation::emit_deprecation_if_present(__FUNCTION__);
 
-    $starttime = $event->timestart;
-    $endtime = $event->timestart + $event->timeduration;
+    global $OUTPUT;
 
-    if (empty($linkparams) || !is_array($linkparams)) {
-        $linkparams = [];
-    }
+    $humanperiod = new humantimeperiod(
+            starttimestamp: $event->timestart,
+            endtimestamp: $event->timestart + $event->timeduration,
+            link: new \moodle_url(CALENDAR_URL . 'view.php'),
+    );
 
-    $linkparams['view'] = 'day';
+    return $OUTPUT->render($humanperiod);
 
-    // OK, now to get a meaningful display.
-    // Check if there is a duration for this event.
-    if ($event->timeduration) {
-        // Get the midnight of the day the event will start.
-        $usermidnightstart = usergetmidnight($starttime);
-        // Get the midnight of the day the event will end.
-        $usermidnightend = usergetmidnight($endtime);
-        // Check if we will still be on the same day.
-        if ($usermidnightstart == $usermidnightend) {
-            // Check if we are running all day.
-            if ($event->timeduration == DAYSECS) {
-                $time = get_string('allday', 'calendar');
-            } else { // Specify the time we will be running this from.
-                $datestart = calendar_time_representation($starttime);
-                $dateend = calendar_time_representation($endtime);
-                $time = $datestart . ' <strong>&raquo;</strong> ' . $dateend;
-            }
-
-            // Set printable representation.
-            if (!$showtime) {
-                $day = calendar_day_representation($event->timestart, $now, $usecommonwords);
-                $url = calendar_get_link_href(new \moodle_url(CALENDAR_URL . 'view.php', $linkparams), 0, 0, 0, $endtime);
-                $eventtime = \html_writer::link($url, $day) . ', ' . $time;
-            } else {
-                $eventtime = $time;
-            }
-        } else { // It must spans two or more days.
-            $daystart = calendar_day_representation($event->timestart, $now, $usecommonwords) . ', ';
-            if ($showtime == $usermidnightstart) {
-                $daystart = '';
-            }
-            $timestart = calendar_time_representation($event->timestart);
-            $dayend = calendar_day_representation($event->timestart + $event->timeduration, $now, $usecommonwords) . ', ';
-            if ($showtime == $usermidnightend) {
-                $dayend = '';
-            }
-            $timeend = calendar_time_representation($event->timestart + $event->timeduration);
-
-            // Set printable representation.
-            if ($now >= $usermidnightstart && $now < strtotime('+1 day', $usermidnightstart)) {
-                $url = calendar_get_link_href(new \moodle_url(CALENDAR_URL . 'view.php', $linkparams), 0, 0, 0, $endtime);
-                $eventtime = $timestart . ' <strong>&raquo;</strong> ' . \html_writer::link($url, $dayend) . $timeend;
-            } else {
-                // The event is in the future, print start and end links.
-                $url = calendar_get_link_href(new \moodle_url(CALENDAR_URL . 'view.php', $linkparams), 0, 0, 0, $starttime);
-                $eventtime = \html_writer::link($url, $daystart) . $timestart . ' <strong>&raquo;</strong> ';
-
-                $url = calendar_get_link_href(new \moodle_url(CALENDAR_URL . 'view.php', $linkparams),  0, 0, 0, $endtime);
-                $eventtime .= \html_writer::link($url, $dayend) . $timeend;
-            }
-        }
-    } else { // There is no time duration.
-        $time = calendar_time_representation($event->timestart);
-        // Set printable representation.
-        if (!$showtime) {
-            $day = calendar_day_representation($event->timestart, $now, $usecommonwords);
-            $url = calendar_get_link_href(new \moodle_url(CALENDAR_URL . 'view.php', $linkparams),  0, 0, 0, $starttime);
-            $eventtime = \html_writer::link($url, $day) . ', ' . trim($time);
-        } else {
-            $eventtime = $time;
-        }
-    }
-
-    // Check if It has expired.
-    if ($event->timestart + $event->timeduration < $now) {
-        $eventtime = '<span class="dimmed_text">' . str_replace(' href=', ' class="dimmed" href=', $eventtime) . '</span>';
-    }
-
-    return $eventtime;
 }
