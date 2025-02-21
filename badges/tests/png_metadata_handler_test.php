@@ -28,13 +28,6 @@ use core_badges\png_metadata_handler;
  * @author     Dai Nguyen Trong <ngtrdai@hotmail.com>
  */
 final class png_metadata_handler_test extends \advanced_testcase {
-    /**
-     * Set up function for tests
-     */
-    protected function setUp(): void {
-        parent::setUp();
-        $this->resetAfterTest();
-    }
 
     /**
      * Create a valid PNG file content for testing
@@ -42,75 +35,96 @@ final class png_metadata_handler_test extends \advanced_testcase {
      * @return string The PNG file content
      */
     protected function create_test_png(): string {
-        // PNG signature.
-        $content = pack("C8", 137, 80, 78, 71, 13, 10, 26, 10);
+        global $CFG;
 
-        // IHDR chunk.
-        $ihdr = pack("N", 13);
-        $ihdr .= "IHDR";
-        $ihdr .= pack("N*", 100, 100);
-        $ihdr .= pack("C*", 8, 6, 0, 0, 0);
-        $ihdr .= pack("N", crc32("IHDR" . pack("N*", 100, 100) . pack("C*", 8, 6, 0, 0, 0)));
+        $badgepath = $CFG->dirroot . '/badges/tests/behat/badge.png';
+        return file_get_contents($badgepath);
+    }
 
-        // IEND chunk.
-        $iend = pack("N", 0);
-        $iend .= "IEND";
-        $iend .= pack("N", crc32("IEND"));
+    /**
+     * Create a valid JPG file content for testing
+     *
+     * @return string The PNG file content
+     */
+    protected function create_test_jpg(): string {
+        global $CFG;
 
-        return $content . $ihdr . $iend;
+        $badgepath = $CFG->dirroot . '/badges/tests/fixtures/badge.jpg';
+        return file_get_contents($badgepath);
     }
 
     /**
      * Test PNG metadata handler constructor with valid PNG.
      */
     public function test_constructor_valid_png(): void {
+        $this->resetAfterTest();
+
         $content = $this->create_test_png();
         $handler = new png_metadata_handler($content);
         $this->assertInstanceOf(png_metadata_handler::class, $handler);
     }
 
     /**
-     * Test check_chunks method with non-existent chunk.
+     * Test constructor with invalid PNG.
      */
-    public function test_check_chunks_non_existent(): void {
-        $content = $this->create_test_png();
-        $handler = new png_metadata_handler($content);
+    public function test_constructor_invalid_png(): void {
+        $this->resetAfterTest();
 
-        $this->assertTrue($handler->check_chunks('tEXt', 'openbadge'));
+        $content = $this->create_test_jpg();
+        $handler = new png_metadata_handler($content);
+        $this->assertDebuggingCalled('This is not a valid PNG image');
+        $this->assertInstanceOf(png_metadata_handler::class, $handler);
     }
 
     /**
-     * Test add_chunks method with tEXt chunk.
+     * Test add_chunks method with valid chunks.
+     *
+     * @dataProvider add_chunks_provider
+     * @param string $chunk The chunk type
+     * @param string $key The key to add
+     * @param string|null $value The value to add
      */
-    public function test_add_chunks_text(): void {
+    public function test_add_chunks(string $type, string $key, ?string $value = null): void {
+        $this->resetAfterTest();
+
         $content = $this->create_test_png();
         $handler = new png_metadata_handler($content);
+        $this->assertTrue($handler->check_chunks($type, 'openbadge'));
 
-        $newcontent = $handler->add_chunks('tEXt', 'openbadge', 'http://example.com/badge');
+        $newcontent = $handler->add_chunks($type, $key, $value);
 
         // Create new handler with modified content to verify.
         $newhandler = new png_metadata_handler($newcontent);
-        $this->assertFalse($newhandler->check_chunks('tEXt', 'openbadge'));
+        $this->assertFalse($newhandler->check_chunks($type, $key));
+        $this->assertDebuggingCalled('Key "' . $key . '" already exists in "' . $type . '" chunk.');
     }
 
     /**
-     * Test add_chunks method with iTXt chunk.
+     * Data provider for add_chunks test.
+     *
+     * @return array The data provider array
      */
-    public function test_add_chunks_itext(): void {
-        $content = $this->create_test_png();
-        $handler = new png_metadata_handler($content);
-
-        $newcontent = $handler->add_chunks('iTXt', 'openbadge', 'http://example.com/badge');
-
-        // Create new handler with modified content to verify.
-        $newhandler = new png_metadata_handler($newcontent);
-        $this->assertFalse($newhandler->check_chunks('iTXt', 'openbadge'));
+    public static function add_chunks_provider(): array {
+        return [
+            'tEXt' => [
+                'type' => 'tEXt',
+                'key' => 'openbadge',
+                'value' => 'http://example.com/badge',
+            ],
+            'iTXt' => [
+                'type' => 'iTXt',
+                'key' => 'openbadge',
+                'value' => 'http://example.com/badge',
+            ],
+        ];
     }
 
     /**
      * Test add_chunks method with invalid chunk type.
      */
     public function test_add_chunks_invalid_type(): void {
+        $this->resetAfterTest();
+
         $content = $this->create_test_png();
         $handler = new png_metadata_handler($content);
 
@@ -124,13 +138,18 @@ final class png_metadata_handler_test extends \advanced_testcase {
      * Test add_chunks method with too long key.
      */
     public function test_add_chunks_long_key(): void {
-        $this->resetDebugging();
+        $this->resetAfterTest();
+
         $content = $this->create_test_png();
         $handler = new png_metadata_handler($content);
 
         $longkey = str_repeat('a', 80);
-        $handler->add_chunks('tEXt', $longkey, 'http://example.com/badge');
-
+        $this->assertTrue($handler->check_chunks('tEXt', $longkey));
+        $newcontent = $handler->add_chunks('tEXt', $longkey, 'http://example.com/badge');
         $this->assertDebuggingCalled('Key is too big');
+
+        $newhandler = new png_metadata_handler($newcontent);
+        $this->assertFalse($newhandler->check_chunks('tEXt', $longkey));
+        $this->assertDebuggingCalled('Key "' . $longkey . '" already exists in "tEXt" chunk.');
     }
 }
