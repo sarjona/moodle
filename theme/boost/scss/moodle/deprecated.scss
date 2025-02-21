@@ -46,3 +46,258 @@
     @include deprecated-styles();
     display: none;
 }
+
+// The calendar_event_* classes are not used anymore.
+
+// Calendar event background colours defined.
+.calendar_event_category {
+    @include deprecated-styles();
+    background-color: $calendarEventCategoryColor;
+    .commands a {
+        color: $calendarEventColor;
+    }
+}
+.calendar_event_course {
+    @include deprecated-styles();
+    background-color: $calendarEventCourseColor;
+    .commands a {
+        color: $calendarEventColor;
+    }
+}
+
+.calendar_event_site {
+    @include deprecated-styles();
+    background-color: $calendarEventGlobalColor;
+    .commands a {
+        color: $calendarEventColor;
+    }
+}
+
+.calendar_event_group {
+    @include deprecated-styles();
+    background-color: $calendarEventGroupColor;
+    .commands a {
+        color: $calendarEventColor;
+    }
+}
+
+.calendar_event_user {
+    @include deprecated-styles();
+    background-color: $calendarEventUserColor;
+    .commands a {
+        color: $calendarEventColor;
+    }
+}
+
+.calendar_event_other {
+    @include deprecated-styles();
+    background-color: $calendarEventOtherColor;
+    .commands a {
+        color: $calendarEventColor;
+    }
+}
+
+.maincalendar {
+    @include deprecated-styles();
+    .calendarmonth {
+        ul {
+            li {
+                .calendar-circle {
+                    &.calendar_event_category {
+                        background-color: $calendarEventCategoryColor;
+                        border: $calendarEventCategoryBorder;
+                    }
+                    &.calendar_event_course {
+                        background-color: $calendarEventCourseColor;
+                        border: $calendarEventCourseBorder;
+                    }
+
+                    &.calendar_event_site {
+                        background-color: $calendarEventGlobalColor;
+                        border: $calendarEventGlobalBorder;
+                    }
+
+                    &.calendar_event_group {
+                        background-color: $calendarEventGroupColor;
+                        border: $calendarEventGroupBorder;
+                    }
+
+                    &.calendar_event_user {
+                        background-color: $calendarEventUserColor;
+                        border: $calendarEventUserBorder;
+                    }
+
+                    &.calendar_event_other {
+                        background-color: $calendarEventOtherColor;
+                        border: $calendarEventOtherBorder;
+                    }
+                }
+            }
+        }
+    }
+
+    .calendar_event_category,
+    .calendar_event_course,
+    .calendar_event_site,
+    .calendar_event_group,
+    .calendar_event_user {
+        a:has(> .icon) {
+            &:hover {
+                color: darken($calendarEventColor, 15%);
+                text-decoration: $link-decoration;
+            }
+        }
+    }
+
+    .calendar_event_category {
+        border-color: $calendarEventCategoryColor;
+    }
+
+    .calendar_event_course {
+        border-color: $calendarEventCourseColor;
+    }
+
+    .calendar_event_site {
+        border-color: $calendarEventGlobalColor;
+    }
+
+    .calendar_event_group {
+        border-color: $calendarEventGroupColor;
+    }
+
+    .calendar_event_user {
+        border-color: $calendarEventUserColor;
+    }
+
+    .calendar_event_other {
+        border-color: $calendarEventOtherColor;
+    }
+}
+
+// Block minicalendar.
+.block {
+    @include deprecated-styles();
+    .bottom {
+        width: 98%;
+        margin: 10px auto;
+        @include footer-links;
+    }
+
+    .minicalendar {
+        max-width: 280px;
+        margin: 0 auto;
+        width: 100%;
+
+        th,
+        td {
+            padding: 2px;
+            font-size: 0.8em;
+            text-align: center;
+        }
+
+        td {
+            &.weekend {
+                color: $text-muted;
+            }
+
+            a {
+                width: 100%;
+                height: 100%;
+                display: block;
+                color: $calendarEventColor;
+            }
+
+            &.duration_global {
+                border-top: 1px solid $calendarEventGlobalColor;
+                border-bottom: 1px solid $calendarEventGlobalColor;
+
+                &.duration_finish {
+                    background-color: $calendarEventGlobalColor;
+                }
+            }
+
+            &.duration_category {
+                border-top: 1px solid $calendarEventCategoryColor;
+                border-bottom: 1px solid $calendarEventCategoryColor;
+
+                &.duration_finish {
+                    background-color: $calendarEventCategoryColor;
+                }
+            }
+
+            &.duration_course {
+                border-top: 1px solid $calendarEventCourseColor;
+                border-bottom: 1px solid $calendarEventCourseColor;
+
+                &.duration_finish {
+                    background-color: $calendarEventCourseColor;
+                }
+            }
+
+            &.duration_group {
+                border-top: 1px solid $calendarEventGroupColor;
+                border-bottom: 1px solid $calendarEventGroupColor;
+
+                &.duration_finish {
+                    background-color: $calendarEventGroupColor;
+                }
+            }
+
+            &.duration_user {
+                border-top: 1px solid $calendarEventUserColor;
+                border-bottom: 1px solid $calendarEventUserColor;
+
+                &.duration_finish {
+                    background-color: $calendarEventUserColor;
+                }
+            }
+
+            &.duration_other {
+                border-top: 1px solid $calendarEventOtherColor;
+                border-bottom: 1px solid $calendarEventOtherColor;
+
+                &.duration_finish {
+                    background-color: $calendarEventOtherColor;
+                }
+            }
+        }
+
+    }
+
+    .calendar_filters {
+        li {
+            span {
+                &.calendar_event_category {
+                    i {
+                        color: $calendarEventColor;
+                    }
+                }
+                &.calendar_event_course {
+                    i {
+                        color: $calendarEventColor;
+                    }
+                }
+                &.calendar_event_site {
+                    i {
+                        color: $calendarEventColor;
+                    }
+                }
+                &.calendar_event_group {
+                    i {
+                        color: $calendarEventColor;
+                    }
+                }
+                &.calendar_event_user {
+                    i {
+                        color: $calendarEventColor;
+                    }
+                }
+                &.calendar_event_other {
+                    i {
+                        color: $calendarEventColor;
+                    }
+                }
+            }
+        }
+    }
+}
