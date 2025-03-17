@@ -22,7 +22,7 @@ namespace core\oauth2;
  * @package    core
  * @copyright  2024 Gurvan Giboire <gurvan.giboire@umontreal.ca>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \core\oauth2\issuer
+ * @covers     \core\oauth2\issuer
  */
 final class issuer_test extends \advanced_testcase {
 
@@ -43,49 +43,23 @@ final class issuer_test extends \advanced_testcase {
      */
     public static function get_display_name_provider(): array {
         return [
-            'Only name'  => [
-                'issuer name',
-                'issuer name',
-            ],
             'Only one value as loginpagename'  => [
-                'Connection',
-                'issuer name',
-                'Connection',
+                'loginpagename' => 'Connection',
+                'expected' => 'Connection',
             ],
-            'Two cases as loginpagename french' => [
-                'Connexion',
-                'issuer name',
-                '<span lang="en" class="multilang">Connection</span>
-                 <span lang="fr" class="multilang">Connexion</span>',
-                "fr",
-            ],
-            'Two cases as loginpagename spanish without value' => [
-                'Connection',
-                'issuer name',
-                '<span lang="en" class="multilang">Connection</span>
-                 <span lang="fr" class="multilang">Connexion</span>',
-                "es",
-            ],
-            'Two cases as loginpagename canadian french without value' => [
-                'Connection',
-                'issuer name',
-                '<span lang="en" class="multilang">Connection</span>
-                <span lang="fr" class="multilang">Connexion</span>',
-                "fr_ca",
-            ],
-            'Two cases with bad format' => [
-                'ConnectionConnexion',
-                'issuer name',
-                '<span lang="en" class="multilang">Connection<span lang="fr" class="multilang">Connexion</span>',
-                "es",
-            ],
-            'Three cases as loginpagename spanish' => [
-                'Conexión',
-                'issuer name',
-                '<span lang="en" class="multilang">Connection</span>
+            'Three cases as loginpagename' => [
+                'loginpagename' => '<span lang="en" class="multilang">Connection</span>
                  <span lang="fr" class="multilang">Connexion</span>
                  <span lang="es" class="multilang">Conexión</span>',
-                "es",
+                'expected' => 'Connection',
+                'nonexpected' => ['Connexion', 'Conexión'],
+            ],
+            'Extra string' => [
+                'loginpagename' => 'Hello!' .
+                        '<span lang="en" class="multilang">Connection</span>' .
+                        '<span lang="es" class="multilang">Conexión</span>',
+                'expected' => 'Hello!Connection',
+                'nonexpected' => ['Conexión'],
             ],
         ];
     }
@@ -94,22 +68,26 @@ final class issuer_test extends \advanced_testcase {
      * Test get_display_name method.
      * @dataProvider get_display_name_provider
      * @param string $expected The expected result
-     * @param string $name identity issuer name
      * @param ?string $loginpagename identity issuer loginpagename
-     * @param string $lang language uses
+     * @param array $nonexpected The non expected result
      * @return void
      */
     public function test_get_display_name(
-        string $expected,
-        string $name,
         ?string $loginpagename = null,
-        string $lang = 'en'
+        string $expected,
+        ?array $nonexpected = null,
     ): void {
         global $SESSION;
-        $SESSION->forcelang = $lang;
-        $issuer = new issuer;
-        $issuer->set('name', $name);
+        $SESSION->forcelang = 'en';
+
+        $issuer = new issuer();
+        $issuer->set('name', 'Issuer name');
         $issuer->set('loginpagename', $loginpagename);
+
         $this->assertEquals($expected, $issuer->get_display_name());
+
+        foreach ($nonexpected as $nonexpectedvalue) {
+            $this->assertNotEquals($nonexpectedvalue, $issuer->get_display_name());
+        }
     }
 }
