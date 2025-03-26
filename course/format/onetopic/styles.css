@@ -1,0 +1,510 @@
+/** Styles included in topics course format */
+
+.format-onetopic ul.onetopic {
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.format-onetopic .format_onetopic-tabs .nav-link {
+    white-space: nowrap;
+    width: 100%;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    padding-right: 1.3rem;
+}
+
+.format-onetopic ul.nav-tabs.format_onetopic-tabs li.marker a {
+    font-weight: bold;
+}
+
+.format-onetopic ul.nav-tabs.format_onetopic-tabs li.dimmed a {
+    color: #999;
+    opacity: 0.5;
+}
+
+.format-onetopic ul.nav-tabs li a span.iconhelp {
+    cursor: pointer;
+    margin-left: 5px;
+    pointer-events: auto;
+    position: absolute;
+    right: 3px;
+}
+
+.format-onetopic ul.nav-tabs li a span.iconhelp i {
+    margin: 0;
+}
+
+.format-onetopic .onetopic-tab-body {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.format-onetopic .onetopic-withsectionbg .course-section,
+.format-onetopic .onetopic-withsubsectionbg .course-section {
+    margin-top: 0;
+    background: #fffb;
+    padding: 0 0.75rem;
+    border-radius: 5px;
+}
+
+.format-onetopic .onetopic-withsectionbg ul.section .activity-item,
+.format-onetopic .onetopic-withsectionbg .content .summarytext {
+    background-color: transparent;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.format-onetopic .onetopic-withsubsectionbg {
+    margin: 0 10px;
+    padding: 10px 0;
+}
+
+.format-onetopic .onetopic-tab-body-secondrow {
+    padding-top: 10px;
+}
+
+/* Its a subtabs bar */
+.format-onetopic .onetopic-tab-body .format_onetopic-tabs {
+    padding-left: 20px;
+}
+/* End Its a subtabs bar */
+
+.format-onetopic .content .summarytext .iconwithhelp {
+    cursor: pointer;
+}
+
+.format-onetopic .content .summarytext .iconwithhelp .icon {
+    margin: 0;
+}
+
+.format-onetopic .verticaltabs.hastopictabs {
+    display: flex;
+}
+
+.format-onetopic .verticaltabs > .tabs-wrapper {
+    width: 250px;
+    border-right: 1px solid #dee2e6;
+    border-bottom: none;
+}
+
+.format-onetopic .verticaltabs > .tabs-wrapper .nav-tabs {
+    display: block;
+}
+
+.format-onetopic .verticaltabs > .tabs-wrapper .nav-item {
+    margin-right: -1px;
+    margin-bottom: 0;
+    max-width: 100%;
+}
+
+.format-onetopic .verticaltabs > .tabs-wrapper .nav-item .nav-link {
+    border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.format-onetopic .verticaltabs .onetopic-tab-body {
+    width: calc(100% - 250px);
+}
+
+.format-onetopic .verticaltabs > .tabs-wrapper .nav-tabs .nav-link:hover,
+.format-onetopic .verticaltabs > .tabs-wrapper .nav-tabs .nav-link:focus,
+.format-onetopic .verticaltabs > .tabs-wrapper .nav-tabs .nav-link.active,
+.format-onetopic .verticaltabs > .tabs-wrapper .nav-tabs .nav-item.show .nav-link {
+    border-color: #dee2e6 #fff #dee2e6 #dee2e6;
+    margin-right: -1px;
+}
+
+.format-onetopic .onetopic-subtabs_body {
+    padding: 0 15px;
+}
+
+.format-onetopic .onelinetabs .tabs-wrapper {
+    position: relative;
+    max-width: 100%;
+    height: 40px;
+    margin: 0 auto;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.format-onetopic .onelinetabs .onetopic-tab-body {
+    padding-top: 20px;
+}
+
+.format-onetopic .onelinetabs .tabs-wrapper.hasscroll {
+    padding: 0 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.format-onetopic .onelinetabs .tabs-wrapper .nav.nav-tabs {
+    height: 60px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+}
+
+.format-onetopic .onelinetabs .tabs-wrapper .scroll-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    border: none;
+    background-color: #fff;
+}
+
+.format-onetopic .onelinetabs .tabs-wrapper .left-arrow {
+    left: 0;
+    border-right: 1px solid #dee2e6;
+    box-shadow: 1px 0 7px #dee2e6;
+}
+
+.format-onetopic .onelinetabs .tabs-wrapper .right-arrow {
+    right: 0;
+    border-left: 1px solid #dee2e6;
+    box-shadow: -1px 0 7px #dee2e6;
+}
+.format-onetopic .nav-item .subtopic {
+    font-size: 90%;
+}
+
+.format-onetopic .activityinsummarytpl,
+.format-onetopic .activityinsummarytpl .activity-basis {
+    display: inline;
+    position: relative;
+}
+
+.format-onetopic .format_onetopic-tabs.hiddentabsbar {
+    border: 1px dashed #888;
+    padding: 5px 0 1px;
+}
+
+.format-onetopic .format_onetopic-tabs .haschilds a .icon.fa-chevron-down {
+    font-size: 80%;
+}
+
+/* Fixing specific themes */
+.format-onetopic.theme_adaptable .onelinetabs .tabs-wrapper {
+    height: 50px;
+}
+
+.format-onetopic.theme_adaptable .onelinetabs .tabs-wrapper .nav.nav-tabs {
+    height: 65px;
+}
+
+.format-onetopic.theme_adaptable .onelinetabs .tabs-wrapper .nav-item {
+    margin-top: 0;
+}
+
+/* Moove or other fontawesome based icons */
+.format-onetopic .onelinetabs .tabs-wrapper .right-arrow .fa-plus-square:before {
+    content: "";
+}
+
+.format-onetopic .onelinetabs .tabs-wrapper .left-arrow .fa-plus-square:before {
+    content: "";
+}
+
+/* Template styles */
+.format-onetopic .onetopic .cmnameinline .activityiconcontainer {
+    padding-left: 0.2rem;
+    padding-right: 0;
+    display: inline;
+}
+
+.format-onetopic .activityinsummarytpl .description .course-description-item {
+    background-color: transparent;
+}
+
+.format-onetopic .activityinsummarytpl .description .availabilityinfo {
+    display: inline-block;
+    min-width: 300px;
+    margin: 0;
+    padding: 0;
+}
+
+.format-onetopic .activity-dates-inline {
+    display: flex;
+}
+
+.format-onetopic .activity_dateinline {
+    display: block;
+}
+
+.format-onetopic .modal-body .activity-info .completion-dropdown a[role="button"].btn,
+.format-onetopic .modal-body .activity-info .completion-dropdown button.btn {
+    color: #1d2125;
+    background-color: #fff;
+    border-color: #ced4da;
+    min-height: 32px;
+    font-weight: bold;
+    border-radius: 0.5rem;
+}
+
+.format-onetopic .modal-body .activity-info .completion-dropdown a[role="button"].btn:hover,
+.format-onetopic .modal-body .activity-info .completion-dropdown button.btn:hover {
+    color: #fff;
+    background-color: #6a737b;
+    border-color: #b1bbc4;
+}
+/* End of template styles */
+
+/* Completion */
+.format-onetopic .onetopic .completiontag img.icon {
+    margin: 0 3px 0 5px;
+}
+/* End of completion*/
+
+/* Sections/activities navigation */
+.format-onetopic .section-navigation .prevsection,
+.format-onetopic .section-navigation .nextsection {
+    display: flex;
+    min-width: 100px;
+}
+
+.format-onetopic .section-navigation .nextsection {
+    justify-content: right;
+    margin-left: 5px;
+}
+
+.format-onetopic .section-navigation .prevsection {
+    justify-content: left;
+    margin-right: 5px;
+}
+
+.format-onetopic .section-navigation .prevsection a,
+.format-onetopic .section-navigation .nextsection a {
+    display: flex;
+    align-items: center;
+    line-height: 100%;
+}
+
+.format-onetopic .section-navigation .prevsection a {
+    padding-right: 10px;
+}
+
+.format-onetopic .section-navigation .nextsection a {
+    flex-direction: row-reverse;
+    padding-left: 10px;
+    text-align: right;
+}
+
+.format-onetopic .course-section .description .section_availability > .availabilityinfo {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+/* The jump list if exist */
+.format-onetopic .single-section .section-navigation.mdl-bottom div:nth-child(2) {
+    max-width: calc(100% - 210px);
+}
+
+/* Tab styles configuration */
+#onetopic-tabstyles .tabstyleset-buttons button {
+    margin-bottom: 10px;
+}
+
+#onetopic-styleswindow fieldset {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#onetopic-styleswindow fieldset > div {
+    display: flex;
+    padding: 5px;
+}
+
+#onetopic-styleswindow fieldset > div > div {
+    display: flex;
+}
+
+#onetopic-styleswindow fieldset > div.whithlabel {
+    flex-direction: column;
+}
+
+#onetopic-styleswindow fieldset > div.whithlabel label {
+    color: #888;
+    text-align: center;
+}
+
+#onetopic-styleswindow [data-control="colorpicker"] {
+    width: 100px;
+}
+
+#onetopic-styleswindow .colorpicker {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: #fffe;
+    padding: 10px;
+}
+
+#onetopic-styleswindow .colorpicker #admin-colorpicker {
+    flex-direction: column;
+    align-items: center;
+}
+
+#onetopic-styleswindow .buttons-box {
+    text-align: center;
+}
+
+#page-course-editsection.format-onetopic #onetopic-tabstyles {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#onetopic-styleswindow .onetopic-selecticon .listicons:not(.hidden) {
+    overflow: auto;
+    padding: 10px;
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    bottom: 10px;
+    top: 10px;
+    border-radius: 5px;
+    background-color: #fff;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#onetopic-styleswindow .onetopic-selecticon .listicons span {
+    cursor: pointer;
+    padding: 5px;
+    border: 1px solid #dee2e6;
+    display: inline-block;
+    margin: 1px;
+}
+
+#onetopic-styleswindow .onetopic-selecticon .listicons span:hover {
+    transform: scale(2);
+    border-radius: 2px;
+    box-shadow: 2px 2px 4px 1px #ccc;
+    background-color: #fff;
+}
+
+#onetopic-styleswindow .onetopic-selecticon .listicons span i {
+    font-size: 15px;
+    margin: 0;
+}
+
+#onetopic-styleswindow .onetopic-selecticon .iconselected {
+    padding: 5px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#onetopic-styleswindow .onetopic-selecticon .iconselected i {
+    font-size: 20px;
+    margin: 0;
+}
+
+.format-onetopic .format_onetopic-tabs .nav-link span.tabicon span i {
+    margin: 0;
+    font-size: inherit;
+}
+
+.format-onetopic .format_onetopic-tabs .nav-link:not(:hover) span.tabicon span.tabicon-hover,
+.format-onetopic .format_onetopic-tabs .nav-link:hover span.tabicon span.tabicon-default,
+.format-onetopic .format_onetopic-tabs .nav-link:hover span.tabicon span.tabicon-active {
+    display: none;
+}
+
+.format-onetopic .format_onetopic-tabs .nav-link:hover span.tabicon span.tabicon-hover,
+.format-onetopic .format_onetopic-tabs .nav-link:hover span.tabicon span.tabicon-hover {
+    display: inline-block;
+}
+
+/* The slide navigation is only available to wide screens */
+@media (min-width: 600px) {
+
+    .format-onetopic .sectionsnavigation-slides {
+        position: relative;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides .nextsection a,
+    .format-onetopic .single-section.sectionsnavigation-slides .prevsection a {
+        display: none;
+        font-size: 0;
+        position: absolute;
+        top: calc(50% - 40px);
+        background-color: #fff;
+        border-radius: 25px;
+        border: 1px solid #dee2e6;
+        width: 50px;
+        height: 50px;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.3;
+        box-shadow: 2px 2px 4px 1px #ccc;
+        text-decoration: none;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides:hover .nextsection a,
+    .format-onetopic .single-section.sectionsnavigation-slides:hover .prevsection a {
+        display: flex;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides:hover .nextsection a {
+        right: -30px;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides:hover .prevsection a {
+        left: -20px;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides .nextsection span,
+    .format-onetopic .single-section.sectionsnavigation-slides .prevsection span {
+        font-size: 40px;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides .nextsection a:hover,
+    .format-onetopic .single-section.sectionsnavigation-slides .prevsection a:hover {
+        opacity: 1;
+        cursor: pointer;
+        width: auto;
+        font-size: inherit;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides .prevsection a:hover {
+        text-align: left;
+        justify-content: left;
+        padding-right: 10px;
+    }
+
+    .format-onetopic .single-section.sectionsnavigation-slides .nextsection a:hover {
+        text-align: right;
+        justify-content: right;
+        padding-left: 10px;
+        flex-direction: row-reverse;
+    }
+}
+
+@media (max-width: 600px) {
+    .format-onetopic .verticaltabs.hastopictabs {
+        display: block;
+    }
+
+    .format-onetopic .verticaltabs .onetopic-tab-body {
+        width: auto;
+    }
+
+    .format-onetopic .verticaltabs > .tabs-wrapper {
+        width: auto;
+    }
+
+    .format-onetopic .course-content .section-navigation {
+        flex-direction: column;
+    }
+}
