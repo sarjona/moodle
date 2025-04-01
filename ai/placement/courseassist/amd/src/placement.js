@@ -212,7 +212,6 @@ const AICourseAssist = class {
         // Close message drawer if it is shown.
         MessageDrawerHelper.hide();
         this.aiDrawerElement.classList.add('show');
-        this.aiDrawerBodyElement.setAttribute('aria-live', 'polite');
         if (!this.pageElement.classList.contains('show-drawer-right')) {
             this.addPadding();
         }
@@ -223,7 +222,6 @@ const AICourseAssist = class {
      */
     closeAIDrawer() {
         this.aiDrawerElement.classList.remove('show');
-        this.aiDrawerBodyElement.removeAttribute('aria-live');
         if (this.pageElement.classList.contains('show-drawer-right') && this.aiDrawerBodyElement.dataset.removepadding === '1') {
             this.removePadding();
         }
