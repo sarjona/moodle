@@ -30,7 +30,7 @@
 }}
 <div class="row">
     <!-- First Column -->
-    <div class="col-md-6 d-flex align-items-center p-0">
+    <div class="col-md-6 d-flex align-items-center p-0 mt-1">
         <!-- Row 1: URL related label -->
         {{#showdropzone}}
         <label for="{{elementid}}_tiny_image_urlentry" class="tiny_image_url_label me-1">{{#str}} enterurlor, tiny_media {{/str}}</label>
@@ -44,13 +44,12 @@
         <button disabled class="tiny_image_addurl btn btn-secondary me-1" type="button">{{#str}} addurl, tiny_media {{/str}}</button>
     </div>
     <!-- Column 2: Saving, canceling, browsing repositories buttons -->
-    <div class="col-md-6 text-end mt-2 md-0 p-0">
+    <div class="col-md-6 text-end mt-1 md-0 p-0">
         <!-- Row 1: Cancel button -->
-        <button type="button" class="btn btn-secondary" data-action="cancel">{{#str}} cancel, moodle {{/str}}</button>
+        <button type="button" class="btn btn-secondary mt-sm-1" data-action="cancel">{{#str}} cancel, moodle {{/str}}</button>
         {{#showfilepicker}}
             <!-- Row 3: Browse repositories button -->
-            <button class="openimagebrowser btn btn-secondary" type="button">{{#str}} browseembedimagerepositories, tiny_media {{/str}}</button>
+            <button class="openimagebrowser btn btn-secondary mt-sm-1" type="button">{{#str}} browseembedimagerepositories, tiny_media {{/str}}</button>
         {{/showfilepicker}}
     </div>
 </div>
-
