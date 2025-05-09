@@ -27,5 +27,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+include_course_ajax($course);
+
 $courserenderer = $PAGE->get_renderer('format_singleactivity');
 echo $courserenderer->display($course, $section != 0);

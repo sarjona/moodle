@@ -4,6 +4,7 @@ Feature: The context of a block can always be returned to it's original state.
   As an admin
   I need to be able to return the block to original state
 
+  @javascript
   Scenario: Add and configure a block to display on every page and revert back
     Given the following "courses" exist:
       | fullname | shortname | category |

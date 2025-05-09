@@ -120,13 +120,13 @@ final class permission_test extends advanced_testcase {
                 'format' => 'topics',
                 'expected' => false,
             ],
-            'Format does not support components' => [
+            'Single activity supports subsections too' => [
                 'ismoddisabled' => false,
                 'missingcapability' => false,
                 'isdelegated' => false,
                 'maxsectionsreached' => false,
                 'format' => 'singleactivity',
-                'expected' => false,
+                'expected' => true,
             ],
             'Plugin enabled, with capability, max sections not reached, not inside a delegated section' => [
                 'ismoddisabled' => false,
@@ -138,4 +138,27 @@ final class permission_test extends advanced_testcase {
             ],
         ];
     }
+
+    /**
+     * Test that subsection cannot be added when the course format does not support components.
+     *
+     * @return void
+     */
+    public function test_can_add_subsection_unsupported_components(
+    ): void {
+        global $SITE;
+
+        $this->resetAfterTest();
+
+        course_create_sections_if_missing($SITE, [0,1]);
+        $courseformat = course_get_format($SITE);
+        $targetsection = $courseformat->get_modinfo()->get_section_info(0);
+
+        $user = $this->getDataGenerator()->create_and_enrol($SITE, 'editingteacher');
+
+        $this->setUser($user);
+        $this->assertEquals(false, permission::can_add_subsection($targetsection, (int)$user->id));
+    }
+
+
 }
