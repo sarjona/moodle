@@ -181,8 +181,8 @@ Feature: Edit activities in Additional activities block
     And I log in as "admin"
     And I am on site homepage
     And I turn editing mode on
-    And I configure the "Additional activities" block
+    When I configure the "Additional activities" block
     And I set the field "Title" to "My new title"
     And I press "Save changes"
-    And "My new title" "block" should exist
+    Then "My new title" "block" should exist
     And "Additional activities" "block" should not exist

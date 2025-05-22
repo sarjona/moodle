@@ -29,7 +29,7 @@ class block_site_main_menu extends block_base {
     #[\Override]
     public function specialization() {
         if (isset($this->config->title)) {
-            $this->title = $this->title = format_string($this->config->title, true, ['context' => $this->context]);
+            $this->title = format_string($this->config->title, true, ['context' => $this->context]);
         } else {
             $this->title = get_string('pluginname', 'block_site_main_menu');
         }
@@ -89,10 +89,11 @@ class block_site_main_menu extends block_base {
     protected function get_block_course(): stdClass {
         global $COURSE;
 
-        if (empty($this->page)) {
-            $course = $COURSE;
-        } else {
+        if (!empty($this->page)) {
             $course = $this->page->course;
+        }
+        if (empty($course)) {
+            $course = $COURSE;
         }
 
         if ($this->context) {
