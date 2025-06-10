@@ -145,20 +145,31 @@ class core_badges_generator extends component_generator_base {
     /**
      * Create issued badge to a user
      *
-     * @param array|stdClass $record
+     * @param array $record
+     * @return stdClass The issued badge record
      * @throws coding_exception
      */
-    public function create_issued_badge($record): void {
-        $record = (array) $record;
+    public function create_issued_badge(array $params): stdClass {
+        global $DB;
 
-        if (!array_key_exists('badgeid', $record)) {
-            throw new coding_exception('Record must contain \'badgeid\' property');
+        if (!array_key_exists('badgeid', $params)) {
+            throw new coding_exception('$params must contain \'badgeid\' property');
         }
-        if (!array_key_exists('userid', $record)) {
-            throw new coding_exception('Record must contain \'userid\' property');
+        if (!array_key_exists('userid', $params)) {
+            throw new coding_exception('$params must contain \'userid\' property');
         }
 
-        $badge = new badge($record['badgeid']);
-        $badge->issue($record['userid'], true);
+        $record = (object) array_merge([
+            'badgeid' => null,
+            'userid' => null,
+            'uniquehash' => random_string(40),
+            'dateissued' => time(),
+            'dateexpire' => null,
+            'visible' => 1,
+            'issuernotified' => null,
+        ], $params);
+        $record->id = $DB->insert_record('badge_issued', $record);
+
+        return $record;
     }
 }
