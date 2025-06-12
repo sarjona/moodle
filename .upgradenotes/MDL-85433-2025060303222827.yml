@@ -3,7 +3,7 @@ notes:
   core_course:
     - message: >-
         The 'Show description' checkbox is now present in all course formats.
-        Course descriptions can be displayed via the Additional activities block
+        Activity descriptions can be displayed via the Additional activities block
         (formerly the Main menu block), regardless of whether the course
         format's has_view_page() function returns false.
       type: changed
