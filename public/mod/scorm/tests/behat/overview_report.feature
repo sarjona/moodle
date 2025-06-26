@@ -76,3 +76,13 @@ Feature: Testing overview integration in mod_scorm
       | student1 | 50.00  |
       | student2 | 100.00 |
 
+  Scenario: The scorm index redirect to the activities overview
+    When I log in as "admin"
+    And I am on "Course 1" course homepage with editing mode on
+    And I add the "Activities" block
+    And I click on "SCORM packages" "link" in the "Activities" "block"
+    Then I should see "An overview of all activities in the course"
+    And I should see "Due date" in the "scorm_overview_collapsible" "region"
+    And I should see "Student who attempted" in the "scorm_overview_collapsible" "region"
+    And I should see "Total attempts" in the "scorm_overview_collapsible" "region"
+    And I should see "Actions" in the "scorm_overview_collapsible" "region"

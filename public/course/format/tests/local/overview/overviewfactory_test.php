@@ -137,7 +137,7 @@ final class overviewfactory_test extends \advanced_testcase {
             ],
             'scorm' => [
                 'resourcetype' => 'scorm',
-                'expected' => resourceoverview::class,
+                'expected' => \mod_scorm\courseformat\overview::class,
             ],
             'wiki' => [
                 'resourcetype' => 'wiki',
