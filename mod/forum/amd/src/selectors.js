@@ -25,10 +25,6 @@ define([], function() {
         subscription: {
             toggle: "[data-type='subscription-toggle'][data-action='toggle']",
         },
-        forum: {
-            subscriptionToggle: "[data-type='forum-subscription-toggle'][data-action='toggle']",
-            trackToggle: "[data-type='forum-track-toggle'][data-action='toggle']",
-        },
         summary: {
             actions: "[data-container='discussion-summary-actions']"
         },

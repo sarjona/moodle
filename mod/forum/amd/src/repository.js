@@ -29,8 +29,8 @@ define(['core/ajax'], function(Ajax) {
      * @param {boolean} targetState Set the subscribed state. True == subscribed; false == unsubscribed.
      * @return {object} jQuery promise
      */
-    var setForumSubscriptionState = function(forumId, targetState) {
-        var request = {
+    const setForumSubscriptionState = function(forumId, targetState) {
+        const request = {
             methodname: 'mod_forum_set_forum_subscription',
             args: {
                 forumid: forumId,
@@ -47,8 +47,8 @@ define(['core/ajax'], function(Ajax) {
      * @param {boolean} targetState Set the tracking state for unread messages. True == track; false == untrack.
      * @return {object} jQuery promise
      */
-    var setForumTrackingState = function(forumId, targetState) {
-        var request = {
+    const setForumTrackingState = function(forumId, targetState) {
+        const request = {
             methodname: 'mod_forum_set_forum_tracking',
             args: {
                 forumid: forumId,

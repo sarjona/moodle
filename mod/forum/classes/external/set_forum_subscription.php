@@ -76,8 +76,10 @@ class set_forum_subscription extends external_api {
 
         $legacydatamapperfactory = \mod_forum\local\container::get_legacy_data_mapper_factory();
         $forumrecord = $legacydatamapperfactory->get_forum_data_mapper()->to_legacy_object($forum);
-        if (!\mod_forum\subscriptions::is_subscribable($forumrecord) &&
-                !has_capability('mod/forum:managesubscriptions', $context)) {
+        if (
+            !\mod_forum\subscriptions::is_subscribable($forumrecord)
+            && !has_capability('mod/forum:managesubscriptions', $context)
+        ) {
             // Nothing to do. We won't actually output any content here though.
             throw new \moodle_exception('cannotsubscribe', 'mod_forum');
         }

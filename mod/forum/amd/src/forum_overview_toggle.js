@@ -20,95 +20,104 @@
  * @copyright  2025 Sara Arjona <sara@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([
-        'jquery',
-        'core/notification',
-        'core/str',
-        'mod_forum/repository',
-        'mod_forum/selectors',
-        'core/pubsub',
-        'mod_forum/forum_events',
-    ], function(
-        $,
-        Notification,
-        Str,
-        Repository,
-        Selectors,
-        PubSub,
-        ForumEvents
-    ) {
 
-    /**
-     * Register event listeners for the subscription/tracking toggles in the overview.
-     *
-     * @param {object} root The toggle root element
-     * @param {boolean} preventDefault Should the default action of the event be prevented
-     */
-    var registerEventListeners = function(root, preventDefault) {
+import Notification from 'core/notification';
+import {getString} from 'core/str';
+import Repository from 'mod_forum/repository';
 
-        root.on('click', Selectors.forum.subscriptionToggle, function(e) {
-            var toggleElement = $(this);
-            var forumId = toggleElement.data('forumid');
-            var subscriptionState = toggleElement.data('targetstate');
+/**
+ * Register event listeners for the subscription/tracking toggles in the overview.
+ * @param {HTMLElement} toggleElement The toggle root element
+ */
+function registerEventListeners(toggleElement) {
+    toggleElement.addEventListener('change', () => {
+        if (toggleElement.dataset.type === 'forum-subscription-toggle') {
+            subscriptionToggleClickHandler(toggleElement);
+        }
+        if (toggleElement.dataset.type === 'forum-track-toggle') {
+            trackToggleClickHanldler(toggleElement);
+        }
+    });
+}
 
-            Repository.setForumSubscriptionState(forumId, subscriptionState)
-                .then(function(context) {
-                    PubSub.publish(ForumEvents.SUBSCRIPTION_TOGGLED, {
-                        subscriptionState: subscriptionState
-                    });
+/**
+ * Toggle subscription element click handler.
+ *
+ * @param {HTMLElement} toggleElement The toggle element that was clicked
+ * @return {Promise<void>}
+ */
+async function subscriptionToggleClickHandler(toggleElement) {
+    const forumId = toggleElement.dataset.forumid;
+    const newState = toggleElement.dataset.targetstate;
+    if (!forumId || !newState) {
+        return;
+    }
+    try {
+        const context = await Repository.setForumSubscriptionState(forumId, newState);
+        const newTargetState = !!context.userstate.subscribed;
 
-                    var newTargetState = context.userstate.subscribed ? 0 : 1;
-                    toggleElement.data('targetstate', newTargetState);
-                    var stringKey = context.userstate.subscribed ? 'unsubscribe' : 'subscribe';
-                    return Str.get_string(stringKey, 'mod_forum');
-                })
-                .then(function(string) {
-                    var toggleId = toggleElement.attr('id');
-                    toggleElement.closest('td').find('label[for="' + toggleId + '"]').find('span').text(string);
-                    return string;
-                })
-                .catch(Notification.exception);
+        updateSwitchState(
+            toggleElement,
+            newTargetState,
+            newTargetState ? 'subscribe' : 'unsubscribe',
+        );
+    } catch (error) {
+        Notification.exception(error);
+    }
+}
 
-            if (preventDefault) {
-                e.preventDefault();
-            }
-        });
+/**
+ * Toggle track element click handler.
+ *
+ * @param {HTMLElement} toggleElement The toggle element that was clicked
+ * @return {Promise<void>}
+ */
+async function trackToggleClickHanldler(toggleElement) {
+    const forumId = toggleElement.dataset.forumid;
+    const newState = toggleElement.dataset.targetstate;
+    if (!forumId || !newState) {
+        return;
+    }
+    try {
+        const context = await Repository.setForumTrackingState(forumId, newState);
+        const newTargetState = !!context.userstate.tracked;
 
-        root.on('click', Selectors.forum.trackToggle, function(e) {
-            var toggleElement = $(this);
-            var forumId = toggleElement.data('forumid');
-            var trackedState = toggleElement.data('targetstate');
+        updateSwitchState(
+            toggleElement,
+            newTargetState,
+            newTargetState ? 'trackingon' : 'trackingoff',
+        );
+    } catch (error) {
+        Notification.exception(error);
+    }
+}
 
-            Repository.setForumTrackingState(forumId, trackedState)
-                .then(function(context) {
-                    var newTargetState = context.userstate.subscribed ? 0 : 1;
-                    toggleElement.data('targetstate', newTargetState);
-                    var stringKey = context.userstate.tracked ? 'unsubscribe' : 'subscribe';
-                    return Str.get_string(stringKey, 'mod_forum');
-                })
-                .then(function(string) {
-                    var toggleId = toggleElement.attr('id');
-                    toggleElement.closest('td').find('label[for="' + toggleId + '"]').find('span').text(string);
-                    return string;
-                })
-                .catch(Notification.exception);
+/**
+ * Update the switch state of the toggle element.
+ *
+ * @param {HTMLElement} toggleElement The toggle element to update
+ * @param {Boolean} newTargetState The new target state to set (true for subscribed, false for unsubscribed)
+ * @param {string} stringKey The string key to retrieve the label text
+ * @return {Promise<void>}
+ */
+async function updateSwitchState(toggleElement, newTargetState, stringKey) {
+    toggleElement.dataset.targetstate = newTargetState ? 0 : 1;
+    const string = await getString(stringKey, 'mod_forum');
+    const label = toggleElement.closest('td').querySelector(`label[for="${toggleElement.id}"] span`);
+    label.textContent = string;
+}
 
-            if (preventDefault) {
-                e.preventDefault();
-            }
-        });
-    };
-
-    return {
-
-        /**
-         * Initialize the forum overview toggle functionality.
-         *
-         * @param {*} toggleSelector The ID of the toggle element to initialize
-         */
-        init: function(toggleSelector) {
-            var toggleElement = $('#' + toggleSelector);
-            registerEventListeners(toggleElement.closest('td'));
-        },
-    };
-});
+/**
+ * Initialize the forum overview toggle functionality.
+ *
+ * @param {string} toggleSelector The CSS selector for the toggle element to initialize
+ * @throws {Error} If no elements are found with the provided selector
+ */
+export const init = (toggleSelector) => {
+    const toggleElement = document.querySelector(toggleSelector);
+    if (!toggleElement) {
+        // If the user cannot track/subscribe to any course forum, the toggle will not be present.
+        return;
+    }
+    registerEventListeners(toggleElement);
+};
