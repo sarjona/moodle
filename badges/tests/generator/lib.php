@@ -161,8 +161,6 @@ class core_badges_generator extends component_generator_base {
         }
 
         $issuedbadge = (object) array_merge([
-            'badgeid' => null,
-            'userid' => null,
             'uniquehash' => random_string(40),
             'dateissued' => time(),
             'dateexpire' => null,
