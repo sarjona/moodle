@@ -62,7 +62,11 @@ final class achievement_credential_test extends \advanced_testcase {
         $this->assertEquals($user->email, $credential->get_email());
         $this->assertEquals($badge->id, $credential->get_badge_id());
         $this->assertEquals($issuedbadge->dateissued, $credential->get_dateissued());
-        $this->assertEquals($issuedbadge->expiredate, $credential->get_dateexpire());
+        if (property_exists($issuedbadge, 'expiredate')) {
+            $this->assertEquals($issuedbadge->expiredate, $credential->get_dateexpire());
+        } else {
+            $this->assertNull($credential->get_dateexpire());
+        }
         $this->assertEquals($tags, $credential->get_tags());
 
         // When the user has a backpack, the email should be taken from there.
