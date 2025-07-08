@@ -1223,30 +1223,6 @@ function badges_get_badge_api_versions() {
 }
 
 /**
- * Get the default issuer for a badge from this site.
- *
- * @return array
- */
-function badges_get_default_issuer() {
-    global $CFG, $SITE;
-
-    $sitebackpack = badges_get_site_primary_backpack();
-    $issuer = array();
-    $issuerurl = new moodle_url('/');
-    $issuer['name'] = $CFG->badges_defaultissuername;
-    if (empty($issuer['name'])) {
-        $issuer['name'] = $SITE->fullname ? $SITE->fullname : $SITE->shortname;
-    }
-    $issuer['url'] = $issuerurl->out(false);
-    $issuer['email'] = $sitebackpack->backpackemail ?: $CFG->badges_defaultissuercontact;
-    $issuer['@context'] = OPEN_BADGES_V2_CONTEXT;
-    $issuerid = new moodle_url('/badges/issuer_json.php');
-    $issuer['id'] = $issuerid->out(false);
-    $issuer['type'] = OPEN_BADGES_V2_TYPE_ISSUER;
-    return $issuer;
-}
-
-/**
  * Disconnect from the user backpack by deleting the user preferences.
  *
  * @param integer $userid The user to diconnect.
