@@ -210,7 +210,8 @@ final class overview_test extends \advanced_testcase {
         $method->setAccessible(true);
         $item = $method->invoke($overview);
         $this->assertEquals(get_string('forumtype', 'forum'), $item->get_name());
-        $this->assertEquals($expected, $item->get_value());
+        $this->assertEquals($forumtype, $item->get_value());
+        $this->assertEquals($expected, $item->get_content());
     }
 
     /**

@@ -37,7 +37,6 @@ Feature: Testing overview integration in mod_forum
       | s1   | Test discussion 1 | Reply 1 to discussion 1 | Discussion contents 1.1 |
       | s3   | Test discussion 1 | Reply 2 to discussion 1 | Discussion contents 1.2 |
 
-  @javascript
   Scenario: The forum overview report should generate log events
     Given I am on the "Course 1" "course > activities > forum" page logged in as "t1"
     When I am on the "Course 1" "course" page logged in as "t1"

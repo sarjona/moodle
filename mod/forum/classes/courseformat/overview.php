@@ -169,7 +169,7 @@ class overview extends \core_courseformat\activityoverviewbase {
 
         return new overviewitem(
             name: $this->stringmanager->get_string('forumtype', 'mod_forum'),
-            value: $allforumtypesnames[$this->forum->type],
+            value: $this->forum->type,
             content: $allforumtypesnames[$this->forum->type],
         );
     }
@@ -185,7 +185,10 @@ class overview extends \core_courseformat\activityoverviewbase {
         $disabled = true;
         $tracked = false;
         $label = null;
-        if ((intval($this->forum->trackingtype) == FORUM_TRACKING_FORCED) && ($CFG->forum_allowforcedreadtracking)) {
+        if (
+            (intval($this->forum->trackingtype) == FORUM_TRACKING_FORCED)
+            && ($CFG->forum_allowforcedreadtracking)
+        ) {
             $label = $this->stringmanager->get_string(
                 'labelvalue',
                 'core',
@@ -213,25 +216,28 @@ class overview extends \core_courseformat\activityoverviewbase {
         }
 
         $renderer = $this->rendererhelper->get_renderer('mod_forum');
-        $attributes = [
+        $dataattributes = [
             ['name' => 'type', 'value' => 'forum-track-toggle'],
             ['name' => 'action', 'value' => 'toggle'],
             ['name' => 'forumid', 'value' => $this->forum->id],
             ['name' => 'targetstate', 'value' => !$tracked],
         ];
-        $content = $renderer->render_from_template('core/toggle', [
-                    'id' => 'forum-track-toggle-' . $this->forum->id,
-                    'checked' => $tracked,
-                    'disabled' => $disabled,
-                    'dataattributes' => $attributes,
-                    'label' => $label,
-                    'labelclasses' => 'visually-hidden',
-                ]);
+        $content = $renderer->render_from_template(
+            'core/toggle',
+            [
+                'id' => 'forum-track-toggle-' . $this->forum->id,
+                'checked' => $tracked,
+                'disabled' => $disabled,
+                'dataattributes' => $dataattributes,
+                'label' => $label,
+                'labelclasses' => 'visually-hidden',
+            ],
+        );
 
         $renderer->get_page()->requires->js_call_amd(
             'mod_forum/forum_overview_toggle',
             'init',
-            ['forum-track-toggle-' . $this->forum->id],
+            ['#forum-track-toggle-' . $this->forum->id],
         );
 
         return new overviewitem(
@@ -255,8 +261,10 @@ class overview extends \core_courseformat\activityoverviewbase {
             $disabled = true;
             $subscribed = true;
             $label = $this->stringmanager->get_string('subscribed', 'mod_forum');
-        } else if (\mod_forum\subscriptions::subscription_disabled($this->forum) &&
-                !has_capability('mod/forum:managesubscriptions', $this->context)) {
+        } else if (
+            \mod_forum\subscriptions::subscription_disabled($this->forum)
+            && !has_capability('mod/forum:managesubscriptions', $this->context)
+        ) {
             $disabled = true;
             $label = $this->stringmanager->get_string('unsubscribed', 'mod_forum');
         } else if (!is_enrolled($this->context, $this->user, '', true)) {
@@ -272,25 +280,28 @@ class overview extends \core_courseformat\activityoverviewbase {
         }
 
         $renderer = $this->rendererhelper->get_renderer('mod_forum');
-        $attributes = [
+        $dataattributes = [
             ['name' => 'type', 'value' => 'forum-subscription-toggle'],
             ['name' => 'action', 'value' => 'toggle'],
             ['name' => 'forumid', 'value' => $this->forum->id],
             ['name' => 'targetstate', 'value' => !$subscribed],
         ];
-        $content = $renderer->render_from_template('core/toggle', [
-                    'id' => 'forum-subscription-toggle-' . $this->forum->id,
-                    'checked' => $subscribed,
-                    'disabled' => $disabled,
-                    'dataattributes' => $attributes,
-                    'label' => $label,
-                    'labelclasses' => 'visually-hidden',
-                ]);
+        $content = $renderer->render_from_template(
+            'core/toggle',
+            [
+                'id' => 'forum-subscription-toggle-' . $this->forum->id,
+                'checked' => $subscribed,
+                'disabled' => $disabled,
+                'dataattributes' => $dataattributes,
+                'label' => $label,
+                'labelclasses' => 'visually-hidden',
+            ],
+        );
 
         $renderer->get_page()->requires->js_call_amd(
             'mod_forum/forum_overview_toggle',
             'init',
-            ['forum-subscription-toggle-' . $this->forum->id],
+            ['#forum-subscription-toggle-' . $this->forum->id],
         );
 
         return new overviewitem(
