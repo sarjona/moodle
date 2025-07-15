@@ -48,7 +48,7 @@ final class set_forum_tracking_test extends \externallib_advanced_testcase {
     #[\Override]
     public function tearDown(): void {
         // We must clear the subscription caches.
-        // // This has to be done both before each test, and after in case of other tests using these functions.
+        // This has to be done both before each test, and after in case of other tests using these functions.
         subscriptions::reset_forum_cache();
         parent::tearDown();
     }
