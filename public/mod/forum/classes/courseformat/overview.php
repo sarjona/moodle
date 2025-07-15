@@ -177,9 +177,9 @@ class overview extends \core_courseformat\activityoverviewbase {
     /**
      * Get the track toggle item.
      *
-     * @return overviewitem|null The overview item (or null if the user cannot enable/disable track).
+     * @return overviewitem The overview item.
      */
-    private function get_extra_track_overview(): ?overviewitem {
+    private function get_extra_track_overview(): overviewitem {
         global $CFG;
 
         $disabled = true;
@@ -250,9 +250,9 @@ class overview extends \core_courseformat\activityoverviewbase {
     /**
      * Get the subscribed toggle item.
      *
-     * @return overviewitem|null The overview item (or null if the user cannot subscribe).
+     * @return overviewitem The overview item.
      */
-    private function get_extra_subscribed_overview(): ?overviewitem {
+    private function get_extra_subscribed_overview(): overviewitem {
 
         $disabled = false;
         $subscribed = false;
@@ -314,9 +314,9 @@ class overview extends \core_courseformat\activityoverviewbase {
     /**
      * Get the email digest selector item.
      *
-     * @return overviewitem|null The overview item (or null if the user cannot subscribe).
+     * @return overviewitem The overview item.
      */
-    private function get_extra_emaildigest_overview(): ?overviewitem {
+    private function get_extra_emaildigest_overview(): overviewitem {
 
         $cansubscribe = \mod_forum\subscriptions::is_subscribable($this->forum);
         $canmanage = has_capability('mod/forum:managesubscriptions', $this->context);
@@ -342,9 +342,9 @@ class overview extends \core_courseformat\activityoverviewbase {
     /**
      * Get the discussions item.
      *
-     * @return overviewitem|null The overview item (or null if there).
+     * @return overviewitem The overview item.
      */
-    private function get_extra_discussions_overview(): ?overviewitem {
+    private function get_extra_discussions_overview(): overviewitem {
 
         $totaldiscussions = forum_count_discussions($this->forum, $this->cm, $this->course);
 
