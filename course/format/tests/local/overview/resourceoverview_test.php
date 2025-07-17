@@ -26,6 +26,111 @@ namespace core_courseformat\local\overview;
  * @covers     \core_courseformat\local\overview\resourceoverview
  */
 final class resourceoverview_test extends \advanced_testcase {
+
+    /**
+     * Test get_actions_overview.
+     *
+     * @covers ::get_actions_overview
+     * @dataProvider provider_test_get_actions_overview
+     *
+     * @param string $role The role of the user to test.
+     * @param string $resourcetype The type of resource to create.
+     * @param array|null $expected Expected overview item data.
+     */
+    public function test_get_actions_overview(
+        string $role,
+        string $resourcetype,
+        ?array $expected
+    ): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $currentuser = $this->getDataGenerator()->create_and_enrol($course, $role);
+        $resource = $this->getDataGenerator()->create_module($resourcetype, ['course' => $course->id]);
+
+        $modinfo = get_fast_modinfo($course);
+        $cm = $modinfo->get_cm($resource->cmid);
+
+        $this->setUser($currentuser);
+        $cm = get_fast_modinfo($course)->get_cm($resource->cmid);
+        $item = overviewfactory::create($cm)->get_actions_overview();
+
+        if ($expected === null) {
+            $this->assertNull($item);
+            return;
+        }
+
+        $this->assertEquals($expected['name'], $item->get_name());
+        $this->assertEquals($expected['value'], $item->get_value());
+        $this->assertStringContainsString($expected['content'], $item->get_content()->text);
+    }
+
+    /**
+     * Data provider for test_get_actions_overview.
+     *
+     * @return array
+     */
+    public static function provider_test_get_actions_overview(): array {
+        return [
+            'Student' => [
+                'role' => 'student',
+                'resourcetype' => 'url',
+                'expected' => null,
+            ],
+            'Teacher - Book' => [
+                'role' => 'editingteacher',
+                'resourcetype' => 'book',
+                'expected' => [
+                    'name' => get_string('actions'),
+                    'value' => '',
+                    'content' => get_string('view'),
+                ],
+            ],
+            'Teacher - Folder' => [
+                'role' => 'editingteacher',
+                'resourcetype' => 'folder',
+                'expected' => [
+                    'name' => get_string('actions'),
+                    'value' => '',
+                    'content' => get_string('view'),
+                ],
+            ],
+            'Teacher - Page' => [
+                'role' => 'editingteacher',
+                'resourcetype' => 'page',
+                'expected' => [
+                    'name' => get_string('actions'),
+                    'value' => '',
+                    'content' => get_string('view'),
+                ],
+            ],
+            'Teacher - Resource' => [
+                'role' => 'editingteacher',
+                'resourcetype' => 'resource',
+                'expected' => [
+                    'name' => get_string('actions'),
+                    'value' => '',
+                    'content' => get_string('view'),
+                ],
+            ],
+            'Teacher - URL' => [
+                'role' => 'editingteacher',
+                'resourcetype' => 'url',
+                'expected' => [
+                    'name' => get_string('actions'),
+                    'value' => '',
+                    'content' => get_string('view'),
+                ],
+            ],
+            'Teacher - Non resource' => [
+                'role' => 'editingteacher',
+                'resourcetype' => 'lti',
+                'expected' => null,
+            ],
+        ];
+    }
+
     /**
      * Test get_extra_overview_items method.
      *
@@ -44,9 +149,140 @@ final class resourceoverview_test extends \advanced_testcase {
         $overview = overviewfactory::create($cm);
 
         $result = $overview->get_extra_overview_items();
-        $this->assertCount(1, $result);
+        $this->assertCount(3, $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertInstanceOf(\core_courseformat\local\overview\overviewitem::class, $result['type']);
+
+        $activity = $this->getDataGenerator()->create_module('lti', ['course' => $course->id]);
+        $modinfo = get_fast_modinfo($course);
+        $cm = $modinfo->get_cm($activity->cmid);
+
+        $overview = overviewfactory::create($cm);
+
+        $result = $overview->get_extra_overview_items();
+        $this->assertCount(0, $result);
+    }
+
+    /**
+     * Test get_extra_most_recent_overview method.
+     *
+     * @covers ::get_extra_overview_items
+     * @covers ::get_extra_most_recent_overview
+     * @dataProvider provider_test_get_extra_most_recent_overview
+     * @param string $resourcetype
+     * @param string|null $expected
+     */
+    public function test_get_extra_most_recent_overview(
+        string $resourcetype,
+        ?string $expected,
+    ): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $activity = $this->getDataGenerator()->create_module($resourcetype, ['course' => $course->id]);
+        $modinfo = get_fast_modinfo($course);
+        $cm = $modinfo->get_cm($activity->cmid);
+        // Emulate the course_module_viewed event.
+        $params = [
+            'context' => \context_module::instance($activity->cmid),
+            'objectid' => $activity->id,
+        ];
+        $event = \mod_book\event\course_module_viewed::create($params);
+        // Redirect event.
+        $event->trigger();
+
+        $overview = overviewfactory::create($cm);
+        $items = $overview->get_extra_overview_items();
+
+        if ($expected === null) {
+            $this->assertFalse(array_key_exists('mostrecent', $items));
+            return;
+        }
+
+        // $result = $items['mostrecent'];
+        // $this->assertEquals(get_string('mostrecentvieweddate', 'course'), $result->get_name());
+        // $this->assertEquals($event->timecreated, $result->get_value());
+    }
+
+    /**
+     * Data provider for test_get_extra_most_recent_overview.
+     *
+     * @return array
+     */
+    public static function provider_test_get_extra_most_recent_overview(): array {
+        return [
+            'book' => [
+                'resourcetype' => 'book',
+                'expected' => 'Book',
+            ],
+            // 'folder' => [
+            //     'resourcetype' => 'folder',
+            //     'expected' => 'Folder',
+            // ],
+            // 'page' => [
+            //     'resourcetype' => 'page',
+            //     'expected' => 'Page',
+            // ],
+            // 'resource' => [
+            //     'resourcetype' => 'resource',
+            //     'expected' => 'File',
+            // ],
+            // 'url' => [
+            //     'resourcetype' => 'url',
+            //     'expected' => 'URL',
+            // ],
+            // // Non-resource activities.
+            // 'bigbluebuttonbn' => [
+            //     'resourcetype' => 'bigbluebuttonbn',
+            //     'expected' => null,
+            // ],
+            // 'choice' => [
+            //     'resourcetype' => 'choice',
+            //     'expected' => null,
+            // ],
+            // 'data' => [
+            //     'resourcetype' => 'data',
+            //     'expected' => null,
+            // ],
+            // 'forum' => [
+            //     'resourcetype' => 'forum',
+            //     'expected' => null,
+            // ],
+            // 'glossary' => [
+            //     'resourcetype' => 'glossary',
+            //     'expected' => null,
+            // ],
+            // 'h5pactivity' => [
+            //     'resourcetype' => 'h5pactivity',
+            //     'expected' => null,
+            // ],
+            // 'lesson' => [
+            //     'resourcetype' => 'lesson',
+            //     'expected' => null,
+            // ],
+            // 'lti' => [
+            //     'resourcetype' => 'lti',
+            //     'expected' => null,
+            // ],
+            // 'qbank' => [
+            //     'resourcetype' => 'qbank',
+            //     'expected' => null,
+            // ],
+            // 'quiz' => [
+            //     'resourcetype' => 'quiz',
+            //     'expected' => null,
+            // ],
+            // 'scorm' => [
+            //     'resourcetype' => 'scorm',
+            //     'expected' => null,
+            // ],
+            // 'wiki' => [
+            //     'resourcetype' => 'wiki',
+            //     'expected' => null,
+            // ],
+        ];
     }
 
     /**
@@ -74,13 +310,13 @@ final class resourceoverview_test extends \advanced_testcase {
         $overview = overviewfactory::create($cm);
 
         $items = $overview->get_extra_overview_items();
-        $result = $items['type'];
 
         if ($expected === null) {
-            $this->assertNull($result);
+            $this->assertFalse(array_key_exists('type', $items));
             return;
         }
 
+        $result = $items['type'];
         $this->assertEquals(get_string('resource_type'), $result->get_name());
         $this->assertEquals($expected, $result->get_value());
         $this->assertEquals($expected, $result->get_content());
@@ -113,7 +349,7 @@ final class resourceoverview_test extends \advanced_testcase {
                 'resourcetype' => 'url',
                 'expected' => 'URL',
             ],
-            // Activities without integration.
+            // Non-resource activities.
             'bigbluebuttonbn' => [
                 'resourcetype' => 'bigbluebuttonbn',
                 'expected' => null,

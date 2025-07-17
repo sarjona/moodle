@@ -41,6 +41,7 @@ $string['aria:favouritestab'] = 'Starred activities';
 $string['aria:modulefavourite'] = 'Add {$a} to starred';
 $string['aria:moduleunfavourite'] = 'Remove {$a} from starred';
 $string['aria:recommendedtab'] = 'Recommended activities';
+$string['averageviewsperstudent'] = 'Average views per student';
 $string['browsecourseadminindex'] = 'Browse the course administration with this index.';
 $string['browsesettingindex'] = 'Browse settings with this index.';
 $string['communicationroomlink'] = 'Chat to course participants';
@@ -109,6 +110,7 @@ $string['mod_purpose_content_help'] = 'Activities and tools to organise and disp
 $string['mod_purpose_interactivecontent'] = 'Interactive content';
 $string['mod_purpose_interactivecontent_help'] = 'Engaging interactive activities that encourage active learner participation.';
 $string['module'] = 'Activity';
+$string['mostrecentvieweddate'] = 'Most recent viewed date';
 $string['namewithlink'] = 'Category name with link';
 $string['nocourseactivity'] = 'Not enough course activity between the start and the end of the course';
 $string['nocourseendtime'] = 'The course does not have an end time';
@@ -150,6 +152,7 @@ $string['submitsearch'] = 'Submit search';
 $string['studentsatriskincourse'] = 'Students at risk in {$a} course';
 $string['studentsatriskinfomessage'] = 'Hi {$a->userfirstname},
 <p>Students in the {$a->coursename} course have been identified as being at risk.</p>';
+$string['studentsviewed'] = 'Students viewed';
 $string['target:coursecompletion'] = 'Students at risk of not meeting the course completion conditions';
 $string['target:coursecompletion_help'] = 'This target describes whether the student is considered at risk of not meeting the course completion conditions.';
 $string['target:coursecompetencies'] = 'Students at risk of not achieving the competencies assigned to a course';
@@ -178,6 +181,7 @@ $string['targetlabelstudentgradetopassyes'] = 'Student at risk of not meeting th
 $string['targetlabelteachingyes'] = 'Users with teaching capabilities who have access to the course';
 $string['targetlabelteachingno'] = 'Courses at risk of not starting';
 $string['totalactivities'] = 'Activities: {$a}';
+$string['totalviews'] = 'Total views';
 $string['gotosection'] = 'Go to section {$a}';
 
 // Deprecated since Moodle 4.5.
