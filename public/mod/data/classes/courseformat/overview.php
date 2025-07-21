@@ -49,14 +49,11 @@ class overview extends \core_courseformat\activityoverviewbase {
      *
      * @param cm_info $cm the course module instance.
      * @param \core\output\renderer_helper $rendererhelper the renderer helper.
-     * @param \core_string_manager $stringmanager the string manager.
      */
     public function __construct(
             cm_info $cm,
             /** @var \core\output\renderer_helper $rendererhelper the renderer helper */
             protected readonly \core\output\renderer_helper $rendererhelper,
-            /** @var \core_string_manager $stringmanager the string manager */
-            protected readonly \core_string_manager $stringmanager,
     ) {
         parent::__construct($cm);
 
@@ -71,7 +68,7 @@ class overview extends \core_courseformat\activityoverviewbase {
 
         $dates = new dates($this->cm, $USER->id);
         $duedate = $dates->get_due_date();
-        $name = $this->stringmanager->get_string('duedate', 'data');
+        $name = get_string('duedate', 'data');
 
         if (empty($duedate)) {
             return new overviewitem(
@@ -96,15 +93,15 @@ class overview extends \core_courseformat\activityoverviewbase {
             return null;
         }
 
-        $text = $this->stringmanager->get_string('view', 'moodle');
+        $text = get_string('view', 'moodle');
         $toapprove = 0;
-        $alertlabel = $this->stringmanager->get_string('numberofentriestoapprove', 'data');
+        $alertlabel = get_string('numberofentriestoapprove', 'data');
         if ($this->manager->get_approval_requested()) {
             // Let's calculate how many entries need to be approved.
             $entries = $this->manager->filter_entries_by_approval($this->allentries, 0);
             $toapprove = count($entries);
 
-            $name = $this->stringmanager->get_string('approve', 'data');
+            $name = get_string('approve', 'data');
             if ($toapprove > 0) {
                 $renderer = $this->rendererhelper->get_core_renderer();
                 $badge = $renderer->notice_badge(
@@ -122,7 +119,7 @@ class overview extends \core_courseformat\activityoverviewbase {
         );
 
         return new overviewitem(
-            name: $this->stringmanager->get_string('actions'),
+            name: get_string('actions'),
             value: $toapprove,
             content: $content,
             textalign: text_align::CENTER,
@@ -156,7 +153,7 @@ class overview extends \core_courseformat\activityoverviewbase {
         $totalmyentries = count($myentries);
 
         return new overviewitem(
-            name: $this->stringmanager->get_string('myentries', 'data'),
+            name: get_string('myentries', 'data'),
             value: $totalmyentries,
             content: $totalmyentries,
             textalign: text_align::END,
@@ -199,7 +196,7 @@ class overview extends \core_courseformat\activityoverviewbase {
         // Add comments column for all views.
         if (empty($CFG->usecomments) || (empty($this->manager->get_instance()->comments))) {
             return new overviewitem(
-                name: $this->stringmanager->get_string('comments', 'data'),
+                name: get_string('comments', 'data'),
                 value: 0,
                 content: '-',
                 textalign: text_align::END,
@@ -210,7 +207,7 @@ class overview extends \core_courseformat\activityoverviewbase {
         $comments = $this->manager->get_comments(approved: $approved, groups: $this->get_groups_for_filtering());
         $totalcomments = ($comments) ? count($comments) : 0;
         return new overviewitem(
-            name: $this->stringmanager->get_string('comments', 'data'),
+            name: get_string('comments', 'data'),
             value: $totalcomments,
             content: $totalcomments,
             textalign: text_align::END,
