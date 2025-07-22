@@ -160,7 +160,9 @@ final class resourceoverview_test extends \advanced_testcase {
         $overview = overviewfactory::create($cm);
 
         $result = $overview->get_extra_overview_items();
-        $this->assertCount(0, $result);
+        $this->assertCount(1, $result);
+        $this->assertArrayHasKey('type', $result);
+        $this->assertNull($result['type'], 'Non-resource activities should not have a type overview item.');
     }
 
     /**
@@ -190,7 +192,10 @@ final class resourceoverview_test extends \advanced_testcase {
         $items = $overview->get_extra_overview_items();
 
         if ($expected === null) {
-            $this->assertFalse(array_key_exists('type', $items));
+            $this->assertTrue(
+                !array_key_exists('type', $items) || $items['type'] === null,
+                'Non-resource activities should not have a type overview item.',
+            );
             return;
         }
 

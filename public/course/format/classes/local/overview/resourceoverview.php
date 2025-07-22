@@ -61,12 +61,6 @@ class resourceoverview extends \core_courseformat\activityoverviewbase {
 
     #[\Override]
     public function get_extra_overview_items(): array {
-        if (!$this->is_resource()) {
-            // Only resource activities show the extra overview items
-            // because they are aggregated in one table.
-            return [];
-        }
-
         return [
             'type' => $this->get_extra_type_overview(),
         ];
@@ -75,9 +69,14 @@ class resourceoverview extends \core_courseformat\activityoverviewbase {
     /**
      * Retrieves an overview item for the extra type of the resource.
      *
-     * @return overviewitem The overview item for the resource type.
+     * @return overviewitem|null The overview item for the resource type.
      */
-    private function get_extra_type_overview(): overviewitem {
+    private function get_extra_type_overview(): ?overviewitem {
+        if (!$this->is_resource()) {
+            // Only resource activities show the type.
+            return null;
+        }
+
         return new overviewitem(
             name: get_string('resource_type'),
             value: $this->cm->modfullname,
