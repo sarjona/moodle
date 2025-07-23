@@ -125,6 +125,12 @@ In order to summarize the workshops
       | Name       | Phase                    | Phase deadline | Submissions | Assessments | Actions |
       | Activity 1 | Grading evaluation phase | -              | 1 of 8      | 3 of 3      | View    |
       | Activity 2 | Submission phase         | Tomorrow       | 0 of 8      | -           | View    |
+    # Check the View link.
+    And I click on "View" "link" in the "Activity 1" "table_row"
+    And I should see "Workshop grades report"
+    And I am on the "Course 1" "course > activities > workshop" page
+    And I click on "View" "link" in the "Activity 2" "table_row"
+    And I should see "Workshop submissions report"
 
   Scenario: The workshop index redirect to the activities overview
     When I log in as "admin"
