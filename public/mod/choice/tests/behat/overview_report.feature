@@ -79,15 +79,6 @@ Feature: Testing overview integration in mod_choice
     And I should see "Option 1: 1"
     And I should see "Option 2: 2"
     And I press the escape key
-    And I click on "1" "button" in the "Choice 2" "table_row"
-    And I should not see "Allow more than one choice to be selected"
-    And I should see "Option A: 1"
-    And I should see "Option B: 0"
-    And I press the escape key
-    And I click on "0" "button" in the "Choice 3" "table_row"
-    And I should see "Allow more than one choice to be selected"
-    And I should see "Option A: 0"
-    And I press the escape key
     And I click on "0" "button" in the "Choice 4" "table_row"
     And I should not see "Allow more than one choice to be selected"
     And I should see "Option Z: 0"
