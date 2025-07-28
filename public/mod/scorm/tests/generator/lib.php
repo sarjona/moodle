@@ -125,6 +125,10 @@ class mod_scorm_generator extends testing_module_generator {
             // Check if the SCORM activity exists.
             get_coursemodule_from_instance('scorm', $scormid, 0, false, MUST_EXIST);
         }
+
+        if (!empty($record->userid)) {
+            \core_user::get_user($record->userid, '*', MUST_EXIST);
+        }
         $userid = $record->userid ?? $USER->id;
         $scoes = scorm_get_scoes($scormid);
         if (empty($scoes)) {

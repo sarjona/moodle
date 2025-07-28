@@ -177,7 +177,7 @@ final class manager_test extends \advanced_testcase {
      */
     public function test_count_participants(int $groupmode, array $expected): void {
         $this->resetAfterTest();
-        ['users' => $users, 'course' => $course, 'instances' => $instances] = $this->setup_users_and_activity($groupmode);
+        ['users' => $users, 'instances' => $instances] = $this->setup_users_and_activity($groupmode);
         $manager = \mod_scorm\manager::create_from_instance($instances[0]);
         // Check the count of participants.
         foreach ($expected as $username => $count) {
@@ -197,15 +197,14 @@ final class manager_test extends \advanced_testcase {
      */
     public static function get_count_participants_data(): array {
         return [
-            // Here we intentionally just test the case where course mode is set to NOGROUPS as groups are is not
-            // yet supported by the overview page for SCORM module. This will be followed up in a future issue (MDL-85852).
-            'no groups' => [
+            'No groups' => [
                 'groupmode' => NOGROUPS,
                 'expected' => [
                     't1' => 4, // We count students and teachers because teachers can submit attempts (not s3).
                     't2' => 4,
                     's1' => 4,
                     's2' => 4,
+                    's3' => 4, // s3 is a test role that does not have mod/scorm:savetrack permission.
                 ],
             ],
         ];
@@ -295,11 +294,13 @@ final class manager_test extends \advanced_testcase {
         }
         $course = $generator->create_course($courseparams);
         // Create a role that does not have mod/scorm:savetrack permission.
-        $generator->create_role([
+        $testrole = $generator->create_role([
             'shortname' => 'testrole',
             'name' => 'Test role',
-            'archetype' => '',
+            'archetype' => 'student',
         ]);
+        assign_capability('mod/scorm:savetrack', CAP_PROHIBIT, $testrole, \context_course::instance($course->id));
+
         $data = [
             's1' => ['role' => 'student', 'groups' => ['g1']],
             's2' => ['role' => 'student', 'groups' => ['g2']],

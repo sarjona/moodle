@@ -72,33 +72,44 @@ final class generator_test extends \advanced_testcase {
      * Test creating a SCORM attempt.
      *
      * @param array $attemptdata Data for the attempt to create.
-     * @param array $expected Expected results.
+     * @param string|null $expectedexception Expected exception class name, if any.
      * @dataProvider get_create_attempt_data
      * @covers \mod_scorm_generator::create_attempt
      */
-    public function test_create_attempt(array $attemptdata, array $expected): void {
+    public function test_create_attempt(
+        array $attemptdata,
+        ?string $expectedexception = null,
+    ): void {
         global $DB;
+
         $this->resetAfterTest();
         $this->setAdminUser();
-        $dg = $this->getDataGenerator();
-        $course = $dg->create_course();
-        $user = $dg->create_user();
-        $scorm = $dg->create_module('scorm', ['course' => $course]);
-        $scormid = $scorm->id;
-        $userid = $user->id;
-        if (!empty($attemptdata['scormid'])) {
-            $scormid = $attemptdata['scormid'];
+        $datagenerator = $this->getDataGenerator();
+        $course = $datagenerator->create_course();
+        $user = $datagenerator->create_user();
+        $scorm = $datagenerator->create_module('scorm', ['course' => $course]);
+
+        if (array_key_exists('scormid', $attemptdata) && $attemptdata['scormid'] === 'SETSCORMID') {
+            $attemptdata['scormid'] = $scorm->id;
         }
-        if (!empty($attemptdata['userid'] === null)) {
-            $userid = $attemptdata['userid'];
+        if (array_key_exists('userid', $attemptdata) && $attemptdata['userid'] === 'SETUSERID') {
+            $attemptdata['userid'] = $user->id;
         }
-        if ($expected['exception'] !== null) {
-            $this->expectException($expected['exception']);
+
+        // Check there are no attempts before creating one.
+        $this->assertEquals(
+            0,
+            $DB->count_records('scorm_attempt'),
+        );
+
+        if ($expectedexception !== null) {
+            $this->expectException($expectedexception);
         }
-        $scormgenerator = $dg->get_plugin_generator('mod_scorm');
-        $scormgenerator->create_attempt(['scormid' => $scormid, 'userid' => $userid]);
-        $records = $DB->get_records('scorm_attempt', ['scormid' => $scormid], 'id');
-        $this->assertEquals($expected['attemptscount'], count($records));
+
+        /** @var \mod_scorm_generator $scormgenerator */
+        $scormgenerator = $datagenerator->get_plugin_generator('mod_scorm');
+        $scormgenerator->create_attempt($attemptdata);
+        $this->assertEquals(1, $DB->count_records('scorm_attempt'));
     }
 
     /**
@@ -108,24 +119,38 @@ final class generator_test extends \advanced_testcase {
      */
     public static function get_create_attempt_data(): array {
         return [
-            'default' => [
+            'Correct attempt data' => [
                 'attemptdata' => [
-                    'scormid' => null, // The created scorm.
-                    'userid' => null, // The created user.
+                    'scormid' => 'SETSCORMID',
+                    'userid' => 'SETUSERID',
                 ],
-                'expected' => [
-                    'exception' => null,
-                    'attemptscount' => 1,
-                ],
+                'expectedexception' => null,
             ],
-            'with wrong scormid' => [
+            'Without scormid (which is required)' => [
+                'attemptdata' => [
+                    'userid' => 'SETUSERID',
+                ],
+                'expectedexception' => \coding_exception::class,
+            ],
+            'Without userid (current is used)' => [
+                'attemptdata' => [
+                    'scormid' => 'SETSCORMID',
+                ],
+                'expectedexception' => null,
+            ],
+            'With wrong scormid' => [
                 'attemptdata' => [
                     'scormid' => 3,
-                    'userid' => null, // The created user.
+                    'userid' => 'SETUSERID',
                 ],
-                'expected' => [
-                    'exception' => \dml_missing_record_exception::class,
+                'expectedexception' => \dml_missing_record_exception::class,
+            ],
+            'With wrong userid' => [
+                'attemptdata' => [
+                    'scormid' => 'SETSCORMID',
+                    'userid' => 999,
                 ],
+                'expectedexception' => \dml_missing_record_exception::class,
             ],
         ];
     }
