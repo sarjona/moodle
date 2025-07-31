@@ -51,6 +51,7 @@ final class content_item_test extends \advanced_testcase {
             purpose: MOD_PURPOSE_CONTENT,
             branded: true,
             gradable: true,
+            otherpurpose: MOD_PURPOSE_INTERACTIVECONTENT,
         );
 
         $this->assertEquals(22, $contentitem->get_id());
@@ -64,6 +65,7 @@ final class content_item_test extends \advanced_testcase {
         $this->assertEquals('content', $contentitem->get_purpose());
         $this->assertTrue($contentitem->is_branded());
         $this->assertTrue($contentitem->is_gradable());
+        $this->assertEquals(MOD_PURPOSE_INTERACTIVECONTENT, $contentitem->get_other_purpose());
     }
 
     /**
