@@ -371,9 +371,9 @@ class backpack_api_mapping {
         }
         if (isset($response->status) && $response->status?->success != true) {
             // If the response wasn't successful, store the errors and return null.
-            if ($response->validationErrors) {
+            if ($response?->validationErrors) {
                 $error = implode(', ', $response->validationErrors);
-            } else if ($response->status->description) {
+            } else if ($response->status?->description) {
                 $error = $response->status->description;
             } else {
                 $error = get_string('invalidrequest', 'error');
