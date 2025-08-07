@@ -2285,10 +2285,10 @@ class assign {
     /**
      * Returns array with sql code and parameters returning all ids of users who have submitted an assignment.
      *
-     * @param int $group The group that the query is for.
+     * @param array $groupids The group identifiers that the query is for.
      * @return array list($sql, $params)
      */
-    protected function get_submitted_sql($group = 0) {
+    protected function get_submitted_sql($groupids = []) {
         // We need to guarentee unique table names.
         static $i = 0;
         $i++;
@@ -2297,7 +2297,7 @@ class assign {
             "{$prefix}assignment" => (int) $this->get_instance()->id,
             "{$prefix}status" => ASSIGN_SUBMISSION_STATUS_NEW,
         ];
-        $capjoin = get_enrolled_with_capabilities_join($this->context, $prefix, '', $group, $this->show_only_active_users());
+        $capjoin = get_enrolled_with_capabilities_join($this->context, $prefix, '', $groupids, $this->show_only_active_users());
         $params += $capjoin->params;
         $sql = "SELECT {$prefix}s.userid
                   FROM {assign_submission} {$prefix}s
@@ -2307,6 +2307,25 @@ class assign {
                    AND {$prefix}s.status <> :{$prefix}status
                    AND $capjoin->wheres";
         return array($sql, $params);
+    }
+
+    /**
+     * Get the list of users enrolled in the current course with the specified groups.
+     *
+     * @param array $groupids The group identifiers that the query is for.
+     * @return int The number of users enrolled in the course with the specified groups.
+     */
+    public function count_participants_by_groups(array $groupids) {
+        if (empty($groupids)) {
+            return $this->count_participants(0);
+        }
+
+        return count(get_enrolled_users(
+            context: $this->context,
+            withcapability: 'mod/assign:submit',
+            groupids: $groupids,
+            onlyactive: $this->show_only_active_users(),
+        ));
     }
 
     /**
@@ -2330,9 +2349,12 @@ class assign {
 
         $key = $this->context->id . '-' . $currentgroup . '-' . $this->show_only_active_users();
         if (!isset($this->participants[$key])) {
-            list($esql, $params) = get_enrolled_sql($this->context, 'mod/assign:submit', $currentgroup,
-                    $this->show_only_active_users());
-            list($ssql, $sparams) = $this->get_submitted_sql($currentgroup);
+            [$esql, $params] = get_enrolled_sql(
+                $this->context, 'mod/assign:submit',
+                $currentgroup,
+                $this->show_only_active_users(),
+            );
+            [$ssql, $sparams] = $this->get_submitted_sql($currentgroup ? [$currentgroup] : []);
             $params += $sparams;
 
             $fields = 'u.*';
@@ -2550,32 +2572,68 @@ class assign {
 
         if ($this->get_instance()->teamsubmission) {
             // This does not make sense for group assignment because the submission is shared.
+            // The behaviour of this method hasn't been changed but from Moodle 5.1, count_submissions_need_grading_with_groups
+            // also counts group submissions.
             return 0;
         }
+
 
         if ($currentgroup === null) {
             $currentgroup = groups_get_activity_group($this->get_course_module(), true);
         }
-        list($esql, $params) = get_enrolled_sql($this->get_context(), '', $currentgroup, true);
 
-        $params['assignid'] = $this->get_instance()->id;
-        $params['submitted'] = ASSIGN_SUBMISSION_STATUS_SUBMITTED;
+        return $this->count_submissions_need_grading_with_groups($currentgroup ? [$currentgroup] : []);
+    }
+
+    /**
+     * Load a count of active users submissions in the current module that require grading
+     * This means the submission modification time is more recent than the
+     * grading modification time and the status is SUBMITTED.
+     *
+     * @param array $groups The group identifiers that the query is for.
+     * @return int number of matching submissions
+     */
+    public function count_submissions_need_grading_with_groups(array $groups = []): int {
+        global $DB;
+
         $sqlscalegrade = $this->get_instance()->grade < 0 ? ' OR g.grade = -1' : '';
+        $select = 's.assignment = :assignid AND
+                  s.status = :submitted AND
+                  s.latest = 1 AND
+                  s.timemodified IS NOT NULL AND
+                  (s.timemodified >= g.timemodified OR g.timemodified IS NULL OR g.grade IS NULL ' . $sqlscalegrade . ')';
+        $params = [
+            'assignid' => $this->get_instance()->id,
+            'submitted' => ASSIGN_SUBMISSION_STATUS_SUBMITTED,
+        ];
+        [$esql, $eparams] = get_enrolled_sql($this->get_context(), '', $groups, true);
+        $params = array_merge($params, $eparams);
 
-        $sql = 'SELECT COUNT(s.userid)
-                   FROM {assign_submission} s
-                   LEFT JOIN {assign_grades} g ON
-                        s.assignment = g.assignment AND
-                        s.userid = g.userid AND
-                        g.attemptnumber = s.attemptnumber
-                   JOIN(' . $esql . ') e ON e.id = s.userid
-                   WHERE
-                        s.latest = 1 AND
-                        s.assignment = :assignid AND
-                        s.timemodified IS NOT NULL AND
-                        s.status = :submitted AND
-                        (s.timemodified >= g.timemodified OR g.timemodified IS NULL OR g.grade IS NULL '
-                            . $sqlscalegrade . ')';
+        if ($this->get_instance()->teamsubmission) {
+            // For team submissions, only count the teams (instead of the participants).
+            $sql = 'SELECT COUNT(DISTINCT s1.groupid)
+                      FROM {assign_submission} s1
+                      JOIN (
+                           SELECT s.*
+                             FROM {assign_submission} s
+                        LEFT JOIN {assign_grades} g ON
+                                  s.assignment = g.assignment AND
+                                  s.userid = g.userid AND
+                                  g.attemptnumber = s.attemptnumber
+                             JOIN(' . $esql . ') e ON e.id = s.userid
+                             WHERE ' . $select . '
+                            ) s2
+                        ON s1.assignment = s2.assignment AND s1.userid = 0';
+        } else {
+            $sql = 'SELECT COUNT(s.userid)
+                        FROM {assign_submission} s
+                    LEFT JOIN {assign_grades} g ON
+                            s.assignment = g.assignment AND
+                            s.userid = g.userid AND
+                            g.attemptnumber = s.attemptnumber
+                        JOIN(' . $esql . ') e ON e.id = s.userid
+                    WHERE ' . $select;
+        }
 
         return $DB->count_records_sql($sql, $params);
     }
@@ -2671,52 +2729,77 @@ class assign {
         if ($currentgroup === null) {
             $currentgroup = groups_get_activity_group($this->get_course_module(), true);
         }
-        list($esql, $params) = get_enrolled_sql($this->get_context(), '', $currentgroup, true);
 
-        $params['assignid'] = $this->get_instance()->id;
-        $params['assignid2'] = $this->get_instance()->id;
-        $params['submissionstatus'] = $status;
-
+        $groups = [];
         if ($this->get_instance()->teamsubmission) {
-
-            $groupsstr = '';
             if ($currentgroup != 0) {
                 // If there is an active group we should only display the current group users groups.
                 $participants = $this->list_participants($currentgroup, true);
-                $groups = groups_get_all_groups($this->get_course()->id,
-                                                array_keys($participants),
-                                                $this->get_instance()->teamsubmissiongroupingid,
-                                                'DISTINCT g.id, g.name');
+                $groups = groups_get_all_groups(
+                    $this->get_course()->id,
+                    array_keys($participants),
+                    $this->get_instance()->teamsubmissiongroupingid,
+                    'DISTINCT g.id, g.name',
+                );
                 if (empty($groups)) {
                     // If $groups is empty it means it is not part of $this->get_instance()->teamsubmissiongroupingid.
                     // All submissions from students that do not belong to any of teamsubmissiongroupingid groups
                     // count towards groupid = 0. Setting to true as only '0' key matters.
                     $groups = [true];
                 }
-                list($groupssql, $groupsparams) = $DB->get_in_or_equal(array_keys($groups), SQL_PARAMS_NAMED);
-                $groupsstr = 's.groupid ' . $groupssql . ' AND';
-                $params = $params + $groupsparams;
             }
-            $sql = 'SELECT COUNT(s.groupid)
-                        FROM {assign_submission} s
-                        WHERE
-                            s.latest = 1 AND
-                            s.assignment = :assignid AND
-                            s.timemodified IS NOT NULL AND
-                            s.userid = :groupuserid AND '
-                            . $groupsstr . '
-                            s.status = :submissionstatus';
-            $params['groupuserid'] = 0;
-        } else {
-            $sql = 'SELECT COUNT(s.userid)
-                        FROM {assign_submission} s
-                        JOIN(' . $esql . ') e ON e.id = s.userid
-                        WHERE
-                            s.latest = 1 AND
-                            s.assignment = :assignid AND
-                            s.timemodified IS NOT NULL AND
-                            s.status = :submissionstatus';
+        } else if ($currentgroup) {
+            $groups = [$currentgroup => true];
+        }
 
+        return $this->count_submissions_with_status_and_groups($status, array_keys($groups));
+    }
+
+    /**
+     * Load a count of submissions with a specified status, filtered by groups.
+     *
+     * @param string $status The submission status - should match one of the constants.
+     * @param array $groups array The groups for counting. Empty array means all groups.
+     * @return int Number of matching submissions.
+     */
+    public function count_submissions_with_status_and_groups(string $status, array $groups = []): int {
+        global $DB;
+
+        $tableprefix = ($this->get_instance()->teamsubmission || empty($groups)) ? '' : 's.';
+        $select = $tableprefix . 'assignment = :assignid AND
+                  ' . $tableprefix . 'status = :submissionstatus AND
+                  latest = 1 AND
+                  timemodified IS NOT NULL';
+        $params = [
+            'assignid' => $this->get_instance()->id,
+            'submissionstatus' => $status,
+        ];
+
+        if ($this->get_instance()->teamsubmission) {
+            // Team submission will filter by groupid.
+            $gsql = '';
+            $select .= " AND userid = 0 ";
+            if (!empty($groups)) {
+                // If there are groups, we need to filter by them.
+                [$gsql, $gparams] = $DB->get_in_or_equal($groups, SQL_PARAMS_NAMED);
+                $select .= " AND (groupid $gsql)";
+                $params = array_merge($params, $gparams);
+            }
+
+            return $DB->count_records_select('assign_submission', $select, $params, 'COUNT(userid)');
+        } else {
+            // Individual submission will filter using groups_members.
+            if (empty($groups)) {
+                return $DB->count_records_select('assign_submission', $select, $params, 'COUNT(userid)');
+            }
+
+            // If there are groups, we need to filter by them.
+            [$gsql, $gparams] = $DB->get_in_or_equal($groups, SQL_PARAMS_NAMED);
+            $sql = "SELECT COUNT(s.userid)
+                      FROM {assign_submission} s, {groups_members} gm
+                     WHERE $select AND
+                           s.userid = gm.userid AND (gm.groupid $gsql OR gm.groupid = 0)";
+            $params = array_merge($params, $gparams);
         }
 
         return $DB->count_records_sql($sql, $params);
