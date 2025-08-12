@@ -85,36 +85,35 @@ final class overview_test extends \advanced_testcase {
      * Test get_actions_overview.
      *
      * @param string $currentuser
-     * @param array|null $expected
+     * @param array|null $expectation
      * @return void
      * @dataProvider provider_test_get_actions_overview
      */
     public function test_get_actions_overview(
         string $currentuser,
-        ?array $expected
+        ?array $expectation
     ): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
-        ['users' => $users, 'cm' => $cm] = $this->setup_users_course_groups(
-            [
-                's1' => ['student', 'g1', 2],
-                's2' => ['student', null, 1],
-                't1' => ['editingteacher', null, null],
-                't2' => ['teacher', 'g1', null],
-            ]
-        );
+        ['users' => $users, 'cm' => $cm] = $this->setup_users_course_groups([]);
         $this->setUser($users[$currentuser]);
         $cminfo = get_fast_modinfo($cm->course)->get_cm($cm->id);
-        $item = overviewfactory::create($cminfo)->get_actions_overview();
+        $overview = overviewfactory::create($cminfo);
+        $item = $overview->get_actions_overview();
 
-        if ($expected === null) {
+        if ($expectation['haserror'] ?? false) {
+            $this->assertTrue($overview->has_error());
+            return;
+        }
+        $this->assertFalse($overview->has_error());
+        if ($expectation === null) {
             $this->assertNull($item);
             return;
         }
 
         $this->assertEquals(
-            $expected,
+            $expectation,
             ['name' => $item->get_name(), 'value' => $item->get_value()]
         );
     }
@@ -128,13 +127,26 @@ final class overview_test extends \advanced_testcase {
         return [
             'Student' => [
                 'currentuser' => 's1',
-                'expected' => null,
+                'expectation' => null,
             ],
-            'Teacher' => [
+            'Editing Teacher' => [
                 'currentuser' => 't1',
-                'expected' => [
+                'expectation' => [
                     'name' => get_string('actions'),
                     'value' => '',
+                ],
+            ],
+            'Non editing Teacher' => [
+                'currentuser' => 't2',
+                'expectation' => [
+                    'name' => get_string('actions'),
+                    'value' => '',
+                ],
+            ],
+            'Non editing Teacher without group' => [
+                'currentuser' => 't3',
+                'expectation' => [
+                    'haserror' => true,
                 ],
             ],
         ];
@@ -143,39 +155,46 @@ final class overview_test extends \advanced_testcase {
     /**
      * Test get_total_attempts_overview.
      *
-     * @param string $currentuser
-     * @param string|null $expected
+     * @param int $groupmode
+     * @param array $expected
      * @return void
      * @dataProvider provider_test_get_total_attempts_overview
      */
     public function test_get_extra_totalattempts_overview(
-        string $currentuser,
-        ?string $expected
+        int $groupmode,
+        array $expected,
     ): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
-        ['users' => $users, 'cm' => $cm] = $this->setup_users_course_groups(
-            [
-                's1' => ['student', 'g1', 2],
-                's2' => ['student', null, 1],
-                't1' => ['editingteacher', null, null],
-                't2' => ['teacher', 'g1', null],
-            ]
-        );
-        $this->setUser($users[$currentuser]);
-        $cminfo = get_fast_modinfo($cm->course)->get_cm($cm->id);
-        $item = overviewfactory::create($cminfo)->get_extra_overview_items();
+        ['users' => $users, 'cm' => $cm] = $this->setup_users_course_groups([], $groupmode);
+        foreach ($expected as $currentuser => $studentswhoattempted) {
+            $this->setUser($users[$currentuser]);
+            $cminfo = get_fast_modinfo($cm->course)->get_cm($cm->id);
+            $overview = overviewfactory::create($cminfo);
+            $item = $overview->get_extra_overview_items();
+            if ($studentswhoattempted === "haserror") {
+                $this->assertTrue(
+                    $overview->has_error(),
+                    'Expected an error for user: ' . $currentuser
+                );
+                continue;
+            }
+            $this->assertFalse($overview->has_error());
+            if ($studentswhoattempted === null) {
+                $this->assertNull(
+                    $item['totalattempts'],
+                    'Expected null for user: ' . $currentuser
+                );
+                continue;
+            }
 
-        if ($expected === null) {
-            $this->assertNull($item['studentswhoattempted']);
-            return;
+            $this->assertEquals(
+                $studentswhoattempted,
+                $item['totalattempts']->get_value(),
+                "Failed for user: $currentuser"
+            );
         }
-
-        $this->assertEquals(
-            $expected,
-            $item['studentswhoattempted']->get_value()
-        );
     }
 
     /**
@@ -185,13 +204,31 @@ final class overview_test extends \advanced_testcase {
      */
     public static function provider_test_get_total_attempts_overview(): array {
         return [
-            'Teacher' => [
-                'currentuser' => 't1',
-                'expected' => "2 of 2",
+            'Without groups' => [
+                'groupmode' => NOGROUPS,
+                'expected' => [
+                    't1' => 5, // Count all attempts (even teacher's attempts).
+                    't2' => 5,
+                    't3' => 5,
+                    's1' => null,
+                ],
             ],
-            'Student' => [
-                'currentuser' => 's1',
-                'expected' => null,
+            'With separate groups' => [
+                'groupmode' => SEPARATEGROUPS,
+                'expected' => [
+                    't1' => 5,
+                    't2' => 3, // User 1 two attempts, teacher 2 one attempt (counted).
+                    's1' => null,
+                ],
+            ],
+            'With visible groups' => [
+                'groupmode' => VISIBLEGROUPS,
+                'expected' => [
+                    't1' => 5,
+                    't2' => 5,
+                    't3' => 5,
+                    's1' => null,
+                ],
             ],
         ];
     }
@@ -199,39 +236,50 @@ final class overview_test extends \advanced_testcase {
     /**
      * Test get_students_who_attempted_overview.
      *
-     * @param string $currentuser
-     * @param ?string $expected
+     * @param int $groupmode
+     * @param array $expected
      * @return void
      * @dataProvider provider_test_get_students_who_attempted_overview
      **/
-    public function test_get_extra_attemptedstudents_overview(
-        string $currentuser,
-        ?string $expected
+    public function test_get_extra_studentswhoattempted_overview(
+        int $groupmode,
+        array $expected,
     ): void {
         $this->resetAfterTest();
         $this->setAdminUser();
+        ['users' => $users, 'cm' => $cm] = $this->setup_users_course_groups([], $groupmode);
+        foreach ($expected as $currentuser => $totalattempts) {
+            $this->setUser($users[$currentuser]);
+            $cminfo = get_fast_modinfo($cm->course)->get_cm($cm->id);
+            $overview = overviewfactory::create($cminfo);
+            $item = $overview->get_extra_overview_items();
 
-        ['users' => $users, 'cm' => $cm] = $this->setup_users_course_groups(
-            [
-                's1' => ['student', 'g1', 2],
-                's2' => ['student', null, 1],
-                't1' => ['editingteacher', null, null],
-                't2' => ['teacher', 'g1', null],
-            ]
-        );
-        $this->setUser($users[$currentuser]);
-        $cminfo = get_fast_modinfo($cm->course)->get_cm($cm->id);
-        $overview = overviewfactory::create($cminfo);
-        $item = $overview->get_extra_overview_items();
-
-        if ($expected === null) {
-            $this->assertNull($item['totalattempts']);
-            return;
+            if ($expected === null) {
+                $this->assertNull($item['studentswhoattempted']);
+                return;
+            }
+            $overview = overviewfactory::create($cminfo);
+            $item = $overview->get_extra_overview_items();
+            if ($totalattempts === null) {
+                $this->assertNull(
+                    $item['studentswhoattempted'],
+                    'Expected null for user: ' . $currentuser
+                );
+                continue;
+            }
+            if ($totalattempts === "error") {
+                $this->assertTrue(
+                    $overview->has_error(),
+                    'Expected an error for user: ' . $currentuser
+                );
+                continue;
+            }
+            $this->assertEquals(
+                $totalattempts,
+                $item['studentswhoattempted']->get_value(),
+                "Failed for user: $currentuser"
+            );
         }
-        $this->assertEquals(
-            $expected,
-            $item['totalattempts']->get_value()
-        );
     }
 
     /**
@@ -241,13 +289,32 @@ final class overview_test extends \advanced_testcase {
      */
     public static function provider_test_get_students_who_attempted_overview(): array {
         return [
-            'Teacher t1' => [
-                'currentuser' => 't1',
-                'expected' => "3",
+            'With no groups' => [
+                'groupmode' => NOGROUPS,
+                'expected' => [
+                    't1' => "3 of 4", // 3 students and one teacher out (not counted) of 4 made at least one attempt.
+                    't2' => "3 of 4",
+                    't3' => "3 of 4",
+                    's1' => null,
+                ],
             ],
-            'Student' => [
-                'currentuser' => 's1',
-                'expected' => null,
+            'With separate groups' => [
+                'groupmode' => SEPARATEGROUPS,
+                'expected' => [
+                    't1' => "3 of 4", // Teacher 1 can see all groups.
+                    't2' => "1 of 1", // Only student 1 in group 1 made at least one attempt.
+                    't3' => "error",
+                    's1' => null,
+                ],
+            ],
+            'With visible groups' => [
+                'groupmode' => VISIBLEGROUPS,
+                'expected' => [
+                    't1' => "3 of 4", // 3 students and one teacher out (not counted) of 4 made at least one attempt.
+                    't2' => "3 of 4",
+                    't3' => "3 of 4",
+                    's1' => null,
+                ],
             ],
         ];
     }
@@ -256,13 +323,24 @@ final class overview_test extends \advanced_testcase {
      * Set up users, course, groups and quiz for testing.
      *
      * @param array $data Array of user data with username as key and an array of role, group and attempts number as value.
+     * @param int $groupmode The group mode to use for the course.
      * @return array An array containing users, groups, quiz, course module and attempts.
      */
-    private function setup_users_course_groups(array $data): array {
+    private function setup_users_course_groups(array $data, int $groupmode = SEPARATEGROUPS): array {
         $generator = $this->getDataGenerator();
-
+        if (empty($data)) {
+            $data = [
+                's1' => ['student', 'g1', 2],
+                's2' => ['student', null, 1],
+                's3' => ['student', 'g2', 1],
+                's4' => ['student', 'g2', 0],
+                't1' => ['editingteacher', null, null],
+                't2' => ['teacher', 'g1', 1],
+                't3' => ['teacher', null, 0],
+            ];
+        }
         // Create a course and a quiz.
-        $course = $generator->create_course(['groupmodeforce' => 1, 'groupmode' => SEPARATEGROUPS]);
+        $course = $generator->create_course(['groupmodeforce' => 1, 'groupmode' => $groupmode]);
         $quiz = $generator->create_module('quiz', ['course' => $course->id, 'sumgrades' => 1]);
         $cm = get_coursemodule_from_instance('quiz', $quiz->id);
 
