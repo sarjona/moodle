@@ -4590,6 +4590,14 @@ class core_course_external extends external_api {
     }
 
     /**
+     * Mark get_course_content_items as deprecated.
+     * @return bool
+     */
+    public static function get_course_content_items_is_deprecated() {
+        return true;
+    }
+
+    /**
      * Returns description of method parameters.
      *
      * @return external_function_parameters
