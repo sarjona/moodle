@@ -2443,7 +2443,7 @@ class assign {
      * @param array $groupids The group identifiers that the query is for.
      * @return int The number of users enrolled in the course with the specified groups.
      */
-    public function count_participants_by_groups(array $groupids) {
+    public function count_participants_by_groups(array $groupids): int {
         if (empty($groupids)) {
             return $this->count_participants(0);
         }
@@ -2557,9 +2557,12 @@ class assign {
     }
 
     /**
-     * Load a count of active users submissions in the current module that require grading
-     * This means the submission modification time is more recent than the
+     * Load a count of active users submissions in the current module that require grading, filtering by current group.
+     * When no current group is specified, all submissions are counted.
+     * Require grading means that the submission modification time is more recent than the
      * grading modification time and the status is SUBMITTED.
+     * For assignments using team submission, this will always return 0.
+     * Use count_submissions_need_grading_with_groups if you need to count team submissions.
      *
      * @param mixed $currentgroup int|null the group for counting (if null the function will determine it)
      * @return int number of matching submissions
@@ -2574,7 +2577,6 @@ class assign {
             return 0;
         }
 
-
         if ($currentgroup === null) {
             $currentgroup = groups_get_activity_group($this->get_course_module(), true);
         }
@@ -2583,8 +2585,9 @@ class assign {
     }
 
     /**
-     * Load a count of active users submissions in the current module that require grading
-     * This means the submission modification time is more recent than the
+     * Count submissions in the current module that require grading, filtering by groups.
+     *
+     * Require grading means that the submission modification time is more recent than the
      * grading modification time and the status is SUBMITTED.
      *
      * @param array $groupids The group identifiers that the query is for.
@@ -2593,26 +2596,24 @@ class assign {
     public function count_submissions_need_grading_with_groups(array $groupids = []): int {
         global $DB;
 
-        $sqlscalegrade = $this->get_instance()->grade < 0 ? ' OR g.grade = -1' : '';
-        $select = 's.assignment = :assignid AND
-                  s.status = :submitted AND
-                  s.latest = 1 AND
-                  s.timemodified IS NOT NULL AND
-                  (s.timemodified >= g.timemodified OR g.timemodified IS NULL OR g.grade IS NULL ' . $sqlscalegrade . ')';
         $params = [
             'assignid' => $this->get_instance()->id,
             'submitted' => ASSIGN_SUBMISSION_STATUS_SUBMITTED,
         ];
         [$esql, $eparams] = get_enrolled_sql($this->get_context(), '', $groupids, true);
         $params += $eparams;
-
+        $sqlscalegrade = $this->get_instance()->grade < 0 ? ' OR g.grade = ' . ASSIGN_GRADE_NOT_SET : '';
         $sql = '     FROM {assign_submission} s
                 LEFT JOIN {assign_grades} g ON
                           s.assignment = g.assignment AND
                           s.userid = g.userid AND
                           g.attemptnumber = s.attemptnumber
                      JOIN (' . $esql . ') e ON e.id = s.userid
-                    WHERE ' . $select;
+                    WHERE s.assignment = :assignid AND
+                          s.status = :submitted AND
+                          s.latest = 1 AND
+                          s.timemodified IS NOT NULL AND
+                          (s.timemodified >= g.timemodified OR g.timemodified IS NULL OR g.grade IS NULL ' . $sqlscalegrade . ')';
 
         if ($this->get_instance()->teamsubmission) {
             // For team submissions, only count the teams (instead of the participants).
