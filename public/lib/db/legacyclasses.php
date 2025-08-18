@@ -346,4 +346,8 @@ $legacyclasses = [
         'core_comment',
         'comment_exception.php',
     ],
+    \core_course\output\activitychooserbutton::class => [
+        'core_courseformat',
+        'output/local/content/activitychooserbutton.php',
+    ],
 ];
