@@ -2148,14 +2148,31 @@ function feedback_get_completeds(stdClass $feedback, array $groups = []) {
         return $db->get_records('feedback_completed', ['feedback' => $feedback->id]);
     }
 
-    [$sql, $params] = $db->get_in_or_equal(array_keys($groups), SQL_PARAMS_NAMED);
-    $query = 'SELECT fbc.*
-                FROM {feedback_completed} fbc, {groups_members} gm
-               WHERE fbc.feedback = :feedbackid
-                     AND (gm.groupid ' . $sql . ' OR gm.groupid = 0)
-                     AND fbc.userid = gm.userid';
-    $params['feedbackid'] = $feedback->id;
-    return $db->get_records_sql($query, $params);
+    $groupjoin = '';
+    $groupwhere = '';
+    $groupparams = [];
+    if ($groups) {
+        $groupsqljoin = groups_get_members_join(array_keys($groups), 'u.id');
+        $groupjoin = $groupsqljoin->joins;
+        $groupwhere = !empty($groupsqljoin->wheres) ? " AND {$groupsqljoin->wheres}" : '';
+        $groupparams = $groupsqljoin->params;
+    }
+
+    $sql = "SELECT fbc.*
+                FROM {feedback_completed} fbc
+                JOIN {user} u ON (fbc.userid = u.id)
+            $groupjoin
+                WHERE fbc.feedback = :feedbackid
+            $groupwhere";
+
+    return $db->get_records_sql(
+        $sql,
+        [
+            'feedbackid' => $feedback->id,
+            ...$groupparams,
+        ],
+    );
+
 }
 
 /**
