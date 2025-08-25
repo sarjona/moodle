@@ -115,19 +115,19 @@ class manager {
     /**
      * Return the current count of users who have answered this choice module, that the current user can see.
      *
-     * @param array $groups the groups to filter by, empty array means no filtering
+     * @param int[] $groupids the group identifiers to filter by, empty array means no filtering
      * @param int|null $optionid the option ID to filter by, or null to count all answers
      * @return int the number of answers that the user can see
      */
     public function count_all_users_answered(
-        array $groups = [],
+        array $groupids = [],
         ?int $optionid = null,
     ): int {
         if (!has_all_capabilities(['mod/choice:view', 'mod/choice:readresponses'], $this->context)) {
             return 0;
         }
 
-        $tableprefix = empty($groups) ? '' : 'ca.';
+        $tableprefix = empty($groupids) ? '' : 'ca.';
         $select =  $tableprefix . 'choiceid = :choiceid';
         $params = [
             'choiceid' => $this->instance->id,
@@ -137,13 +137,13 @@ class manager {
             $params['optionid'] = $optionid;
         }
 
-        if (empty($groups)) {
+        if (empty($groupids)) {
             // No groups filtering, count all users answered.
             return $this->db->count_records_select('choice_answers', $select, $params, 'COUNT(DISTINCT userid)');
         }
 
         // Groups filtering is applied.
-        [$gsql, $gparams] = $this->db->get_in_or_equal(array_keys($groups), SQL_PARAMS_NAMED);
+        [$gsql, $gparams] = $this->db->get_in_or_equal($groupids, SQL_PARAMS_NAMED);
         $query = "SELECT COUNT(DISTINCT ca.userid)
                 FROM {choice_answers} ca, {groups_members} gm
                WHERE $select

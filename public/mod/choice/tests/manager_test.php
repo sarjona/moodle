@@ -114,9 +114,9 @@ final class manager_test extends \advanced_testcase {
         if (!empty($selectedgroups)) {
             foreach ($selectedgroups as $group) {
                 if ($group === 'unexisting') {
-                    $groups[666] = new \stdClass();
+                    $groups = [666];
                 } else {
-                    $groups[$allgroups[$group]->id] = $allgroups[$group];
+                    $groups[] = $allgroups[$group]->id;
                 }
             }
         }

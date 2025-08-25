@@ -164,8 +164,8 @@ class overview extends \core_courseformat\activityoverviewbase {
             return null;
         }
 
-        $groups = $this->get_groups_for_filtering();
-        $studentwhoanswered = $this->manager->count_all_users_answered($groups);
+        $groupids = array_keys($this->get_groups_for_filtering());
+        $studentwhoanswered = $this->manager->count_all_users_answered($groupids);
         $overviewdialog = new overviewdialog(
             buttoncontent: $studentwhoanswered,
             title: get_string('totalresponses', 'mod_choice'),
@@ -177,7 +177,7 @@ class overview extends \core_courseformat\activityoverviewbase {
         foreach ($options as $option) {
             $overviewdialog->add_item(
                 $option->text,
-                $this->manager->count_all_users_answered($groups, $option->id),
+                $this->manager->count_all_users_answered($groupids, $option->id),
             );
         }
 
