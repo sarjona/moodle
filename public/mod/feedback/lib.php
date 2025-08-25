@@ -2141,21 +2141,21 @@ function feedback_is_already_submitted($feedbackid, $courseid = false) {
  * @return array Array of completed records.
  */
 function feedback_get_completeds(stdClass $feedback, array $groups = []) {
-    global $DB;
+    $db = \core\di::get(\moodle_database::class);
 
     if (empty($groups)) {
         // If no groups are specified, return all completeds for the feedback.
-        return $DB->get_records('feedback_completed', ['feedback' => $feedback->id]);
+        return $db->get_records('feedback_completed', ['feedback' => $feedback->id]);
     }
 
-    [$sql, $params] = $DB->get_in_or_equal(array_keys($groups), SQL_PARAMS_NAMED);
+    [$sql, $params] = $db->get_in_or_equal(array_keys($groups), SQL_PARAMS_NAMED);
     $query = 'SELECT fbc.*
                 FROM {feedback_completed} fbc, {groups_members} gm
                WHERE fbc.feedback = :feedbackid
                      AND (gm.groupid ' . $sql . ' OR gm.groupid = 0)
                      AND fbc.userid = gm.userid';
     $params['feedbackid'] = $feedback->id;
-    return $DB->get_records_sql($query, $params);
+    return $db->get_records_sql($query, $params);
 }
 
 /**
