@@ -43,18 +43,16 @@ class overviewaction extends action_link implements externable, named_templatabl
      * Creates a new overview action.
      *
      * @param url $url The URL for the action.
-     * @param string|renderable $text The content to represent the action.
+     * @param string $text The content to represent the action.
      * @param null|array $attributes Any attributes associated with the action.
-     * @param null|pix_icon $icon The optional icon to represent the action.
      * @param string|null $badgevalue The content of the badge to display.
      * @param string|null $badgetitle The badge title. Ignored if badgevalue is null.
      * @param \core\output\local\properties\badge|null $badgestyle The badge style to apply. Ignored if badgevalue is null.
      */
     public function __construct(
         url $url,
-        $text,
+        string $text,
         ?array $attributes = null,
-        ?pix_icon $icon = null,
         /** @var string|null $badgevalue The content of the badge to display */
         protected ?string $badgevalue = null,
         /** @var string|null $badgetitle The badge title */
@@ -73,8 +71,11 @@ class overviewaction extends action_link implements externable, named_templatabl
             $this->badgestyle = $this->badgestyle ?? \core\output\local\properties\badge::PRIMARY;
         }
 
-        // Action parameters are not used in overview actions, so null is always passed.
-        parent::__construct($url, $text, null, $attributes, $icon);
+        parent::__construct(
+            url: $url,
+            text: $text,
+            attributes: $attributes,
+        );
     }
 
     /**
@@ -113,7 +114,7 @@ class overviewaction extends action_link implements externable, named_templatabl
     public function export_for_template(renderer_base $output) {
         $data = parent::export_for_template($output);
 
-        $data->onlytext = $data->text;
+        $data->onlytext = $this->text;
         if ($this->badgevalue !== null) {
             /** @var \core_renderer $renderer */
             $renderer = $output;

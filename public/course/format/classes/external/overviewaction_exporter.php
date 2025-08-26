@@ -66,8 +66,7 @@ class overviewaction_exporter extends action_link_exporter {
 
         /** @var overviewaction $source */
         $source = $this->data;
-        $templatedata = $source->export_for_template($output);
-        $values['onlytext'] = $templatedata->onlytext;
+        $values['onlytext'] = $source->text;
 
         if ($source->get_badgevalue() === null) {
             // If there is no badge value, the badge information is not included.
