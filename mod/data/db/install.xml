@@ -43,6 +43,7 @@
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time the settings for this database module instance were last modified."/>
         <FIELD NAME="config" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="completionentries" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Number of entries required for completion"/>
+        <FIELD NAME="maxreviewers" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="3" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

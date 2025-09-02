@@ -4136,6 +4136,7 @@ function mod_data_get_fontawesome_icon_map() {
         'mod_data:field/text' => 'fa-i-cursor',
         'mod_data:field/textarea' => 'fa-font',
         'mod_data:field/url' => 'fa-link',
+        'mod_data:t/review' => 'fa-clipboard-check'
     ];
 }
 

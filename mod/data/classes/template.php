@@ -257,6 +257,7 @@ class template {
             'delete' => new pix_icon('t/delete', get_string('delete'), '', $attrs),
             'more' => new pix_icon('t/preview', get_string('more', 'data'), '', $attrs),
             'approve' => new pix_icon('t/approve', get_string('approve', 'data'), '', $attrs),
+            'review' => new pix_icon('mod_data:t/review', get_string('review', 'data'), '', $attrs),
             'disapprove' => new pix_icon('t/block', get_string('disapprove', 'data'), '', $attrs),
         ];
     }
@@ -765,7 +766,25 @@ class template {
     }
 
     protected function get_tag_reviewstatus_replacement(stdClass $entry, bool $canmanageentry): string {
+        return 'REVIEWSTATUS';
+    }
 
+    protected function get_tag_review_replacement(stdClass $entry, bool $canmanageentry): string {
+        global $OUTPUT;
+        if (!$canmanageentry) {
+            return '';
+        }
+        $url = new moodle_url($this->baseurl, [
+            'review' => $entry->id,
+            'sesskey' => sesskey(),
+            'mode' => 'single',
+        ]);
+
+        return html_writer::tag(
+            'span',
+            $OUTPUT->action_icon($url, $this->icons['review']),
+            ['class' => 'review']
+        );
     }
 
     /**

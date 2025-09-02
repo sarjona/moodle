@@ -16,15 +16,7 @@
 
 namespace mod_data\local;
 
-use mod_data\manager;
-use mod_data\output\fields_action_bar;
-use mod_data\output\fields_mappings_action_bar;
-use mod_data\output\presets_action_bar;
-use mod_data\output\templates_action_bar;
-use mod_data\output\view_action_bar;
-use mod_data\preset;
-use moodle_url;
-use url_select;
+use mod_data\local\persistent\record_review;
 
 /**
  * Class responsible for statically caching review data.
@@ -37,8 +29,25 @@ class reviewer_information {
 
     public static array $data;
 
-    public static function pull_data_for(int $instanceid) {
+    public static array $datainstances = [];
 
+    public static function pull_data_for(int $instanceid) {
+        if (isset(self::$datainstances[$instanceid])) {
+            return;
+        }
+
+        $recordreviews = record_review::get_reviews_for_instance($instanceid);
+        foreach ($recordreviews as $recordreview) {
+            if (!isset(self::$data[$recordreview->get('recordid')])) {
+                self::$data[$recordreview->get('recordid')] = [];
+            }
+            self::$data[$recordreview->get('recordid')][$recordreview->get('userid')] = $recordreview;
+        }
+        self::$datainstances[$instanceid] = true;
+    }
+
+    public static function get_data_for_record(int $recordid) {
+        return self::$data[$recordid];
     }
 
 }

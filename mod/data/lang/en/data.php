@@ -476,6 +476,7 @@ $string['wrongdataid'] = 'Wrong data ID provided';
 $string['reviewcount'] = 'Review count';
 $string['review'] = 'Review';
 $string['reviewstatus'] = 'Review status';
+$string['maxreviewers'] = 'Maximum amount of reviewers';
 
 // Deprecated since Moodle 4.2.
 $string['fieldids'] = 'Field ids';
