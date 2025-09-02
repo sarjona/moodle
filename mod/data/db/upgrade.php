@@ -42,6 +42,8 @@
 function xmldb_data_upgrade($oldversion) {
     global $DB;
 
+    $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
+
     // Automatically generated Moodle v4.1.0 release upgrade line.
     // Put any upgrade step following this.
 
@@ -62,6 +64,46 @@ function xmldb_data_upgrade($oldversion) {
 
         // Data savepoint reached.
         upgrade_mod_savepoint(true, 2023061300, 'data');
+    }
+
+    if ($oldversion < 2024100701) {
+
+        // Define table data_record_review to be created.
+        $table = new xmldb_table('data_record_review');
+
+        // Adding fields to table data_record_review.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('recordid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('revieweruserid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('reviewtext', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('reviewgrade', XMLDB_TYPE_NUMBER, '5, 2', null, null, null, null);
+        $table->add_field('approval', XMLDB_TYPE_INTEGER, '2', null, null, null, null);
+        $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table data_record_review.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('usermodified', XMLDB_KEY_FOREIGN, ['usermodified'], 'user', ['id']);
+
+        // Conditionally launch create table for data_record_review.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define field maxreviewers to be added to data.
+        $table = new xmldb_table('data');
+        $field = new xmldb_field('maxreviewers', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '3');
+
+        $table->add_field('maxreviewers', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '3');
+
+        // Conditionally launch add field maxreviewers.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Data savepoint reached.
+        upgrade_mod_savepoint(true, 2024100701, 'data');
     }
 
     // Automatically generated Moodle v4.3.0 release upgrade line.
