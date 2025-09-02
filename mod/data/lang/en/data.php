@@ -105,7 +105,7 @@ $string['data:viewanyrating'] = 'View total ratings that anyone received';
 $string['data:viewentry'] = 'View entries';
 $string['data:viewrating'] = 'View the total rating you received';
 $string['data:writeentry'] = 'Write entries';
-$string['data:view'] = 'View database activity';
+$string['data:view'] = 'View call for papers activity';
 $string['date'] = 'Date';
 $string['dateentered'] = 'Date entered';
 $string['datemodified'] = 'Last edited:';
@@ -290,21 +290,21 @@ $string['menu'] = 'Menu';
 $string['menuchoose'] = 'Choose...';
 $string['missingdata'] = 'Data ID or object must be provided for field class.';
 $string['missingfield'] = 'Programmer error: You must specify field and/or data when defining field class.';
-$string['modulename'] = 'Database';
-$string['modulename_help'] = 'Database enables participants to create, maintain, and search a collection of entries.
+$string['modulename'] = 'Call for papers';
+$string['modulename_help'] = 'Call for papers enables participants to create, maintain, and search a collection of entries.
 
 The structure of the entries is defined using different types of fields, such as short text, dropdown list, text area, URL, image, or file.
 
 As a teacher, you can comment and rate entries. You can also allow students to rate and comment on entries (peer evaluation). Ratings can be aggregated to form a final grade, which is recorded in the gradebook.
 
-If the Database auto-linking filter is enabled, any entries in a database will be automatically linked where the words or phrases appear within the course.
+If the Call for papers auto-linking filter is enabled, any entries in a call for papers will be automatically linked where the words or phrases appear within the course.
 
 You can use Database to:
 
 * Create a collaborative collection of links, books, book reviews, journal references, etc.
 * Display student-created photos, posters, websites or poems for peer comment and review.';
 $string['modulename_link'] = 'mod/data/view';
-$string['modulenameplural'] = 'Databases';
+$string['modulenameplural'] = 'Calls for papers';
 $string['more'] = 'More';
 $string['moreurl'] = 'More URL';
 $string['movezipfailed'] = 'Can\'t move zip';
@@ -472,6 +472,10 @@ $string['viewtemplates'] = 'View templates';
 $string['viewtodate'] = 'Read only to';
 $string['viewtodatevalidation'] = 'The read only to date cannot be before the read only from date.';
 $string['wrongdataid'] = 'Wrong data ID provided';
+
+$string['reviewcount'] = 'Review count';
+$string['review'] = 'Review';
+$string['reviewstatus'] = 'Review status';
 
 // Deprecated since Moodle 4.2.
 $string['fieldids'] = 'Field ids';

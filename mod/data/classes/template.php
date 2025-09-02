@@ -764,6 +764,10 @@ class template {
         return $OUTPUT->render_from_template('mod_data/fields_otherfields', ['fields' => $fields]);
     }
 
+    protected function get_tag_reviewstatus_replacement(stdClass $entry, bool $canmanageentry): string {
+
+    }
+
     /**
      * Returns the ##actionsmenu## tag replacement for an entry.
      *
