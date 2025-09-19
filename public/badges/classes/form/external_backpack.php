@@ -200,48 +200,9 @@ class external_backpack extends \moodleform {
         $isobv20 = isset($data['apiversion']) && $data['apiversion'] == OPEN_BADGES_V2;
         $isobv2p1 = isset($data['apiversion']) && $data['apiversion'] == OPEN_BADGES_V2P1;
         if ($isobv20) {
-            $displaycanvasfields = backpack_api::display_canvas_credentials_fields();
-            if (
-                $displaycanvasfields
-                && (!array_key_exists('provider', $data) || $data['provider'] == backpack_api::PROVIDER_EMPTY)
-            ) {
-                // Check provider is set.
-                $errors['provider'] = get_string('err_required', 'form');
-            } else if (
-                $displaycanvasfields
-                && ($data['provider'] == backpack_api::PROVIDER_CANVAS_CREDENTIALS)
-            ) {
-                // Check region is set.
-                if (!array_key_exists('region', $data) || $data['region'] == backpack_api::REGION_EMPTY) {
-                    $errors['region'] = get_string('err_required', 'form');
-                }
-            } else {
-                if (empty($data['backpackweburl'])) {
-                    $errors['backpackweburl'] = get_string('err_required', 'form');
-                } else if (!preg_match('@^https?://.+@', $data['backpackweburl'])) {
-                    $errors['backpackweburl'] = get_string('invalidurl', 'badges');
-                }
-                if (empty($data['backpackapiurl'])) {
-                    $errors['backpackapiurl'] = get_string('err_required', 'form');
-                } else if (!preg_match('@^https?://.+@', $data['backpackapiurl'])) {
-                    $errors['backpackapiurl'] = get_string('invalidurl', 'badges');
-                }
-            }
-
-            if ($displaycanvasfields) {
-                if (!empty($data['includeauthdetailscanvas']) && empty($data['backpackemailcanvas'])) {
-                    $errors['backpackemailcanvas'] = get_string('err_required', 'form');
-                }
-                if (!empty($data['includeauthdetailscanvas']) && empty($data['backpackpasswordcanvas'])) {
-                    $errors['backpackpasswordcanvas'] = get_string('err_required', 'form');
-                }
-            }
+            $errors = array_merge($errors, $this->validate_obv20($data));
         } else if ($isobv2p1) {
-            if (empty($data['backpackweburlv2p1'])) {
-                $errors['backpackweburlv2p1'] = get_string('err_required', 'form');
-            } else if (!preg_match('@^https?://.+@', $data['backpackweburlv2p1'])) {
-                $errors['backpackweburlv2p1'] = get_string('invalidurl', 'badges');
-            }
+            $errors = array_merge($errors, $this->validate_obv2p1($data));
         }
 
         // Check email and password are not empty when including auth details.
@@ -250,6 +211,73 @@ class external_backpack extends \moodleform {
         }
         if (!empty($data['includeauthdetails']) && empty($data['password'])) {
             $errors['password'] = get_string('err_required', 'form');
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Validate the data for Open Badges v2.0.
+     *
+     * @param array $data Form data.
+     * @return string[] An array of error messages.
+     */
+    private function validate_obv20(array $data): array {
+        $errors = [];
+
+        $displaycanvasfields = backpack_api::display_canvas_credentials_fields();
+        if (
+            $displaycanvasfields
+            && (!array_key_exists('provider', $data) || $data['provider'] == backpack_api::PROVIDER_EMPTY)
+        ) {
+            // Check provider is set.
+            $errors['provider'] = get_string('err_required', 'form');
+        } else if (
+            $displaycanvasfields
+            && ($data['provider'] == backpack_api::PROVIDER_CANVAS_CREDENTIALS)
+        ) {
+            // Check region is set.
+            if (!array_key_exists('region', $data) || $data['region'] == backpack_api::REGION_EMPTY) {
+                $errors['region'] = get_string('err_required', 'form');
+            }
+        } else {
+            if (empty($data['backpackweburl'])) {
+                $errors['backpackweburl'] = get_string('err_required', 'form');
+            } else if (!preg_match('@^https?://.+@', $data['backpackweburl'])) {
+                $errors['backpackweburl'] = get_string('invalidurl', 'badges');
+            }
+            if (empty($data['backpackapiurl'])) {
+                $errors['backpackapiurl'] = get_string('err_required', 'form');
+            } else if (!preg_match('@^https?://.+@', $data['backpackapiurl'])) {
+                $errors['backpackapiurl'] = get_string('invalidurl', 'badges');
+            }
+        }
+
+        if ($displaycanvasfields) {
+            if (!empty($data['includeauthdetailscanvas']) && empty($data['backpackemailcanvas'])) {
+                $errors['backpackemailcanvas'] = get_string('err_required', 'form');
+            }
+            if (!empty($data['includeauthdetailscanvas']) && empty($data['backpackpasswordcanvas'])) {
+                $errors['backpackpasswordcanvas'] = get_string('err_required', 'form');
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Validate the data for Open Badges v2.1.
+     *
+     * @param array $data Form data.
+     * @return string[] An array of error messages.
+     */
+    private function validate_obv2p1(array $data): array {
+        $errors = [];
+
+        if (empty($data['backpackweburlv2p1'])) {
+            $errors['backpackweburlv2p1'] = get_string('err_required', 'form');
+        } else if (!preg_match('@^https?://.+@', $data['backpackweburlv2p1'])) {
+            $errors['backpackweburlv2p1'] = get_string('invalidurl', 'badges');
         }
 
         return $errors;
