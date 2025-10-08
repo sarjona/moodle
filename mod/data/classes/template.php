@@ -21,7 +21,7 @@ use action_menu_link_secondary;
 use core\output\checkbox_toggleall;
 use data_field_base;
 use html_writer;
-use mod_data\manager;
+use mod_data\local\reviewer_information;
 use moodle_url;
 use pix_icon;
 use stdClass;
@@ -257,6 +257,7 @@ class template {
             'delete' => new pix_icon('t/delete', get_string('delete'), '', $attrs),
             'more' => new pix_icon('t/preview', get_string('more', 'data'), '', $attrs),
             'approve' => new pix_icon('t/approve', get_string('approve', 'data'), '', $attrs),
+            'review' => new pix_icon('t/review', get_string('review', 'data'), 'mod_data', $attrs),
             'disapprove' => new pix_icon('t/block', get_string('disapprove', 'data'), '', $attrs),
         ];
     }
@@ -649,7 +650,8 @@ class template {
         if (!$this->instance->approval) {
             return '';
         }
-        return ($entry->approved) ? '' : html_writer::div(get_string('notapproved', 'data'), 'mod-data-approval-status-badge');
+        return ($entry->approved) ? html_writer::div(get_string('approved', 'data'), 'mod-data-approval-status-badge')
+            : html_writer::div(get_string('notapproved', 'data'), 'mod-data-approval-status-badge');
     }
 
     /**
@@ -762,6 +764,26 @@ class template {
             $fields[] = $fieldinfo;
         }
         return $OUTPUT->render_from_template('mod_data/fields_otherfields', ['fields' => $fields]);
+    }
+
+    protected function get_tag_reviewstatus_replacement(stdClass $entry, bool $canmanageentry): string {
+        return 'REVIEWSTATUS';
+    }
+
+    protected function get_tag_review_replacement(stdClass $entry, bool $canmanageentry): string {
+        global $OUTPUT;
+        if (!$canmanageentry) {
+            return '';
+        }
+        $url = new moodle_url('/mod/data/review.php', [
+            'id' => $entry->id,
+        ]);
+
+        return html_writer::tag(
+            'span',
+            $OUTPUT->action_icon($url, $this->icons['review']),
+            ['class' => 'review']
+        );
     }
 
     /**
@@ -877,8 +899,67 @@ class template {
                 }
             }
         }
-
         return $OUTPUT->render($actionmenu);
+    }
+
+    protected function get_tag_reviewersheader_replacement(stdClass $entry, bool $canmanageentry): string {
+        global $PAGE;
+
+        $output = '';
+
+        if (!has_capability('mod/data:reviewentry', $PAGE->context)) {
+            return '';
+        }
+
+        for ($i = 1; $i <= $this->instance->maxreviewers; $i++) {
+            $output .= '<th>' . get_string('reviewer_i', 'mod_data', $i) . '</th>';
+        }
+
+        return $output;
+    }
+
+    protected function get_tag_reviewers_replacement(stdClass $entry, bool $canmanageentry): string {
+        global $PAGE, $OUTPUT;
+
+        if (!has_capability('mod/data:reviewentry', $PAGE->context)) {
+            return '';
+        }
+
+        $dataforrecord = reviewer_information::get_data_for_record($entry->id);
+        $output = '';
+
+        $options = [
+            0 => '--',
+            1 => get_string('ilike', 'mod_data'),
+            2 => get_string('meh', 'mod_data'),
+            3 => get_string('dislike', 'mod_data'),
+        ];
+
+        foreach ($dataforrecord as $record) {
+            $user = core_user::get_user($record->get('revieweruserid'));
+            $approvalindex = $record->get('approval') ?: null;
+
+            $output .= '<td>' . html_writer::span(
+                fullname($user) . ':<br><b>'
+                . html_writer::span($approvalindex ? $options[$approvalindex]: '', '', ['title' => $record->get('reviewtext')]) .
+                '</b></td>', '', ['style' => 'text-decoration:underline; text-decoration-style: dotted']);
+        }
+        for ($i = count($dataforrecord); $i < $this->instance->maxreviewers; $i++) {
+            $url = new moodle_url('/mod/data/review.php', [
+                'id' => $entry->id,
+            ]);
+
+            $output .= '<td>' .
+                html_writer::tag(
+                    'span',
+                    $OUTPUT->action_icon($url, $this->icons['review']),
+                    ['class' => 'review']
+                )
+                .'</td>';
+
+
+        }
+        return $output;
     }
 
     /**

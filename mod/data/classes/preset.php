@@ -563,7 +563,7 @@ class preset {
         $directory = rtrim($directory, '/\\') . '/';
         $presetfilenames = array_merge(array_values(manager::TEMPLATES_LIST), ['preset.xml']);
         foreach ($presetfilenames as $filename) {
-            $status &= file_exists($directory.$filename);
+            $status |= file_exists($directory.$filename);
         }
 
         return $status;

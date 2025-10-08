@@ -33,11 +33,16 @@ Feature: Users can view and manage data presets
     And I should see "Saved preset 2"
     And I should see "Saved preset by teacher1"
     # Plugin presets can't be removed.
-    And the "Delete" item should not exist in the "Actions" action menu of the "Image gallery" "table_row"
+    And I should not see "Actions" in the "Image gallery" "table_row"
     # The admin should be able to delete saved presets.
-    But the "Delete" item should exist in the "Actions" action menu of the "Saved preset 1" "table_row"
-    And the "Delete" item should exist in the "Actions" action menu of the "Saved preset 2" "table_row"
-    And the "Delete" item should exist in the "Actions" action menu of the "Saved preset by teacher1" "table_row"
+    But I open the action menu in "Saved preset 1" "table_row"
+    And I should see "Delete"
+    And I press the escape key
+    And I open the action menu in "Saved preset 2" "table_row"
+    And I should see "Delete"
+    And I press the escape key
+    And I open the action menu in "Saved preset by teacher1" "table_row"
+    And I should see "Delete"
 
   @javascript
   Scenario: Teachers can see and use presets
@@ -52,11 +57,12 @@ Feature: Users can view and manage data presets
     And I should see "Saved preset by teacher1"
     And I should see "This preset has also a description" in the "Saved preset by teacher1" "table_row"
     # Plugin presets can't be removed.
-    And the "Delete" item should not exist in the "Actions" action menu of the "Image gallery" "table_row"
+    And I should not see "Actions" in the "Image gallery" "table_row"
     # Teachers should be able to delete their saved presets.
-    And the "Delete" item should exist in the "Actions" action menu of the "Saved preset by teacher1" "table_row"
+    And I open the action menu in "Saved preset by teacher1" "table_row"
+    And I should see "Delete"
     # Teachers can't delete the presets they haven't created.
-    And the "Delete" item should not exist in the "Actions" action menu of the "Saved preset 1" "table_row"
+    And I should not see "Actions" in the "Saved preset 1" "table_row"
     # The "Use this preset" button should be enabled only when a preset is selected.
     And the "Use this preset" "button" should be disabled
     And I click on "fullname" "radio" in the "Image gallery" "table_row"
@@ -142,9 +148,9 @@ Feature: Users can view and manage data presets
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
     When I follow "Presets"
     # Plugin presets can't be edited.
-    Then the "Edit" item should not exist in the "Actions" action menu of the "Image gallery" "table_row"
+    Then I should not see "Actions" in the "Image gallery" "table_row"
     # Teachers can't edit the presets they haven't created.
-    And the "Edit" item should not exist in the "Actions" action menu of the "Saved preset 1" "table_row"
+    And I should not see "Actions" in the "Saved preset 1" "table_row"
     # Teachers should be able to edit their saved presets.
     And I open the action menu in "Saved preset by teacher1" "table_row"
     And I choose "Edit" in the open action menu
@@ -248,12 +254,12 @@ Feature: Users can view and manage data presets
     And I should see "Saved preset 1"
     And I should see "Saved preset by teacher1"
     # Plugin presets can't be removed.
-    And the "Delete" item should not exist in the "Actions" action menu of the "Image gallery" "table_row"
+    And I should not see "Actions" in the "Image gallery" "table_row"
     # The teacher should not be able to delete presets saved by others.
-    And the "Delete" item should not exist in the "Actions" action menu of the "Saved preset 1" "table_row"
+    And I should not see "Actions" in the "Saved preset 1" "table_row"
     # The teacher should be able to delete their own preset.
     And I open the action menu in "Saved preset by teacher" "table_row"
-    And I choose "Delete" in the open action menu
+    And I follow "Delete"
     And I click on "Delete" "button" in the "Delete preset Saved preset by teacher1?" "dialogue"
     And I should see "Preset deleted"
     And I should not see "Saved preset by teacher1"
@@ -289,12 +295,14 @@ Feature: Users can view and manage data presets
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
     When I follow "Presets"
     # Plugin presets can't be exported.
-    And the "Export" item should not exist in the "Actions" action menu of the "Image gallery" "table_row"
+    And I should not see "Actions" in the "Image gallery" "table_row"
     # The teacher should be able to export any saved preset.
-    And the "Export" item should exist in the "Actions" action menu of the "Saved preset by teacher1" "table_row"
+    And I open the action menu in "Saved preset by teacher1" "table_row"
+    Then I should see "Export"
     And following "Export" in the "Saved preset by teacher1" "table_row" should download a file that:
       | Contains file in zip | preset.xml |
-    And the "Export" item should exist in the "Actions" action menu of the "Saved preset 1" "table_row"
+    And I open the action menu in "Saved preset 1" "table_row"
+    And I should see "Export"
     And following "Export" in the "Saved preset 1" "table_row" should download a file that:
       | Contains file in zip | preset.xml |
 
@@ -335,7 +343,7 @@ Feature: Users can view and manage data presets
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
     And I follow "Presets"
     And I open the action menu in "<Preset Name>" "table_row"
-    When I choose "Preview" in the open action menu
+    When I click on "Preview" "link" in the "<Preset Name>" "table_row"
     Then I should see "Preview of <Preset preview name>"
 
     Examples:

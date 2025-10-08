@@ -90,6 +90,12 @@ switch ($mode) {
     case 'singletemplate':
         $title = get_string('singletemplate', 'data');
         break;
+    case 'reviewerlisttemplate':
+        $title = get_string('reviewerlisttemplate', 'data');
+        break;
+    case 'slottemplate':
+        $title = get_string('slottemplate', 'data');
+        break;
     default:
         if ($manager->has_fields()) {
             $title = get_string('addtemplate', 'data');

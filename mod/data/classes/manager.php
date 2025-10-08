@@ -55,6 +55,10 @@ class manager {
         'listtemplateheader' => 'listtemplateheader.html',
         'listtemplatefooter' => 'listtemplatefooter.html',
         'rsstitletemplate' => 'rsstitletemplate.html',
+        'reviewerlisttemplate' => 'reviewerlisttemplate.html',
+        'reviewerlisttemplateheader' => 'reviewerlisttemplateheader.html',
+        'reviewerlisttemplatefooter' => 'reviewerlisttemplatefooter.html',
+        'slottemplate' => 'slottemplate.html',
     ];
 
     /** @var string plugin path. */

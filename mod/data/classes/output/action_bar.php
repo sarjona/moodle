@@ -176,11 +176,15 @@ class action_bar {
         $rsstemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'rsstemplate']);
         $csstemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'csstemplate']);
         $jstemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'jstemplate']);
+        $reviewerlisttemplate = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'reviewerlisttemplate']);
+        $slottemplate = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'slottemplate']);
 
         $menu = [
             $addtemplatelink->out(false) => get_string('addtemplate', 'mod_data'),
             $singletemplatelink->out(false) => get_string('singletemplate', 'mod_data'),
             $listtemplatelink->out(false) => get_string('listtemplate', 'mod_data'),
+            $reviewerlisttemplate->out(false) => get_string('reviewerlisttemplate', 'mod_data'),
+            $slottemplate->out(false) => get_string('slottemplate', 'mod_data'),
             $advancedsearchtemplatelink->out(false) => get_string('asearchtemplate', 'mod_data'),
             $csstemplatelink->out(false) => get_string('csstemplate', 'mod_data'),
             $jstemplatelink->out(false) => get_string('jstemplate', 'mod_data'),

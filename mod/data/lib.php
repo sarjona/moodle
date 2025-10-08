@@ -35,6 +35,7 @@ define ('DATA_APPROVED', -3);
 define ('DATA_TIMEADDED', 0);
 define ('DATA_TIMEMODIFIED', -4);
 define ('DATA_TAGS', -5);
+define ('DATA_REVIEWCOUNT', -6);
 
 define ('DATA_CAP_EXPORT', 'mod/data:viewalluserpresets');
 // Users having assigned the default role "Non-editing teacher" can export database records
@@ -815,6 +816,10 @@ function data_generate_default_template(&$data, $template, $recordid = 0, $form 
         'listtemplateheader',
         'listtemplatefooter',
         'rsstitletemplate',
+        'reviewerlisttemplate',
+        'reviewerlisttemplateheader',
+        'reviewerlisttemplatefooter',
+        'slottemplate',
     ];
     if (in_array($template, $emptytemplates)) {
         return '';
@@ -1818,6 +1823,7 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
         echo '</optgroup>';
     }
     $options = array();
+    $options[DATA_REVIEWCOUNT]  = get_string('reviewcount', 'data');
     $options[DATA_TIMEADDED]    = get_string('timeadded', 'data');
     $options[DATA_TIMEMODIFIED] = get_string('timemodified', 'data');
     $options[DATA_FIRSTNAME]    = get_string('authorfirstname', 'data');
@@ -3362,6 +3368,16 @@ function data_extend_settings_navigation(settings_navigation $settings, navigati
         $importentriesnode->set_show_in_secondary_navigation(false);
     }
 
+    if (has_capability('mod/data:reviewentry', $settings->get_page()->cm->context)) {
+        $reviewentriesnode = $datanode->add(
+            get_string('reviewentries', 'data'),
+            new moodle_url('/mod/data/reviewview.php', array('d' => $data->id)),
+            navigation_node::TYPE_CUSTOM,
+            null,
+            'reviewentries',
+        );
+    }
+
     if (has_capability('mod/data:managetemplates', $settings->get_page()->cm->context)) {
         $currenttab = '';
         if ($currenttab == 'list') {
@@ -3374,11 +3390,27 @@ function data_extend_settings_navigation(settings_navigation $settings, navigati
             $defaultemplate = 'singletemplate';
         }
 
-        $datanode->add(get_string('presets', 'data'), new moodle_url('/mod/data/preset.php', array('d' => $data->id)));
-        $datanode->add(get_string('fields', 'data'),
-            new moodle_url('/mod/data/field.php', array('d' => $data->id)));
-        $datanode->add(get_string('templates', 'data'),
-            new moodle_url('/mod/data/templates.php', array('d' => $data->id)));
+        $datanode->add(
+            get_string('presets', 'data'),
+            new moodle_url('/mod/data/preset.php', array('d' => $data->id)),
+            navigation_node::TYPE_CUSTOM,
+            null,
+            'presets',
+        );
+        $datanode->add(
+            get_string('fields', 'data'),
+            new moodle_url('/mod/data/field.php', array('d' => $data->id)),
+            navigation_node::TYPE_CUSTOM,
+            null,
+            'fields',
+        );
+        $datanode->add(
+            get_string('templates', 'data'),
+            new moodle_url('/mod/data/templates.php', array('d' => $data->id)),
+            navigation_node::TYPE_CUSTOM,
+            null,
+            'templates',
+        );
     }
 
     if (!empty($CFG->enablerssfeeds) && !empty($CFG->data_enablerssfeeds) && $data->rssarticles > 0) {
@@ -4136,6 +4168,7 @@ function mod_data_get_fontawesome_icon_map() {
         'mod_data:field/text' => 'fa-i-cursor',
         'mod_data:field/textarea' => 'fa-font',
         'mod_data:field/url' => 'fa-link',
+        'mod_data:t/review' => 'fa-hand-holding-heart'
     ];
 }
 

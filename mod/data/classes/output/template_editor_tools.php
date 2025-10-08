@@ -133,8 +133,7 @@ class template_editor_tools implements templatable, renderable {
             '##actionsmenu##' => get_string('actionsmenu', 'data'),
             '##edit##' => get_string('edit', 'data'),
             '##delete##' => get_string('delete', 'data'),
-            '##approve##' => get_string('approve', 'data'),
-            '##disapprove##' => get_string('disapprove', 'data'),
+            '##review##' => get_string('review', 'data'),
         ];
         if ($templatename != 'rsstemplate') {
             $taglist['##export##'] = get_string('export', 'data');
@@ -173,6 +172,9 @@ class template_editor_tools implements templatable, renderable {
         $taglist['##userpicture##'] = get_string('userpic');
         $taglist['##approvalstatus##'] = get_string('approvalstatus', 'data');
         $taglist['##id##'] = get_string('id', 'data');
+        $taglist['##reviewstatus##'] = get_string('reviewstatus', 'data');
+        $taglist['##reviewersheader##'] = get_string('reviewersheader', 'data');
+        $taglist['##reviewers##'] = get_string('reviewers', 'data');
 
         if ($templatename == 'singletemplate') {
             return $this->get_optgroup_data($name, $taglist);

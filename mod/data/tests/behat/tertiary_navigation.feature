@@ -44,35 +44,39 @@ Feature: Users can navigate through the database activity using the tertiary nav
   Scenario: The tertiary navigation in the Database page.
     Given I navigate to "Database" in current page administration
     # Teacher: List view.
-    Then I should not see "List view" in the "data-listview-content" "region"
-    And the "Import entries" item should exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
-    And the "Export entries" item should exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
-    And the "Export to portfolio" item should exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
+    And I should not see "List view" in the "data-listview-content" "region"
+    When I click on "Actions" "button"
+    Then I should see "Import entries" in the ".entriesactions" "css_element"
+    And I should see "Export entries" in the ".entriesactions" "css_element"
+    And I should see "Export to portfolio" in the ".entriesactions" "css_element"
+    And I press the escape key
     # Teacher: Single view.
     And I set the field "View mode tertiary navigation" to "Single view"
     And I should not see "Single view" in the "data-singleview-content" "region"
-    And the "Import entries" item should exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
-    And the "Export entries" item should exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
-    And the "Export to portfolio" item should not exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
+    And I click on "Actions" "button"
+    And I should see "Import entries" in the ".entriesactions" "css_element"
+    And I should see "Export entries" in the ".entriesactions" "css_element"
+    And I should not see "Export to portfolio" in the ".entriesactions" "css_element"
     # Teacher: Database without fields.
     And I am on the "Database without fields" "data activity" page
-    And "Actions" "actionmenu" should not exist
+    And I should not see "Actions"
     # Student without entries: List view.
     And I am on the "Test database name" "data activity" page logged in as student1
-    And "Actions" "actionmenu" should not exist in the ".tertiary-navigation" "css_element"
+    And I should not see "Actions"
     # Student without entries: Single view.
     And I set the field "View mode tertiary navigation" to "Single view"
-    And I should not see "Actions" in the ".tertiary-navigation" "css_element"
+    And I should not see "Actions"
     # Student with entries: Single view.
     But the following "mod_data > entries" exist:
       | database | user      | field1               | field2          |
       | data1    | student1  | Student entry 3      | Some content 3  |
-    And I should not see "Actions" in the ".tertiary-navigation" "css_element"
+    And I should not see "Actions"
     # Student with entries: List view.
     And I set the field "View mode tertiary navigation" to "List view"
-    And the "Import entries" item should not exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
-    And the "Export entries" item should not exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
-    And the "Export to portfolio" item should exist in the "Actions" action menu of the ".tertiary-navigation" "css_element"
+    And I click on "Actions" "button"
+    And I should not see "Import entries" in the ".entriesactions" "css_element"
+    And I should not see "Export entries" in the ".entriesactions" "css_element"
+    And I should see "Export to portfolio" in the ".entriesactions" "css_element"
 
   @javascript
   Scenario: The tertiary navigation in the Presets page.
@@ -100,11 +104,14 @@ Feature: Users can navigate through the database activity using the tertiary nav
     And I should see "Preview of Saved preset by teacher1"
     And "Use this preset" "button" should exist
 
+  @javascript
   Scenario: The tertiary navigation in the Fields page.
     Given I navigate to "Fields" in current page administration
-    Then the "Edit" item should exist in the "Actions" action menu of the "field1" "table_row"
-    And the "Delete" item should exist in the "Actions" action menu of the "field1" "table_row"
-    And I should not see "Actions" in the ".tertiary-navigation" "css_element"
+    When I open the action menu in "field1" "table_row"
+    Then I should see "Edit"
+    And I should see "Delete"
+    And I press the escape key
+    And I should not see "Actions"
 
   @javascript
   Scenario: The tertiary navigation in the Templates page.
