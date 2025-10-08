@@ -917,6 +917,38 @@ function data_generate_tag_form($recordid = false, $selected = []) {
 
 
 /**
+ * Build the form elements to manage calendarise for a record.
+ *
+ * @param int|bool $recordid
+ * @param string[] $selected raw calendarise names
+ * @return string
+ */
+function data_generate_calendarise_form($recordid = false, $selected = []) {
+
+    // TODO: Get the context.
+    //$canmanageentries = has_capability('mod/data:manageentries', context_module::instance($cm->id));
+    $canmanageentries = true;
+
+    if (!$canmanageentries) {
+        return '';
+    }
+
+    $mform = new MoodleQuickForm(
+        formName: 'calendariseform',
+        method: 'post',
+        action: '',
+    );
+    $mform->addElement(
+        'date_time_selector',
+        'timeavailablefrom',
+        get_string('availablefromdate', 'data'),
+        ['optional' => true],
+    );
+
+    return $mform->toHtml();
+}
+
+/**
  * Search for a field name and replaces it with another one in all the
  * form templates. Set $newfieldname as '' if you want to delete the
  * field from the form.

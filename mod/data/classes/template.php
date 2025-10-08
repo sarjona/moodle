@@ -787,6 +787,30 @@ class template {
     }
 
     /**
+     * Returns the ##calendarise## tag replacement for an entry.
+     *
+     * @param stdClass $entry the entry object
+     * @param bool $canmanageentry if the current user can manage this entry
+     * @return string the tag replacement
+     */
+    protected function get_tag_calendarise_replacement(stdClass $entry, bool $canmanageentry): string {
+        global $OUTPUT;
+
+        if (!$canmanageentry) {
+            return '';
+        }
+
+        $url = new moodle_url('/mod/data/calendar.php', [
+            'id' => $entry->id,
+        ]);
+        return html_writer::tag(
+            'span',
+            $OUTPUT->action_icon($url, $this->icons['review']),
+            ['class' => 'calendarise']
+        );
+    }
+
+    /**
      * Returns the ##actionsmenu## tag replacement for an entry.
      *
      * @param stdClass $entry the entry object
@@ -1040,6 +1064,9 @@ class template {
             $patterns[] = "##tags##";
             $replacements[] = data_generate_tag_form($entryid);
         }
+
+        $patterns[] = "##calendarise##";
+        $replacements[] = data_generate_calendarise_form($entryid);
 
         $result .= str_ireplace($patterns, $replacements, $templatecontent);
         return $result;

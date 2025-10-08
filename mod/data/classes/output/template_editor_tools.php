@@ -164,6 +164,7 @@ class template_editor_tools implements templatable, renderable {
             $taglist['##tags##'] = get_string('tags');
         }
         if ($templatename == 'addtemplate') {
+            $taglist['##calendarise##'] = get_string('calendarise', 'data');
             return $this->get_optgroup_data($name, $taglist);
         }
         $taglist['##timeadded##'] = get_string('timeadded', 'data');
@@ -175,6 +176,7 @@ class template_editor_tools implements templatable, renderable {
         $taglist['##reviewstatus##'] = get_string('reviewstatus', 'data');
         $taglist['##reviewersheader##'] = get_string('reviewersheader', 'data');
         $taglist['##reviewers##'] = get_string('reviewers', 'data');
+        $taglist['##calendarise##'] = get_string('calendarise', 'data');
 
         if ($templatename == 'singletemplate') {
             return $this->get_optgroup_data($name, $taglist);

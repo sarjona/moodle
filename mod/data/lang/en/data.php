@@ -53,6 +53,7 @@ $string['availabletodate'] = 'Available to';
 $string['availabletodatevalidation'] = 'The available to date cannot be before the available from date.';
 $string['bynameondate'] = 'by {$a->name} - {$a->date}';
 $string['calendarend'] = '{$a} closes';
+$string['calendarise'] = 'Calendarise';
 $string['calendarstart'] = '{$a} opens';
 $string['cancel'] = 'Cancel';
 $string['cannotaccesspresentsother'] = 'You are not allowed to access presets from other users';
