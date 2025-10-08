@@ -4190,6 +4190,7 @@ function mod_data_get_fontawesome_icon_map() {
     return [
         'mod_data:field/checkbox' => 'fa-regular fa-square-check',
         'mod_data:field/date' => 'fa-regular fa-calendar',
+        'mod_data:field/datetime' => 'fa-regular fa-calendar-days',
         'mod_data:field/file' => 'fa-regular fa-file',
         'mod_data:field/latlong' => 'fa-earth-americas',
         'mod_data:field/menu' => 'fa-bars',

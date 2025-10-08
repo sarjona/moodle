@@ -1028,6 +1028,11 @@ class template {
         // Then we generate strings to replace.
         $otherfields = [];
         foreach ($possiblefields as $field) {
+            if ($field->field->hidden && !has_capability('mod/data:manageentries', $field->context)) {
+                // Skip hidden fields for users that cannot manage entries.
+                continue;
+            }
+
             $fieldinput = $this->get_field_input($processeddata, $field, $entryid, $entrydata);
             if (strpos($templatecontent, "[[" . $field->field->name . "]]") !== false) {
                 // Replace the field tag.

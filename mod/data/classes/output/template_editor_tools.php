@@ -134,6 +134,8 @@ class template_editor_tools implements templatable, renderable {
             '##edit##' => get_string('edit', 'data'),
             '##delete##' => get_string('delete', 'data'),
             '##review##' => get_string('review', 'data'),
+            '##approve##' => get_string('approve', 'data'),
+            '##disapprove##' => get_string('disapprove', 'data'),
         ];
         if ($templatename != 'rsstemplate') {
             $taglist['##export##'] = get_string('export', 'data');
