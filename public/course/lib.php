@@ -729,7 +729,7 @@ function course_delete_module($cmid, $async = false) {
  * @todo MDL-86956 Final deprecation in Moodle 6.0.
  */
 #[\core\attribute\deprecated(
-    replacement: 'core_courseformat\local\cmactions::delete_sync',
+    replacement: 'core_courseformat\local\cmactions::delete_async',
     since: '5.2',
     mdl: 'MDL-86856',
     reason: 'Course activity editing global functions have been moved to format actions',
@@ -742,7 +742,7 @@ function course_module_flag_for_async_deletion($cmid) {
     // in its original location.
     // To avoid code duplication, as a temporary solution, because this method will be removed in the near future,
     // it now calls the new protected method using reflection.
-    $method = new ReflectionMethod(\core_courseformat\local\cmactions::class, 'delete_sync');
+    $method = new ReflectionMethod(\core_courseformat\local\cmactions::class, 'delete_async');
     $method->invokeArgs(formatactions::cm($coursecontext->instanceid), [$cmid]);
 }
 
