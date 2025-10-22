@@ -246,7 +246,7 @@ class cmactions extends baseactions {
             foreach ($pluginsfunction as $plugintype => $plugins) {
                 foreach ($plugins as $pluginfunction) {
                     if ($pluginfunction()) {
-                        $this->delete_sync($cmid);
+                        $this->delete_async($cmid);
                         return;
                     }
                 }
@@ -380,7 +380,7 @@ class cmactions extends baseactions {
      *
      * @param int $cmid the course module id.
      */
-    protected function delete_sync(int $cmid): void {
+    protected function delete_async(int $cmid): void {
         global $DB, $USER;
 
         if (!$cm = $DB->get_record('course_modules', ['id' => $cmid])) {
