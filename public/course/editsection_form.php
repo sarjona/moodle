@@ -41,8 +41,10 @@ class editsection_form extends moodleform {
 
         /// Prepare course and the editor
 
-        $mform->addElement('editor', 'summary_editor', get_string('description'), null, $this->_customdata['editoroptions']);
-        $mform->setType('summary_editor', PARAM_RAW);
+        if (!$sectioninfo->is_delegated()) {
+            $mform->addElement('editor', 'summary_editor', get_string('description'), null, $this->_customdata['editoroptions']);
+            $mform->setType('summary_editor', PARAM_RAW);
+        }
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);

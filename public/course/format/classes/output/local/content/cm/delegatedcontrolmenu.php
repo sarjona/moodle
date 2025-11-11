@@ -82,7 +82,6 @@ class delegatedcontrolmenu extends basecontrolmenu {
         }
 
         $controls = [];
-        $controls['view'] = $this->get_section_view_item();
         $controls['edit'] = $this->get_section_edit_item();
         $controls['duplicate'] = $this->get_section_duplicate_item();
         $controls['visibility'] = $this->get_section_visibility_item();
@@ -287,9 +286,11 @@ class delegatedcontrolmenu extends basecontrolmenu {
             return null;
         }
 
+        $parentsection = $this->mod->get_section_info();
         $url = new url(
             '/course/section.php',
-            ['id' => $this->section->id]
+            ['id' => $parentsection->id],
+            'section-' . $this->section->sectionnum,
         );
         return new link_secondary(
             url: $url,

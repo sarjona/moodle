@@ -1063,17 +1063,18 @@ abstract class moodleform_mod extends moodleform {
         $mform = $this->_form;
         $label = is_null($customlabel) ? get_string('moduleintro') : $customlabel;
 
-        $mform->addElement('editor', 'introeditor', $label, array('rows' => 10), array('maxfiles' => EDITOR_UNLIMITED_FILES,
-            'noclean' => true, 'context' => $this->context, 'subdirs' => true));
-        $mform->setType('introeditor', PARAM_RAW); // no XSS prevention here, users must be trusted
-        if ($required) {
-            $mform->addRule('introeditor', get_string('required'), 'required', null, 'client');
-        }
-
-        // If the 'show description' feature is enabled, this checkbox appears below the intro.
-        if ($this->_features->showdescription) {
-            $mform->addElement('advcheckbox', 'showdescription', get_string('showdescription'));
-            $mform->addHelpButton('showdescription', 'showdescription');
+        if ($this->_features->introeditor) {
+            $mform->addElement('editor', 'introeditor', $label, array('rows' => 10), array('maxfiles' => EDITOR_UNLIMITED_FILES,
+                'noclean' => true, 'context' => $this->context, 'subdirs' => true));
+            $mform->setType('introeditor', PARAM_RAW); // no XSS prevention here, users must be trusted
+            if ($required) {
+                $mform->addRule('introeditor', get_string('required'), 'required', null, 'client');
+            }
+            // If the 'show description' feature is enabled, this checkbox appears below the intro.
+            if ($this->_features->showdescription) {
+                $mform->addElement('advcheckbox', 'showdescription', get_string('showdescription'));
+                $mform->addHelpButton('showdescription', 'showdescription');
+            }
         }
     }
 
