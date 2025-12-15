@@ -137,21 +137,20 @@ class format_weeks extends core_courseformat\base {
         }
         if ((!empty($options['navigation']) || array_key_exists('sr', $options)) && $sectionno !== null) {
             $sectioninfo = $this->get_section($sectionno);
-            if ($sectioninfo->is_delegated() && $sectioninfo->get_component_instance()) {
-                // Delegated sections are handled differently.
-                $parent = $sectioninfo->get_component_instance()->get_parent_section();
-                if ($parent) {
-                    return new core\url(
-                        '/course/section.php',
-                        ['id' => $parent->id],
-                        'section-' . $sectionno,
-                    );
-                } else {
-                    return new core\url('/course/view.php', ['id' => $course->id]);
-                }
+            if (!$sectioninfo->get_component_instance()) {
+                // Display section on separate page.
+                return new moodle_url('/course/section.php', ['id' => $sectioninfo->id]);
             }
-            // Display section on separate page.
-            return new moodle_url('/course/section.php', ['id' => $sectioninfo->id]);
+
+            // Delegated sections are handled differently.
+            $parent = $sectioninfo->get_component_instance()->get_parent_section();
+            if ($parent) {
+                return new core\url(
+                    '/course/section.php',
+                    ['id' => $parent->id],
+                    'section-' . $sectionno,
+                );
+            }
         }
 
         return new moodle_url('/course/view.php', ['id' => $course->id]);
