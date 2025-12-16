@@ -41,4 +41,5 @@ if ($ADMIN->fulltree) {
         defaultsetting: 52,
         paramtype: PARAM_INT,
     ));
+    \core_courseformat\local\course_linear_navigation_settings::add_linear_navigation_global_settings('format_weeks', $settings);
 }

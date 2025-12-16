@@ -1,0 +1,6 @@
+issueNumber: MDL-87302
+notes:
+  core_courseformat:
+    - message: Add new enablelinearnav settings to topic and week format. This setting can be added to any course format thanks to the new
+       \core_courseformat\local\course_linear_navigation_settings::add_linear_navigation_global_settings method that can be used in any custom format.
+      type: improved

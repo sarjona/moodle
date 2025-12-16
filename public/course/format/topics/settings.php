@@ -33,4 +33,5 @@ if ($ADMIN->fulltree) {
         new lang_string('indentation_help', 'format_topics').'<br />'.$link,
         1
     ));
+    \core_courseformat\local\course_linear_navigation_settings::add_linear_navigation_global_settings('format_topics', $settings);
 }
