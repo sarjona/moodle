@@ -1,0 +1,5 @@
+issueNumber: MDL-87302
+notes:
+  core_courseformat:
+    - message: Add new enablelinearnav settings to topic and week format. This setting will be the default value for new courses.
+      type: improved
