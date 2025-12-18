@@ -23,6 +23,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_courseformat\local\course_linear_navigation_settings;
+
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/course/format/lib.php');
 require_once($CFG->dirroot. '/course/lib.php');
@@ -259,20 +261,27 @@ class format_weeks extends core_courseformat\base {
         static $courseformatoptions = false;
         if ($courseformatoptions === false) {
             $courseconfig = get_config('moodlecourse');
-            $courseformatoptions = array(
-                'hiddensections' => array(
+            $courseformatoptions = [
+                'hiddensections' => [
                     'default' => $courseconfig->hiddensections,
                     'type' => PARAM_INT,
-                ),
-                'coursedisplay' => array(
+                ],
+                'coursedisplay' => [
                     'default' => $courseconfig->coursedisplay ?? COURSE_DISPLAY_SINGLEPAGE,
                     'type' => PARAM_INT,
-                ),
-                'automaticenddate' => array(
+                ],
+                'automaticenddate' => [
                     'default' => 1,
                     'type' => PARAM_BOOL,
-                ),
-            );
+                ],
+                course_linear_navigation_settings::SETTING_ENABLE_LINEAR_NAV => [
+                    'default' => get_config(
+                        'format_weeks',
+                        course_linear_navigation_settings::SETTING_ENABLE_LINEAR_NAV
+                    ),
+                    'type' => PARAM_BOOL,
+                ],
+            ];
         }
         if ($foreditform && !isset($courseformatoptions['coursedisplay']['label'])) {
             $hiddensectionslist = new core\output\choicelist();
@@ -319,7 +328,11 @@ class format_weeks extends core_courseformat\base {
                     'element_type' => 'advcheckbox',
                 ],
             ];
-            $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
+            $courseformatoptions = array_merge_recursive(
+                $courseformatoptions,
+                $courseformatoptionsedit,
+                course_linear_navigation_settings::get_course_format_options_edit_form(self::get_format())
+            );
         }
         return $courseformatoptions;
     }
@@ -362,7 +375,7 @@ class format_weeks extends core_courseformat\base {
             }
         }
 
-        return $elements;
+        return array_values($elements); // Make sure keys are sequential.
     }
 
     /**
@@ -627,6 +640,11 @@ class format_weeks extends core_courseformat\base {
      */
     public function get_required_jsfiles(): array {
         return [];
+    }
+
+    #[\Override]
+    public static function uses_linear_navigation(): bool {
+        return true;
     }
 }
 
