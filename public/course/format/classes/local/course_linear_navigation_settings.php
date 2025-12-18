@@ -16,6 +16,12 @@
 
 namespace core_courseformat\local;
 
+use core\lang_string;
+
+defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require_once($CFG->libdir . '/adminlib.php');
+
 /**
  * Class course navigation
  *
@@ -26,4 +32,32 @@ namespace core_courseformat\local;
 class course_linear_navigation_settings {
     /** @var string Setting name for enabling linear navigation */
     public const SETTING_ENABLE_LINEAR_NAV = 'enablelinearnav';
+
+    /**
+     * Get course format options related to linear navigation
+     *
+     * @param string $formatname The course format name
+     * @return array
+     */
+    public static function get_course_format_options_edit_form(string $formatname): array {
+        $label = get_string_manager()->string_exists('linearnavigationsettings', $formatname) ?
+            new lang_string('linearnavigationsettings', $formatname) :
+            new lang_string('linearnavigationsettings', 'core_courseformat');
+        $helpcomponent = get_string_manager()->string_exists('linearnavigationsettings_help', $formatname) ?
+            $formatname : 'core_courseformat';
+        return [
+            self::SETTING_ENABLE_LINEAR_NAV => [
+                'label' => $label,
+                'element_type' => 'select',
+                'element_attributes' => [
+                    [
+                        0 => new lang_string('no'),
+                        1 => new lang_string('yes'),
+                    ],
+                ],
+                'help' => 'linearnavigationsettings',
+                'help_component' => $helpcomponent,
+            ],
+        ];
+    }
 }

@@ -26,7 +26,9 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/course/format/lib.php');
 
+use core\lang_string;
 use core\output\inplace_editable;
+use core_courseformat\local\course_linear_navigation_settings;
 
 /**
  * Main class for the Topics course format.
@@ -251,6 +253,13 @@ class format_topics extends core_courseformat\base {
                     'default' => $courseconfig->coursedisplay,
                     'type' => PARAM_INT,
                 ],
+                course_linear_navigation_settings::SETTING_ENABLE_LINEAR_NAV => [
+                    'default' => get_config(
+                        'format_topics',
+                        course_linear_navigation_settings::SETTING_ENABLE_LINEAR_NAV
+                    ),
+                    'type' => PARAM_BOOL,
+                ],
             ];
         }
         if ($foreditform && !isset($courseformatoptions['coursedisplay']['label'])) {
@@ -292,7 +301,11 @@ class format_topics extends core_courseformat\base {
                     'help_component' => 'moodle',
                 ],
             ];
-            $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
+            $courseformatoptions = array_merge_recursive(
+                $courseformatoptions,
+                $courseformatoptionsedit,
+                course_linear_navigation_settings::get_course_format_options_edit_form(self::get_format())
+            );
         }
         return $courseformatoptions;
     }
@@ -446,6 +459,11 @@ class format_topics extends core_courseformat\base {
      */
     public function get_required_jsfiles(): array {
         return [];
+    }
+
+    #[\Override]
+    public static function uses_linear_navigation(): bool {
+        return true;
     }
 }
 
