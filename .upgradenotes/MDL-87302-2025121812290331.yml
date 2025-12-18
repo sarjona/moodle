@@ -1,0 +1,11 @@
+issueNumber: MDL-87302
+notes:
+  core_courseformat:
+    - message: >-
+        Added a uses_linear_navigation() method to the base format. This simple method will allow to determine if linear navigation will and can be used with this format. It should
+        not call any complex method or rely on existing course option. Linear navigation is disabled by default for formats that do not explicitly enable it.
+        default).
+        Added a new method for formats to check if the setting is enabled on this particular instance. The method is is_linear_navigation_enabled()
+        Modified course_format_options() to take into account linear navigation settings. This will have to be called by any format that wants to support linear navigation (see
+        topics and weeks for implementation).
+      type: improved

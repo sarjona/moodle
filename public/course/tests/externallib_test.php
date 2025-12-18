@@ -808,10 +808,11 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             $this->assertEquals($course['forcetheme'], $dbcourse->theme);
             $this->assertEquals($course['enablecompletion'], $dbcourse->enablecompletion);
             if ($dbcourse->format === 'topics') {
-                $this->assertEquals($course['courseformatoptions'], array(
-                    array('name' => 'hiddensections', 'value' => $dbcourse->hiddensections),
-                    array('name' => 'coursedisplay', 'value' => $dbcourse->coursedisplay),
-                ));
+                $this->assertEquals($course['courseformatoptions'], [
+                    ['name' => 'hiddensections', 'value' => $dbcourse->hiddensections],
+                    ['name' => 'coursedisplay', 'value' => $dbcourse->coursedisplay],
+                    ['name' => 'enablelinearnav', 'value' => $dbcourse->enablelinearnav],
+                ]);
             }
 
             // Assert custom field that we previously added to test course 4.
@@ -2992,7 +2993,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
         // Expect to receive all the fields.
         $this->assertCount(42, $result['courses'][0]);
         // Check default values for course format topics.
-        $this->assertCount(3, $result['courses'][0]['courseformatoptions']);
+        $this->assertCount(4, $result['courses'][0]['courseformatoptions']);
         foreach ($result['courses'][0]['courseformatoptions'] as $option) {
             switch ($option['name']) {
                 case 'hiddensections':
@@ -3002,6 +3003,9 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
                     $this->assertEquals(0, $option['value']);
                     break;
                 case 'indentation':
+                    $this->assertEquals(1, $option['value']);
+                    break;
+                case 'enablelinarnav':
                     $this->assertEquals(1, $option['value']);
                     break;
                 default:

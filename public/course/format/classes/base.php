@@ -1198,7 +1198,13 @@ abstract class base {
      * @return array of options
      */
     public function course_format_options($foreditform = false) {
-        return array();
+        if (!$this->is_global_linear_navigation_enabled()) {
+            return [];
+        }
+        if ($foreditform) {
+            return local\course_linear_navigation_settings::get_course_format_options_edit_form(self::get_format());
+        }
+        return local\course_linear_navigation_settings::get_course_format_options_types_default(self::get_format());
     }
 
     /**
@@ -2254,5 +2260,42 @@ abstract class base {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Determines whether the course format supports linear navigation.
+     *
+     * @return bool True if linear navigation is supported, false otherwise.
+     */
+    public static function uses_linear_navigation(): bool {
+        return false;
+    }
+
+    /**
+     * Determines whether the course format has linear navigation enabled in its settings.
+     *
+     * @return bool True if linear navigation is enabled, false otherwise.
+     */
+    public function is_linear_navigation_enabled(): bool {
+        if (!$this->uses_linear_navigation()) {
+            return false;
+        }
+        $globalnavenabled = $this->is_global_linear_navigation_enabled();
+        if (!$globalnavenabled) {
+            return false;
+        }
+        $formatoptions = $this->get_format_options();
+        return (bool)($formatoptions['enablelinearnav'] ?? false);
+    }
+
+    /**
+     * Determines whether the global setting for linear navigation is enabled.
+     *
+     * @return bool True if the global setting for linear navigation is enabled, false otherwise.
+     */
+    protected function is_global_linear_navigation_enabled(): bool {
+        $formatname = $this->get_format();
+        $globalconfig = get_config("format_$formatname", 'enablelinearnav');
+        return (bool) $globalconfig;
     }
 }

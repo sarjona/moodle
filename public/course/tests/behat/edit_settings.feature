@@ -57,3 +57,53 @@ Feature: Edit course settings
       | Course summary | Edited course summary |
     And I press "Save and return"
     Then I should see the "Course categories and courses" management page
+
+  Scenario Template: The option to enable course linear navigation is shown or hidden based on course format
+    Given the following "courses" exist:
+      | fullname | shortname | summary               | format   |
+      | Course 1 | C1        | <p>Course summary</p> | <format> |
+    And I log in as "admin"
+    And I am on "Course 1" course homepage
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    And <shouldsee> "Enable linear navigation"
+    Examples:
+      | format         | shouldsee        |
+      | topics         | I should see     |
+      | weeks          | I should see     |
+      | singleactivity | I should not see |
+      | social         | I should not see |
+
+  Scenario Template: If the option for a course format is disabled globally, it should not appear in course settings
+    Given the following "courses" exist:
+      | fullname | shortname | summary               | format   |
+      | Course 1 | C1        | <p>Course summary</p> | <format> |
+    And the following config values are set as admin:
+      | enablelinearnav | 0 | format_<format> |
+    And I log in as "admin"
+    And I am on "Course 1" course homepage
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    And I should not see "Enable linear navigation"
+    Examples:
+      | format         |
+      | topics         |
+      | weeks          |
+
+  Scenario Template: I should be able to enable course linear navigation
+    Given the following "courses" exist:
+      | fullname | shortname | summary               | format   |
+      | Course 1 | C1        | <p>Course summary</p> | <format> |
+    And I log in as "admin"
+    And I am on "Course 1" course homepage
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    And I set the field "Enable linear navigation" to "1"
+    And I press "Save and display"
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    Then the field "Enable linear navigation" matches value "1"
+    Examples:
+      | format |
+      | topics |
+      | weeks  |

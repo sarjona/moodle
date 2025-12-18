@@ -140,6 +140,7 @@ class format_singleactivity extends core_courseformat\base implements core_cours
             ];
             $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
         }
+        $courseformatoptions = array_merge($courseformatoptions, parent::course_format_options($foreditform));
         return $courseformatoptions;
     }
 

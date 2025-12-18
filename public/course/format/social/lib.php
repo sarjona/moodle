@@ -103,6 +103,7 @@ class format_social extends core_courseformat\base {
             );
             $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
         }
+        $courseformatoptions = array_merge($courseformatoptions, parent::course_format_options($foreditform));
         return $courseformatoptions;
     }
 

@@ -53,4 +53,48 @@ class course_linear_navigation_settings {
             )
         );
     }
+
+    /**
+     * Get course format options related to linear navigation
+     *
+     * @param string $formatname The course format name
+     * @return array
+     */
+    public static function get_course_format_options_edit_form(string $formatname): array {
+        $label = get_string_manager()->string_exists('linearnavigationsettings', $formatname) ?
+            new lang_string('linearnavigationsettings', $formatname) :
+            new lang_string('linearnavigationsettings', 'core_courseformat');
+        $helpcomponent = get_string_manager()->string_exists('linearnavigationsettings_help', $formatname) ?
+            $formatname : 'core_courseformat';
+        return [
+            'enablelinearnav' => [
+                'label' => $label,
+                'element_type' => 'select',
+                'element_attributes' => [
+                    [
+                        0 => new lang_string('no'),
+                        1 => new lang_string('yes'),
+                    ],
+                ],
+                'help' => 'linearnavigationsettings',
+                'help_component' => $helpcomponent,
+                'defaultvalue' => 1,
+            ],
+        ];
+    }
+
+    /**
+     * Get default values for course format options related to linear navigation
+     *
+     * @param string $formatname The course format name (unused for now)
+     * @return array
+     */
+    public static function get_course_format_options_types_default(string $formatname) {
+        return [
+            'enablelinearnav' => [
+                'default' => 1,
+                'type' => PARAM_BOOL,
+            ],
+        ];
+    }
 }

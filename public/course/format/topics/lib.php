@@ -292,6 +292,7 @@ class format_topics extends core_courseformat\base {
             ];
             $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
         }
+        $courseformatoptions = array_merge($courseformatoptions, parent::course_format_options($foreditform));
         return $courseformatoptions;
     }
 
@@ -444,6 +445,11 @@ class format_topics extends core_courseformat\base {
      */
     public function get_required_jsfiles(): array {
         return [];
+    }
+
+    #[\Override]
+    public static function uses_linear_navigation(): bool {
+        return true;
     }
 }
 
