@@ -438,6 +438,11 @@ class moodle_page {
     protected bool $_showcourseindex = true;
 
     /**
+     * @var bool Indicates that the page has a sticky footer
+     */
+    protected bool $_hasstickyfooter = false;
+
+    /**
      * Force the settings menu to be displayed on this page. This will only force the
      * settings menu on an activity / resource page that is being displayed on a theme that
      * uses a settings menu.
@@ -2487,5 +2492,25 @@ class moodle_page {
      */
     public function get_show_course_index(): bool {
         return $this->_showcourseindex;
+    }
+
+    /**
+     * Signal that the page has a sticky footer
+     *
+     * @param bool $state
+     *     - `true` (default) if the page has a sticky footer.
+     *     - `false` (default) if the page has (not yet) a sticky footer.
+     */
+    public function set_has_sticky_footer(bool $state): void {
+        $this->_hasstickyfooter = $state;
+    }
+
+    /**
+     * Get the current status for sticky footer
+     *
+     * @return bool
+     */
+    public function has_sticky_footer(): bool {
+        return $this->_hasstickyfooter;
     }
 }
