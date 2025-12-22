@@ -18,6 +18,7 @@ namespace core_courseformat;
 
 use core_courseformat\hook\after_course_content_updated;
 use core_course\hook\before_course_viewed;
+use core_courseformat\output\local\course_linear_navigation_footer;
 use core_group\hook\after_group_membership_added;
 use core_group\hook\after_group_membership_removed;
 
@@ -113,5 +114,33 @@ class hook_listener {
         if ($course) {
             base::session_cache_reset($course);
         }
+    }
+
+    /**
+     * Add messaging widgets after the main region content.
+     *
+     * @param \core\hook\output\before_footer_html_generation $hook
+     */
+    public static function add_course_navigation_sticky_footer(
+        \core\hook\output\before_footer_html_generation $hook,
+    ): void {
+        // First check if the course format supports linear navigation.
+        $course = $hook->renderer->get_page()->course;
+        $format = \course_get_format($course);
+        if (
+            !$format->uses_linear_navigation()
+            || $hook->renderer->get_page()->has_sticky_footer()
+            || !$format->is_linear_navigation_enabled()
+        ) {
+            return;
+        }
+        // Now check that we are on a module/activity page.
+        $cm = $hook->renderer->get_page()->cm;
+        if (empty($cm)) {
+            return;
+        }
+        $stickyfootercontent = $format->get_linear_navigation_footer_content($cm);
+        $footer = new course_linear_navigation_footer($stickyfootercontent);
+        $hook->add_html($hook->renderer->render($footer));
     }
 }

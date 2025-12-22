@@ -76,6 +76,7 @@ $string['nobulkaction'] = 'No bulk actions available';
 $string['orphansectionwarning'] = 'This section and its content are not part of the course structure and are not visible to students. To use any of this content, move it to a different section.';
 $string['preference:coursesectionspreferences'] = 'Section user preferences for course {$a}';
 $string['privacy:metadata:preference:coursesectionspreferences'] = 'Section user preferences like collapsed and expanded.';
+$string['returntocourse'] = 'Return to course';
 $string['section_add_feedback'] = 'Section added.';
 $string['section_hide_feedback'] = 'Course section {$a->name} hidden.';
 $string['section_hide_feedback_batch'] = 'Selected {$a->count} course sections hidden.';

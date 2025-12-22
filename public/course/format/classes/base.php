@@ -2298,4 +2298,16 @@ abstract class base {
         $globalconfig = get_config("format_$formatname", 'enablelinearnav');
         return (bool) $globalconfig;
     }
+
+    /**
+     * Provides the content for the sticky footer in linear navigation.
+     *
+     * @param cm_info $cm The activity module.
+     * @return string
+     */
+    public function get_linear_navigation_footer_content(cm_info $cm): string {
+        global $PAGE;
+        $linearnavigationcontent = new output\local\linearnavigation\footer_content($cm->course);
+        return $this->get_renderer($PAGE)->render($linearnavigationcontent);
+    }
 }

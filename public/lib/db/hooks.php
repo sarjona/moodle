@@ -62,6 +62,10 @@ $callbacks = [
         'callback' => \core_courseformat\hook_listener::class . '::after_role_switched',
     ],
     [
+        'hook' => \core\hook\output\before_footer_html_generation::class,
+        'callback' => \core_courseformat\hook_listener::class . '::add_course_navigation_sticky_footer',
+    ],
+    [
         'hook' => \core_completion\hook\after_cm_completion_updated::class,
         'callback' => \core_courseformat\hook_listener::class . '::after_cm_completion_updated',
     ],
