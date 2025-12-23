@@ -1,0 +1,10 @@
+issueNumber: MDL-87281
+notes:
+  core_course:
+    - message: >-
+        A new scheduled task, `migrate_subsection_descriptions_task`, has been
+        added. Once enabled, this task will migrate all existing subsection
+        descriptions into Text and media. To ensure system stability, the task
+        processes records in batches of 100 and clears the original description
+        upon successful migration.
+      type: improved
