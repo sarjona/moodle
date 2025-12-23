@@ -36,4 +36,14 @@ $tasks = [
         'month' => '*',
         'disabled' => true,
     ],
+    [
+        'classname' => '\mod_subsection\task\migrate_subsection_descriptions_task',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '0',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*',
+        'disabled' => true,
+    ],
 ];

@@ -23,6 +23,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['migratesubsectiondescriptions'] = 'Migrate subsection descriptions to Text and media area';
 $string['modulename'] = 'Subsection';
 $string['modulenameplural'] = 'Subsections';
 $string['pluginadministration'] = 'Subsection administration';
