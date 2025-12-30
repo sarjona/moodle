@@ -128,7 +128,8 @@ class hook_listener {
         $course = $hook->renderer->get_page()->course;
         $format = \course_get_format($course);
         if (
-            !$format->uses_linear_navigation()
+            !$hook->renderer->get_page()->should_show_navigation_footer()
+            || !$format->uses_linear_navigation()
             || $hook->renderer->get_page()->has_sticky_footer()
             || !$format->is_linear_navigation_enabled()
         ) {

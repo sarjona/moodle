@@ -438,6 +438,11 @@ class moodle_page {
     protected bool $_showcourseindex = true;
 
     /**
+     * @var bool Indicates whether the navigation sticky footer should be shown.
+     */
+    protected bool $shownavigationfooter = true;
+
+    /**
      * @var bool Indicates that the page has a sticky footer
      */
     protected bool $_hasstickyfooter = false;
@@ -2512,5 +2517,25 @@ class moodle_page {
      */
     public function has_sticky_footer(): bool {
         return $this->_hasstickyfooter;
+    }
+
+    /**
+     * Set the status for displaying the navigation sticky footer.
+     *
+     * @param bool $state
+     *     - `true` (default) if the navigation footer should be shown.
+     *     - `false` if the navigation footer should be hidden.
+     */
+    public function set_show_navigation_footer(bool $state): void {
+        $this->shownavigationfooter = $state;
+    }
+
+    /**
+     * Get the current status for displaying the navigation sticky footer.
+     *
+     * @return bool
+     */
+    public function should_show_navigation_footer(): bool {
+        return $this->shownavigationfooter;
     }
 }
