@@ -74,6 +74,10 @@ Feature: Edit course settings
       | singleactivity | I should not see |
       | social         | I should not see |
 
+  # The following scenario tests that the default value for the "Enable linear navigation"
+  # setting is applied correctly when creating a new course, based on the global settings. We need
+  # javascript here to ensure that the form updates correctly after selecting the course format.
+  @javascript
   Scenario Template: The default linear navigation value for new course is applied based on default global settings
     Given the following "courses" exist:
       | fullname | shortname | summary               | format   |
