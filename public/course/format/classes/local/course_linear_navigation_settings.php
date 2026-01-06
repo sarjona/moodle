@@ -60,4 +60,33 @@ class course_linear_navigation_settings {
             ],
         ];
     }
+
+    /**
+     * Hook to set the default value of the linear navigation setting
+     * to enabled when creating a new course.
+     *
+     * @param \core_course\hook\after_form_definition_after_data $hook The hook object.
+     */
+    public static function after_form_definition_after_data(
+        \core_course\hook\after_form_definition_after_data $hook,
+    ): void {
+        if (!$hook->mform->elementExists(self::SETTING_ENABLE_LINEAR_NAV)) {
+            return;
+        }
+        $enablelinearnavelement = $hook->mform->getElement(self::SETTING_ENABLE_LINEAR_NAV);
+        $course = $hook->formwrapper->get_course();
+        $formatvalue = $hook->mform->getElementValue('format');
+        if (is_array($formatvalue) && !empty($formatvalue)) {
+            $params = ['format' => $formatvalue[0]];
+            if (!empty($course->id)) {
+                $params['id'] = $course->id;
+            }
+            $courseformat = course_get_format((object) $params);
+        }
+        if ($enablelinearnavelement && empty($course->id) && $courseformat) {
+            $enablelinearnavelement->setValue(
+                get_config("format_{$courseformat->get_format()}", self::SETTING_ENABLE_LINEAR_NAV)
+            );
+        }
+    }
 }
