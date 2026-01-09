@@ -1670,5 +1670,36 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026011600.01);
     }
 
+    if ($oldversion < 2026012600.02) {
+        [$informatsql, $params] = $DB->get_in_or_equal(['weeks', 'topics'], SQL_PARAMS_NAMED);
+
+        $insert = <<<EOF
+        INSERT INTO {course_format_options} (
+            courseid,
+            format,
+            sectionid,
+            name,
+            value
+        ) SELECT
+            c.id as courseid,
+            c.format AS format,
+            0 AS sectionid,
+            :settingname1 AS name,
+            0 AS value
+            FROM {course} c
+            LEFT JOIN {course_format_options} cfo
+                ON cfo.courseid = c.id
+                AND cfo.name = :settingname2
+            WHERE cfo.id is NULL and c.format $informatsql
+    EOF;
+
+        $params += [
+            'settingname1' => \core_courseformat\local\course_linear_navigation_settings::SETTING_ENABLE_LINEAR_NAV,
+            'settingname2' => \core_courseformat\local\course_linear_navigation_settings::SETTING_ENABLE_LINEAR_NAV,
+        ];
+        $DB->execute($insert, $params);
+        upgrade_main_savepoint(true, 2026012600.02);
+    }
+
     return true;
 }
