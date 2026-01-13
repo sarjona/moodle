@@ -197,6 +197,16 @@ class activity_header implements renderable, templatable {
             $activitydatesdata = (array) $activitydates->export_for_template($output);
             $data = array_merge($activitycompletiondata, $activitydatesdata);
 
+            if (
+                !empty($data)
+                && !empty($data['uservisible'])
+                && !empty($data['showmanualcompletion'])
+                && !empty($data['istrackeduser'])
+            ) {
+                $this->page->add_header_action(
+                    $output->render_from_template('core_course/completion_manual', $data)
+                );
+            }
             $activityinfo = $output->render_from_template('core_course/activity_info', $data);
         }
 
