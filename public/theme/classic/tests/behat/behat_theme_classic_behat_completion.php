@@ -37,4 +37,9 @@ class behat_theme_classic_behat_completion extends behat_completion {
         $this->execute("behat_navigation::i_navigate_to_in_current_page_administration",
             $reportsnode . ' > ' . $completionnode);
     }
+
+    #[\Override]
+    protected function get_page_content_selector(): string {
+        return '#page-content';
+    }
 }

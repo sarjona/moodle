@@ -232,7 +232,7 @@ class behat_completion extends behat_base {
 
         $langstringkey = $completionstatus === 'Done' ? 'done' : 'markdone';
         $conditionslistlabel = get_string('completion_manual:aria:' . $langstringkey, 'core_course', $activityname);
-        $selector = "button[aria-label='$conditionslistlabel']";
+        $selector = $this->get_page_content_selector() . " button[aria-label='$conditionslistlabel']";
 
         $this->execute("behat_general::assert_element_contains_text", [$completionstatus, $selector, "css_element"]);
     }
@@ -257,7 +257,7 @@ class behat_completion extends behat_base {
             'activityname' => $activityname,
             'setby' => $username,
         ]);
-        $selector = "button[aria-label='$conditionslistlabel']";
+        $selector = $this->get_page_content_selector() . " button[aria-label='$conditionslistlabel']";
 
         $this->execute("behat_general::assert_element_contains_text", [$completionstatus, $selector, "css_element"]);
     }
@@ -269,7 +269,8 @@ class behat_completion extends behat_base {
      * @param string $activityname The activity name.
      */
     public function toggle_the_manual_completion_state(string $activityname): void {
-        $selector = "button[data-action=toggle-manual-completion][data-activityname='{$activityname}']";
+        $selector = $this->get_page_content_selector() .
+            " button[data-action=toggle-manual-completion][data-activityname='{$activityname}']";
 
         $this->execute("behat_general::i_click_on", [$selector, "css_element"]);
     }
@@ -302,7 +303,7 @@ class behat_completion extends behat_base {
      * @param string $activityname The activity name.
      */
     public function the_manual_completion_button_for_activity_should_be_disabled(string $activityname): void {
-        $selector = "div[data-region='activity-information'][data-activityname='$activityname'] button";
+        $selector = $this->get_page_content_selector() . " button[data-activityname='$activityname'][data-completion='manual']";
 
         $params = [$selector, "css_element"];
         $this->execute("behat_general::the_element_should_be_disabled", $params);
@@ -315,7 +316,7 @@ class behat_completion extends behat_base {
      * @param string $activityname The activity name.
      */
     public function the_manual_completion_button_for_activity_should_not_exist(string $activityname): void {
-        $selector = "div[data-region=activity-information][data-activityname='$activityname'] button";
+        $selector = $this->get_page_content_selector() . " button[data-activityname='$activityname'][data-completion='manual']";
 
         $params = [$selector, "css_element"];
         $this->execute('behat_general::should_not_exist', $params);
@@ -328,10 +329,10 @@ class behat_completion extends behat_base {
      * @param string $activityname The activity name.
      */
     public function the_manual_completion_button_for_activity_should_exist(string $activityname): void {
-        $selector = "div[data-region=activity-information][data-activityname='$activityname'] button";
+        $selector = $this->get_page_content_selector() . " button[data-activityname='$activityname'][data-completion='manual']";
 
         $params = [$selector, "css_element"];
-        $this->execute('behat_general::should_exist', $params);
+        $this->execute("behat_general::should_exist", $params);
     }
 
     /**
@@ -425,5 +426,14 @@ class behat_completion extends behat_base {
         $this->execute("behat_general::should_not_exist",
             array($iconxpath, "xpath_element")
         );
+    }
+
+    /**
+     * Get the page content selector. It can be overridden to adapt to different themes.
+     *
+     * @return string The CSS selector for the page content.
+     */
+    protected function get_page_content_selector(): string {
+        return '#page';
     }
 }

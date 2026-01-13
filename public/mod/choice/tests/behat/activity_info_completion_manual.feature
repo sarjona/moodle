@@ -32,7 +32,7 @@ Feature: Manual completion in the choice activity
     And the manual completion button of "What to drink?" is displayed as "Mark as done"
     When I toggle the manual completion state of "What to drink?"
     Then the manual completion button of "What to drink?" is displayed as "Done"
-    But "Mark as done" "button" should not exist
+    But I should not see "Mark as done"
     # Just make sure that the change persisted.
     And I reload the page
     And I wait until the page is ready
@@ -40,11 +40,11 @@ Feature: Manual completion in the choice activity
     And the manual completion button of "What to drink?" is displayed as "Done"
     And I toggle the manual completion state of "What to drink?"
     And the manual completion button of "What to drink?" is displayed as "Mark as done"
-    But "Done" "button" should not exist
+    And I should not see "Done"
     # Just make sure that the change persisted.
     And I reload the page
     And the manual completion button of "What to drink?" is displayed as "Mark as done"
-    But "Done" "button" should not exist
+    And I should not see "Done"
 
   Scenario: Viewing a choice activity with manual completion as a teacher
     When I am on the "What to drink?" "choice activity" page logged in as teacher1
@@ -57,7 +57,6 @@ Feature: Manual completion in the choice activity
     And I click on "Activity completion" "link"
     And I click on "Student 1, What to drink?: Not completed" "link"
     And I press "Save changes"
-    And I log out
     When I am on the "What to drink?" "choice activity" page logged in as student1
     Then the manual completion button of "What to drink?" overridden by "Teacher 1" is displayed as "Done"
     And I toggle the manual completion state of "What to drink?"
@@ -66,15 +65,12 @@ Feature: Manual completion in the choice activity
   @javascript
   Scenario: Overriding a manual choice completion for a user to not done
     Given I am on the "What to drink?" "choice activity" page logged in as student1
-    And I press "Mark as done"
-    And I wait until the page is ready
-    And I log out
+    And I toggle the manual completion state of "What to drink?"
     And I am on the "Course 1" course page logged in as teacher1
     And I navigate to "Reports" in current page administration
     And I click on "Activity completion" "link"
     And I click on "Student 1, What to drink?: Completed" "link"
     And I press "Save changes"
-    And I log out
     Given I am on the "What to drink?" "choice activity" page logged in as student1
     Then the manual completion button of "What to drink?" overridden by "Teacher 1" is displayed as "Mark as done"
     And I toggle the manual completion state of "What to drink?"

@@ -47,3 +47,16 @@
         white-space: pre-wrap;
     }
 }
+
+// Manual completion button in activity header
+.header-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-actions-container button[data-completion="manual"] {
+    display: none;
+    visibility: hidden;
+}

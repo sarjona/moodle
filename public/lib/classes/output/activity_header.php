@@ -187,6 +187,7 @@ class activity_header implements renderable, templatable {
         }
 
         $activityinfo = null;
+        $activitycompletiondata = [];
         if (!$this->hidecompletion) {
             $completiondetails = \core_completion\cm_completion_details::get_instance($this->page->cm, $this->user->id);
             $activitydates = \core\activity_dates::get_dates_for_module($this->page->cm, $this->user->id);
@@ -197,6 +198,15 @@ class activity_header implements renderable, templatable {
             $activitydatesdata = (array) $activitydates->export_for_template($output);
             $data = array_merge($activitycompletiondata, $activitydatesdata);
 
+            if (
+                !empty($data)
+                && !empty($data['uservisible'])
+                && !empty($data['showmanualcompletion'])
+            ) {
+                $this->page->add_header_action(
+                    $output->render_from_template('core_course/completion_manual', $data)
+                );
+            }
             $activityinfo = $output->render_from_template('core_course/activity_info', $data);
         }
 
@@ -206,6 +216,14 @@ class activity_header implements renderable, templatable {
                 'core_courseformat/local/content/activity_header',
                 'init'
             );
+            if (!$this->hidecompletion) {
+                // Also init the heading component to manage feature like manual completion button display.
+                $this->page->requires->js_call_amd(
+                    'core_courseformat/local/content/activity_header',
+                    'init',
+                    ["[data-for='page-heading']"],
+                );
+            }
         }
 
         $additionalitems = '';
@@ -213,12 +231,12 @@ class activity_header implements renderable, templatable {
             $additionalitems = $this->additionalnavitems->export_for_template($output);
         }
 
-        return [
+        return array_merge([
             'title' => $this->title,
             'description' => $this->description,
             'completion' => $activityinfo,
             'additional_items' => $additionalitems,
-        ];
+        ], $activitycompletiondata);
     }
 
     /**
