@@ -935,3 +935,24 @@ $divider-hover-color: $primary !default;
         width: (16 * $mod-indent-size);
     }
 }
+
+/* Temporary visual highlight for anchors. */
+[id^="section-"]:target,
+[id^="module-"]:target {
+    animation: highlight-fade 3s ease-in-out forwards;
+}
+
+@keyframes highlight-fade {
+    0% {
+        @include border-radius();
+        outline: $activity-border-width solid $activity-hover-border-color;
+    }
+    70% {
+        @include border-radius();
+        outline: $activity-border-width solid $activity-hover-border-color;
+    }
+    100% {
+        @include border-radius();
+        outline: $activity-border-width solid transparent;
+    }
+}
