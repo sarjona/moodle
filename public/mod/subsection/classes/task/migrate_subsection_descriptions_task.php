@@ -41,7 +41,7 @@ class migrate_subsection_descriptions_task extends adhoc_task {
         $enabledplugins = \core\plugininfo\mod::get_enabled_plugins();
         if (!isset($enabledplugins['label']) || !isset($enabledplugins['subsection'])) {
             // The label or subsection module is not enabled, nothing to do.
-            mtrace('Label or Subsection module is not enabled. Skipping migration task.');
+            mtrace('Text and media area or Subsection module is not enabled. Skipping migration task.');
             return;
         }
         require_once($CFG->dirroot . '/course/lib.php');

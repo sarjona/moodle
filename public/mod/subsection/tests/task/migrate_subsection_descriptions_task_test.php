@@ -363,7 +363,14 @@ final class migrate_subsection_descriptions_task_test extends \advanced_testcase
         \core\task\manager::queue_adhoc_task($task);
         ob_start();
         $this->runAdhocTasks(migrate_subsection_descriptions_task::class);
+        $output = ob_get_contents();
         ob_end_clean();
+
+        // Check one subsection migrated message shown.
+        $this->assertStringContainsString(
+            'Text and media area or Subsection module is not enabled. Skipping migration task.',
+            trim($output),
+        );
 
         // Check nothing has changed.
         $this->assertEquals(
