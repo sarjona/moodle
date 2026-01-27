@@ -1,0 +1,9 @@
+issueNumber: MDL-87662
+notes:
+  theme:
+    - message: >-
+        Manual completion button has been moved to the activity header to be
+        displayed near to the activity name. Consequently, the `full_header`
+        template now includes a new `completionactions` variable specifically
+        for completiontriggers (like the "Mark as done" button).
+      type: improved

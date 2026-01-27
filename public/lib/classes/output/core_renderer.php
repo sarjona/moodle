@@ -4289,7 +4289,28 @@ EOD;
         $header->navbar = $this->navbar();
         $header->pageheadingbutton = $this->page_heading_button();
         $header->courseheader = $this->course_header();
-        $header->headeractions = $this->page->get_header_actions();
+        // Split manual completion actions from the rest.
+        $completionactions = [];
+        $remainingactions = [];
+        $headeractions = $this->page->get_header_actions();
+        foreach ($headeractions as $action) {
+            // Separate manual completion actions from the rest (instead of calling again \core_course\output\activity_completion).
+            if (str_contains($action, 'data-completion="manual"')) {
+                $completionactions[] = $action;
+            } else {
+                $remainingactions[] = $action;
+            }
+        }
+        $header->completionactions = $completionactions;
+        $header->headeractions = $remainingactions;
+        if (!empty($completionactions)) {
+            // Also init the heading component to manage feature like manual completion button display.
+            $this->page->requires->js_call_amd(
+                'core_courseformat/local/content/activity_header',
+                'init',
+                ["[data-for='page-heading']"],
+            );
+        }
         if (!empty($pagetype) && !empty($homepagetype) && $pagetype == $homepagetype) {
             $header->welcomemessage = \core_user::welcome_message();
         }
