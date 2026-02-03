@@ -69,6 +69,19 @@ select {
         padding-bottom: 0;
         margin-bottom: 0;
     }
+    .completion-status {
+        font-weight: $font-weight-medium;
+        white-space: nowrap;
+        i {
+            margin-right: map-get($spacers, 1);
+        }
+        @include media-breakpoint-down(sm) {
+            i {
+                font-size: 1.25rem;
+                margin-right: map-get($spacers, 4);
+            }
+        }
+    }
 }
 
 // Choice module
