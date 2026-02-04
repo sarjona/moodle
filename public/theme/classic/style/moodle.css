@@ -32208,8 +32208,8 @@ body.drawer-ease {
   visibility: visible;
 }
 .drawer.drawer-left .drawertoggle {
-  margin-right: auto;
-  margin-left: 5px;
+  margin-left: auto;
+  margin-right: 5px;
 }
 .drawer.drawer-bottom {
   bottom: -110%;
@@ -32320,8 +32320,8 @@ body.drawer-ease {
 }
 @media (max-width: 991.98px) {
   .drawer-md.drawer-left .drawertoggle {
-    margin-right: auto;
-    margin-left: 5px;
+    margin-left: auto;
+    margin-right: 5px;
   }
 }
 @media (max-width: 991.98px) {
@@ -32406,8 +32406,8 @@ body.drawer-ease {
 }
 @media (max-width: 767.98px) {
   .drawer-sm.drawer-left .drawertoggle {
-    margin-right: auto;
-    margin-left: 5px;
+    margin-left: auto;
+    margin-right: 5px;
   }
 }
 @media (max-width: 767.98px) {
@@ -40586,6 +40586,20 @@ div.editor_atto_toolbar button .icon {
 .reportbuilder-report[data-report-type="0"]:not([data-editing])[data-force-card] table.reportbuilder-table tr td.card-toggle button i {
   font-size: 1.5em;
   font-weight: bold;
+}
+
+#courseindexdrawerheading {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+}
+#courseindexdrawerheading .courseindex-link {
+  width: 100%;
+  color: var(--bs-secondary-color);
+}
+#courseindexdrawerheading .courseindex-link:hover, #courseindexdrawerheading .courseindex-link:focus {
+  color: black;
+  text-decoration: none;
 }
 
 .courseindex .courseindex-item {

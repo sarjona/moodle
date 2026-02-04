@@ -36,8 +36,14 @@
     }} data-close-on-resize="{{$drawercloseonresize}}0{{/drawercloseonresize}}"{{!
     }}>
     <div class="drawerheader">
+        <div class="drawerheadercontent">
+            {{$drawerheadercontent}}{{/drawerheadercontent}}
+        </div>
+        <div class="drawerheading">
+            {{$drawerheading}}{{/drawerheading}}
+        </div>
         <button
-            class="btn btn-icon drawertoggle hidden"
+            class="btn btn-icon drawertoggle"
             data-toggler="drawers"
             data-action="closedrawer"
             data-target="{{$id}}{{/id}}"
@@ -47,10 +53,6 @@
         >
             {{#pix}} e/cancel, core {{/pix}}
         </button>
-        {{$drawerheading}}{{/drawerheading}}
-        <div class="drawerheadercontent hidden">
-            {{$drawerheadercontent}}{{/drawerheadercontent}}
-        </div>
     </div>
     <div class="drawercontent drag-container" data-usertour="scroller">
         {{$drawercontent}}{{/drawercontent}}

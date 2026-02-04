@@ -55,6 +55,21 @@ $courseindex-item-current: $primary !default;
     }
 }
 
+#courseindexdrawerheading {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    .courseindex-link {
+        width: 100%;
+        color: $courseindex-link-color;
+        &:hover,
+        &:focus {
+            color: $courseindex-link-hover-color;
+            text-decoration: none;
+        }
+    }
+}
+
 .courseindex {
     // Both activity and section items.
     .courseindex-item {
