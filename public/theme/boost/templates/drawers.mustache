@@ -73,6 +73,10 @@
             {{$drawerstate}}show-drawer-left{{/drawerstate}}
             {{$tooltipplacement}}right{{/tooltipplacement}}
             {{$closebuttontext}}{{#str}}closecourseindex, core{{/str}}{{/closebuttontext}}
+            {{$closebuttonicon}}
+                <span class="dir-rtl-hide">{{#pix}} e/sidebar_left, core {{/pix}}</span>
+                <span class="dir-ltr-hide">{{#pix}} e/sidebar_right, core {{/pix}}</span>
+            {{/closebuttonicon}}
         {{/ theme_boost/drawer}}
     {{/courseindex}}
     {{#hasblocks}}
@@ -91,6 +95,10 @@
             {{$tooltipplacement}}left{{/tooltipplacement}}
             {{$drawercloseonresize}}1{{/drawercloseonresize}}
             {{$closebuttontext}}{{#str}}closeblockdrawer, core{{/str}}{{/closebuttontext}}
+            {{$closebuttonicon}}
+                <span class="dir-rtl-hide">{{#pix}} e/sidebar_right, core {{/pix}}</span>
+                <span class="dir-ltr-hide">{{#pix}} e/sidebar_left, core {{/pix}}</span>
+            {{/closebuttonicon}}
         {{/ theme_boost/drawer}}
     {{/hasblocks}}
     <div id="page" data-region="mainpage" data-usertour="scroller" class="drawers {{#courseindexopen}}show-drawer-left{{/courseindexopen}} {{#blockdraweropen}}show-drawer-right{{/blockdraweropen}} drag-container">
@@ -108,7 +116,8 @@
                             title="{{#str}}opendrawerindex, core{{/str}}"
                         >
                             <span class="visually-hidden">{{#str}}opendrawerindex, core{{/str}}</span>
-                            {{#pix}} t/index_drawer, moodle {{/pix}}
+                            <span class="dir-rtl-hide">{{#pix}} e/sidebar_left, core {{/pix}}</span>
+                            <span class="dir-ltr-hide">{{#pix}} e/sidebar_right, core {{/pix}}</span>
                         </button>
                     </div>
                 {{/courseindex}}
@@ -124,8 +133,8 @@
                             title="{{#str}}opendrawerblocks, core{{/str}}"
                         >
                             <span class="visually-hidden">{{#str}}opendrawerblocks, core{{/str}}</span>
-                            <span class="dir-rtl-hide">{{#pix}}t/blocks_drawer, core{{/pix}}</span>
-                            <span class="dir-ltr-hide">{{#pix}}t/blocks_drawer_rtl, core{{/pix}}</span>
+                            <span class="dir-rtl-hide">{{#pix}} e/sidebar_right, core {{/pix}}</span>
+                            <span class="dir-ltr-hide">{{#pix}} e/sidebar_left, core {{/pix}}</span>
                         </button>
                     </div>
                 {{/hasblocks}}

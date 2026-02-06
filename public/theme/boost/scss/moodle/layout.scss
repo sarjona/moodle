@@ -85,13 +85,12 @@
 
     .drawer-toggler {
         position: fixed;
-        top: calc(#{$navbar-height} + 0.7rem);
+        top: calc(#{$navbar-height} + 1rem);
         z-index: 2;
         .btn {
-            border-radius: 200px;
-            padding: 16px;
+            padding: 8px;
+            margin: auto 16px;
             background-color: $gray-300;
-            box-shadow: $box-shadow-sm;
             .icon {
                 width: auto;
                 height: auto;
@@ -99,34 +98,21 @@
             &:focus {
                 box-shadow: $input-btn-focus-box-shadow;
             }
-            transition: padding 200ms;
         }
     }
 
     .drawer-left-toggle {
         left: 0;
-        .btn {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-            padding-right: 14px;
-            padding-left: 10px;
-
-            &:hover {
-                padding-left: 20px;
-            }
-        }
     }
 
     .drawer-right-toggle {
         right: 0;
-        .btn {
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-            padding-right: 10px;
-            padding-left: 14px;
+    }
 
+    .drawer-toggler {
+        .btn {
             &:hover {
-                padding-right: 20px;
+                background-color: $gray-400;
             }
         }
     }

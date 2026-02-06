@@ -52,7 +52,10 @@
                 data-bs-placement="{{$tooltipplacement}}right{{/tooltipplacement}}"
                 title="{{$closebuttontext}}{{#str}}closedrawer, core{{/str}}{{/closebuttontext}}"
             >
-                {{#pix}} e/cancel, core {{/pix}}
+                {{$closebuttonicon}}
+                    {{! This is the default icon used if the parent doesn't override it }}
+                    {{#pix}} e/cancel, core {{/pix}}
+                {{/closebuttonicon}}
             </button>
         </div>
     </div>
