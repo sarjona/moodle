@@ -75,12 +75,6 @@ select {
         i {
             margin-right: map-get($spacers, 1);
         }
-        @include media-breakpoint-down(sm) {
-            i {
-                font-size: 1.25rem;
-                margin-right: map-get($spacers, 4);
-            }
-        }
     }
 }
 
