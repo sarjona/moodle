@@ -510,17 +510,16 @@ class cmactions extends baseactions {
         if ($newcmid) {
             // Proceed with activity renaming before everything else. We don't use APIs here to avoid
             // triggering a lot of create/update duplicated events.
-            $newcm = get_coursemodule_from_id($cm->modname, $newcmid, $cm->course);
             if (!$newname) {
                 // Add ' (copy)' language string postfix to duplicated module.
                 $newname = get_string('duplicatedmodule', 'moodle', $cm->name);
             }
             if ($newname !== $cm->name) {
-                $this->rename($newcm->id, $newname);
+                $this->rename($newcmid, $newname);
             }
             // Move the new module to the target section.
-            if (isset($targetsectionid) && $targetsectionid != $newcm->section) {
-                $this->move_end_section($newcm->id, $targetsection->id);
+            if (isset($targetsectionid) && $targetsectionid != $cm->section) {
+                $this->move_end_section($newcmid, $targetsection->id);
             } else {
                 // Move the new module right after the original one, so it means before the next one.
                 $sectioninfo = $cm->get_section_info();
@@ -532,18 +531,14 @@ class cmactions extends baseactions {
                     $nextcm = $cmsequence[$aftercmposition + 1];
                 }
                 if ($nextcm) {
-                    $this->move_before($newcm->id, $nextcm->id);
+                    $this->move_before($newcmid, $nextcm->id);
                 } else {
-                    $this->move_end_section($newcm->id, $sectioninfo->id);
+                    $this->move_end_section($newcmid, $sectioninfo->id);
                 }
             }
 
-            // Update calendar events with the duplicated module.
-            // The following line is to be removed in MDL-58906.
-            course_module_update_calendar_events($newcm->modname, null, $newcm);
-
             // Copy permission overrides to new course module.
-            $newcmcontext = \context_module::instance($newcm->id);
+            $newcmcontext = \context_module::instance($newcmid);
             $overrides = $DB->get_records('role_capabilities', ['contextid' => $cmcontext->id]);
             foreach ($overrides as $override) {
                 $override->contextid = $newcmcontext->id;
