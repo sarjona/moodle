@@ -393,6 +393,11 @@ class moodle_page {
     protected $_headeractions = [];
 
     /**
+     * @var array Array of extras HTML to add to the page header.
+     */
+    protected $headerextras = [];
+
+    /**
      * @var bool Should the region main settings menu be rendered in the header.
      */
     protected $_regionmainsettingsinheader = false;
@@ -2372,6 +2377,24 @@ class moodle_page {
      */
     public function get_header_actions(): array {
         return $this->_headeractions;
+    }
+
+    /**
+     * Add some HTML to the list of extra information to render in the header.
+     *
+     * @param string $html The HTML to add.
+     */
+    public function add_header_extras(string $html): void {
+        $this->headerextras[] = $html;
+    }
+
+    /**
+     * Get the list of HTML for extras to render in the header.
+     *
+     * @return string[]
+     */
+    public function get_header_extras(): array {
+        return $this->headerextras;
     }
 
     /**
