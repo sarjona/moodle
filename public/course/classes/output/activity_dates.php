@@ -29,14 +29,17 @@ use templatable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class activity_dates implements renderable, templatable {
-
     /**
      * Constructor.
      *
      * @param array $activitydates The activity dates.
+     * @param \cm_info $cminfo The course module information.
      */
     public function __construct(
-        protected array $activitydates
+        /** @var array $activitydates the activity dates information. */
+        protected array $activitydates,
+        /** @var \cm_info $cminfo  the course module information.*/
+        protected \cm_info $cminfo
     ) {
     }
 
@@ -65,6 +68,7 @@ class activity_dates implements renderable, templatable {
         }
 
         return (object) [
+            'activityname' => $this->cminfo->get_formatted_name(),
             'hasdates' => !empty($this->activitydates),
             'activitydates' => $activitydates,
         ];

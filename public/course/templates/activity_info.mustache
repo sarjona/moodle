@@ -50,14 +50,6 @@
     }
 }}
 <div data-region="activity-information" data-activityname="{{activityname}}" class="activity-information">
-    {{#hasdates}}
-    <div data-region="activity-dates" class="activity-dates">
-        {{#activitydates}}
-            {{>core_course/activity_date}}
-        {{/activitydates}}
-    </div>
-    {{/hasdates}}
-
     <div data-region="activity-details" class="activity-details">
         {{#description}}
             <div class="activity-description" id="intro">

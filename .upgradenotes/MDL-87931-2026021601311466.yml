@@ -1,0 +1,9 @@
+issueNumber: MDL-87931
+notes:
+  core:
+    - message: >-
+        The `activity_dates` constructor now requires a mandatory
+        `\cm_info $cminfo` parameter; third-party plugins instantiating
+        this class directly must update their calls to include this
+        new argument.
+      type: improved

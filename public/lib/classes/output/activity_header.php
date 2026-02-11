@@ -188,13 +188,14 @@ class activity_header implements renderable, templatable {
 
         $activityinfo = null;
         $activitycompletiondata = [];
+        $activitydatesdata = [];
         if (!$this->hidecompletion) {
             $completiondetails = \core_completion\cm_completion_details::get_instance($this->page->cm, $this->user->id);
             $activitydates = \core\activity_dates::get_dates_for_module($this->page->cm, $this->user->id);
 
             $activitycompletion = new \core_course\output\activity_completion($this->page->cm, $completiondetails);
             $activitycompletiondata = (array) $activitycompletion->export_for_template($output);
-            $activitydates = new \core_course\output\activity_dates($activitydates);
+            $activitydates = new \core_course\output\activity_dates($activitydates, $this->page->cm);
             $activitydatesdata = (array) $activitydates->export_for_template($output);
             $data = array_merge($activitycompletiondata, $activitydatesdata);
             $data['description'] = $this->description;
@@ -211,6 +212,7 @@ class activity_header implements renderable, templatable {
             }
 
             $activityinfo = $output->render_from_template('core_course/activity_info', $data);
+            $this->add_dates_to_page_header($output, $activitydatesdata);
         }
 
         $format = course_get_format($this->page->course);
@@ -230,6 +232,7 @@ class activity_header implements renderable, templatable {
             'title' => $this->title,
             'description' => $this->description,
             'completion' => $activityinfo,
+            'activitydates' => $activitydatesdata,
             'additional_items' => $additionalitems,
         ], $activitycompletiondata);
     }
@@ -243,8 +246,8 @@ class activity_header implements renderable, templatable {
      */
     private function add_manual_completion_to_page_header(renderer_base $output, array $data): bool {
         // Some themes may not use completion in the header, so we check first.
-        $showcompletion = $this->page?->layout_options['completioninheader'] ?? true;
-        if (!$showcompletion) {
+        $showinheader = $this->page?->layout_options['activityinfoinheader'] ?? true;
+        if (!$showinheader) {
             return false;
         }
 
@@ -269,14 +272,38 @@ class activity_header implements renderable, templatable {
      */
     private function add_completion_status_to_page_header(renderer_base $output, array $data): bool {
         // Some themes may not use completion in the header, so we check first.
-        $showcompletion = $this->page?->layout_options['completioninheader'] ?? true;
-        if (!$showcompletion) {
+        $showinheader = $this->page?->layout_options['activityinfoinheader'] ?? true;
+        if (!$showinheader) {
             return false;
         }
 
         $this->page->add_header_action(
             $output->render_from_template('core_course/completion_status', $data)
         );
+        return true;
+    }
+
+    /**
+     * Adds the dates component to the page header.
+     *
+     * @param renderer_base $output
+     * @param array $data the template data for the dates component
+     * @return bool if the dates were added
+     */
+    private function add_dates_to_page_header(renderer_base $output, array $data): bool {
+        // Some themes may not use dates in the header, so we check first.
+        $showinheader = $this->page?->layout_options['activityinfoinheader'] ?? true;
+        if (!$showinheader) {
+            return false;
+        }
+
+        // Only add dates if there are dates to show.
+        if (!$data['hasdates']) {
+            return false;
+        }
+
+        $dates = $output->render_from_template('core_course/activity_dates', $data);
+        $this->page->add_header_extras($dates);
         return true;
     }
 

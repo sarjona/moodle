@@ -58,7 +58,7 @@ $THEME->layouts = [
         'file' => 'columns.php',
         'regions' => array('side-pre', 'side-post'),
         'defaultregion' => 'side-pre',
-        'options' => ['completioninheader' => false],
+        'options' => ['activityinfoinheader' => false],
     ),
     // The site home page.
     'frontpage' => array(
