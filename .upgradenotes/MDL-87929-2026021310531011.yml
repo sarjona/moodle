@@ -1,0 +1,10 @@
+issueNumber: MDL-87929
+notes:
+  theme:
+    - message: >-
+        New `is_restricted_content()` and `set_restricted_content()` methods
+        have been added to the course format output classes to allow pages to be
+        flagged as restricted, enabling templates to automatically suppress
+        granular activity information and adjust the default visibility of
+        availability messages.
+      type: improved

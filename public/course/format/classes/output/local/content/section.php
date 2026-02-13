@@ -82,6 +82,9 @@ class section implements named_templatable, renderable {
     /** @var string control menu class. */
     protected $controlmenuclass;
 
+    /** @var bool whether the content is restricted */
+    protected $restrictedcontent = false;
+
     /**
      * Constructor.
      *
@@ -129,6 +132,24 @@ class section implements named_templatable, renderable {
      */
     public function hide_controls(): void {
         $this->hidecontrols = true;
+    }
+
+    /**
+     * Checks if the content is restricted.
+     *
+     * @return bool true if the content is restricted, false otherwise.
+     */
+    public function is_restricted_content(): bool {
+        return $this->restrictedcontent;
+    }
+
+    /**
+     * Update the content to be restricted or not.
+     *
+     * @param bool $restricted true if the content is restricted, false otherwise.
+     */
+    public function set_restricted_content(bool $restricted): void {
+        $this->restrictedcontent = $restricted;
     }
 
     /**
@@ -250,6 +271,7 @@ class section implements named_templatable, renderable {
      */
     protected function add_availability_data(stdClass &$data, renderer_base $output): bool {
         $availability = new $this->availabilityclass($this->format, $this->section);
+        $availability->set_restricted_content($this->is_restricted_content());
         $data->availability = $availability->export_for_template($output);
         $data->restrictionlock = !empty($this->section->availableinfo);
         $data->hasavailability = $availability->has_availability($output);

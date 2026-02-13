@@ -65,6 +65,8 @@ class restricted_section {
         $format->set_sectionid($section->id);
         $outputclass = $format->get_output_classname('content');
         $sectionoutput = new $outputclass($format);
+        // Mark the content as restricted so the output can adapt accordingly.
+        $sectionoutput->set_restricted_content(true);
         $PAGE->set_url('/course/section.php', ['id' => $section->id]);
         $PAGE->set_course($course);
 

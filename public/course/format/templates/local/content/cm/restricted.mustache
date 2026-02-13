@@ -61,7 +61,10 @@
     {{! Availability }}
     {{#modavailability}}
         {{$ core_courseformat/local/content/cm/availability }}
-            {{> core_courseformat/local/content/cm/availability }}
+            {{< core_courseformat/local/content/cm/availability }}
+                {{$buttonextraclasses}} d-none {{/buttonextraclasses}}
+                {{$defaultstatus}} expanded {{/defaultstatus}}
+            {{/core_courseformat/local/content/cm/availability }}
         {{/ core_courseformat/local/content/cm/availability }}
     {{/modavailability}}
 </div>

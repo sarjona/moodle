@@ -56,10 +56,13 @@ class content implements named_templatable, renderable {
     /** @var bool if uses add section */
     protected $hasaddsection = true;
 
+    /** @var bool whether the content is restricted */
+    protected $restrictedcontent = false;
+
     /**
      * Constructor.
      *
-     * @param course_format $format the coruse format
+     * @param course_format $format the course format
      */
     public function __construct(course_format $format) {
         $this->format = $format;
@@ -142,6 +145,30 @@ class content implements named_templatable, renderable {
     }
 
     /**
+     * Checks if the content is restricted.
+     *
+     * @return bool true if the content is restricted, false otherwise.
+     */
+    public function is_restricted_content(): bool {
+        return $this->restrictedcontent;
+    }
+
+    /**
+     * Update the content to be restricted or not.
+     *
+     * @param bool $restricted true if the content is restricted, false otherwise.
+     */
+    public function set_restricted_content(bool $restricted): void {
+        $this->restrictedcontent = $restricted;
+    }
+
+     /**
+      * Checks if the content is restricted.
+      *
+      * @return bool true if the content is restricted, false otherwise.
+      */
+
+    /**
      * Export sections array data.
      *
      * @param \renderer_base $output typically, the renderer that's calling this function
@@ -182,6 +209,7 @@ class content implements named_templatable, renderable {
 
             /** @var \core_courseformat\output\local\content\section $section */
             $section = new $this->sectionclass($format, $thissection);
+            $section->set_restricted_content($this->is_restricted_content());
 
             if ($section->is_stealth()) {
                 // Activities inside this section are 'orphaned', this section will be printed as 'stealth' below.

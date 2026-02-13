@@ -61,6 +61,9 @@ class availability implements named_templatable, renderable {
     /** @var int Availability excerpt text max size treshold */
     protected const AVAILABILITY_EXCERPT_MAXSIZE = 100;
 
+    /** @var bool whether the content is restricted */
+    protected $restrictedcontent = false;
+
     /**
      * Constructor.
      *
@@ -94,6 +97,24 @@ class availability implements named_templatable, renderable {
         $this->build_export_data($output);
         $attributename = $this->hasavailabilityname;
         return $this->data->$attributename;
+    }
+
+    /**
+     * Checks if the content is restricted.
+     *
+     * @return bool true if the content is restricted, false otherwise.
+     */
+    public function is_restricted_content(): bool {
+        return $this->restrictedcontent;
+    }
+
+    /**
+     * Update the content to be restricted or not.
+     *
+     * @param bool $restricted true if the content is restricted, false otherwise.
+     */
+    public function set_restricted_content(bool $restricted): void {
+        $this->restrictedcontent = $restricted;
     }
 
     /**
@@ -162,6 +183,10 @@ class availability implements named_templatable, renderable {
             if ($fullinfo) {
                 $info['info'] = $this->get_availability_data($output, $fullinfo, 'isrestricted isfullinfo');
             }
+        }
+
+        if (!empty($info['info']) && $this->is_restricted_content()) {
+            $info['info']->restrictedcontent = true;
         }
 
         return $info;
