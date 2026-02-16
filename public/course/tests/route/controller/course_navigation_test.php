@@ -35,33 +35,23 @@ final class course_navigation_test extends route_testcase {
     /**
      * Test the course navigation course module next route.
      *
-     * @param int $numsections
-     * @param array $usersdef
      * @param array $cmsdef
      * @param string $currentmodule
      * @param array $expectednextelement
-     * @param string $user
-     * @return void
+     * @param string $role
      */
     #[DataProvider('cm_next_provider')]
     public function test_cm_next(
-        int $numsections,
-        array $usersdef,
         array $cmsdef,
         string $currentmodule,
         array $expectednextelement,
-        string $user,
+        string $role = 'student',
     ): void {
         $this->resetAfterTest();
         $generator = $this->getDataGenerator();
-        $course = $generator->create_course(['numsections' => $numsections]);
-        foreach ($usersdef as $userdef) {
-            $users[$userdef['name']] = $generator->create_and_enrol(
-                $course,
-                $userdef['role'],
-                $userdef['options'] ?? [],
-            );
-        }
+        $course = $generator->create_course(['numsections' => 2]);
+        $user = $generator->create_and_enrol($course, $role);
+        $cms = [];
         foreach ($cmsdef as $cmdef) {
             $cms[$cmdef['name']] = $this->create_module_or_subsection(
                 courseid: $course->id,
@@ -71,7 +61,7 @@ final class course_navigation_test extends route_testcase {
             );
         }
         $cmid = $cms[$currentmodule]->cmid ?? 9999; // If we cannot find it we will test the error case of not found.
-        $this->setUser($users[$user]);
+        $this->setUser($user);
         $response = $this->process_request(
             'GET',
             "course/cm/{$cmid}/next",
@@ -102,11 +92,7 @@ final class course_navigation_test extends route_testcase {
      * @return \Generator
      */
     public static function cm_next_provider(): \Generator {
-        yield 'Simple case (student)' => [
-            'numsections' => 1,
-            'usersdef' => [
-                ['name' => 'student1', 'role' => 'student'],
-            ],
+        yield 'Simple case (teacher)' => [
             'cmsdef' => [
                 ['name' => 'cm1'],
                 ['name' => 'cm2'],
@@ -116,13 +102,20 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'cm',
                 'id' => 'cm2',
             ],
-            'user' => 'student1',
+            'role' => 'teacher',
+        ];
+        yield 'Simple case (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2'],
+            ],
+            'currentmodule' => 'cm1',
+            'expectednextelement' => [
+                'type' => 'cm',
+                'id' => 'cm2',
+            ],
         ];
         yield 'Simple case with hidden module (student)' => [
-            'numsections' => 1,
-            'usersdef' => [
-                ['name' => 'student1', 'role' => 'student'],
-            ],
             'cmsdef' => [
                 ['name' => 'cm1'],
                 ['name' => 'cm2', 'options' => ['visible' => false]],
@@ -132,13 +125,20 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'cm',
                 'id' => 'cm2',
             ],
-            'user' => 'student1',
+        ];
+        yield 'Simple case with hidden module (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'options' => ['visible' => false]],
+            ],
+            'currentmodule' => 'cm1',
+            'expectednextelement' => [
+                'type' => 'cm',
+                'id' => 'cm2',
+            ],
+            'role' => 'teacher',
         ];
         yield 'Simple case last activity of a course (student)' => [
-            'numsections' => 1,
-            'usersdef' => [
-                ['name' => 'student1', 'role' => 'student'],
-            ],
             'cmsdef' => [
                 ['name' => 'cm1'],
                 ['name' => 'cm2', 'options' => ['visible' => false]],
@@ -148,13 +148,8 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'error',
                 'statuscode' => 404,
             ],
-            'user' => 'student1',
         ];
         yield 'With next module being a subsection (student)' => [
-            'numsections' => 1,
-            'usersdef' => [
-                ['name' => 'student1', 'role' => 'student'],
-            ],
             'cmsdef' => [
                 ['name' => 'cm1', 'options' => ['section' => 2]],
                 ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
@@ -165,13 +160,8 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'cm',
                 'id' => 'cm2',
             ],
-            'user' => 'student1',
         ];
         yield 'With next module being a label and subsections (student)' => [
-            'numsections' => 2,
-            'usersdef' => [
-                ['name' => 'student1', 'role' => 'student'],
-            ],
             'cmsdef' => [
                 ['name' => 'cm1'],
                 ['name' => 'cm2', 'type' => 'label'],
@@ -183,13 +173,8 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'cm',
                 'id' => 'cm3',
             ],
-            'user' => 'student1',
         ];
         yield 'With last module without url (student)' => [
-            'numsections' => 1,
-            'usersdef' => [
-                ['name' => 'student1', 'role' => 'student'],
-            ],
             'cmsdef' => [
                 ['name' => 'cm1', 'options' => ['section' => 2]],
                 ['name' => 'cm2', 'type' => 'label'],
@@ -199,13 +184,8 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'error',
                 'statuscode' => 404,
             ],
-            'user' => 'student1',
         ];
         yield 'With module that does not exist (student)' => [
-            'numsections' => 1,
-            'usersdef' => [
-                ['name' => 'student1', 'role' => 'student'],
-            ],
             'cmsdef' => [
                 ['name' => 'cm0'],
                 ['name' => 'cm1'],
@@ -215,7 +195,6 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'error',
                 'statuscode' => 404,
             ],
-            'user' => 'student1',
         ];
     }
 
@@ -248,19 +227,6 @@ final class course_navigation_test extends route_testcase {
                 $this->assertNotEmpty($cm, "The course module with name {$elementid} should be found.");
                 $this->assertEquals(
                     $cm->url,
-                    new url($location)
-                );
-                break;
-            case 'section':
-                $sectioninfo = $coursemodinfo->get_section_info($elementid);
-                $this->assertEquals(
-                    new url('/course/section.php', ['id' => $sectioninfo->id]),
-                    new url($location)
-                );
-                break;
-            case 'course':
-                $this->assertEquals(
-                    new url('/course/view.php', ['id' => $courseid]),
                     new url($location)
                 );
                 break;
