@@ -36,53 +36,23 @@ final class course_navigation_test extends route_testcase {
      * Test the course navigation course module next route.
      *
      * @param array $cmsdef
-     * @param string $currentmodule
-     * @param array $expectednextelement
+     * @param string $current
+     * @param array $expected
      * @param string $role
      */
     #[DataProvider('cm_next_provider')]
     public function test_cm_next(
         array $cmsdef,
-        string $currentmodule,
-        array $expectednextelement,
+        string $current,
+        array $expected,
         string $role = 'student',
     ): void {
-        $this->resetAfterTest();
-        $generator = $this->getDataGenerator();
-        $course = $generator->create_course(['numsections' => 2]);
-        $user = $generator->create_and_enrol($course, $role);
-        $cms = [];
-        foreach ($cmsdef as $cmdef) {
-            $cms[$cmdef['name']] = $this->create_module_or_subsection(
-                courseid: $course->id,
-                key: $cmdef['name'],
-                type: $cmdef['type'] ?? 'assign',
-                options: $cmdef['options'] ?? [],
-            );
-        }
-        $cmid = $cms[$currentmodule]->cmid ?? 9999; // If we cannot find it we will test the error case of not found.
-        $this->setUser($user);
-        $response = $this->process_request(
-            'GET',
-            "course/cms/{$cmid}/next",
-            route_loader_interface::ROUTE_GROUP_PAGE
-        );
-        if ($expectednextelement['type'] === 'error') {
-            $this->assertEquals(
-                $expectednextelement['statuscode'],
-                $response->getStatusCode(),
-            );
-            return;
-        }
-        $this->assert_valid_response($response, 302);
-        $nextlocation = $response->getHeader('Location'); // Just to consume the header if any.
-
-        $this->assertNotEmpty($nextlocation, 'The redirection header should be present.');
-        $this->assert_redirected_url(
-            $expectednextelement['type'],
-            $expectednextelement['id'] ?? '',
-            $course->id,
-            $nextlocation[0]
+        $this->execute_cm_navigation_test(
+            cmsdef: $cmsdef,
+            current: $current,
+            expected: $expected,
+            role: $role,
+            direction: 'next',
         );
     }
 
@@ -97,9 +67,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'cm1'],
                 ['name' => 'cm2'],
             ],
-            'currentmodule' => 'cm1',
-            'expectednextelement' => [
-                'type' => 'cm',
+            'current' => 'cm1',
+            'expected' => [
                 'id' => 'cm2',
             ],
             'role' => 'teacher',
@@ -109,9 +78,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'cm1'],
                 ['name' => 'cm2'],
             ],
-            'currentmodule' => 'cm1',
-            'expectednextelement' => [
-                'type' => 'cm',
+            'current' => 'cm1',
+            'expected' => [
                 'id' => 'cm2',
             ],
         ];
@@ -120,9 +88,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'cm1'],
                 ['name' => 'cm2', 'options' => ['visible' => false]],
             ],
-            'currentmodule' => 'cm1',
-            'expectednextelement' => [
-                'type' => 'cm',
+            'current' => 'cm1',
+            'expected' => [
                 'id' => 'cm2',
             ],
         ];
@@ -131,9 +98,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'cm1'],
                 ['name' => 'cm2', 'options' => ['visible' => false]],
             ],
-            'currentmodule' => 'cm1',
-            'expectednextelement' => [
-                'type' => 'cm',
+            'current' => 'cm1',
+            'expected' => [
                 'id' => 'cm2',
             ],
             'role' => 'teacher',
@@ -143,8 +109,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'cm1'],
                 ['name' => 'cm2', 'options' => ['visible' => false]],
             ],
-            'currentmodule' => 'cm2',
-            'expectednextelement' => [
+            'current' => 'cm2',
+            'expected' => [
                 'type' => 'error',
                 'statuscode' => 404,
             ],
@@ -155,9 +121,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
                 ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
             ],
-            'currentmodule' => 'cm1',
-            'expectednextelement' => [
-                'type' => 'cm',
+            'current' => 'cm1',
+            'expected' => [
                 'id' => 'cm2',
             ],
         ];
@@ -168,9 +133,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'subsection1', 'type' => 'subsection'],
                 ['name' => 'cm3', 'options' => ['section' => 'subsection1']],
             ],
-            'currentmodule' => 'cm1',
-            'expectednextelement' => [
-                'type' => 'cm',
+            'current' => 'cm1',
+            'expected' => [
                 'id' => 'cm3',
             ],
         ];
@@ -179,8 +143,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'cm1', 'options' => ['section' => 2]],
                 ['name' => 'cm2', 'type' => 'label'],
             ],
-            'currentmodule' => 'cm1',
-            'expectednextelement' => [
+            'current' => 'cm1',
+            'expected' => [
                 'type' => 'error',
                 'statuscode' => 404,
             ],
@@ -190,8 +154,8 @@ final class course_navigation_test extends route_testcase {
                 ['name' => 'cm0'],
                 ['name' => 'cm1'],
             ],
-            'currentmodule' => 'cmthatdoesnotexist',
-            'expectednextelement' => [
+            'current' => 'cmthatdoesnotexist',
+            'expected' => [
                 'type' => 'error',
                 'statuscode' => 404,
             ],
@@ -199,13 +163,197 @@ final class course_navigation_test extends route_testcase {
     }
 
     /**
-     * Helper function to assert that the redirection URL matches the expected next element.
+     * Test the course navigation course module previous route.
+     *
+     * @param array $cmsdef
+     * @param string $current
+     * @param array $expected
+     * @param string $role
+     */
+    #[DataProvider('cm_previous_provider')]
+    public function test_cm_previous(
+        array $cmsdef,
+        string $current,
+        array $expected,
+        string $role = 'student',
+    ): void {
+        $this->execute_cm_navigation_test(
+            cmsdef: $cmsdef,
+            current: $current,
+            expected: $expected,
+            role: $role,
+            direction: 'previous',
+        );
+    }
+
+    /**
+     * Data provider for test_cm_previous.
+     *
+     * @return \Generator
+     */
+    public static function cm_previous_provider(): \Generator {
+        yield 'Simple case (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'Simple case (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+            ],
+        ];
+        yield 'Simple case with hidden module (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['visible' => false]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+            ],
+        ];
+        yield 'Simple case with hidden module (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['visible' => false]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'Simple case first activity of a course (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'error',
+                'statuscode' => 404,
+            ],
+        ];
+        yield 'With previous module being a subsection (student)' => [
+            'cmsdef' => [
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
+                ['name' => 'cm1', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+            ],
+        ];
+        yield 'With previous module being a label and subsections (student)' => [
+            'cmsdef' => [
+                ['name' => 'subsection1', 'type' => 'subsection'],
+                ['name' => 'cm1', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm2', 'type' => 'label'],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm1',
+            ],
+        ];
+        yield 'With first module without url (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'label'],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'error',
+                'statuscode' => 404,
+            ],
+        ];
+        yield 'With module that does not exist (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cmthatdoesnotexist',
+            'expected' => [
+                'type' => 'error',
+                'statuscode' => 404,
+            ],
+        ];
+    }
+
+    /**
+     * Internal helper to test navigation routes (previous / next).
+     *
+     * @param array $cmsdef
+     * @param string $current
+     * @param array $expected
+     * @param string $role
+     * @param string $direction
+     */
+    protected function execute_cm_navigation_test(
+        array $cmsdef,
+        string $current,
+        array $expected,
+        string $role = 'student',
+        string $direction = 'next',
+    ): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 2]);
+        $user = $generator->create_and_enrol($course, $role);
+        $cms = [];
+        foreach ($cmsdef as $cmdef) {
+            $cms[$cmdef['name']] = $this->create_module_or_subsection(
+                courseid: $course->id,
+                key: $cmdef['name'],
+                type: $cmdef['type'] ?? 'assign',
+                options: $cmdef['options'] ?? [],
+            );
+        }
+        $cmid = $cms[$current]->cmid ?? 9999; // If we cannot find it we will test the error case of not found.
+        $this->setUser($user);
+        $response = $this->process_request(
+            'GET',
+            "course/cms/{$cmid}/{$direction}",
+            route_loader_interface::ROUTE_GROUP_PAGE
+        );
+        if (array_key_exists('type', $expected) && $expected['type'] === 'error') {
+            $this->assertEquals(
+                $expected['statuscode'],
+                $response->getStatusCode(),
+            );
+            return;
+        }
+        $this->assert_valid_response($response, 302);
+        $location = $response->getHeader('Location'); // Just to consume the header if any.
+
+        $this->assertNotEmpty($location, 'The redirection header should be present.');
+        $this->assert_redirected_url(
+            $expected['type'] ?? 'cm',
+            $expected['id'] ?? '',
+            $course->id,
+            $location[0]
+        );
+    }
+
+    /**
+     * Helper function to assert that the redirection URL matches the expected element.
      *
      * @param string $elementtype
      * @param string $elementid
      * @param int $courseid
      * @param string $location
-     * @return void
      */
     protected function assert_redirected_url(
         string $elementtype,
@@ -229,7 +377,7 @@ final class course_navigation_test extends route_testcase {
                 new url($location)
             );
         } else {
-            $this->fail('Unknown expected next element type ' . $elementtype);
+            $this->fail('Unknown expected element type ' . $elementtype);
         }
     }
 

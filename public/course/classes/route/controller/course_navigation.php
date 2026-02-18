@@ -65,14 +65,63 @@ class course_navigation {
         // if the cm is not found in the course, so we can assume that it is always found.
         $cmindex = array_search($cm, $allcms, true);
         $cmcount = count($allcms);
-        // Search for the next CM that has got an URL, skipping the ones that don't have it (like labels).
+        // Search for the next module.
         for ($cmindex++; $cmindex < $cmcount; $cmindex++) {
             $nextcm = $allcms[$cmindex];
-            if (!empty($nextcm->get_url())) {
+            if ($this->is_valid_cm($nextcm)) {
                 return $this->redirect($response, $nextcm->get_url());
             }
         }
         return $this->page_not_found($request, $response);
+    }
+
+    /**
+     * Go to the previous element of the course.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param \stdClass $cm
+     * @return ResponseInterface
+     */
+    #[route(
+        path: '/cms/{cm}/previous',
+        pathtypes: [
+            new \core\router\parameters\path_module(),
+        ],
+        requirelogin: new require_login(
+            requirelogin: true,
+            courseattributename: 'course',
+        ),
+    )]
+    public function cm_previous_element(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        \stdClass $cm,
+    ): ResponseInterface {
+        // The pathinfo module returns a stdClass and not a cm_info, so we need to
+        // get the cm_info instance from the course modinfo.
+        $cm = cm_info::create($cm);
+        $allcms = $this->get_all_cms($cm->get_modinfo());
+        $cmindex = array_search($cm, $allcms, true);
+        // Search for the previous module.
+        for ($cmindex--; $cmindex >= 0; $cmindex--) {
+            $prevcm = $allcms[$cmindex];
+            if ($this->is_valid_cm($prevcm)) {
+                return $this->redirect($response, $prevcm->get_url());
+            }
+        }
+        return $this->page_not_found($request, $response);
+    }
+
+    /**
+     * Check if a course module is valid (has a URL).
+     *
+     * @param cm_info $cm The course module to check.
+     * @return bool True if the course module is valid, false otherwise.
+     */
+    private function is_valid_cm(cm_info $cm): bool {
+        // Skip modules that don't have a URL (like labels).
+        return !empty($cm->get_url());
     }
 
     /**
