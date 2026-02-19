@@ -83,7 +83,7 @@ function xmldb_bigbluebuttonbn_upgrade($oldversion = 0) {
     // Automatically generated Moodle v5.0.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2025041401) {
+    if ($oldversion < 2025100602) {
 
         // Changing precision of field name on table bigbluebuttonbn to (1333).
 
@@ -94,13 +94,13 @@ function xmldb_bigbluebuttonbn_upgrade($oldversion = 0) {
         $dbman->change_field_precision($table, $field);
 
         // Bigbluebuttonbn savepoint reached.
-        upgrade_mod_savepoint(true, 2025041401, 'bigbluebuttonbn');
+        upgrade_mod_savepoint(true, 2025100602, 'bigbluebuttonbn');
     }
 
     // Automatically generated Moodle v5.1.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2025100601) {
+    if ($oldversion < 2025100603) {
         // Define field recordings_deleted to be added to bigbluebuttonbn.
         // Sites upgraded from external Bigbluebuttonbn plugin to core may be missing this field.
         $table = new xmldb_table('bigbluebuttonbn');
@@ -112,7 +112,7 @@ function xmldb_bigbluebuttonbn_upgrade($oldversion = 0) {
         }
 
         // Bigbluebuttonbn savepoint reached.
-        upgrade_mod_savepoint(true, 2025100601, 'bigbluebuttonbn');
+        upgrade_mod_savepoint(true, 2025100603, 'bigbluebuttonbn');
     }
 
     return true;
