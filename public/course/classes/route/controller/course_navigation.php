@@ -18,6 +18,7 @@ namespace core_course\route\controller;
 
 use core\router\route;
 use core\router\require_login;
+use core\url;
 use core_course\cm_info;
 use core_course\modinfo;
 use core_course\section_info;
@@ -60,18 +61,26 @@ class course_navigation {
         // The pathinfo module returns a stdClass and not a cm_info, so we need to
         // get the cm_info instance from the course modinfo.
         $cm = cm_info::create($cm);
-        $allcms = $this->get_all_cms($cm->get_modinfo());
-        // Note here: we don't check if the cmindex is false because the the path_module parameter will return a 404
-        // if the cm is not found in the course, so we can assume that it is always found.
-        $cmindex = array_search($cm, $allcms, true);
-        $cmcount = count($allcms);
+        $modinfo = $cm->get_modinfo();
+        $section = $this->get_section($cm);
+        $allsectioncms = $this->get_all_section_cms($modinfo, $section);
+        $cmindex = array_search($cm, $allsectioncms, true);
+
+        // Last element in the section should redirect to next section page
+        // so student can see the next section title and description.
+        if ($cmindex + 1 >= count($allsectioncms)) {
+            return $this->redirect_to_next_section($response, $modinfo, $section);
+        }
+
         // Search for the next module.
+        $cmcount = count($allsectioncms);
         for ($cmindex++; $cmindex < $cmcount; $cmindex++) {
-            $nextcm = $allcms[$cmindex];
+            $nextcm = $allsectioncms[$cmindex];
             if ($this->is_valid_cm($nextcm)) {
                 return $this->redirect($response, $nextcm->get_url());
             }
         }
+
         return $this->page_not_found($request, $response);
     }
 
@@ -101,11 +110,22 @@ class course_navigation {
         // The pathinfo module returns a stdClass and not a cm_info, so we need to
         // get the cm_info instance from the course modinfo.
         $cm = cm_info::create($cm);
-        $allcms = $this->get_all_cms($cm->get_modinfo());
-        $cmindex = array_search($cm, $allcms, true);
+        $modinfo = $cm->get_modinfo();
+        $section = $this->get_section($cm);
+        $allsectioncms = $this->get_all_section_cms($modinfo, $section);
+        $cmindex = array_search($cm, $allsectioncms, true);
+
+        // First element in the section should redirect to previous section page
+        // so student can see the previous section title and description.
+        if ($cmindex === 0) {
+            if ($result = $this->redirect_to_previous_section($response, $modinfo, $section)) {
+                return $result;
+            }
+        }
+
         // Search for the previous module.
         for ($cmindex--; $cmindex >= 0; $cmindex--) {
-            $prevcm = $allcms[$cmindex];
+            $prevcm = $allsectioncms[$cmindex];
             if ($this->is_valid_cm($prevcm)) {
                 return $this->redirect($response, $prevcm->get_url());
             }
@@ -125,24 +145,19 @@ class course_navigation {
     }
 
     /**
-     * Get all course modules in the course in order, including also activities inside sub-sections.
+     * Get the section of a course module; if the section is delegated, get the parent section.
      *
-     * @param \core_course\modinfo $modinfo
-     * @return cm_info[]
+     * @param cm_info $cm
+     * @return \section_info
      */
-    private function get_all_cms(modinfo $modinfo): array {
-        $cms = [];
-        $sections = $modinfo->get_section_info_all();
-        foreach ($sections as $section) {
-            if ($section->is_delegated()) {
-                continue;
-            }
-            $cms = array_merge(
-                $cms,
-                $this->get_all_section_cms($modinfo, $section),
-            );
+    private function get_section(cm_info $cm): section_info {
+        $section = $cm->get_section_info();
+        if (!$section->is_delegated()) {
+            return $section;
         }
-        return $cms;
+
+        // If the section is delegated, we need to get the parent section.
+        return $section->get_component_instance()->get_parent_section();
     }
 
     /**
@@ -166,5 +181,89 @@ class course_navigation {
             }
         }
         return $sectioncms;
+    }
+
+    /**
+     * Redirect to the next/previous section view page.
+     *
+     * @param ResponseInterface $response
+     * @param modinfo $modinfo
+     * @param section_info $currentsection
+     * @param string $direction 'next' or 'previous' to indicate the direction of the redirection.
+     * @return ResponseInterface
+     */
+    private function redirect_to_section(
+        ResponseInterface $response,
+        modinfo $modinfo,
+        section_info $currentsection,
+        string $direction = 'next',
+    ): ?ResponseInterface {
+        if ($direction === 'previous') {
+            $section = $modinfo->get_section_info($currentsection->sectionnum);
+        } else {
+            $section = $modinfo->get_section_info($currentsection->sectionnum + 1);
+        }
+        if ($section === null) {
+            // No more sections.
+            return $this->redirect_to_course($response, $modinfo->get_course()->id);
+        }
+
+        if (!$section->uservisible || $section->is_delegated()) {
+            return $this->redirect_to_section($response, $modinfo, $section, $direction);
+        }
+
+        return $this->redirect(
+            $response,
+            new url('/course/section.php', ['id' => $section->id]),
+        );
+    }
+
+    /**
+     * Redirect to the next view page.
+     *
+     * @param ResponseInterface $response
+     * @param modinfo $modinfo
+     * @param section_info $currentsection
+     * @return ResponseInterface|null
+     */
+    private function redirect_to_next_section(
+        ResponseInterface $response,
+        modinfo $modinfo,
+        section_info $currentsection,
+    ): ResponseInterface {
+        return $this->redirect_to_section($response, $modinfo, $currentsection, 'next');
+    }
+
+    /**
+     * Redirect to the previous view page.
+     *
+     * @param ResponseInterface $response
+     * @param modinfo $modinfo
+     * @param section_info $currentsection
+     * @return ResponseInterface|null
+     */
+    private function redirect_to_previous_section(
+        ResponseInterface $response,
+        modinfo $modinfo,
+        section_info $currentsection,
+    ): ResponseInterface {
+        return $this->redirect_to_section($response, $modinfo, $currentsection, 'previous');
+    }
+
+    /**
+     * Redirect to the course view page.
+     *
+     * @param ResponseInterface $response
+     * @param int $courseid The course ID to redirect to.
+     * @return ResponseInterface
+     */
+    private function redirect_to_course(
+        ResponseInterface $response,
+        int $courseid,
+    ): ResponseInterface {
+        return $this->redirect(
+            $response,
+            new url('/course/view.php', ['id' => $courseid]),
+        );
     }
 }

@@ -39,6 +39,7 @@ final class course_navigation_test extends route_testcase {
      * @param string $current
      * @param array $expected
      * @param string $role
+     * @param array $hiddensections
      */
     #[DataProvider('cm_next_provider')]
     public function test_cm_next(
@@ -46,6 +47,7 @@ final class course_navigation_test extends route_testcase {
         string $current,
         array $expected,
         string $role = 'student',
+        array $hiddensections = [],
     ): void {
         $this->execute_cm_navigation_test(
             cmsdef: $cmsdef,
@@ -53,6 +55,7 @@ final class course_navigation_test extends route_testcase {
             expected: $expected,
             role: $role,
             direction: 'next',
+            hiddensections: $hiddensections,
         );
     }
 
@@ -111,8 +114,8 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm2',
             'expected' => [
-                'type' => 'error',
-                'statuscode' => 404,
+                'type' => 'section',
+                'id' => '1',
             ],
         ];
         yield 'With next module being a subsection (student)' => [
@@ -145,8 +148,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm1',
             'expected' => [
-                'type' => 'error',
-                'statuscode' => 404,
+                'type' => 'course',
             ],
         ];
         yield 'With module that does not exist (student)' => [
@@ -160,6 +162,94 @@ final class course_navigation_test extends route_testcase {
                 'statuscode' => 404,
             ],
         ];
+        yield 'Sections - Simple case (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'Sections - Simple case (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+        ];
+        yield 'Sections - Hidden section (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm0', 'options' => ['section' => 0]],
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm0',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2', // Students cannot see the hidden section, so the next one should be the one after.
+            ],
+            'hiddensections' => [1],
+        ];
+        yield 'Sections - Hidden section (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm0', 'options' => ['section' => 0]],
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm0',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2', // Non-editing teachers cannot see the hidden section, so the next one should be the one after.
+            ],
+            'role' => 'teacher',
+            'hiddensections' => [1],
+        ];
+        yield 'Sections - Hidden section (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm0', 'options' => ['section' => 0]],
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm0',
+            'expected' => [
+                'type' => 'section',
+                'id' => '1', // Teachers can see the hidden section.
+            ],
+            'role' => 'editingteacher',
+            'hiddensections' => [1],
+        ];
+        yield 'Sections - With last module in a hidden section (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'course', // As the next section is hidden, we should redirect to course page.
+            ],
+            'hiddensections' => [2],
+        ];
+        yield 'Sections - With last module in a hidden section (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section', // Editing teachers can see the hidden section.
+                'id' => '2',
+            ],
+            'role' => 'editingteacher',
+            'hiddensections' => [2],
+        ];
     }
 
     /**
@@ -169,6 +259,7 @@ final class course_navigation_test extends route_testcase {
      * @param string $current
      * @param array $expected
      * @param string $role
+     * @param array $hiddensections
      */
     #[DataProvider('cm_previous_provider')]
     public function test_cm_previous(
@@ -176,6 +267,7 @@ final class course_navigation_test extends route_testcase {
         string $current,
         array $expected,
         string $role = 'student',
+        array $hiddensections = [],
     ): void {
         $this->execute_cm_navigation_test(
             cmsdef: $cmsdef,
@@ -183,6 +275,7 @@ final class course_navigation_test extends route_testcase {
             expected: $expected,
             role: $role,
             direction: 'previous',
+            hiddensections: $hiddensections,
         );
     }
 
@@ -241,8 +334,8 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm1',
             'expected' => [
-                'type' => 'error',
-                'statuscode' => 404,
+                'type' => 'section',
+                'id' => '0',
             ],
         ];
         yield 'With previous module being a subsection (student)' => [
@@ -254,6 +347,28 @@ final class course_navigation_test extends route_testcase {
             'current' => 'cm2',
             'expected' => [
                 'id' => 'cm1',
+            ],
+        ];
+        yield 'With previous module outside a subsection (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+            ],
+        ];
+        yield 'With a subsection with only one module (student)' => [
+            'cmsdef' => [
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
+                ['name' => 'cm1', 'options' => ['section' => 'subsection1']],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
             ],
         ];
         yield 'With previous module being a label and subsections (student)' => [
@@ -275,8 +390,8 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm2',
             'expected' => [
-                'type' => 'error',
-                'statuscode' => 404,
+                'type' => 'section',
+                'id' => '2',
             ],
         ];
         yield 'With module that does not exist (student)' => [
@@ -290,6 +405,67 @@ final class course_navigation_test extends route_testcase {
                 'statuscode' => 404,
             ],
         ];
+        yield 'Sections - Simple case (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'Sections - Simple case (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+        ];
+        yield 'Sections - Hidden section (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+            'hiddensections' => [1],
+        ];
+        yield 'Sections - Hidden section (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+            'role' => 'editingteacher',
+            'hiddensections' => [1],
+        ];
+        yield 'Sections - With module in a hidden section (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2', // Teachers can see the hidden section.
+            ],
+            'role' => 'editingteacher',
+            'hiddensections' => [2],
+        ];
     }
 
     /**
@@ -300,6 +476,8 @@ final class course_navigation_test extends route_testcase {
      * @param array $expected
      * @param string $role
      * @param string $direction
+     * @param int $numsections
+     * @param array $hiddensections
      */
     protected function execute_cm_navigation_test(
         array $cmsdef,
@@ -307,10 +485,16 @@ final class course_navigation_test extends route_testcase {
         array $expected,
         string $role = 'student',
         string $direction = 'next',
+        int $numsections = 2,
+        array $hiddensections = [],
     ): void {
         $this->resetAfterTest();
         $generator = $this->getDataGenerator();
-        $course = $generator->create_course(['numsections' => 2]);
+        $course = $generator->create_course(['numsections' => $numsections]);
+        foreach ($hiddensections as $sectiontohide) {
+            $sectioninfo = get_fast_modinfo($course)->get_section_info($sectiontohide);
+            \core_courseformat\formatactions::section($course)->update($sectioninfo, ['visible' => false]);
+        }
         $user = $generator->create_and_enrol($course, $role);
         $cms = [];
         foreach ($cmsdef as $cmdef) {
@@ -322,6 +506,7 @@ final class course_navigation_test extends route_testcase {
             );
         }
         $cmid = $cms[$current]->cmid ?? 9999; // If we cannot find it we will test the error case of not found.
+
         $this->setUser($user);
         $response = $this->process_request(
             'GET',
@@ -362,22 +547,37 @@ final class course_navigation_test extends route_testcase {
         string $location
     ): void {
         $coursemodinfo = modinfo::instance($courseid);
-        if ($elementtype === 'cm') {
-            $cms = $coursemodinfo->get_cms();
-            $cm = null;
-            foreach ($cms as $activitycm) {
-                if ($activitycm->get_name() == $elementid) {
-                    $cm = $activitycm;
-                    break;
+        switch ($elementtype) {
+            case 'cm':
+                $cms = $coursemodinfo->get_cms();
+                $cm = null;
+                foreach ($cms as $activitycm) {
+                    if ($activitycm->get_name() == $elementid) {
+                        $cm = $activitycm;
+                        break;
+                    }
                 }
-            }
-            $this->assertNotEmpty($cm, "The course module with name {$elementid} should be found.");
-            $this->assertEquals(
-                $cm->url,
-                new url($location)
-            );
-        } else {
-            $this->fail('Unknown expected element type ' . $elementtype);
+                $this->assertNotEmpty($cm, "The course module with name {$elementid} should be found.");
+                $this->assertEquals(
+                    $cm->url,
+                    new url($location)
+                );
+                break;
+            case 'section':
+                $sectioninfo = $coursemodinfo->get_section_info($elementid);
+                $this->assertEquals(
+                    new url('/course/section.php', ['id' => $sectioninfo->id]),
+                    new url($location)
+                );
+                break;
+            case 'course':
+                $this->assertEquals(
+                    new url('/course/view.php', ['id' => $courseid]),
+                    new url($location)
+                );
+                break;
+            default:
+                $this->fail('Unknown expected element type ' . $elementtype);
         }
     }
 
