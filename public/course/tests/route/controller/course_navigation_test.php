@@ -250,6 +250,16 @@ final class course_navigation_test extends route_testcase {
             'role' => 'editingteacher',
             'hiddensections' => [2],
         ];
+        yield 'Sections - Empty section (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+        ];
     }
 
     /**
