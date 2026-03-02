@@ -77,7 +77,7 @@ class course_navigation {
         for ($cmindex++; $cmindex < $cmcount; $cmindex++) {
             $nextcm = $allsectioncms[$cmindex];
             if ($this->is_valid_cm($nextcm)) {
-                return $this->redirect($response, $nextcm->get_url());
+                return $this->redirect($response, $nextcm->get_navigation_url());
             }
         }
 
@@ -127,7 +127,7 @@ class course_navigation {
         for ($cmindex--; $cmindex >= 0; $cmindex--) {
             $prevcm = $allsectioncms[$cmindex];
             if ($this->is_valid_cm($prevcm)) {
-                return $this->redirect($response, $prevcm->get_url());
+                return $this->redirect($response, $prevcm->get_navigation_url());
             }
         }
         return $this->page_not_found($request, $response);
@@ -142,7 +142,7 @@ class course_navigation {
     private function is_valid_cm(cm_info $cm): bool {
         return
             // Skip modules that don't have a URL (like labels).
-            !empty($cm->get_url())
+            !empty($cm->get_navigation_url())
             // Skip modules that are not visible to the user.
             && $cm->is_visible_on_course_page();
     }
