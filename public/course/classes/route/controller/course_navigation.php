@@ -81,7 +81,8 @@ class course_navigation {
             }
         }
 
-        return $this->page_not_found($request, $response);
+        // If there is no next module, redirect to the next section.
+        return $this->redirect_to_next_section($response, $modinfo, $section);
     }
 
     /**
@@ -130,7 +131,9 @@ class course_navigation {
                 return $this->redirect($response, $prevcm->get_url());
             }
         }
-        return $this->page_not_found($request, $response);
+
+        // If there is no previous module, redirect to the previous section.
+        return $this->redirect_to_previous_section($response, $modinfo, $section);
     }
 
     /**

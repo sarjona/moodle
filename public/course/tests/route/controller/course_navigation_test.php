@@ -169,7 +169,7 @@ final class course_navigation_test extends route_testcase {
         yield 'With last module without url (student)' => [
             'cmsdef' => [
                 ['name' => 'cm1', 'options' => ['section' => 2]],
-                ['name' => 'cm2', 'type' => 'label'],
+                ['name' => 'cm2', 'type' => 'label', 'options' => ['section' => 2]],
             ],
             'current' => 'cm1',
             'expected' => [
@@ -445,7 +445,7 @@ final class course_navigation_test extends route_testcase {
         ];
         yield 'With first module without url (student)' => [
             'cmsdef' => [
-                ['name' => 'cm1', 'type' => 'label'],
+                ['name' => 'cm1', 'type' => 'label', 'options' => ['section' => 2]],
                 ['name' => 'cm2', 'options' => ['section' => 2]],
             ],
             'current' => 'cm2',
