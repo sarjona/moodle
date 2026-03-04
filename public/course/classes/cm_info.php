@@ -172,7 +172,6 @@ use core\output\html_writer;
  *     By default, this is the same as $url but it can be set separately by module if needed. For instance, when the module
  *     opens in a new window, $navigationurl will force the module view page, instead of the URL that opens in a new window.
  *     Calculated on request.
- * @property-read bool $navigationurlmodified True if the navigation URL was modified, false otherwise. Calculated on request.
  * @property-read string $extraclasses Extra CSS classes to add to html output for this activity on main page
  *      C'alculated on request
  * @property-read string $onclick Content of HTML on-click attribute already escaped - calculated on request
@@ -766,6 +765,7 @@ class cm_info implements IteratorAggregate {
      * @param url|null $navigationurl The navigation URL to set, or null to unset it.
      */
     public function set_navigation_url(?url $navigationurl): void {
+        $this->check_not_view_only();
         $this->navigationurl = $navigationurl;
         $this->navigationurlmodified = true;
     }
@@ -775,6 +775,7 @@ class cm_info implements IteratorAggregate {
      * After calling this method, the navigation URL will be the same as the URL returned by get_url().
      */
     public function reset_navigation_url(): void {
+        $this->check_not_view_only();
         $this->navigationurl = null;
         $this->navigationurlmodified = false;
     }
