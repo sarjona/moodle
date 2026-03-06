@@ -160,9 +160,10 @@ class util {
         ResponseInterface $response,
         string|url $url,
     ): ResponseInterface {
+        $location = ($url instanceof url) ? $url->out(false) : $url;
         return $response
             ->withStatus(302)
-            ->withHeader('Location', (string) $url);
+            ->withHeader('Location', $location);
     }
 
     /**

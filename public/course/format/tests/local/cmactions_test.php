@@ -800,7 +800,7 @@ final class cmactions_test extends \advanced_testcase {
 
         // We ignore obvious differences and also sections information as it is already tested above (and
         // can differ due to section movements).
-        $ignoredproperties = ['id', 'url', 'instance', 'added', 'context', 'section', 'sectionid', 'sectionnum'];
+        $ignoredproperties = ['id', 'url', 'navigationurl', 'instance', 'added', 'context', 'section', 'sectionid', 'sectionnum'];
         // Make sure they are the same, except obvious id changes.
         foreach ($modinfo->get_cm($cmid) as $prop => $value) {
             if (in_array($prop, $ignoredproperties, true)) {
@@ -814,7 +814,7 @@ final class cmactions_test extends \advanced_testcase {
                     $value = $newname;
                 }
             }
-            $this->assertEquals($value, $newcm->$prop);
+            $this->assertEquals($value, $newcm->$prop, "Property '$prop' does not match between original and duplicated cm");
         }
     }
 

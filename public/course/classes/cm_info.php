@@ -168,6 +168,10 @@ use core\output\html_writer;
  *      Calculated on request
  * @property-read string $content Content to display on main (view) page - calculated on request
  * @property-read url|null $url URL to link to for this module, or null if it doesn't have a view page - calculated on request
+ * @property-read url|null $navigationurl URL to access from course navigation, or null if it doesn't have it.
+ *     By default, this is the same as $url but it can be set separately by module if needed. For instance, when the module
+ *     opens in a new window, $navigationurl will force the module view page, instead of the URL that opens in a new window.
+ *     Calculated on request.
  * @property-read string $extraclasses Extra CSS classes to add to html output for this activity on main page
  *      C'alculated on request
  * @property-read string $onclick Content of HTML on-click attribute already escaped - calculated on request
@@ -457,6 +461,16 @@ class cm_info implements IteratorAggregate {
     private $url;
 
     /**
+     * @var url|null The navigation URL for this course module, if any.
+     */
+    private $navigationurl;
+
+    /**
+     * @var bool True if the navigation URL was modified, false otherwise.
+     */
+    private $navigationurlmodified;
+
+    /**
      * @var string
      */
     private $content;
@@ -534,6 +548,7 @@ class cm_info implements IteratorAggregate {
      */
     private static $standardproperties = [
         'url' => 'get_url',
+        'navigationurl' => 'get_navigation_url',
         'content' => 'get_content',
         'extraclasses' => 'get_extra_classes',
         'onclick' => 'get_on_click',
@@ -725,6 +740,44 @@ class cm_info implements IteratorAggregate {
     public function get_url() {
         $this->obtain_dynamic_data();
         return $this->url;
+    }
+
+    /**
+     * Get the navigation URL for this course module.
+     * This method retrieves the navigation URL for the course module
+     *
+     * @return url|null The navigation URL for this course module, or null if navigationurl is not available.
+     */
+    public function get_navigation_url(): ?url {
+        $this->obtain_dynamic_data();
+
+        // If the navigation URL was not modified, return the URL.
+        if (!$this->navigationurlmodified) {
+            return $this->url;
+        }
+
+        return $this->navigationurl;
+    }
+
+    /**
+     * Sets the navigation URL for this course module.
+     *
+     * @param url|null $navigationurl The navigation URL to set, or null to unset it.
+     */
+    public function set_navigation_url(?url $navigationurl): void {
+        $this->check_not_view_only();
+        $this->navigationurl = $navigationurl;
+        $this->navigationurlmodified = true;
+    }
+
+    /**
+     * Resets the navigation URL for this course module.
+     * After calling this method, the navigation URL will be the same as the URL returned by get_url().
+     */
+    public function reset_navigation_url(): void {
+        $this->check_not_view_only();
+        $this->navigationurl = null;
+        $this->navigationurlmodified = false;
     }
 
     /**

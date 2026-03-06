@@ -40,13 +40,13 @@ class course_navigation {
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
-     * @param \stdClass $cm
+     * @param \stdClass $cmdata
      * @return ResponseInterface
      */
     #[route(
         path: '/cms/{cm}/next',
         pathtypes: [
-            new \core\router\parameters\path_module(),
+            new \core\router\parameters\path_coursemodule(name: 'cm'),
         ],
         requirelogin: new require_login(
             requirelogin: true,
@@ -56,11 +56,11 @@ class course_navigation {
     public function cm_next_element(
         ServerRequestInterface $request,
         ResponseInterface $response,
-        \stdClass $cm,
+        \stdClass $cmdata,
     ): ResponseInterface {
         // The pathinfo module returns a stdClass and not a cm_info, so we need to
         // get the cm_info instance from the course modinfo.
-        $cm = cm_info::create($cm);
+        $cm = cm_info::create($cmdata);
         $modinfo = $cm->get_modinfo();
         $section = $this->get_section($cm);
         $allsectioncms = $this->get_all_section_cms($modinfo, $section);
@@ -77,11 +77,10 @@ class course_navigation {
         for ($cmindex++; $cmindex < $cmcount; $cmindex++) {
             $nextcm = $allsectioncms[$cmindex];
             if ($this->is_valid_cm($nextcm)) {
-                return $this->redirect($response, $nextcm->get_url());
+                return $this->redirect($response, $nextcm->get_navigation_url());
             }
         }
-
-        return $this->page_not_found($request, $response);
+        return $this->redirect_to_course($response, $cm->get_course()->id);
     }
 
     /**
@@ -89,13 +88,13 @@ class course_navigation {
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
-     * @param \stdClass $cm
+     * @param \stdClass $cmdata
      * @return ResponseInterface
      */
     #[route(
         path: '/cms/{cm}/previous',
         pathtypes: [
-            new \core\router\parameters\path_module(),
+            new \core\router\parameters\path_coursemodule(name: 'cm'),
         ],
         requirelogin: new require_login(
             requirelogin: true,
@@ -105,11 +104,11 @@ class course_navigation {
     public function cm_previous_element(
         ServerRequestInterface $request,
         ResponseInterface $response,
-        \stdClass $cm,
+        \stdClass $cmdata,
     ): ResponseInterface {
         // The pathinfo module returns a stdClass and not a cm_info, so we need to
         // get the cm_info instance from the course modinfo.
-        $cm = cm_info::create($cm);
+        $cm = cm_info::create($cmdata);
         $modinfo = $cm->get_modinfo();
         $section = $this->get_section($cm);
         $allsectioncms = $this->get_all_section_cms($modinfo, $section);
@@ -127,10 +126,10 @@ class course_navigation {
         for ($cmindex--; $cmindex >= 0; $cmindex--) {
             $prevcm = $allsectioncms[$cmindex];
             if ($this->is_valid_cm($prevcm)) {
-                return $this->redirect($response, $prevcm->get_url());
+                return $this->redirect($response, $prevcm->get_navigation_url());
             }
         }
-        return $this->page_not_found($request, $response);
+        return $this->redirect_to_course($response, $cm->get_course()->id);
     }
 
     /**
@@ -142,9 +141,11 @@ class course_navigation {
     private function is_valid_cm(cm_info $cm): bool {
         return
             // Skip modules that don't have a URL (like labels).
-            !empty($cm->get_url())
+            !empty($cm->get_navigation_url())
             // Skip modules that are not visible to the user.
-            && $cm->is_visible_on_course_page();
+            && $cm->is_visible_on_course_page()
+            // Skip modules that are not displayable.
+            && modinfo::is_mod_type_visible_on_course($cm->modname);
     }
 
     /**
@@ -202,6 +203,10 @@ class course_navigation {
         string $direction = 'next',
     ): ?ResponseInterface {
         if ($direction === 'previous') {
+            if ($currentsection->sectionnum == 0) {
+                // Going to previous on the first section.
+                return $this->redirect_to_course($response, $modinfo->get_course()->id);
+            }
             $section = $modinfo->get_section_info($currentsection->sectionnum);
         } else {
             $section = $modinfo->get_section_info($currentsection->sectionnum + 1);
@@ -211,13 +216,18 @@ class course_navigation {
             return $this->redirect_to_course($response, $modinfo->get_course()->id);
         }
 
-        if (!$section->uservisible || $section->is_delegated()) {
+        // If the section is hidden, or its restrictions are hidden (eye closed),
+        // find the next available section.
+        if (
+            (!$section->uservisible && (!$section->visible || !$section->availableinfo))
+            || $section->is_delegated()
+        ) {
             return $this->redirect_to_section($response, $modinfo, $section, $direction);
         }
 
         return $this->redirect(
             $response,
-            new url('/course/section.php', ['id' => $section->id]),
+            course_get_url($modinfo->get_course(), $section, ['navigation' => true]),
         );
     }
 
@@ -266,7 +276,7 @@ class course_navigation {
     ): ResponseInterface {
         return $this->redirect(
             $response,
-            new url('/course/view.php', ['id' => $courseid]),
+            course_get_url($courseid),
         );
     }
 }

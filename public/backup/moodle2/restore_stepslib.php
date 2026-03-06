@@ -5723,20 +5723,20 @@ class restore_move_module_questions_categories extends restore_execution_step {
                 );
             }
         }
-        // Remove any remaining course-level question categories from the restored course.
+        // Remove any remaining course-level question categories and their questions from the restored course.
         $coursecatsql = "
-            SELECT qc.id AS categoryid
+            SELECT qc.id AS id, qc.contextid AS contextid
               FROM {question_categories} qc
               JOIN {context} c ON c.id = qc.contextid
              WHERE c.contextlevel = :courselevel AND c.instanceid = :courseid
         ";
-        $DB->delete_records_subquery(
-            'question_categories',
-            'id',
-            'categoryid',
+        $categories = $DB->get_records_sql(
             $coursecatsql,
-            ['courselevel' => context_course::LEVEL, 'courseid' => $this->task->get_courseid()]
+            ['courselevel' => context_course::LEVEL, 'courseid' => $this->task->get_courseid()],
         );
+        foreach ($categories as $category) {
+            question_category_delete_safe($category);
+        }
     }
 }
 
@@ -6518,6 +6518,12 @@ trait restore_question_set_reference_data_trait {
         $data->usingcontextid = $this->get_mappingid('context', $data->usingcontextid);
         $data->itemid = $this->get_new_parentid('quiz_question_instance');
 
+        $originalbankinbackup = (bool) restore_dbops::get_backup_ids_record(
+            $this->get_restoreid(),
+            'questionbank',
+            $data->questionscontextid,
+        );
+
         if ($context = $this->get_mappingid('context', $data->questionscontextid)) {
             $data->questionscontextid = $context;
         } else {
@@ -6546,7 +6552,7 @@ trait restore_question_set_reference_data_trait {
             $qbankfeature = new $qbankfeatureclass();
             $filters = $qbankfeature->get_question_filters();
             foreach ($filters as $filter) {
-                $filtercondition = $filter->restore_filtercondition($filtercondition, $data, $this);
+                $filtercondition = $filter->restore_filtercondition($filtercondition, $data, $this, $originalbankinbackup);
             }
         }
 

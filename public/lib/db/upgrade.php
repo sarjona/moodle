@@ -1740,5 +1740,25 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026021000.01);
     }
 
+    if ($oldversion < 2026022700.01) {
+        // For existing sites, enable My Home by default to maintain current behavior.
+        // New installs will have it disabled (default 0 in settings).
+        $enablemyhome = get_config('core', 'enablemyhome');
+        if ($enablemyhome === false) {
+            set_config('enablemyhome', 1);
+        }
+
+        upgrade_main_savepoint(true, 2026022700.01);
+    }
+
+    if ($oldversion < 2026022700.02) {
+        $orphanedquestions = core_question\category_manager::cleanup_questions_without_categories();
+        if ($orphanedquestions > 0) {
+            upgrade_log(UPGRADE_LOG_NORMAL, null, "Cleaned up {$orphanedquestions} questions left over from restores.");
+        }
+
+        upgrade_main_savepoint(true, 2026022700.02);
+    }
+
     return true;
 }

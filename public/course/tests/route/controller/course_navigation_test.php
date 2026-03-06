@@ -20,6 +20,7 @@ use core\router\route_loader_interface;
 use core\tests\router\route_testcase;
 use core\url;
 use core_course\modinfo;
+use core_courseformat\formatactions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -39,7 +40,7 @@ final class course_navigation_test extends route_testcase {
      * @param string $current
      * @param array $expected
      * @param string $role
-     * @param array $hiddensections
+     * @param array $sectionsdef
      */
     #[DataProvider('cm_next_provider')]
     public function test_cm_next(
@@ -47,7 +48,7 @@ final class course_navigation_test extends route_testcase {
         string $current,
         array $expected,
         string $role = 'student',
-        array $hiddensections = [],
+        array $sectionsdef = [],
     ): void {
         $this->execute_cm_navigation_test(
             cmsdef: $cmsdef,
@@ -55,7 +56,7 @@ final class course_navigation_test extends route_testcase {
             expected: $expected,
             role: $role,
             direction: 'next',
-            hiddensections: $hiddensections,
+            sectionsdef: $sectionsdef,
         );
     }
 
@@ -65,6 +66,10 @@ final class course_navigation_test extends route_testcase {
      * @return \Generator
      */
     public static function cm_next_provider(): \Generator {
+        global $CFG;
+        require_once("$CFG->libdir/resourcelib.php");
+
+        $emailavailability = '{"op":"&","c":[{"type":"profile","sf":"email","op":"isequalto","v":"';
         yield 'Simple case (teacher)' => [
             'cmsdef' => [
                 ['name' => 'cm1'],
@@ -132,18 +137,79 @@ final class course_navigation_test extends route_testcase {
                 'id' => 'cm3', // Students cannot see stealth modules in the course page.
             ],
         ];
-        yield 'Last activity of a course (student)' => [
+        yield 'Restricted module visible (editingteacher)' => [
             'cmsdef' => [
                 ['name' => 'cm1'],
-                ['name' => 'cm2', 'options' => ['visible' => false]],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}'],
+                ],
+                ['name' => 'cm3'],
             ],
-            'current' => 'cm2',
+            'current' => 'cm1',
             'expected' => [
-                'type' => 'section',
-                'id' => '1',
+                'id' => 'cm2', // Teachers can always see restricted modules.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Restricted module visible (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2', // Students can see restricted modules when the restrictions are visible.
             ],
         ];
-        yield 'With next module being a subsection (student)' => [
+        yield 'Restricted module hidden (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2', // Teachers can always see restricted modules.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Restricted module hidden (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm3', // Students cannot see restricted modules when the restrictions are hidden.
+            ],
+        ];
+        yield 'Restricted module hidden when user meets the restriction (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'student@moodle.invalid"}],"showc":[false]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2', // Students can see restricted modules when they meet the restriction.
+            ],
+        ];
+        yield 'Subsection: With next module being a subsection (student)' => [
             'cmsdef' => [
                 ['name' => 'cm1', 'options' => ['section' => 2]],
                 ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
@@ -154,7 +220,7 @@ final class course_navigation_test extends route_testcase {
                 'id' => 'cm2',
             ],
         ];
-        yield 'With next module being a label and subsections (student)' => [
+        yield 'Subsection: With next module being a label and subsections (student)' => [
             'cmsdef' => [
                 ['name' => 'cm1'],
                 ['name' => 'cm2', 'type' => 'label'],
@@ -166,25 +232,121 @@ final class course_navigation_test extends route_testcase {
                 'id' => 'cm3',
             ],
         ];
-        yield 'With last module without url (student)' => [
+        yield 'Subsection: With next module being in a hidden subsection (student)' => [
             'cmsdef' => [
                 ['name' => 'cm1', 'options' => ['section' => 2]],
-                ['name' => 'cm2', 'type' => 'label'],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2, 'visibility' => false]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
             ],
             'current' => 'cm1',
             'expected' => [
-                'type' => 'course',
+                'id' => 'cm3', // Students cannot see cm2 because it's in a hidden subsection.
             ],
         ];
-        yield 'With module that does not exist (student)' => [
+        yield 'Subsection: With next module being in a hidden subsection (editingteacher)' => [
             'cmsdef' => [
-                ['name' => 'cm0'],
-                ['name' => 'cm1'],
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2, 'visibility' => false]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
             ],
-            'current' => 'cmthatdoesnotexist',
+            'current' => 'cm1',
             'expected' => [
-                'type' => 'error',
-                'statuscode' => 404,
+                'id' => 'cm2', // Teachers can see modules in hidden subsections.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Subsection: With next module being in a restricted public subsection (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm3', // Students cannot see modules in a restricted subsection if the restrictions are not met.
+            ],
+        ];
+        yield 'Subsection: With next module being in a restricted public subsection (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2', // Teachers can see modules in a restricted subsection even if they don't meet the restriction.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Subsection: With next module being in a restricted hidden subsection (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm3', // Students cannot see modules in a restricted subsection if the restrictions are not met.
+            ],
+        ];
+        yield 'Subsection: With next module being in a restricted hidden subsection (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2', // Teachers can see modules in a restricted subsection even if they don't meet the restriction.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Subsection: With next module being in a restricted public subsection when user meets the restrictions (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'student@moodle.invalid"}],"showc":[true]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+            ],
+        ];
+        yield 'Subsection: With next module being in a restricted hidden subsection when user meets the restrictions (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'student@moodle.invalid"}],"showc":[false]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
             ],
         ];
         yield 'Sections - Simple case (teacher)' => [
@@ -221,7 +383,9 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'section',
                 'id' => '2', // Students cannot see the hidden section, so the next one should be the one after.
             ],
-            'hiddensections' => [1],
+            'sectionsdef' => [
+                ['section' => 1, 'hidden' => true],
+            ],
         ];
         yield 'Sections - Hidden section (teacher)' => [
             'cmsdef' => [
@@ -235,7 +399,9 @@ final class course_navigation_test extends route_testcase {
                 'id' => '2', // Non-editing teachers cannot see the hidden section, so the next one should be the one after.
             ],
             'role' => 'teacher',
-            'hiddensections' => [1],
+            'sectionsdef' => [
+                ['section' => 1, 'hidden' => true],
+            ],
         ];
         yield 'Sections - Hidden section (editingteacher)' => [
             'cmsdef' => [
@@ -249,7 +415,9 @@ final class course_navigation_test extends route_testcase {
                 'id' => '1', // Teachers can see the hidden section.
             ],
             'role' => 'editingteacher',
-            'hiddensections' => [1],
+            'sectionsdef' => [
+                ['section' => 1, 'hidden' => true],
+            ],
         ];
         yield 'Sections - With last module in a hidden section (student)' => [
             'cmsdef' => [
@@ -260,7 +428,9 @@ final class course_navigation_test extends route_testcase {
             'expected' => [
                 'type' => 'course', // As the next section is hidden, we should redirect to course page.
             ],
-            'hiddensections' => [2],
+            'sectionsdef' => [
+                ['section' => 2, 'hidden' => true],
+            ],
         ];
         yield 'Sections - With last module in a hidden section (editingteacher)' => [
             'cmsdef' => [
@@ -273,7 +443,9 @@ final class course_navigation_test extends route_testcase {
                 'id' => '2',
             ],
             'role' => 'editingteacher',
-            'hiddensections' => [2],
+            'sectionsdef' => [
+                ['section' => 2, 'hidden' => true],
+            ],
         ];
         yield 'Sections - Empty section (student)' => [
             'cmsdef' => [
@@ -285,6 +457,304 @@ final class course_navigation_test extends route_testcase {
                 'id' => '2',
             ],
         ];
+        yield 'Restricted section visible - Simple case (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section', // Editing teachers can see the restricted section.
+                'id' => '2',
+            ],
+            'role' => 'editingteacher',
+            'sectionsdef' => [
+                ['section' => 2, 'available' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}'],
+            ],
+        ];
+        yield 'Restricted section visible - Simple case (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+            'sectionsdef' => [
+                ['section' => 2, 'available' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}'],
+            ],
+        ];
+        yield 'Restricted section hidden - Simple case (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section', // Editing teachers can see the restricted section.
+                'id' => '2',
+            ],
+            'role' => 'editingteacher',
+            'sectionsdef' => [
+                ['section' => 2, 'available' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}'],
+            ],
+        ];
+        yield 'Restricted section hidden - Simple case (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'course', // Students cannot see the restricted section.
+            ],
+            'sectionsdef' => [
+                ['section' => 2, 'available' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}'],
+            ],
+        ];
+        yield 'Restricted section hidden - Simple case when user meets the restriction (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'section', // Student meets the restriction, so the section should be visible.
+                'id' => '2',
+            ],
+            'sectionsdef' => [
+                ['section' => 2, 'available' => $emailavailability . 'student@moodle.invalid"}],"showc":[false]}'],
+            ],
+        ];
+        yield 'Resource: Display auto (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_AUTO]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display embed (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_EMBED]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display frame (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_FRAME]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display new (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_NEW]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display download (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_DOWNLOAD]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display open (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_OPEN]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display popup (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'resource', 'options' => [
+                    'display' => RESOURCELIB_DISPLAY_POPUP,
+                    'popupwidth' => 800,
+                    'popupheight' => 600,
+                ]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display auto (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_AUTO]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display embed (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_EMBED]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display frame (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_FRAME]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display new (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_NEW]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display open (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_OPEN]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display popup (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'url', 'options' => [
+                    'display' => RESOURCELIB_DISPLAY_POPUP,
+                    'popupwidth' => 800,
+                    'popupheight' => 600,
+                ]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm2',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'With module not supporting FEATURE_CAN_DISPLAY (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'qbank'],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm3', // The cm2 should be skipped as it does not support FEATURE_CAN_DISPLAY.
+            ],
+        ];
+        yield 'With module not supporting FEATURE_CAN_DISPLAY (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'qbank'],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm3', // The cm2 should be skipped as it does not support FEATURE_CAN_DISPLAY.
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'With module not supporting FEATURE_CAN_DISPLAY (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'qbank'],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'id' => 'cm3', // The cm2 should be skipped as it does not support FEATURE_CAN_DISPLAY.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Last activity of a section (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'options' => ['visible' => false]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section',
+                'id' => '1',
+            ],
+        ];
+        yield 'Last activity of a course (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'course',
+            ],
+        ];
+        yield 'With last module without url (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'cm2', 'type' => 'label'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'course',
+            ],
+        ];
+        yield 'With module that does not exist (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm0'],
+                ['name' => 'cm1'],
+            ],
+            'current' => 'cmthatdoesnotexist',
+            'expected' => [
+                'type' => 'error',
+                'statuscode' => 404,
+            ],
+        ];
     }
 
     /**
@@ -294,7 +764,7 @@ final class course_navigation_test extends route_testcase {
      * @param string $current
      * @param array $expected
      * @param string $role
-     * @param array $hiddensections
+     * @param array $sectionsdef
      */
     #[DataProvider('cm_previous_provider')]
     public function test_cm_previous(
@@ -302,7 +772,7 @@ final class course_navigation_test extends route_testcase {
         string $current,
         array $expected,
         string $role = 'student',
-        array $hiddensections = [],
+        array $sectionsdef = [],
     ): void {
         $this->execute_cm_navigation_test(
             cmsdef: $cmsdef,
@@ -310,7 +780,7 @@ final class course_navigation_test extends route_testcase {
             expected: $expected,
             role: $role,
             direction: 'previous',
-            hiddensections: $hiddensections,
+            sectionsdef: $sectionsdef,
         );
     }
 
@@ -320,6 +790,10 @@ final class course_navigation_test extends route_testcase {
      * @return \Generator
      */
     public static function cm_previous_provider(): \Generator {
+        global $CFG;
+        require_once("$CFG->libdir/resourcelib.php");
+
+        $emailavailability = '{"op":"&","c":[{"type":"profile","sf":"email","op":"isequalto","v":"';
         yield 'Simple case (teacher)' => [
             'cmsdef' => [
                 ['name' => 'cm1'],
@@ -387,18 +861,121 @@ final class course_navigation_test extends route_testcase {
                 'id' => 'cm1', // Students cannot see stealth modules in the course page.
             ],
         ];
-        yield 'First activity of a course (student)' => [
+        yield 'Hidden first module (teacher)' => [
             'cmsdef' => [
-                ['name' => 'cm1'],
+                ['name' => 'cm1', 'options' => ['visible' => false]],
                 ['name' => 'cm2'],
             ],
-            'current' => 'cm1',
+            'current' => 'cm2',
             'expected' => [
-                'type' => 'section',
-                'id' => '0',
+                'id' => 'cm1', // Students cannot see stealth modules in the course page.
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'Hidden first module (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['visible' => false]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'course', // Students cannot see hidden modules.
             ],
         ];
-        yield 'With previous module being a subsection (student)' => [
+        yield 'Stealth first module (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['visibleoncoursepage' => false]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1', // Students cannot see stealth modules in the course page.
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'Stealth first module (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['visibleoncoursepage' => false]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'course', // Students cannot see stealth modules in the course page.
+            ],
+        ];
+        yield 'Restricted module visible (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2', // Teachers can always see restricted modules.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Restricted module visible (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2', // Students can see restricted modules when the restrictions are visible.
+            ],
+        ];
+        yield 'Restricted module hidden (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2', // Teachers can always see restricted modules.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Restricted module hidden (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm1', // Students cannot see restricted modules when the restrictions are hidden.
+            ],
+        ];
+        yield 'Restricted module hidden when user meets the restriction (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                [
+                    'name' => 'cm2',
+                    'options' => ['availability' => $emailavailability . 'student@moodle.invalid"}],"showc":[false]}'],
+                ],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2', // Students can see restricted modules when they meet the restriction.
+            ],
+        ];
+        yield 'Subsection: With previous module being a subsection (student)' => [
             'cmsdef' => [
                 ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
                 ['name' => 'cm1', 'options' => ['section' => 'subsection1']],
@@ -409,7 +986,17 @@ final class course_navigation_test extends route_testcase {
                 'id' => 'cm1',
             ],
         ];
-        yield 'With previous module outside a subsection (student)' => [
+        yield 'Subsection: With previous module being a subsection in the first section (student)' => [
+            'cmsdef' => [
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 0]],
+                ['name' => 'cm1', 'options' => ['section' => 'subsection1']],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'course',
+            ],
+        ];
+        yield 'Subsection: With previous module outside a subsection (student)' => [
             'cmsdef' => [
                 ['name' => 'cm1', 'options' => ['section' => 2]],
                 ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
@@ -420,7 +1007,7 @@ final class course_navigation_test extends route_testcase {
                 'id' => 'cm1',
             ],
         ];
-        yield 'With a subsection with only one module (student)' => [
+        yield 'Subsection: With a subsection with only one module (student)' => [
             'cmsdef' => [
                 ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2]],
                 ['name' => 'cm1', 'options' => ['section' => 'subsection1']],
@@ -431,7 +1018,7 @@ final class course_navigation_test extends route_testcase {
                 'id' => '2',
             ],
         ];
-        yield 'With previous module being a label and subsections (student)' => [
+        yield 'Subsection: With previous module being a label and subsections (student)' => [
             'cmsdef' => [
                 ['name' => 'subsection1', 'type' => 'subsection'],
                 ['name' => 'cm1', 'options' => ['section' => 'subsection1']],
@@ -443,26 +1030,121 @@ final class course_navigation_test extends route_testcase {
                 'id' => 'cm1',
             ],
         ];
-        yield 'With first module without url (student)' => [
+        yield 'Subsection: With previous module being in a hidden subsection (student)' => [
             'cmsdef' => [
-                ['name' => 'cm1', 'type' => 'label'],
-                ['name' => 'cm2', 'options' => ['section' => 2]],
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2, 'visibility' => false]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
             ],
-            'current' => 'cm2',
+            'current' => 'cm3',
             'expected' => [
-                'type' => 'section',
-                'id' => '2',
+                'id' => 'cm1', // Students cannot see cm2 because it's in a hidden subsection.
             ],
         ];
-        yield 'With module that does not exist (student)' => [
+        yield 'Subsection: With previous module being in a hidden subsection (editingteacher)' => [
             'cmsdef' => [
-                ['name' => 'cm1'],
-                ['name' => 'cm2'],
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => ['section' => 2, 'visibility' => false]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
             ],
-            'current' => 'cmthatdoesnotexist',
+            'current' => 'cm3',
             'expected' => [
-                'type' => 'error',
-                'statuscode' => 404,
+                'id' => 'cm2', // Teachers can see modules in hidden subsections.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Subsection: With previous module being in a restricted public subsection (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm1', // Students cannot see modules in a restricted subsection if the restrictions are not met.
+            ],
+        ];
+        yield 'Subsection: With previous module being in a restricted public subsection (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2', // Teachers can see modules in a restricted subsection even if they don't meet the restriction.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Subsection: With previous module being in a restricted hidden subsection (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm1', // Students cannot see modules in a restricted subsection if the restrictions are not met.
+            ],
+        ];
+        yield 'Subsection: With previous module being in a restricted hidden subsection (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[false]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2', // Teachers can see modules in a restricted subsection even if they don't meet the restriction.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'Subsection: With previous module being in a restricted public subsection when user meets restrictions (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'student@moodle.invalid"}],"showc":[true]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2',
+            ],
+        ];
+        yield 'Subsection: With previous module being in a restricted hidden subsection when user meets restrictions (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 2]],
+                ['name' => 'subsection1', 'type' => 'subsection', 'options' => [
+                    'section' => 2,
+                    'availability' => $emailavailability . 'student@moodle.invalid"}],"showc":[false]}',
+                ]],
+                ['name' => 'cm2', 'options' => ['section' => 'subsection1']],
+                ['name' => 'cm3', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm2',
             ],
         ];
         yield 'Sections - Simple case (teacher)' => [
@@ -498,7 +1180,9 @@ final class course_navigation_test extends route_testcase {
                 'type' => 'section',
                 'id' => '2',
             ],
-            'hiddensections' => [1],
+            'sectionsdef' => [
+                ['section' => 1, 'hidden' => true],
+            ],
         ];
         yield 'Sections - Hidden section (editingteacher)' => [
             'cmsdef' => [
@@ -511,7 +1195,9 @@ final class course_navigation_test extends route_testcase {
                 'id' => '2',
             ],
             'role' => 'editingteacher',
-            'hiddensections' => [1],
+            'sectionsdef' => [
+                ['section' => 1, 'hidden' => true],
+            ],
         ];
         yield 'Sections - With module in a hidden section (editingteacher)' => [
             'cmsdef' => [
@@ -524,7 +1210,266 @@ final class course_navigation_test extends route_testcase {
                 'id' => '2', // Teachers can see the hidden section.
             ],
             'role' => 'editingteacher',
-            'hiddensections' => [2],
+            'sectionsdef' => [
+                ['section' => 2, 'hidden' => true],
+            ],
+        ];
+        yield 'Restricted section visible - Simple case (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section', // Editing teachers can see the restricted section.
+                'id' => '2',
+            ],
+            'role' => 'editingteacher',
+            'sectionsdef' => [
+                ['section' => 2, 'available' => $emailavailability . 'nomail@moodle.invalid"}],"showc":[true]}'],
+            ],
+        ];
+        yield 'Restricted section hidden - Simple case when user meets the restriction (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'options' => ['section' => 1]],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section', // Student meets the restriction, so the section should be visible.
+                'id' => '2',
+            ],
+            'sectionsdef' => [
+                ['section' => 2, 'available' => $emailavailability . 'student@moodle.invalid"}],"showc":[false]}'],
+            ],
+        ];
+        yield 'Resource: Display auto (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_AUTO]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display embed (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_EMBED]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display frame (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_FRAME]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display new (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_NEW]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display download (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_DOWNLOAD]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display open (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'resource', 'options' => ['display' => RESOURCELIB_DISPLAY_OPEN]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'Resource: Display popup (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'resource', 'options' => [
+                    'display' => RESOURCELIB_DISPLAY_POPUP,
+                    'popupwidth' => 800,
+                    'popupheight' => 600,
+                ]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display auto (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_AUTO]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display embed (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_EMBED]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display frame (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_FRAME]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display new (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_NEW]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display open (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'url', 'options' => ['display' => RESOURCELIB_DISPLAY_OPEN]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'URL: Display popup (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'url', 'options' => [
+                    'display' => RESOURCELIB_DISPLAY_POPUP,
+                    'popupwidth' => 800,
+                    'popupheight' => 600,
+                ]],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'id' => 'cm1',
+                'params' => ['id', 'forceview'],
+            ],
+        ];
+        yield 'With module not supporting FEATURE_CAN_DISPLAY (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'qbank'],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm1', // The cm2 should be skipped as it does not support FEATURE_CAN_DISPLAY.
+            ],
+        ];
+        yield 'With module not supporting FEATURE_CAN_DISPLAY (teacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'qbank'],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm1', // The cm2 should be skipped as it does not support FEATURE_CAN_DISPLAY.
+            ],
+            'role' => 'teacher',
+        ];
+        yield 'With module not supporting FEATURE_CAN_DISPLAY (editingteacher)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2', 'type' => 'qbank'],
+                ['name' => 'cm3'],
+            ],
+            'current' => 'cm3',
+            'expected' => [
+                'id' => 'cm1', // The cm2 should be skipped as it does not support FEATURE_CAN_DISPLAY.
+            ],
+            'role' => 'editingteacher',
+        ];
+        yield 'First activity of a course (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cm1',
+            'expected' => [
+                'type' => 'course',
+            ],
+        ];
+        yield 'With first module without url in the first section (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'label'],
+                ['name' => 'cm2', 'options' => ['section' => 0]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'course',
+            ],
+        ];
+        yield 'With first module without url (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1', 'type' => 'label'],
+                ['name' => 'cm2', 'options' => ['section' => 2]],
+            ],
+            'current' => 'cm2',
+            'expected' => [
+                'type' => 'section',
+                'id' => '2',
+            ],
+        ];
+        yield 'With module that does not exist (student)' => [
+            'cmsdef' => [
+                ['name' => 'cm1'],
+                ['name' => 'cm2'],
+            ],
+            'current' => 'cmthatdoesnotexist',
+            'expected' => [
+                'type' => 'error',
+                'statuscode' => 404,
+            ],
         ];
     }
 
@@ -537,7 +1482,7 @@ final class course_navigation_test extends route_testcase {
      * @param string $role
      * @param string $direction
      * @param int $numsections
-     * @param array $hiddensections
+     * @param array $sectionsdef
      */
     protected function execute_cm_navigation_test(
         array $cmsdef,
@@ -546,19 +1491,27 @@ final class course_navigation_test extends route_testcase {
         string $role = 'student',
         string $direction = 'next',
         int $numsections = 2,
-        array $hiddensections = [],
+        array $sectionsdef = [],
     ): void {
         $this->resetAfterTest();
         set_config('allowstealth', 1);
+        $this->setAdminUser();
 
         $generator = $this->getDataGenerator();
         $course = $generator->create_course(['numsections' => $numsections]);
-        foreach ($hiddensections as $sectiontohide) {
-            $sectioninfo = get_fast_modinfo($course)->get_section_info($sectiontohide);
-            \core_courseformat\formatactions::section($course)->update($sectioninfo, ['visible' => false]);
+        foreach ($sectionsdef as $section) {
+            if (isset($section['hidden'])) {
+                $sectioninfo = get_fast_modinfo($course)->get_section_info($section['section']);
+                \core_courseformat\formatactions::section($course)->update($sectioninfo, ['visible' => !$section['hidden']]);
+            } else if (isset($section['available'])) {
+                $sectioninfo = get_fast_modinfo($course)->get_section_info($section['section']);
+                $availability = $section['available'];
+                \core_courseformat\formatactions::section($course)->update($sectioninfo, ['availability' => $availability]);
+            }
         }
-        $user = $generator->create_and_enrol($course, $role);
+        $user = $generator->create_and_enrol($course, $role, ['email' => $role . '@moodle.invalid']);
         $cms = [];
+        $hiddensubsections = [];
         foreach ($cmsdef as $cmdef) {
             $cms[$cmdef['name']] = $this->create_module_or_subsection(
                 courseid: $course->id,
@@ -566,7 +1519,21 @@ final class course_navigation_test extends route_testcase {
                 type: $cmdef['type'] ?? 'assign',
                 options: $cmdef['options'] ?? [],
             );
+            // Mark the subsection as hidden, to change the visibility later, once all the course modules are created.
+            if (
+                isset($cmdef['type']) && $cmdef['type'] === 'subsection'
+                && isset($cmdef['options']['visibility']) && $cmdef['options']['visibility'] === false
+            ) {
+                $hiddensubsections[] = $cms[$cmdef['name']];
+            }
         }
+
+        // If there are hidden subsections, call the API method to set the visibility of the course modules inside them too.
+        foreach ($hiddensubsections as $hiddensubsection) {
+            $sectioninfo = get_fast_modinfo($course->id)->get_section_info_by_component('mod_subsection', $hiddensubsection->id);
+            formatactions::section($course->id)->set_visibility($sectioninfo, false);
+        }
+
         $cmid = $cms[$current]->cmid ?? 9999; // If we cannot find it we will test the error case of not found.
 
         $this->setUser($user);
@@ -590,7 +1557,8 @@ final class course_navigation_test extends route_testcase {
             $expected['type'] ?? 'cm',
             $expected['id'] ?? '',
             $course->id,
-            $location[0]
+            $location[0],
+            $expected['params'] ?? [],
         );
     }
 
@@ -601,14 +1569,17 @@ final class course_navigation_test extends route_testcase {
      * @param string $elementid
      * @param int $courseid
      * @param string $location
+     * @param array $expectedparams
      */
     protected function assert_redirected_url(
         string $elementtype,
         string $elementid,
         int $courseid,
-        string $location
+        string $location,
+        array $expectedparams = [],
     ): void {
         $coursemodinfo = modinfo::instance($courseid);
+        $navigationurl = null;
         switch ($elementtype) {
             case 'cm':
                 $cms = $coursemodinfo->get_cms();
@@ -620,26 +1591,34 @@ final class course_navigation_test extends route_testcase {
                     }
                 }
                 $this->assertNotEmpty($cm, "The course module with name {$elementid} should be found.");
-                $this->assertEquals(
-                    $cm->url,
-                    new url($location)
-                );
+                $navigationurl = $cm->navigationurl;
                 break;
             case 'section':
                 $sectioninfo = $coursemodinfo->get_section_info($elementid);
-                $this->assertEquals(
-                    new url('/course/section.php', ['id' => $sectioninfo->id]),
-                    new url($location)
-                );
+                $navigationurl = course_get_url($courseid, $sectioninfo, ['navigation' => true]);
                 break;
             case 'course':
-                $this->assertEquals(
-                    new url('/course/view.php', ['id' => $courseid]),
-                    new url($location)
-                );
+                $navigationurl = course_get_url($courseid);
                 break;
             default:
                 $this->fail('Unknown expected element type ' . $elementtype);
+        }
+        $this->assertEquals(
+            $navigationurl,
+            new url($location),
+        );
+        // Check for expected parameters in the redirection URL (only when specified).
+        if (!empty($expectedparams)) {
+            $actualparams = array_keys((new url($location))->params());
+            sort($actualparams);
+            sort($expectedparams);
+            $this->assertEquals(
+                $expectedparams,
+                $actualparams,
+                "The URL parameter names do not match.\n" .
+                "Expected: " . implode(', ', $expectedparams) . "\n" .
+                "Actual:   " . implode(', ', $actualparams),
+            );
         }
     }
 

@@ -19,10 +19,10 @@ declare(strict_types=1);
 namespace core_reportbuilder;
 
 use coding_exception;
+use core_reportbuilder\local\entities\base as entity_base;
 use core_reportbuilder\local\helpers\report;
 use core_reportbuilder\local\models\{column as column_model, filter as filter_model};
-use core_reportbuilder\local\report\base;
-use core_reportbuilder\local\report\{column, filter};
+use core_reportbuilder\local\report\{base, column, filter};
 
 /**
  * Class datasource
@@ -122,8 +122,9 @@ abstract class datasource extends base {
 
         $this->activecolumns = ['builttime' => microtime(true), 'values' => []];
 
-        $activecolumns = column_model::get_records(['reportid' => $reportid], 'columnorder');
-        foreach ($activecolumns as $index => $column) {
+        $columnindex = 0;
+        $columns = column_model::get_records(['reportid' => $reportid], 'columnorder');
+        foreach ($columns as $column) {
             $instance = $this->get_column($column->get('uniqueidentifier'));
 
             // Ensure the column is still present and available.
@@ -137,7 +138,7 @@ abstract class datasource extends base {
 
                 // We should clone the report column to ensure if it's added twice to a report, each operates independently.
                 $this->activecolumns['values'][] = clone $instance
-                    ->set_index($index)
+                    ->set_index($columnindex++)
                     ->set_persistent($column)
                     ->set_aggregation($columnaggregation, $instance->get_aggregation_options($columnaggregation));
             }
@@ -207,17 +208,21 @@ abstract class datasource extends base {
      *
      * Wildcard matching is supported with '*' in both $include and $exclude, e.g. ['customfield*']
      *
-     * @param string $entityname
+     * @param string|entity_base $entityname
      * @param string[] $include Include only these conditions, if omitted then include all
      * @param string[] $exclude Exclude these conditions, if omitted then exclude none
      * @throws coding_exception If both $include and $exclude are non-empty
      */
-    final protected function add_conditions_from_entity(string $entityname, array $include = [], array $exclude = []): void {
+    final protected function add_conditions_from_entity(
+        string|entity_base $entityname,
+        array $include = [],
+        array $exclude = [],
+    ): void {
         if (!empty($include) && !empty($exclude)) {
             throw new coding_exception('Cannot specify conditions to include and exclude simultaneously');
         }
 
-        $entity = $this->get_entity($entityname);
+        $entity = $this->normalise_entity($entityname);
 
         // Retrieve filtered conditions from entity, respecting given $include/$exclude parameters.
         $conditions = array_filter($entity->get_conditions(), function (filter $condition) use ($include, $exclude): bool {
@@ -312,13 +317,13 @@ abstract class datasource extends base {
     /**
      * Adds all columns/filters/conditions from the given entity to the report at once
      *
-     * @param string $entityname
+     * @param string|entity_base $entityname
      * @param string[] $limitcolumns Include only these columns
      * @param string[] $limitfilters Include only these filters
      * @param string[] $limitconditions Include only these conditions
      */
     final protected function add_all_from_entity(
-        string $entityname,
+        string|entity_base $entityname,
         array $limitcolumns = [],
         array $limitfilters = [],
         array $limitconditions = [],
@@ -331,23 +336,12 @@ abstract class datasource extends base {
     /**
      * Adds all columns/filters/conditions from all the entities added to the report at once
      *
-     * @param string[] $entitynames If specified, then only these entity elements are added in the order that they are specified
+     * @param string[]|entity_base[] $entitynames Limit to only these entity elements, in the order that they are specified
      */
     final protected function add_all_from_entities(array $entitynames = []): void {
-        if (empty($entitynames)) {
-            $entities = $this->get_entities();
-        } else {
-            $entities = array_combine(
-                $entitynames,
-                array_map(
-                    fn(string $entityname) => $this->get_entity($entityname),
-                    $entitynames,
-                ),
-            );
-        }
-
+        $entities = empty($entitynames) ? $this->get_entities() : $entitynames;
         foreach ($entities as $entity) {
-            $this->add_all_from_entity($entity->get_entity_name());
+            $this->add_all_from_entity($entity);
         }
     }
 
