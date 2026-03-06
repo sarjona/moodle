@@ -1474,6 +1474,40 @@ final class course_navigation_test extends route_testcase {
     }
 
     /**
+     * Test that modules with null navigation URLs are excluded from navigation.
+     *
+     * @runInSeparateProcess
+     */
+    public function test_cm_navigation_skips_modules_with_null_navigation_url(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $this->add_mocked_plugin('mod', 'fullfeatured', "{$CFG->dirroot}/lib/tests/fixtures/fakeplugins/fake/fullfeatured");
+
+        $this->execute_cm_navigation_test(
+            cmsdef: [
+                ['name' => 'cm1'],
+                ['name' => 'fake1', 'type' => 'fullfeatured'],
+                ['name' => 'cm2'],
+            ],
+            current: 'cm1',
+            expected: ['id' => 'cm2'],
+            direction: 'next',
+        );
+
+        $this->execute_cm_navigation_test(
+            cmsdef: [
+                ['name' => 'cm1'],
+                ['name' => 'fake1', 'type' => 'fullfeatured'],
+                ['name' => 'cm2'],
+            ],
+            current: 'cm2',
+            expected: ['id' => 'cm1'],
+            direction: 'previous',
+        );
+    }
+
+    /**
      * Internal helper to test navigation routes (previous / next).
      *
      * @param array $cmsdef
