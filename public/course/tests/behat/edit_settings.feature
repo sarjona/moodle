@@ -57,3 +57,45 @@ Feature: Edit course settings
       | Course summary | Edited course summary |
     And I press "Save and return"
     Then I should see the "Course categories and courses" management page
+
+  Scenario Template: The option to enable course linear navigation is shown or hidden based on course format
+    Given the following "courses" exist:
+      | fullname | shortname | summary               | format   |
+      | Course 1 | C1        | <p>Course summary</p> | <format> |
+    And I log in as "admin"
+    And I am on "Course 1" course homepage
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    And <shouldsee> "Enable linear navigation"
+    Examples:
+      | format         | shouldsee        |
+      | topics         | I should see     |
+      | weeks          | I should see     |
+      | singleactivity | I should not see |
+      | social         | I should not see |
+
+  # The following scenario tests that the default value for the "Enable linear navigation"
+  # setting is applied correctly when creating a new course, based on the global settings. We need
+  # javascript here to ensure that the form updates correctly after selecting the course format.
+  @javascript
+  Scenario Template: The default linear navigation value for new course is applied based on default global settings
+    Given the following "courses" exist:
+      | fullname | shortname | summary               | format   |
+      | Course 1 | C1        | <p>Course summary</p> | <format> |
+    When the following config values are set as admin:
+      | enablelinearnav | <value> | format_<format> |
+    And I log in as "admin"
+    And I create a course with:
+      | Course full name  | Course 2 |
+      | Course short name | C2       |
+      | Format            | <format> |
+    And I am on "Course 2" course homepage
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    Then the field "Enable linear navigation" matches value "<expected>"
+    Examples:
+      | format | value | expected |
+      | topics | 1     | Yes      |
+      | weeks  | 1     | Yes      |
+      | topics | 0     | No       |
+      | weeks  | 0     | No       |

@@ -2251,4 +2251,25 @@ abstract class base {
         }
         return true;
     }
+
+    /**
+     * Determines whether the course format supports linear navigation.
+     *
+     * @return bool True if linear navigation is supported, false otherwise.
+     */
+    public static function uses_linear_navigation(): bool {
+        return false;
+    }
+
+    /**
+     * Provides the content for the sticky footer in linear navigation.
+     *
+     * @param cm_info $cm The activity module.
+     * @return string
+     */
+    public function get_linear_navigation_footer_content(cm_info $cm): string {
+        global $PAGE;
+        $linearnavigationcontent = new output\local\linearnavigation\footer_content($cm->course);
+        return $this->get_renderer($PAGE)->render($linearnavigationcontent);
+    }
 }

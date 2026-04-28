@@ -33,4 +33,14 @@ if ($ADMIN->fulltree) {
         new lang_string('indentation_help', 'format_topics').'<br />'.$link,
         1
     ));
+    $label = new \core\lang_string('linearnavigationsettings', 'core_courseformat');
+    $description = new \core\lang_string('linearnavigationsettings_help', 'core_courseformat');
+    $settings->add(
+        new \admin_setting_configcheckbox(
+            "format_topics/" . \core_courseformat\local\course_linear_navigation_settings::SETTING_ENABLE_LINEAR_NAV,
+            new \core\lang_string('linearnavigationsettings', 'core_courseformat'),
+            new \core\lang_string('linearnavigationsettings_help', 'core_courseformat'),
+            1
+        )
+    );
 }
