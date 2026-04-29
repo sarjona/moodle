@@ -77,6 +77,10 @@ $discussionrecord = $discussiondatamapper->to_legacy_object($discussion);
 $discussionviewurl = $urlfactory->get_discussion_view_url_from_discussion($discussion);
 // Set the activity record, to avoid additional calls to the db if the page getter is called.
 $PAGE->set_activity_record($forumrecord);
+$PAGE->set_supplementary_content(
+    'Go to all discussions',
+    (new core\url('/mod/forum/view.php', ['id' => $cm->id]))->out(false),
+);
 
 // move this down fix for MDL-6926
 require_once($CFG->dirroot . '/mod/forum/lib.php');

@@ -462,6 +462,18 @@ class moodle_page {
      */
     protected bool $_hasstickyfooter = false;
 
+    protected ?stdClass $_supplementarycontent = null;
+
+    public function set_supplementary_content(string $text, ?string $link = null): void {
+        $this->_supplementarycontent = new stdClass();
+        $this->_supplementarycontent->text = $text;
+        $this->_supplementarycontent->link = $link;
+    }
+
+    public function get_supplementary_content(): ?stdClass {
+        return $this->_supplementarycontent;
+    }
+
     /**
      * Force the settings menu to be displayed on this page. This will only force the
      * settings menu on an activity / resource page that is being displayed on a theme that

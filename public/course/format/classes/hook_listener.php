@@ -18,7 +18,7 @@ namespace core_courseformat;
 
 use core_courseformat\hook\after_course_content_updated;
 use core_course\hook\before_course_viewed;
-use core_courseformat\output\local\course_linear_navigation_footer;
+use core\output\supplementary_sticky_footer;
 use core_group\hook\after_group_membership_added;
 use core_group\hook\after_group_membership_removed;
 
@@ -125,21 +125,27 @@ class hook_listener {
         \core\hook\output\before_footer_html_generation $hook,
     ): void {
         // First check if the course format supports linear navigation.
-        $course = $hook->renderer->get_page()->course;
+        $page = $hook->renderer->get_page();
+        $course = $page->course;
         $format = \course_get_format($course);
         $formatoptions = $format->get_format_options();
         $linearnavigationenabled = $format->uses_linear_navigation();
         $linearnavigationenabled = $linearnavigationenabled && ($formatoptions['enablelinearnav'] ?? false);
-        if ($hook->renderer->get_page()->has_sticky_footer() || !$linearnavigationenabled) {
+        $supplementarycontent = $page->get_supplementary_content();
+        if ($page->has_sticky_footer() || (!$linearnavigationenabled && !$supplementarycontent)) {
             return;
         }
         // Now check that we are on a module/activity page.
-        $cm = $hook->renderer->get_page()->cm;
+        $cm = $page->cm;
         if (empty($cm)) {
             return;
         }
-        $stickyfootercontent = $format->get_linear_navigation_footer_content($cm);
-        $footer = new course_linear_navigation_footer($stickyfootercontent);
+        $stickyfootercontent = $linearnavigationenabled ? $format->get_linear_navigation_footer_content($cm) : '';
+        $footer = new supplementary_sticky_footer(
+            $stickyfootercontent,
+            $supplementarycontent?->text ?? '',
+            $supplementarycontent?->link ?? '',
+        );
         $hook->add_html($hook->renderer->render($footer));
     }
 }
