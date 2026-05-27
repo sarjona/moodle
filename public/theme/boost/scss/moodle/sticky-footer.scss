@@ -70,6 +70,22 @@ body {
     font-size: calc(#{$font-size-base} * 1.10);
 }
 
+.sticky-footer-content.course-linear-navigation {
+    padding-top: map-get($spacers, 3);
+    padding-bottom: map-get($spacers, 3);
+}
+
+.course-linear-navigation-footer-content .course-linear-navigation-link {
+    font-size: $font-size-base;
+    line-height: 1.25;
+}
+
+.course-linear-navigation-footer-content .course-linear-navigation-link .icon {
+    font-size: $font-size-base;
+    margin-right: 0;
+    margin-left: 0;
+}
+
 /* Breakpoints fixes. */
 
 @include media-breakpoint-up(sm) {
