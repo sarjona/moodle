@@ -38864,6 +38864,22 @@ body {
   font-size: calc(1rem * 1.10);
 }
 
+.sticky-footer-content.course-linear-navigation {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.course-linear-navigation-footer-content .course-linear-navigation-link {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.course-linear-navigation-footer-content .course-linear-navigation-link .icon {
+  font-size: 1rem;
+  margin-right: 0;
+  margin-left: 0;
+}
+
 /* Breakpoints fixes. */
 @media (min-width: 576px) {
   #page-wrapper {

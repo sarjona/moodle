@@ -37,3 +37,27 @@ Feature: Display the course linear navigation
       | weeks          | 0         | t1   | should not be visible |
       | singleactivity | 1         | s1   | should not be visible |
       | singleactivity | 1         | t1   | should not be visible |
+
+  @javascript
+  Scenario: Linear navigation shows Previous and Next buttons
+    Given the following "courses" exist:
+      | fullname | shortname | format | enablelinearnav | numsections |
+      | Course1  | C1        | topics | 1               | 0           |
+    And the following "course enrolments" exist:
+      | user | course | role    |
+      | s1   | C1     | student |
+    And the following "activities" exist:
+      | activity | name  | intro             | course |
+      | page     | Page1 | Intro for page 1. | C1     |
+      | page     | Page2 | Intro for page 2. | C1     |
+    When I am on the "Page1" "page activity" page logged in as "s1"
+    Then I should see "Previous" in the "sticky-footer" "region"
+    And I should see "Next" in the "sticky-footer" "region"
+    And I click on "Next" "link" in the "sticky-footer" "region"
+    And I should see "Page2" in the "page-header" "region"
+    And I click on "Previous" "link" in the "sticky-footer" "region"
+    And I should see "Page1" in the "page-header" "region"
+    And I click on "Next" "link" in the "sticky-footer" "region"
+    # The last activity in the course should redirect to the course page.
+    And I click on "Next" "link" in the "sticky-footer" "region"
+    And I should see "Course1" in the "page-header" "region"
