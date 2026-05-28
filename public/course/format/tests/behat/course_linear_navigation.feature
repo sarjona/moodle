@@ -24,6 +24,8 @@ Feature: Display the course linear navigation
       | page     | Page1  | C1     |
     When I am on the "Page1" "page activity" page logged in as "<user>"
     Then ".course-linear-navigation" "css" <shouldbevisible>
+    And ".course-linear-navigation [data-action='previous-activity']" "css" <shouldbevisible>
+    And ".course-linear-navigation [data-action='next-activity']" "css" <shouldbevisible>
 
     Examples:
       | format         | linearnav | user | shouldbevisible       |
@@ -37,3 +39,19 @@ Feature: Display the course linear navigation
       | weeks          | 0         | t1   | should not be visible |
       | singleactivity | 1         | s1   | should not be visible |
       | singleactivity | 1         | t1   | should not be visible |
+
+  @javascript
+  Scenario: The linear navigation footer no longer shows a back button
+    Given the following "courses" exist:
+      | fullname | shortname | format | enablelinearnav |
+      | Course1  | C1        | topics | 1              |
+    And the following "course enrolments" exist:
+      | user | course | role    |
+      | s1   | C1     | student |
+    And the following "activities" exist:
+      | activity | name   | course |
+      | page     | Page1  | C1     |
+    When I am on the "Page1" "page activity" page logged in as "s1"
+    Then I should not see "Back" in the ".course-linear-navigation" "css_element"
+    And I should see "Previous" in the ".course-linear-navigation" "css_element"
+    And I should see "Next" in the ".course-linear-navigation" "css_element"
