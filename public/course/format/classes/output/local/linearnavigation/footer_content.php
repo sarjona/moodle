@@ -16,10 +16,6 @@
 
 namespace core_courseformat\output\local\linearnavigation;
 
-use core\output\named_templatable;
-use core\output\renderable;
-use core\output\renderer_base;
-
 /**
  * Sticky footer class for linear navigation in course format.
  *
@@ -27,27 +23,34 @@ use core\output\renderer_base;
  * @copyright  2025 Laurent David <laurent.david@moodle.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class footer_content implements named_templatable, renderable {
+class footer_content implements \core\output\named_templatable, \core\output\renderable {
     /**
      * Constructor.
      *
-     * @param int $courseid The course ID.
+     * @param int $cmid The course module ID.
      */
     public function __construct(
-        /** @var int The course ID. */
-        private int $courseid
+        /** @var int The course module ID. */
+        private int $cmid
     ) {
     }
 
     #[\Override]
-    public function export_for_template(renderer_base $output) {
-        $returnbutton = new \single_button(
-            new \moodle_url('/course/view.php', ['id' => $this->courseid]),
-            get_string('back'),
-            'get'
+    public function export_for_template(\core\output\renderer_base $output) {
+        $previousbutton = new \single_button(
+            new \moodle_url('/course/cms/' . $this->cmid . '/previous'),
+            get_string('previous'),
+            'get',
         );
+        $nextbutton = new \single_button(
+            new \moodle_url('/course/cms/' . $this->cmid . '/next'),
+            get_string('next'),
+            'get',
+        );
+
         return [
-            'returnbutton' => $returnbutton->export_for_template($output),
+            'previousbutton' => $previousbutton->export_for_template($output),
+            'nextbutton' => $nextbutton->export_for_template($output),
         ];
     }
 

@@ -37,3 +37,24 @@ Feature: Display the course linear navigation
       | weeks          | 0         | t1   | should not be visible |
       | singleactivity | 1         | s1   | should not be visible |
       | singleactivity | 1         | t1   | should not be visible |
+
+  @javascript
+  Scenario: Linear navigation footer displays Previous and Next buttons
+    Given the following "courses" exist:
+      | fullname | shortname | format | enablelinearnav |
+      | Course1  | C1        | topics | 1              |
+    And the following "course enrolments" exist:
+      | user    | course | role    |
+      | s1      | C1     | student |
+    And the following "activities" exist:
+      | activity | name   | course |
+      | page     | Page1  | C1     |
+      | page     | Page2  | C1     |
+    When I am on the "Page1" "page activity" page logged in as "s1"
+    Then I should see "Previous" in the ".course-linear-navigation" "css_element"
+    And I should see "Next" in the ".course-linear-navigation" "css_element"
+    And I should not see "Back" in the ".course-linear-navigation" "css_element"
+    When I click on "Next" "button" in the ".course-linear-navigation" "css_element"
+    Then I should see "Page2"
+    When I click on "Previous" "button" in the ".course-linear-navigation" "css_element"
+    Then I should see "Page1"
