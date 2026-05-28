@@ -61,7 +61,7 @@ Feature: View activity completion information in the book activity
     And the "View" completion condition of "Art history" is displayed as "todo"
     And I follow "Next"
     And I should see "Sub chapter 2"
-    And I should not see "Next"
+    And I should not see "Next" in the "#mod_book-chaptersnavigation" "css_element"
     Then the "View" completion condition of "Art history" is displayed as "done"
 
   @javascript
