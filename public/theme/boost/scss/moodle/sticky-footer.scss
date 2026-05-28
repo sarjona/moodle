@@ -70,6 +70,27 @@ body {
     font-size: calc(#{$font-size-base} * 1.10);
 }
 
+.stickyfooter .course-linear-navigation-footer-content {
+    .btn {
+        border: 0;
+        box-shadow: none;
+        font-size: $font-size-base;
+        font-weight: $font-weight-normal;
+        line-height: $line-height-base;
+        padding: map-get($spacers, 1) 0;
+        text-decoration: none;
+    }
+
+    .btn:focus-visible {
+        box-shadow: $input-btn-focus-box-shadow;
+    }
+}
+
+.stickyfooter .course-linear-navigation .sticky-footer-content {
+    padding-left: map-get($spacers, 4);
+    padding-right: map-get($spacers, 4);
+}
+
 /* Breakpoints fixes. */
 
 @include media-breakpoint-up(sm) {

@@ -21,15 +21,23 @@
 
     Example context (json):
     {
-        "returnbutton": {
-            "id": "button1",
-            "method": "get",
-            "url": "http://moodle.com/course/view.php?id=2",
-            "label": "Back",
-            "actions": []
+        "prevlink": {
+            "id": "prev-activity-link",
+            "url": "http://moodle.com/course/cms/10/previous",
+            "text": "Previous"
+        },
+        "nextlink": {
+            "id": "next-activity-link",
+            "url": "http://moodle.com/course/cms/10/next",
+            "text": "Next"
         }
     }
 }}
-<div class="course-linear-navigation-footer-content mt-3">
-    {{#returnbutton}}{{> core/single_button}}{{/returnbutton}}
+<div class="course-linear-navigation-footer-content d-flex align-items-center justify-content-between w-100 mt-3">
+    <div class="course-linear-navigation-footer-content-prev">
+        {{#prevlink}}{{> core/action_link }}{{/prevlink}}
+    </div>
+    <div class="course-linear-navigation-footer-content-next">
+        {{#nextlink}}{{> core/action_link }}{{/nextlink}}
+    </div>
 </div>

@@ -38864,6 +38864,24 @@ body {
   font-size: calc(1rem * 1.10);
 }
 
+.stickyfooter .course-linear-navigation-footer-content .btn {
+  border: 0;
+  box-shadow: none;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 0.25rem 0;
+  text-decoration: none;
+}
+.stickyfooter .course-linear-navigation-footer-content .btn:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(15, 108, 191, 0.75);
+}
+
+.stickyfooter .course-linear-navigation .sticky-footer-content {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
 /* Breakpoints fixes. */
 @media (min-width: 576px) {
   #page-wrapper {
