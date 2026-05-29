@@ -38930,6 +38930,23 @@ body {
   font-size: calc(1rem * 1.10);
 }
 
+.course-linear-navigation-footer-content .course-linear-navigation-link {
+  color: #0f6cbf;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-decoration: none;
+  padding: 0.25rem 0;
+}
+.course-linear-navigation-footer-content .course-linear-navigation-link .icon {
+  text-decoration: none;
+}
+.course-linear-navigation-footer-content .course-linear-navigation-link:hover, .course-linear-navigation-footer-content .course-linear-navigation-link:focus {
+  color: #0c5699;
+}
+.course-linear-navigation-footer-content .course-linear-navigation-link:hover span, .course-linear-navigation-footer-content .course-linear-navigation-link:focus span {
+  text-decoration: underline;
+}
+
 /* Breakpoints fixes. */
 @media (min-width: 576px) {
   #page-wrapper {

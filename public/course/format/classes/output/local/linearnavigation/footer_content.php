@@ -31,23 +31,19 @@ class footer_content implements named_templatable, renderable {
     /**
      * Constructor.
      *
-     * @param int $courseid The course ID.
+     * @param \cm_info $cm The course module info object.
      */
     public function __construct(
-        /** @var int The course ID. */
-        private int $courseid
+        /** @var \cm_info The course module info object. */
+        private \cm_info $cm
     ) {
     }
 
     #[\Override]
     public function export_for_template(renderer_base $output) {
-        $returnbutton = new \single_button(
-            new \moodle_url('/course/view.php', ['id' => $this->courseid]),
-            get_string('back'),
-            'get'
-        );
         return [
-            'returnbutton' => $returnbutton->export_for_template($output),
+            'previousurl' => (new \moodle_url('/course/cms/' . $this->cm->id . '/previous'))->out(false),
+            'nexturl' => (new \moodle_url('/course/cms/' . $this->cm->id . '/next'))->out(false),
         ];
     }
 

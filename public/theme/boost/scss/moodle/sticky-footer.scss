@@ -70,6 +70,30 @@ body {
     font-size: calc(#{$font-size-base} * 1.10);
 }
 
+// Course linear navigation footer.
+.course-linear-navigation-footer-content {
+    .course-linear-navigation-link {
+        color: $link-color;
+        font-size: $font-size-base;
+        line-height: $line-height-base;
+        text-decoration: none;
+        padding: $spacer * .25 0;
+
+        .icon {
+            text-decoration: none;
+        }
+
+        &:hover,
+        &:focus {
+            color: $link-hover-color;
+
+            span {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
 /* Breakpoints fixes. */
 
 @include media-breakpoint-up(sm) {
