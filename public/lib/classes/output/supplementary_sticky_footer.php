@@ -24,7 +24,7 @@ namespace core\output;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class supplementary_sticky_footer extends \core\output\sticky_footer {
-     #[\Override]
+    #[\Override]
     public function get_template_name(\renderer_base $renderer): string {
         return 'core/supplementary_sticky_footer';
     }

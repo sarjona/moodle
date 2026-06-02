@@ -17,6 +17,7 @@
 namespace core_courseformat;
 
 use core_courseformat\hook\after_course_content_updated;
+use core_courseformat\local\linearnavigationsettings;
 use core_course\hook\before_course_viewed;
 use core\output\supplementary_sticky_footer;
 use core_group\hook\after_group_membership_added;
@@ -141,7 +142,7 @@ class hook_listener {
             return;
         }
         $formatoptions = $format->get_format_options();
-        $linearnavigationenabled = ($formatoptions['enablelinearnav'] ?? false);
+        $linearnavigationenabled = ($formatoptions[linearnavigationsettings::SETTING_ENABLE_LINEAR_NAV] ?? false);
         if (!$linearnavigationenabled) {
             // Linear navigation is not enabled, do not add the sticky footer.
             return;
