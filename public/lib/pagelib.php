@@ -2582,7 +2582,7 @@ class moodle_page {
      * Signal that the page has a sticky footer
      *
      * @param bool $state
-     *     - `true` (default) if the page has a sticky footer.
+     *     - `true` if the page has a sticky footer.
      *     - `false` (default) if the page has (not yet) a sticky footer.
      */
     public function set_has_sticky_footer(bool $state): void {
