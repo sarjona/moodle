@@ -63,3 +63,22 @@ Feature: Enable course linear navigation setting
       | 1             | 0            | Yes            | Yes           |
       | 0             | 1            | No             | No            |
       | 1             | 1            | Yes            | Yes           |
+
+  Scenario Outline: The linear navigation value can be changed when editing a course
+    Given the following "courses" exist:
+      | fullname | shortname | format   |
+      | Course1  | c1        | <format> |
+    And I am on the "Course1" "course" page logged in as admin
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    And the field "Enable linear navigation" matches value "Yes"
+    When I set the field "Enable linear navigation" to "No"
+    And I click on "Save and display" "button"
+    And I navigate to "Settings" in current page administration
+    And I expand all fieldsets
+    Then the field "Enable linear navigation" matches value "No"
+
+    Examples:
+      | format |
+      | topics |
+      | weeks  |

@@ -36,14 +36,14 @@ if ($ADMIN->fulltree) {
     $label = new \core\lang_string('linearnavigationsettings', 'core_courseformat');
     $description = new \core\lang_string('linearnavigationsettings_help', 'core_courseformat');
     $options = [
-        true    => get_string('yes'),
-        false   => get_string('no'),
+        1 => get_string('yes'),
+        0 => get_string('no'),
     ];
     $settings->add(new admin_setting_configselect(
         'format_topics/enablelinearnav',
         new lang_string('linearnavigationsettings', 'core_courseformat'),
         new lang_string('linearnavigationsettings_help', 'core_courseformat'),
-        true,
+        1,
         $options,
     ));
 }

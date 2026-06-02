@@ -1888,7 +1888,7 @@ function xmldb_main_upgrade($oldversion) {
             LEFT JOIN {course_format_options} cfo
                 ON cfo.courseid = c.id
                 AND cfo.name = :settingname2
-            WHERE cfo.id is NULL and c.format $informatsql
+            WHERE cfo.id IS NULL AND c.format $informatsql
         EOF;
 
         $params += [
