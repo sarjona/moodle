@@ -12,8 +12,8 @@ Feature: Non anonymous feedback
       | teacher  | Teacher   | 3        |
       | manager  | Manager   | 4        |
     And the following "courses" exist:
-      | fullname | shortname |
-      | Course 1 | C1        |
+      | fullname | shortname | enablelinearnav |
+      | Course 1 | C1        | 0               |
     And the following "course enrolments" exist:
       | user  | course | role    |
       | user1 | C1     | student |
@@ -132,12 +132,12 @@ Feature: Non anonymous feedback
     And I click on "," "link" in the "Username 1" "table_row"
     And I should see "(Username 1)"
     And I should see "Yes of course"
-    And I should not see "Prev" in the ".response_navigation" "css_element"
+    And I should not see "Prev"
     And I follow "Next"
     And I should see "(Username 2)"
-    And I should not see "Next" in the ".response_navigation" "css_element"
-    And I should see "Prev" in the ".response_navigation" "css_element"
-    And I click on "Back" "link" in the ".response_navigation" "css_element"
+    And I should not see "Next"
+    And I should see "Prev"
+    And I click on "Back" "link" in the "region-main" "region"
     # Sort the feedback responses.
     And I click on "Do you like this course?" "link" in the "generaltable" "table"
     And "Username 1" "table_row" should appear before "Username 2" "table_row"

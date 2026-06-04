@@ -10,8 +10,8 @@ Feature: View activity completion information in the book activity
       | student1 | Vinnie    | Student1 | student1@example.com |
       | teacher1 | Darrell   | Teacher1 | teacher1@example.com |
     And the following "courses" exist:
-      | fullname | shortname | enablecompletion | showcompletionconditions |
-      | Course 1 | C1        | 1                | 1                        |
+      | fullname | shortname | enablecompletion | showcompletionconditions | enablelinearnav |
+      | Course 1 | C1        | 1                | 1                        | 0               |
     And the following "course enrolments" exist:
       | user | course | role           |
       | student1 | C1 | student        |
@@ -61,7 +61,7 @@ Feature: View activity completion information in the book activity
     And the "View" completion condition of "Art history" is displayed as "todo"
     And I follow "Next"
     And I should see "Sub chapter 2"
-    And I should not see "Next" in the "#mod_book-chaptersnavigation" "css_element"
+    And I should not see "Next"
     Then the "View" completion condition of "Art history" is displayed as "done"
 
   @javascript

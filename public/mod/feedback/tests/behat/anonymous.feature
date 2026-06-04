@@ -14,8 +14,8 @@ Feature: Anonymous feedback
       | teacher  | Teacher   | 3        |
       | manager  | Manager   | 4        |
     And the following "courses" exist:
-      | fullname | shortname |
-      | Course 1 | C1        |
+      | fullname | shortname | enablelinearnav |
+      | Course 1 | C1        | 0               |
     And the following "course enrolments" exist:
       | user  | course | role    |
       | user1 | C1     | student |
@@ -209,12 +209,12 @@ Feature: Anonymous feedback
     And I follow "Response number: 1"
     And I should not see "Username"
     And I should see "Response number: 1 (Anonymous)"
-    And I should not see "Prev" in the ".response_navigation" "css_element"
+    And I should not see "Prev"
     And I follow "Next"
     And I should see "Response number: 2 (Anonymous)"
-    And I should see "Prev" in the ".response_navigation" "css_element"
-    And I should not see "Next" in the ".response_navigation" "css_element"
-    And I click on "Back" "link" in the ".response_navigation" "css_element"
+    And I should see "Prev"
+    And I should not see "Next"
+    And I click on "Back" "link" in the "[role=main]" "css_element"
     # Delete anonymous response
     And I click on "Delete entry" "link" in the "Response number: 1" "table_row"
     And I press "Yes"
