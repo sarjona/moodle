@@ -330,7 +330,7 @@ class format_weeks extends core_courseformat\base {
                 ],
             ];
             // Add linear navigation settings if enabled for the format.
-            $courseformatoptions = array_merge(
+            $courseformatoptions = array_merge_recursive(
                 $courseformatoptions,
                 linearnavigationsettings::get_course_format_options_edit_form(self::get_format()),
             );
