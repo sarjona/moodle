@@ -17,7 +17,6 @@ body {
     // Sticky footer overlays the main content, but not the page layout.
     z-index: map-get($zindex-levels, 3);
     box-shadow: 0 0 1rem rgba($black, .15);
-    font-size: calc(#{$font-size-base} * 1.10);
     // Adjust sticky footer width to the main content area.
     .sticky-footer-content {
         overflow: hidden;
@@ -29,7 +28,8 @@ body {
         }
     }
     // Adjust sticky footer width when drawers are open.
-    .sticky-footer-content-wrapper {
+    .sticky-footer-content-wrapper,
+    .sticky-footer-supplementary-wrapper {
         @include transition(0.2s);
         @include media-breakpoint-up(lg) {
             .drawers {
@@ -53,6 +53,12 @@ body {
     }
     [data-groupname="buttonar"] {
         width: 100%;
+    }
+}
+
+.sticky-footer-supplementary-wrapper:has(.sticky-footer-supplementary) {
+    + .sticky-footer-content-wrapper {
+        border-top: 1px solid $border-color;
     }
 }
 

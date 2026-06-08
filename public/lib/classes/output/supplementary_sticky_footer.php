@@ -16,6 +16,8 @@
 
 namespace core\output;
 
+use stdClass;
+
 /**
  * Sticky footer class with supplementary content.
  *
@@ -24,6 +26,38 @@ namespace core\output;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class supplementary_sticky_footer extends \core\output\sticky_footer {
+
+    /** @var stdClass|null Object containing supplementary content with 'text' and 'link' properties. */
+    protected ?stdClass $supplementarycontent = null;
+
+    /**
+     * Add supplementary content to the sticky footer.
+     *
+     * @param string $text The supplementary text to be displayed in the sticky footer.
+     * @param string|null $link An optional link for the supplementary text.
+     */
+    public function add_supplementary_content(
+        string $text,
+        ?string $link = null,
+    ): void {
+        $this->supplementarycontent = new stdClass();
+        $this->supplementarycontent->text = $text;
+        $this->supplementarycontent->link = $link;
+    }
+
+    #[\Override]
+    public function export_for_template(renderer_base $output): array {
+        $data = parent::export_for_template($output);
+        // Only add supplementary content if it's set.
+        if ($this->supplementarycontent !== null) {
+            $data['supplementarytext'] = $this->supplementarycontent->text;
+            if (!empty($this->supplementarycontent->link)) {
+                $data['supplementarylink'] = $this->supplementarycontent->link;
+            }
+        }
+        return $data;
+    }
+
     #[\Override]
     public function get_template_name(\renderer_base $renderer): string {
         return 'core/supplementary_sticky_footer';
