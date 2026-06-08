@@ -463,6 +463,11 @@ class moodle_page {
     protected bool $hasstickyfooter = false;
 
     /**
+     * @var action_link|null Data for supplementary content to be displayed in the sticky footer.
+     */
+    protected ?action_link $supplementarycontent = null;
+
+    /**
      * Force the settings menu to be displayed on this page. This will only force the
      * settings menu on an activity / resource page that is being displayed on a theme that
      * uses a settings menu.
@@ -1917,6 +1922,7 @@ class moodle_page {
         $this->_module = null;
         $this->_context = null;
         $this->hasstickyfooter = false;
+        $this->supplementarycontent = null;
     }
 
     /**
@@ -2597,5 +2603,23 @@ class moodle_page {
      */
     public function has_sticky_footer(): bool {
         return $this->hasstickyfooter;
+    }
+
+    /**
+     * Add supplementary content to the page.
+     *
+     * @param action_link|null $link The link to be added as supplementary content.
+     */
+    public function set_supplementary_content(?action_link $link): void {
+        $this->supplementarycontent = $link;
+    }
+
+    /**
+     * Get the current supplementary content.
+     *
+     * @return action_link|null The link added as supplementary content or null if not defined.
+     */
+    public function get_supplementary_content(): ?action_link {
+        return $this->supplementarycontent;
     }
 }
