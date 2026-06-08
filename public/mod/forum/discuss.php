@@ -78,6 +78,12 @@ $discussionviewurl = $urlfactory->get_discussion_view_url_from_discussion($discu
 // Set the activity record, to avoid additional calls to the db if the page getter is called.
 $PAGE->set_activity_record($forumrecord);
 
+// Add link to all discussions as supplementary content to go to the main forum page.
+$PAGE->set_supplementary_content(
+    get_string('gotoalldiscussions', 'mod_forum'),
+    (new core\url('/mod/forum/view.php', ['id' => $cm->id]))->out(false),
+);
+
 // move this down fix for MDL-6926
 require_once($CFG->dirroot . '/mod/forum/lib.php');
 
