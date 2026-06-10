@@ -146,6 +146,11 @@ const launchWholeForumGrading = async(rootNode, {
             focusOnClose,
         }
     );
+    // Hide the sticky footer if it exists as it can overlap the grading panel.
+    const stickyFooter = document.getElementById('sticky-footer');
+    if (stickyFooter) {
+        stickyFooter.classList.add('d-none');
+    }
 };
 
 /**
