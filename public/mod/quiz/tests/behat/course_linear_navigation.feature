@@ -91,6 +91,10 @@ Feature: Display the course linear navigation in the quiz pages
     And the course linear navigation should not be visible
     And I click on "Grade" "link" in the "2" "table_row"
     And the course linear navigation should not be visible
+    # Comments
+    And I am on the "Quiz 1 > student > Attempt 1" "mod_quiz > Attempt review" page
+    And I follow "Make comment or override mark"
+    And the course linear navigation should not be visible
     # Question bank
     And I navigate to "Question bank" in current page administration
     And the course linear navigation should not be visible
