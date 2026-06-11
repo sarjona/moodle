@@ -52,7 +52,6 @@ $PAGE->set_url($attemptobj->attempt_url(null, $page));
 $PAGE->set_cacheable(false);
 
 $PAGE->set_secondary_active_tab("modulepage");
-$PAGE->set_show_navigation_footer(false);
 
 // Check login.
 require_login($attemptobj->get_course(), false, $attemptobj->get_cm());

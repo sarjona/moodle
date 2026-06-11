@@ -47,7 +47,6 @@ if ($page !== 0) {
 }
 $PAGE->set_url($url);
 $PAGE->set_secondary_active_tab("modulepage");
-$PAGE->set_show_navigation_footer(false);
 
 $attemptobj = quiz_create_attempt_handling_errors($attemptid, $cmid);
 $attemptobj->preload_all_attempt_step_users();
