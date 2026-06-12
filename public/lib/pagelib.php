@@ -463,9 +463,9 @@ class moodle_page {
     protected bool $hasstickyfooter = false;
 
     /**
-     * @var stdClass|null Data for supplementary content to be displayed in the sticky footer.
+     * @var action_link|null Data for supplementary content to be displayed in the sticky footer.
      */
-    protected ?stdClass $supplementarycontent = null;
+    protected ?action_link $supplementarycontent = null;
 
     /**
      * Force the settings menu to be displayed on this page. This will only force the
@@ -2608,21 +2608,18 @@ class moodle_page {
     /**
      * Add supplementary content to the page.
      *
-     * @param string $text
-     * @param string|null $link
+     * @param action_link|null $link The link to be added as supplementary content.
      */
-    public function set_supplementary_content(string $text, ?string $link = null): void {
-        $this->supplementarycontent = new stdClass();
-        $this->supplementarycontent->text = $text;
-        $this->supplementarycontent->link = $link;
+    public function set_supplementary_content(?action_link $link): void {
+        $this->supplementarycontent = $link;
     }
 
     /**
      * Get the current supplementary content.
      *
-     * @return stdClass|null Object with 'text' and 'link' properties or null if not defined.
+     * @return action_link|null The link added as supplementary content or null if not defined.
      */
-    public function get_supplementary_content(): ?stdClass {
+    public function get_supplementary_content(): ?action_link {
         return $this->supplementarycontent;
     }
 }
