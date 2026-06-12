@@ -80,8 +80,10 @@ $PAGE->set_activity_record($forumrecord);
 
 // Add link to all discussions as supplementary content to go to the main forum page.
 $PAGE->set_supplementary_content(
-    get_string('gotoalldiscussions', 'mod_forum'),
-    (new core\url('/mod/forum/view.php', ['id' => $cm->id]))->out(false),
+    new action_link(
+        $urlfactory->get_forum_view_url_from_course_module_id($cm->id),
+        get_string('gotoalldiscussions', 'mod_forum'),
+    )
 );
 
 // move this down fix for MDL-6926
