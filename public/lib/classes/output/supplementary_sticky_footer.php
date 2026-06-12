@@ -16,8 +16,6 @@
 
 namespace core\output;
 
-use stdClass;
-
 /**
  * Sticky footer class with supplementary content.
  *
