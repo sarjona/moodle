@@ -26,34 +26,26 @@ use stdClass;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class supplementary_sticky_footer extends \core\output\sticky_footer {
-
-    /** @var stdClass|null Object containing supplementary content with 'text' and 'link' properties. */
-    protected ?stdClass $supplementarycontent = null;
+    /** @var action_link|null The link added as supplementary content or null if not defined. */
+    protected ?action_link $supplementarycontent = null;
 
     /**
      * Add supplementary content to the sticky footer.
      *
-     * @param string $text The supplementary text to be displayed in the sticky footer.
-     * @param string|null $link An optional link for the supplementary text.
+     * @param action_link $content The action link to be added as supplementary content.
      */
     public function add_supplementary_content(
-        string $text,
-        ?string $link = null,
+        action_link $content,
     ): void {
-        $this->supplementarycontent = new stdClass();
-        $this->supplementarycontent->text = $text;
-        $this->supplementarycontent->link = $link;
+        $this->supplementarycontent = $content;
+        $this->supplementarycontent->add_class('fw-medium');
     }
 
     #[\Override]
     public function export_for_template(renderer_base $output): array {
         $data = parent::export_for_template($output);
-        // Only add supplementary content if it's set.
         if ($this->supplementarycontent !== null) {
-            $data['supplementarytext'] = $this->supplementarycontent->text;
-            if (!empty($this->supplementarycontent->link)) {
-                $data['supplementarylink'] = $this->supplementarycontent->link;
-            }
+            $data['supplementary'] = $this->supplementarycontent->export_for_template($output);
         }
         return $data;
     }

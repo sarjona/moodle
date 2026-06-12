@@ -161,7 +161,7 @@ class hook_listener {
             'course-linear-navigation',
         );
         if ($supplementarycontent !== null) {
-            $footer->add_supplementary_content($supplementarycontent->text, $supplementarycontent->link);
+            $footer->add_supplementary_content($supplementarycontent);
         }
         $hook->add_html($hook->renderer->render($footer));
     }

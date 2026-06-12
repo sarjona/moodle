@@ -33,8 +33,11 @@
         "stickycontent": "<a href=\"#\">Moodle</a>",
         "stickyclasses": "justify-content-end",
         "disable": false,
-        "supplementarytext": "Moodle",
-        "supplementarylink": "#",
+        "supplementary": {
+            "disabled": false,
+            "url": "#",
+            "text": "Supplementary content"
+        },
         "extras": [
             {
                 "attribute" : "data-example",
@@ -56,11 +59,11 @@
     {{/ extradata }}
 >
     <div class="sticky-footer-supplementary-wrapper">
-            {{# supplementarytext }}
-                <div class="sticky-footer-supplementary d-flex justify-content-center align-items-center" >
-                    <a href="{{{supplementarylink}}}" class="text-primary text-decoration-none fw-medium">{{{supplementarytext}}}</a>
-                </div>
-            {{/ supplementarytext }}
+        {{# supplementary }}
+        <div class="sticky-footer-supplementary d-flex justify-content-center align-items-center" >
+            {{> core/action_link}}
+        </div>
+        {{/ supplementary }}
     </div>
 
     {{# stickycontent }}
