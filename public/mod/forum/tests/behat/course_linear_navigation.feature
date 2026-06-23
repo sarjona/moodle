@@ -76,3 +76,15 @@ Feature: Display the course linear navigation in the forum pages
     And the course linear navigation should not be visible
     And I navigate to "Export" in current page administration
     And the course linear navigation should not be visible
+    # Add a discussion to trigger the subscription created event.
+    And I am on the "Forum1" "forum activity" page
+    And I click on "Add discussion topic" "link"
+    And I set the following fields to these values:
+      | Subject | student3 discussion |
+      | Message | posted by student3  |
+    And I press "Post to forum"
+    And I navigate to "Logs" in current page administration
+    And the course linear navigation should not be visible
+    And I follow "Discussion subscription created"
+    And I switch to a second window
+    And the course linear navigation should not be visible
