@@ -127,33 +127,12 @@ class hook_listener {
         \core\hook\output\before_footer_html_generation $hook,
     ): void {
         $page = $hook->renderer->get_page();
-        if ($page->cm === null) {
-            // Not on an activity page, do not add the sticky footer.
-            return;
-        }
-        if ($page->has_sticky_footer()) {
-            // If there is already a sticky footer, do not add another one.
-            return;
-        }
-        if (!$page->should_show_navigation_footer()) {
-            // If the page should not show the navigation footer, do not add the sticky footer.
-            return;
-        }
-
-        $format = \course_get_format($page->course);
-        if (!$format->uses_linear_navigation()) {
-            // Only add the sticky footer for course formats using linear navigation.
-            return;
-        }
-        $formatoptions = $format->get_format_options();
-        $linearnavigationenabled = ($formatoptions[linearnavigationsettings::SETTING_ENABLE_LINEAR_NAV] ?? false);
-        if (!$linearnavigationenabled) {
-            // Linear navigation is not enabled, do not add the sticky footer.
+        if (!\core_courseformat\local\linearnavigationsettings::show_navigation_footer($page)) {
             return;
         }
 
         // Add the sticky footer with the linear navigation content.
-        $linearnavigationcontent = new output\local\linearnavigation\footer_content($page->cm->id);
+        $linearnavigationcontent = new output\local\linearnavigation\footer_content($page->cm);
         $stickyfootercontent = $hook->renderer->render($linearnavigationcontent);
         $footer = new supplementary_sticky_footer(
             $stickyfootercontent,
