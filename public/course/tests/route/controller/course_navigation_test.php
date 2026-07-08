@@ -122,7 +122,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm1',
             'expected' => [
-                'id' => 'cm2', // Teachers can see stealth modules in the course page.
+                'id' => 'cm3', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
             'role' => 'editingteacher',
         ];
@@ -134,7 +134,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm1',
             'expected' => [
-                'id' => 'cm3', // Students cannot see stealth modules in the course page.
+                'id' => 'cm3', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
         ];
         yield 'Hidden last module (teacher)' => [
@@ -165,7 +165,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm1',
             'expected' => [
-                'id' => 'cm2',
+                'type' => 'course', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
             'role' => 'teacher',
         ];
@@ -176,7 +176,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm1',
             'expected' => [
-                'type' => 'course', // Students cannot see stealth modules in the course page.
+                'type' => 'course', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
         ];
         yield 'Restricted module visible (editingteacher)' => [
@@ -909,7 +909,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm3',
             'expected' => [
-                'id' => 'cm2', // Teachers can see stealth modules in the course page.
+                'id' => 'cm1', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
             'role' => 'teacher',
         ];
@@ -921,7 +921,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm3',
             'expected' => [
-                'id' => 'cm1', // Students cannot see stealth modules in the course page.
+                'id' => 'cm1', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
         ];
         yield 'Hidden first module (teacher)' => [
@@ -931,7 +931,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm2',
             'expected' => [
-                'id' => 'cm1', // Students cannot see stealth modules in the course page.
+                'id' => 'cm1', // Teachers can see hidden modules in the course page.
             ],
             'role' => 'teacher',
         ];
@@ -952,7 +952,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm2',
             'expected' => [
-                'id' => 'cm1',
+                'type' => 'course', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
             'role' => 'teacher',
         ];
@@ -963,7 +963,7 @@ final class course_navigation_test extends route_testcase {
             ],
             'current' => 'cm2',
             'expected' => [
-                'type' => 'course', // Students cannot see stealth modules in the course page.
+                'type' => 'course', // Stealth modules are skipped, as they are not meant to be accessed directly.
             ],
         ];
         yield 'Restricted module visible (editingteacher)' => [

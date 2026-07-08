@@ -148,6 +148,8 @@ class course_navigation {
             !empty($cm->get_navigation_url())
             // Skip modules that are not visible to the user.
             && $cm->is_visible_on_course_page()
+            // Skip stealth modules, as they are not meant to be accessed directly.
+            && !$cm->is_stealth()
             // Skip modules that are not displayable.
             && modinfo::is_mod_type_visible_on_course($cm->modname);
     }
