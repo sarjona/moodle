@@ -145,6 +145,11 @@ class linearnavigationsettings {
             return false;
         }
 
+        if ($page->cm->is_stealth()) {
+            // Stealth activities should not show the navigation footer.
+            return false;
+        }
+
         return true;
     }
 
